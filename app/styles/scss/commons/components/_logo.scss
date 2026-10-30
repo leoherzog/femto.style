@@ -5,8 +5,8 @@
  */
 
 svg {
-  &.pico-logo,
-  &.pico-icon {
+  &.femto-logo,
+  &.femto-icon {
     width: auto;
     height: 2.25rem;
 
@@ -25,19 +25,19 @@ svg {
         &:nth-of-type(3) {
           --animate-duration: 0.5s;
           --animate-delay: 0s;
-          transform-origin: 309px 78px;
+          transform-origin: 1825.3px 293.1px;
         }
 
         &:first-of-type {
           --animate-duration: 0.75s;
           --animate-delay: 0.125s;
-          transform-origin: 345px 48px;
+          transform-origin: 2034.8px 200px;
         }
 
         &:nth-of-type(2) {
           --animate-duration: 0.5s;
           --animate-delay: 0.375s;
-          transform-origin: 297px 18px;
+          transform-origin: 1855.2px 84.6px;
         }
       }
     }

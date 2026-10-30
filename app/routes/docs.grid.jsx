@@ -105,11 +105,11 @@ export default function Grid() {
           <Heading level={2} anchor="about-css-grids">
             About CSS Grids
           </Heading>
-          <p>As Pico focuses on native HTML elements, we kept this grid system minimalist.</p>
+          <p>As femto focuses on native HTML elements, we kept this grid system minimalist.</p>
           <p>
             A complete grid system in flexbox, with all the ordering, offsetting, and breakpoints
-            utilities, can be heavier than the total size of the Pico library. Not really in the
-            Pico spirit.
+            utilities, can be heavier than the total size of the femto library. Not really in the
+            femto spirit.
           </p>
           <p>
             If you need a quick way to prototype or build a complex layout, you can look at{" "}

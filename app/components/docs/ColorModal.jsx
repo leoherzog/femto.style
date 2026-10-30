@@ -15,7 +15,7 @@ import {
 } from "~/utils";
 
 export default function ColorModal({ color, isOpen, onClose, setSelectedColor, ...props }) {
-  const backgroundColorClassName = `pico-background-${color.family}-${color.shade}`;
+  const backgroundColorClassName = `femto-background-${color.family}-${color.shade}`;
   const hexValue = getHexValue(color);
   const rgbValue = getRgbValue(color);
   const colorName = getColorName(color);
@@ -96,7 +96,7 @@ export default function ColorModal({ color, isOpen, onClose, setSelectedColor, .
   return (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <dialog open={isOpen} className={`color`} onClick={handleClickOverlay} {...props}>
-      <article style={{ "--pico-glowing-color": `${mainHexValue}26`, maxHeight: modalHeight }}>
+      <article style={{ "--femto-glowing-color": `${mainHexValue}26`, maxHeight: modalHeight }}>
         <header className={backgroundColorClassName}>
           <a href="#close" rel="prev" aria-label="Close" className="close" onClick={onClose}>
             <Close />
@@ -116,11 +116,11 @@ export default function ColorModal({ color, isOpen, onClose, setSelectedColor, .
           <p>Sass variable</p>
           <Code className="small">{`$${color.family}-${color.shade}`}</Code>
           <p>Color utility class</p>
-          <Code className="small">{`pico-color-${color.family}-${color.shade}`}</Code>
+          <Code className="small">{`femto-color-${color.family}-${color.shade}`}</Code>
           <p>Background utility class</p>
-          <Code className="small">{`pico-background-${color.family}-${color.shade}`}</Code>
+          <Code className="small">{`femto-background-${color.family}-${color.shade}`}</Code>
           <p>CSS variable</p>
-          <Code className="small">{`var(--pico-color-${color.family}-${color.shade})`}</Code>
+          <Code className="small">{`var(--femto-color-${color.family}-${color.shade})`}</Code>
         </div>
       </article>
     </dialog>

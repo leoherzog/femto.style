@@ -1,5 +1,6 @@
 // Pico CSS
 @use "pico" with (
+  $css-var-prefix: "--femto-",
   $enable-responsive-spacings: true
 );
 

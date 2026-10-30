@@ -24,7 +24,7 @@ export default function DemoPage() {
     <>
       <header style={{ padding: "2rem" }}>
         <div className="container">
-          <Link to="/" aria-label="Pico CSS homepage">
+          <Link to="/" aria-label="femto homepage">
             <Logo />
           </Link>
         </div>

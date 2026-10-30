@@ -4,4 +4,4 @@ export * from "./isScrollbarVisible";
 export * from "./removeLines";
 export * from "./sentenceCase";
 export * from "./themeGenerator";
-export * from "./usePicoPalette";
+export * from "./useFemtoPalette";

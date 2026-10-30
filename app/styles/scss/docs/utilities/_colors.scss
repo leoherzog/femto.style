@@ -3,6 +3,8 @@
  */
 
 @use "pico.colors" with (
+  $css-var-prefix: "--femto-",
+  $css-class-prefix: "femto-",
   $palette: (
     "enable-shades": false,
   ),

@@ -1,14 +1,14 @@
 {
-  "siteName": "Pico CSS",
-  "defaultTitle": "Pico CSS • Minimal CSS Framework for semantic HTML",
+  "siteName": "femto",
+  "defaultTitle": "femto • Minimal CSS Framework for semantic HTML",
   "defaultDescription": "Minimalist and lightweight starter kit that prioritizes semantic syntax, making every HTML element responsive and elegant by default.",
-  "domain": "https://picocss.com",
-  "titleSuffix": "• Pico CSS",
+  "domain": "https://femto.style",
+  "titleSuffix": "• femto",
   "versions": {
-    "current": "2.1.1",
+    "current": "3.0.0-alpha.1",
     "all": [
       {
-        "version": "2.1.1",
+        "version": "3.0.0-alpha.1",
         "url": "/docs"
       },
       {
@@ -17,15 +17,13 @@
       }
     ]
   },
-  "cdnBaseUrl": "https://cdn.jsdelivr.net/npm/@picocss/pico@2/",
-  "githubRepo": "https://github.com/picocss/pico",
-  "githubFilesBaseUrl": "https://github.com/picocss/pico/blob/main/",
-  "githubTreeBaseUrl": "https://github.com/picocss/pico/tree/main/",
-  "documentationGithubRepo": "https://github.com/picocss/picocss.com",
-  "documentationGithubFilesBaseUrl": "https://github.com/picocss/picocss.com/blob/main/",
-  "documentationGithubTreeBaseUrl": "https://github.com/picocss/picocss.com/tree/main/",
-  "twitterUrl": "https://x.com/picocss",
-  "twitterHandle": "@picocss",
-  "npmUrl": "https://www.npmjs.com/package/@picocss/pico",
-  "jsDelivrUrl": "https://www.jsdelivr.com/package/npm/@picocss/pico"
+  "cdnBaseUrl": "https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/",
+  "githubRepo": "https://github.com/leoherzog/femto",
+  "githubFilesBaseUrl": "https://github.com/leoherzog/femto/blob/main/",
+  "githubTreeBaseUrl": "https://github.com/leoherzog/femto/tree/main/",
+  "documentationGithubRepo": "https://github.com/leoherzog/femto.style",
+  "documentationGithubFilesBaseUrl": "https://github.com/leoherzog/femto.style/blob/main/",
+  "documentationGithubTreeBaseUrl": "https://github.com/leoherzog/femto.style/tree/main/",
+  "npmUrl": "https://www.npmjs.com/package/@leoherzog/femto",
+  "jsDelivrUrl": "https://www.jsdelivr.com/package/npm/@leoherzog/femto"
 }

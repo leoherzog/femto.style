@@ -8,7 +8,7 @@ export const meta = () => [
   { title: `Usage scenarios ${titleSuffix}` },
   {
     name: "description",
-    content: "How does Pico fit into your project?",
+    content: "How does femto fit into your project?",
   },
 ];
 
@@ -16,19 +16,19 @@ export default function UsageScenarios() {
   return (
     <>
       {/* Header */}
-      <Header title="Usage scenarios" description="How does Pico fit into your project?" />
+      <Header title="Usage scenarios" description="How does femto fit into your project?" />
 
       {/* Content */}
       <Content>
         <section>
-          <p>Optimal use cases for Pico based on your CSS expertise and project type.</p>
+          <p>Optimal use cases for femto based on your CSS expertise and project type.</p>
           <div className="overflow-auto">
             <table className="striped">
               <thead>
                 <tr>
                   <th>Project type</th>
                   <th>CSS expertise</th>
-                  <th>Pico’s fit</th>
+                  <th>femto’s fit</th>
                   <th>Examples</th>
                 </tr>
               </thead>

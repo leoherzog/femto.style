@@ -4,14 +4,14 @@ import Content from "~/components/docs/Content";
 import Header from "~/components/docs/Header";
 import TableOfContents from "~/components/docs/TableOfContents";
 import metaData from "~/data/meta";
-import darkLogoPng from "~/images/brand-assets/pico-logo-dark.png";
-import darkLogoSvg from "~/images/brand-assets/pico-logo-dark.svg";
-import lightLogoPng from "~/images/brand-assets/pico-logo-light.png";
-import lightLogoSvg from "~/images/brand-assets/pico-logo-light.svg";
-import darkIconPng from "~/images/brand-assets/pico-mark-dark.png";
-import darkIconSvg from "~/images/brand-assets/pico-mark-dark.svg";
-import lightIconPng from "~/images/brand-assets/pico-mark-light.png";
-import lightIconSvg from "~/images/brand-assets/pico-mark-light.svg";
+import darkLogoPng from "~/images/brand-assets/femto-logo-dark.png";
+import darkLogoSvg from "~/images/brand-assets/femto-logo-dark.svg";
+import lightLogoPng from "~/images/brand-assets/femto-logo-light.png";
+import lightLogoSvg from "~/images/brand-assets/femto-logo-light.svg";
+import darkIconPng from "~/images/brand-assets/femto-mark-dark.png";
+import darkIconSvg from "~/images/brand-assets/femto-mark-dark.svg";
+import lightIconPng from "~/images/brand-assets/femto-mark-light.png";
+import lightIconSvg from "~/images/brand-assets/femto-mark-light.svg";
 
 const { titleSuffix } = metaData;
 
@@ -73,7 +73,7 @@ export default function Brand() {
           <div className="grid">
             <article data-theme="light">
               <a href={lightLogoSvg} download>
-                <img src={lightLogoSvg} alt="Pico CSS logo" />
+                <img src={lightLogoSvg} alt="femto logo" />
               </a>
               <footer>
                 <a href={lightLogoSvg} role="button" className="secondary" download>
@@ -86,7 +86,7 @@ export default function Brand() {
             </article>
             <article data-theme="dark">
               <a href={darkLogoSvg} download>
-                <img src={darkLogoSvg} alt="Pico CSS logo" />
+                <img src={darkLogoSvg} alt="femto logo" />
               </a>
               <footer>
                 <a href={darkLogoSvg} role="button" className="secondary" download>
@@ -110,7 +110,7 @@ export default function Brand() {
           <div className="grid">
             <article data-theme="light">
               <a href={lightIconSvg} download>
-                <img src={lightIconSvg} alt="Pico CSS icon" />
+                <img src={lightIconSvg} alt="femto icon" />
               </a>
               <footer>
                 <a href={lightIconSvg} role="button" className="secondary" download>
@@ -123,7 +123,7 @@ export default function Brand() {
             </article>
             <article data-theme="dark">
               <a href={darkIconSvg} download>
-                <img src={darkIconSvg} alt="Pico CSS icon" />
+                <img src={darkIconSvg} alt="femto icon" />
               </a>
               <footer>
                 <a href={darkIconSvg} role="button" className="secondary" download>

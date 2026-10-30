@@ -2,7 +2,7 @@ import { useNavigation } from "~/contexts/NavigationContext";
 import metaData from "~/data/meta";
 
 export default function Head({ children, ...props }) {
-  const { domain, twitterHandle } = metaData;
+  const { domain } = metaData;
   const { routePath } = useNavigation();
   const canonicalUrl = `${domain}${routePath.replace(/\/\s*$/, "")}`;
   return (
@@ -16,12 +16,11 @@ export default function Head({ children, ...props }) {
       <meta property="og:image:type" content="image/png" />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />
-      <meta property="og:site_name" content="Pico CSS" />
+      <meta property="og:site_name" content="femto" />
       <meta property="og:locale" content="en_US" />
       <meta property="og:type" content="website" />
       <meta property="og:url" content="https://v2.picocss.com/" />
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:site" content={twitterHandle} />
       {children}
     </head>
   );

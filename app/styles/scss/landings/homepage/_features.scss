@@ -45,7 +45,7 @@ body > main.homepage > .features {
         margin-bottom: calc(var(#{$css-var-prefix}spacing) * 0.75);
         color: var(#{$css-var-prefix}features-icon-color);
 
-        &.pico-icon {
+        &.femto-icon {
           path {
             fill: currentColor;
           }

@@ -235,7 +235,7 @@ export default function Dropdown() {
 </details>`}</Code>
           </article>
           <p>
-            Pico does not include JavaScript code. You will probably need some JavaScript to
+            femto does not include JavaScript code. You will probably need some JavaScript to
             interact with these custom dropdowns.
           </p>
         </section>

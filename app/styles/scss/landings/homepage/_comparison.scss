@@ -81,7 +81,7 @@ body > main.homepage > .comparison {
         }
       }
 
-      &.pico {
+      &.femto {
         .code {
           &::before {
             background: var(#{$css-var-prefix}comparison-gradient-valid);

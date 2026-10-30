@@ -17,7 +17,7 @@ functions/\[\[path\]\].js.map
 app/styles/css/*
 !app/styles/css/postcss.config.js
 
-# Pico
+# femto
 public/docs
 app/data/stats.json
 

@@ -1,5 +1,7 @@
 @use "sass:map";
-@use "settings" as *;
+@use "settings" as * with (
+  $css-var-prefix: "--femto-"
+);
 
 // Theme
 @use "landings/theme/default";

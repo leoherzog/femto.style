@@ -1,1 +1,4 @@
+@use "settings" with (
+  $css-var-prefix: "--femto-"
+);
 @use "themes/default/schemes";

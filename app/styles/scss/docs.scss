@@ -1,3 +1,7 @@
+@use "settings" with (
+  $css-var-prefix: "--femto-"
+);
+
 // Theme
 @use "docs/theme/default";
 

@@ -3,7 +3,6 @@ import Link from "~/components/Link";
 import Logo from "~/components/Logo";
 import GitHubIcon from "~/components/icons/GitHub";
 import NpmIcon from "~/components/icons/Npm";
-import TwitterIcon from "~/components/icons/XTwitter";
 import { useNavigation } from "~/contexts/NavigationContext";
 import footerLinks from "~/data/footer";
 import metaData from "~/data/meta";
@@ -39,16 +38,23 @@ const Links = ({ data, ...props }) => {
 
 // Build info
 const BuildInfo = (props) => {
-  const { githubRepo } = metaData;
   return (
     <p className="build-info" {...props}>
-      Designed and built by{" "}
+      Maintained by{" "}
+      <Link to="https://github.com/leoherzog" className="secondary">
+        Leo Herzog
+      </Link>
+      , based on{" "}
+      <Link to="https://picocss.com" className="secondary">
+        Pico CSS
+      </Link>{" "}
+      by{" "}
       <Link to="https://lucaslarroche.com/" className="secondary">
         Lucas Larroche
-      </Link>{" "}
-      with the help of our{" "}
-      <Link to={`${githubRepo}/graphs/contributors`} className="secondary">
-        contributors
+      </Link>
+      , documentation licensed{" "}
+      <Link to="https://github.com/picocss/picocss.com/blob/main/LICENSE.md" className="secondary">
+        CC BY-SA 4.0
       </Link>
       .
     </p>
@@ -57,17 +63,12 @@ const BuildInfo = (props) => {
 
 // Resources
 const Resources = (props) => {
-  const { githubRepo, twitterUrl, npmUrl, jsDelivrUrl } = metaData;
+  const { githubRepo, npmUrl, jsDelivrUrl } = metaData;
   return (
     <ul className="resources" {...props}>
       <li>
         <Link to={githubRepo} className="contrast" title="GitHub">
           <GitHubIcon />
-        </Link>
-      </li>
-      <li>
-        <Link to={twitterUrl} className="contrast" title="Twitter">
-          <TwitterIcon />
         </Link>
       </li>
       <li>
@@ -92,12 +93,12 @@ const LicensesAndVersion = () => {
     <>
       <p>
         Code licensed{" "}
-        <Link to="https://github.com/picocss/pico/blob/master/LICENSE.md" className="secondary">
+        <Link to="https://github.com/leoherzog/femto/blob/main/LICENSE.md" className="secondary">
           MIT
         </Link>
         , docs{" "}
         <Link
-          to="https://github.com/picocss/picocss.com/blob/main/LICENSE.md"
+          to="https://github.com/leoherzog/femto.style/blob/main/LICENSE.md"
           className="secondary"
         >
           CC BY-SA 4.0

@@ -25,12 +25,12 @@ article {
             opacity: 0.875;
           }
 
-          &.pico-background-lime,
-          &.pico-background-yellow,
-          &.pico-background-amber,
-          &.pico-background-pumpkin,
-          &.pico-background-sand,
-          &.pico-background-grey {
+          &.femto-background-lime,
+          &.femto-background-yellow,
+          &.femto-background-amber,
+          &.femto-background-pumpkin,
+          &.femto-background-sand,
+          &.femto-background-grey {
             &::before {
               filter: brightness(0);
             }

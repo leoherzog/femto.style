@@ -37,7 +37,7 @@ export default function ThemePreview({ title, ...props }) {
               <Link
                 key={color}
                 to={linkTo}
-                className={`pico-background-${color}`}
+                className={`femto-background-${color}`}
                 aria-label={title}
                 preventScrollReset={true}
                 aria-busy={isLoading && nextPageCurrentlyLoading === linkTo}

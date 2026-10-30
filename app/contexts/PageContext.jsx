@@ -16,7 +16,7 @@ const PageProvider = ({ children, ...props }) => {
   // Theme
   const systemPrefersColorScheme = usePrefersColorScheme();
   const defaultTheme = systemPrefersColorScheme === "dark" ? "dark" : "light";
-  const [selectedTheme, setSelectedTheme] = useLocalStorageState("picoColorScheme", null);
+  const [selectedTheme, setSelectedTheme] = useLocalStorageState("femtoColorScheme", null);
   const [pageTheme, setPageTheme] = useState("light");
 
   const switchTheme = () => {
@@ -47,7 +47,7 @@ const PageProvider = ({ children, ...props }) => {
         {...(selectedTheme && { "data-theme": selectedTheme })}
         {...(modalIsOpen && { className: modalHelperClasses })}
         {...(modalIsOpen &&
-          scrollbarIsVisible && { style: { "--pico-scrollbar-width": `${scrollbarWidth}px` } })}
+          scrollbarIsVisible && { style: { "--femto-scrollbar-width": `${scrollbarWidth}px` } })}
       >
         <NavigationProvider>{children}</NavigationProvider>
       </html>

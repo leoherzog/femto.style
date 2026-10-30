@@ -12,9 +12,9 @@ export default function Comparison(props) {
         <p>A strong design foundation thrives on simplicity and ease of maintenance.</p>
       </hgroup>
       <div className="grid">
-        <div className="pico">
+        <div className="femto">
           <p>
-            <span className="emoji">😌</span> Pico CSS
+            <span className="emoji">😌</span> femto
           </p>
           <Code language="html" allowCopy={false} dataTheme={pageTheme}>{`<form>
   <input type="text">

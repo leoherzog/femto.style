@@ -1,5 +1,7 @@
 @use "sass:map";
-@use "settings" as *;
+@use "settings" as * with (
+  $css-var-prefix: "--femto-"
+);
 @use "colors" as *;
 @use "../../../../node_modules/@picocss/pico/scss/themes/default/theme-colors" as *;
 

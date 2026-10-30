@@ -15,7 +15,7 @@ export const meta = () => [
   {
     name: "description",
     content:
-      "Link Pico.css manually or via CDN for a dependency-free setup, or use NPM or Composer for advanced usage.",
+      "Link femto manually or via CDN for a dependency-free setup, or use NPM or Composer for advanced usage.",
   },
 ];
 
@@ -33,7 +33,7 @@ export default function QuickStart() {
         title="Quick start"
         description={
           <>
-            Link <code>pico.css</code> manually or via CDN for a dependency-free setup, or use NPM
+            Link <code>femto.css</code> manually or via CDN for a dependency-free setup, or use NPM
             or Composer for advanced&nbsp;usage.
           </>
         }
@@ -73,18 +73,18 @@ export default function QuickStart() {
       {/* Content */}
       <Content>
         <section ref={installManuallyRef}>
-          <p>There are 4 ways to get started with pico.css:</p>
+          <p>There are 4 ways to get started with femto:</p>
           <Heading level={2} anchor="install-manually">
             Install manually
           </Heading>
           <p>
-            <Link to="https://github.com/picocss/pico/archive/refs/heads/main.zip">
-              Download Pico
+            <Link to="https://github.com/leoherzog/femto/archive/refs/heads/main.zip">
+              Download femto
             </Link>{" "}
-            and link <code>/css/pico.min.css</code> in the <Code display="inline">{`<head>`}</Code>{" "}
-            of your website.
+            and link <code>/dist/femto.min.css</code> in the{" "}
+            <Code display="inline">{`<head>`}</Code> of your website.
           </p>
-          <Code className="small">{`<link rel="stylesheet" href="css/pico.min.css">`}</Code>
+          <Code className="small">{`<link rel="stylesheet" href="dist/femto.min.css">`}</Code>
         </section>
 
         <section ref={installFromCdnRef}>
@@ -93,11 +93,11 @@ export default function QuickStart() {
           </Heading>
           <p>
             Alternatively, you can use <Link to={cdnBaseUrl}>jsDelivr CDN</Link> to link
-            <code>pico.min.css</code>.
+            <code>femto.min.css</code>.
           </p>
           <Code>{`<link
   rel="stylesheet"
-  href="${cdnBaseUrl}css/pico.min.css"
+  href="${cdnBaseUrl}dist/femto.min.css"
 >`}</Code>
         </section>
 
@@ -106,11 +106,11 @@ export default function QuickStart() {
             Install with NPM
           </Heading>
           <Code language="bash" className="small">
-            npm install @picocss/pico
+            npm install @leoherzog/femto
           </Code>
           <p>Or</p>
           <Code language="bash" className="small">
-            yarn add @picocss/pico
+            yarn add @leoherzog/femto
           </Code>
           <p>
             Then, import Pico into your SCSS file with{" "}
@@ -129,7 +129,7 @@ export default function QuickStart() {
             Install with Composer
           </Heading>
           <Code language="bash" className="small">
-            composer require picocss/pico
+            composer require leoherzog/femto
           </Code>
         </section>
 
@@ -143,7 +143,7 @@ export default function QuickStart() {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light dark">
-    <link rel="stylesheet" href="css/pico.min.css">
+    <link rel="stylesheet" href="dist/femto.min.css">
     <title>Hello world!</title>
   </head>
   <body>

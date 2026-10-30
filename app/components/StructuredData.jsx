@@ -1,7 +1,7 @@
 import metaData from "~/data/meta";
 
 export default function StructuredData() {
-  const { defaultDescription, domain, githubRepo, siteName, twitterUrl, version } = metaData;
+  const { defaultDescription, domain, githubRepo, siteName, versions } = metaData;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareSourceCode",
@@ -10,7 +10,7 @@ export default function StructuredData() {
     abstract: defaultDescription,
     isFamilyFriendly: true,
     codeRepository: githubRepo,
-    version,
+    version: versions.current,
     programmingLanguage: ["css", "scss"],
     keywords: [
       "css",
@@ -25,20 +25,31 @@ export default function StructuredData() {
       "minimalistic",
       "native-html",
     ],
-    license: `${githubRepo}/blob/master/LICENSE.md`,
-    sameAs: [githubRepo, twitterUrl],
+    license: `${githubRepo}/blob/main/LICENSE.md`,
+    sameAs: [githubRepo],
     image: `${domain}/opengraph.png`,
     maintainer: {
-      "@type": "Organization",
-      name: "Pico",
-      logo: `${domain}/logo.png`,
+      "@type": "Person",
+      name: "Leo Herzog",
+      url: "https://github.com/leoherzog",
     },
     author: {
       "@type": "Person",
-      name: "Lucas Larroche",
-      givenName: "Lucas",
-      familyName: "Larroche",
-      url: "https://lucaslarroche.com",
+      name: "Leo Herzog",
+      givenName: "Leo",
+      familyName: "Herzog",
+      url: "https://github.com/leoherzog",
+    },
+    isBasedOn: {
+      "@type": "SoftwareSourceCode",
+      name: "Pico CSS",
+      url: "https://picocss.com",
+      codeRepository: "https://github.com/picocss/pico",
+      author: {
+        "@type": "Person",
+        name: "Lucas Larroche",
+        url: "https://lucaslarroche.com",
+      },
     },
   };
 

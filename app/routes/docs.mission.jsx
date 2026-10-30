@@ -10,7 +10,7 @@ export const meta = () => [
   {
     name: "description",
     content:
-      "Pico CSS is a minimalist and lightweight starter kit that prioritizes semantic syntax, making every HTML element responsive and elegant by default.",
+      "femto is a minimalist and lightweight starter kit that prioritizes semantic syntax, making every HTML element responsive and elegant by default.",
   },
 ];
 
@@ -20,7 +20,7 @@ export default function Mission() {
       {/* Header */}
       <Header
         title="Mission"
-        description="Pico CSS is a minimalist and lightweight starter kit that prioritizes semantic syntax,
+        description="femto is a minimalist and lightweight starter kit that prioritizes semantic syntax,
         making every HTML element responsive and elegant by default."
       />
 
@@ -28,7 +28,7 @@ export default function Mission() {
       <Content>
         <section>
           <p>
-            With a focus on simplicity, Pico provides a clean starting point for building websites
+            With a focus on simplicity, femto provides a clean starting point for building websites
             without the need for excessive CSS classes and wrappers.
           </p>
           <p>Here’s our maxi-minimalist story.</p>

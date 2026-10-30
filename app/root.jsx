@@ -17,7 +17,7 @@ import { HeaderProvider } from "~/contexts/HeaderContext";
 import { ModalProvider } from "~/contexts/ModalContext";
 import { PageProvider } from "~/contexts/PageContext";
 import metaData from "~/data/meta";
-import picoStyles from "~/styles/css/main.css";
+import femtoStyles from "~/styles/css/main.css";
 
 const { titleSuffix } = metaData;
 
@@ -25,12 +25,11 @@ export function links() {
   return [
     // Favicons
     { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-    { rel: "icon", href: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
     { rel: "apple-touch-icon", href: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" },
     { rel: "manifest", href: "/site.webmanifest" },
 
     // Styles
-    { rel: "stylesheet", href: picoStyles },
+    { rel: "stylesheet", href: femtoStyles },
   ];
 }
 

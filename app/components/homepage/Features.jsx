@@ -14,8 +14,8 @@ export default function Features(props) {
           A&nbsp;Superpowered <mark>HTML&nbsp;Reset</mark>
         </h2>
         <p>
-          With just the right&nbsp;amount of&nbsp;everything, Pico is a great starting&nbsp;point for
-          a&nbsp;clean and&nbsp;lightweight design&nbsp;system.
+          With just the right&nbsp;amount of&nbsp;everything, femto is a great starting&nbsp;point
+          for a&nbsp;clean and&nbsp;lightweight design&nbsp;system.
         </p>
       </hgroup>
       <div className="grid">
@@ -33,7 +33,7 @@ export default function Features(props) {
           <Logo displayWordmark={false} />
           <h3>Great Styles with Just CSS</h3>
           <p>
-            No extra baggage needed. Pico works seamlessly without dependencies,
+            No extra baggage needed. femto works seamlessly without dependencies,
             package&nbsp;managers, external files, or JavaScript, achieving elegant and
             straightforward styles with pure HTML&nbsp;markup.
           </p>
@@ -43,7 +43,7 @@ export default function Features(props) {
           <Expand />
           <h3>Responsive Everything</h3>
           <p>
-            Effortless elegance on every&nbsp;device. Pico natively scales font sizes and spacings
+            Effortless elegance on every&nbsp;device. femto natively scales font sizes and spacings
             with screen widths, resulting in a consistent and elegant look across devices. No extra
             classes or configuration needed.
           </p>
@@ -53,7 +53,7 @@ export default function Features(props) {
           <Brightness />
           <h3>Light or Dark Mode</h3>
           <p>
-            Pico comes with two accessible, neutral color schemes out of the box: light and dark.
+            femto comes with two accessible, neutral color schemes out of the box: light and dark.
             The best part? It automatically adapts to users' <code>prefers-color-scheme</code>, all
             without the use of JavaScript.
           </p>
@@ -74,7 +74,7 @@ export default function Features(props) {
           <h3>Optimized Performance</h3>
           <p>
             Speed meets elegance. Unlike bulky and overcomplicated frameworks that demand
-            extensive&nbsp;class overrides and JavaScript, Pico keeps your HTML lean, decreases
+            extensive&nbsp;class overrides and JavaScript, femto keeps your HTML lean, decreases
             memory usage by avoiding excessive CSS specificity, and reduces loaded files.
           </p>
           <ArrowLink to="/docs">Quick start</ArrowLink>

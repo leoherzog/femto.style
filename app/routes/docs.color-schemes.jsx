@@ -16,7 +16,7 @@ export const meta = () => [
   {
     name: "description",
     content:
-      "Pico CSS comes with both Light and Dark color schemes, automatically enabled based on user preferences.",
+      "femto comes with both Light and Dark color schemes, automatically enabled based on user preferences.",
   },
 ];
 
@@ -33,7 +33,7 @@ export default function ColorSchemes() {
       {/* Header */}
       <Header
         title="Color schemes"
-        description="Pico CSS comes with both Light and Dark color schemes, automatically enabled based on user preferences."
+        description="femto comes with both Light and Dark color schemes, automatically enabled based on user preferences."
       />
 
       {/* Table of content */}
@@ -96,8 +96,8 @@ export default function ColorSchemes() {
             and <code>color</code>.
           </p>
           <Code language="css">{`section {
-  background-color: var(--pico-background-color);
-  color: var(--pico-color);
+  background-color: var(--femto-background-color);
+  color: var(--femto-color);
 }`}</Code>
         </section>
         <section ref={exampleRef}>

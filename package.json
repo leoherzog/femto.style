@@ -1,8 +1,8 @@
 {
-  "name": "@picocss/picocss.com",
+  "name": "femto.style",
   "version": "0.0.1",
-  "author": "Lucas Larroche",
-  "homepage": "https://picocss.com",
+  "author": "Leo Herzog",
+  "homepage": "https://femto.style",
   "private": true,
   "sideEffects": false,
   "scripts": {
@@ -28,13 +28,13 @@
     "start": "wrangler pages dev --ip 0.0.0.0 --compatibility-date=2023-06-21 ./public",
     "wrangler": "wrangler pages dev --ip 0.0.0.0 ./public",
     "pages:deploy": "npm run build && wrangler pages deploy ./public",
-    "prebuild:sort-scss": "echo '[@picocss/picocss.com] ✨ Lint'",
-    "prebuild:build-css": "echo '[@picocss/picocss.com] ✨ Compile'",
-    "prebuild:autoprefix": "echo '[@picocss/picocss.com] ✨ Autoprefix'",
-    "prebuild:minify": "echo '[@picocss/picocss.com] ✨ Minify'",
-    "prebuild:code-snippets": "echo '[@picocss/picocss.com] ✨ Generate code snippets'",
-    "prebuild:fetch-stats": "echo '[@picocss/picocss.com] ✨ Fetch stats'",
-    "prebuild:v1-documentation": "echo '[@picocss/picocss.com] ✨ Build v1 documentation'"
+    "prebuild:sort-scss": "echo '[femto.style] ✨ Lint'",
+    "prebuild:build-css": "echo '[femto.style] ✨ Compile'",
+    "prebuild:autoprefix": "echo '[femto.style] ✨ Autoprefix'",
+    "prebuild:minify": "echo '[femto.style] ✨ Minify'",
+    "prebuild:code-snippets": "echo '[femto.style] ✨ Generate code snippets'",
+    "prebuild:fetch-stats": "echo '[femto.style] ✨ Fetch stats'",
+    "prebuild:v1-documentation": "echo '[femto.style] ✨ Build v1 documentation'"
   },
   "dependencies": {
     "@fontsource/figtree": "^5.2.5",

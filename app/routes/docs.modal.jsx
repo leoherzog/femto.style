@@ -212,7 +212,7 @@ export default function Modal() {
             </button>
           </article>
           <p>
-            Pico does not include JavaScript code. You need to implement your JS to interact with
+            femto does not include JavaScript code. You need to implement your JS to interact with
             modals.
           </p>
           <p>

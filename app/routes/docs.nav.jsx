@@ -434,10 +434,10 @@ ${accountItems
           </article>
           <p>
             You can change the divider with a local CSS custom property{" "}
-            <code>--pico-nav-breadcrumb-divider</code>.
+            <code>--femto-nav-breadcrumb-divider</code>.
           </p>
           <article aria-label="Breadcrumb example" className="component">
-            <nav aria-label="breadcrumb" style={{ "--pico-nav-breadcrumb-divider": "'✨'" }}>
+            <nav aria-label="breadcrumb" style={{ "--femto-nav-breadcrumb-divider": "'✨'" }}>
               <ul>
                 <li>
                   <Link to="#" onClick={preventDefault}>
@@ -454,7 +454,7 @@ ${accountItems
             </nav>
             <Code as="footer">{`<nav
   aria-label="breadcrumb"
-  style="--pico-nav-breadcrumb-divider: '✨';"
+  style="--femto-nav-breadcrumb-divider: '✨';"
 >
   <ul>
     <li><a href="#">Home</a></li>

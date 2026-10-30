@@ -45,7 +45,7 @@ body {
           }
 
           // Logo
-          svg.pico-icon {
+          svg.femto-icon {
             grid-area: logo;
           }
 
@@ -108,7 +108,7 @@ body {
           // Resources
           ul.resources {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             column-gap: calc(var(#{$css-var-prefix}spacing) / 2);
             grid-area: resources;
             width: fit-content;

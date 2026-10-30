@@ -19,7 +19,7 @@ export const meta = () => [
   {
     name: "description",
     content:
-      "Customize Pico's design system with over 130 CSS variables to create a unique look and feel.",
+      "Customize femto's design system with over 130 CSS variables to create a unique look and feel.",
   },
 ];
 
@@ -40,7 +40,7 @@ export default function CssVariables() {
       {/* Header */}
       <Header
         title="CSS variables"
-        description="Customize Pico's design system with over 130 CSS variables to create a unique look&nbsp;and&nbsp;feel."
+        description="Customize femto's design system with over 130 CSS variables to create a unique look&nbsp;and&nbsp;feel."
       />
 
       {/* Table of content */}
@@ -73,7 +73,7 @@ export default function CssVariables() {
       <Content>
         <section ref={introductionRef}>
           <p>
-            Pico includes many custom properties (variables) that allow easy access to frequently
+            femto includes many custom properties (variables) that allow easy access to frequently
             used values such as <code>font-family</code>, <code>font-size</code>,
             <code>border-radius</code>, <code>margin</code>, <code>padding</code>, and more.
           </p>
@@ -98,18 +98,18 @@ export default function CssVariables() {
               #css-var-example h1,
               #css-var-example p,
               #css-var-example button {
-                --pico-border-radius: 2rem;
-                --pico-typography-spacing-vertical: 1.5rem;
-                --pico-form-element-spacing-vertical: 1rem;
-                --pico-form-element-spacing-horizontal: 1.5rem;
+                --femto-border-radius: 2rem;
+                --femto-typography-spacing-vertical: 1.5rem;
+                --femto-form-element-spacing-vertical: 1rem;
+                --femto-form-element-spacing-horizontal: 1.5rem;
               }
               #css-var-example h1 {
-                --pico-font-family: Pacifico, cursive;
-                --pico-font-weight: 400;
-                --pico-typography-spacing-vertical: 0.5rem;
+                --femto-font-family: Pacifico, cursive;
+                --femto-font-weight: 400;
+                --femto-typography-spacing-vertical: 0.5rem;
               }
               #css-var-example button {
-                --pico-font-weight: 700;
+                --femto-font-weight: 700;
                 margin-bottom: 0;
               }
             `}</style>
@@ -122,18 +122,18 @@ export default function CssVariables() {
 
             <Code as="footer">{`<style>
   :root {
-    --pico-border-radius: 2rem;
-    --pico-typography-spacing-vertical: 1.5rem;
-    --pico-form-element-spacing-vertical: 1rem;
-    --pico-form-element-spacing-horizontal: 1.25rem;
+    --femto-border-radius: 2rem;
+    --femto-typography-spacing-vertical: 1.5rem;
+    --femto-form-element-spacing-vertical: 1rem;
+    --femto-form-element-spacing-horizontal: 1.25rem;
   }
   h1 {
-    --pico-font-family: Pacifico, cursive;
-    --pico-font-weight: 400;
-    --pico-typography-spacing-vertical: 0.5rem;
+    --femto-font-family: Pacifico, cursive;
+    --femto-font-weight: 400;
+    --femto-typography-spacing-vertical: 0.5rem;
   }
   button {
-    --pico-font-weight: 700;
+    --femto-font-weight: 700;
   }
 </style>
 
@@ -197,8 +197,8 @@ export default function CssVariables() {
               {removeLines({
                 code: orangeCssCode,
                 linesMatching: [
-                  "  --pico-switch-thumb-box-shadow: 0 0 0 rgba(0, 0, 0, 0);",
-                  "    --pico-switch-thumb-box-shadow: 0 0 0 rgba(0, 0, 0, 0);",
+                  "  --femto-switch-thumb-box-shadow: 0 0 0 rgba(0, 0, 0, 0);",
+                  "    --femto-switch-thumb-box-shadow: 0 0 0 rgba(0, 0, 0, 0);",
                 ],
                 linesToRemoveFromEnd: 2,
               })}
@@ -220,7 +220,7 @@ export default function CssVariables() {
             </li>
           </ol>
           <p style={{ marginBottom: "2rem" }}>
-            Here is the list of all CSS variables used in Pico:
+            Here is the list of all CSS variables used in femto:
           </p>
           <details>
             <summary role="button" className="secondary">

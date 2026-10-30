@@ -24,7 +24,7 @@ export default function Rtl() {
       <Content>
         <section>
           <p>
-            To enable RTL (Right-To-Left) with Pico, you need to set <code>dir="rtl"</code> on the{" "}
+            To enable RTL (Right-To-Left) with femto, you need to set <code>dir="rtl"</code> on the{" "}
             <Code display="inline">{`<html>`}</Code> element.
           </p>
           <Code>{`<!doctype html>

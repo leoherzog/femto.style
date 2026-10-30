@@ -21,9 +21,7 @@
   {
     "category": "Community",
     "links": [
-      { "label": "Issues", "url": "https://github.com/picocss/pico/issues" },
-      { "label": "Discussions", "url": "https://github.com/picocss/pico/discussions" },
-      { "label": "Help", "url": "https://github.com/picocss/pico/discussions/categories/help" }
+      { "label": "Issues", "url": "https://github.com/leoherzog/femto/issues" }
     ]
   },
   {

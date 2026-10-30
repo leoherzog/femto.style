@@ -32,7 +32,7 @@ export const meta = () => [
   {
     name: "description",
     content:
-      "Pico comes with 380 manually crafted colors to help you personalize your brand design system.",
+      "femto comes with 380 manually crafted colors to help you personalize your brand design system.",
   },
 ];
 
@@ -50,7 +50,7 @@ const DownloadColorPalette = () => {
   }, []);
 
   return (
-    <a href={hrefColorPalette} download="pico-color-palette.json" role="button">
+    <a href={hrefColorPalette} download="femto-color-palette.json" role="button">
       Download
     </a>
   );
@@ -72,7 +72,7 @@ export default function Colors() {
       {/* Header */}
       <Header
         title="Colors"
-        description="Pico comes with 380 manually&nbsp;crafted colors to help you personalize your brand&nbsp;design&nbsp;system."
+        description="femto comes with 380 manually&nbsp;crafted colors to help you personalize your brand&nbsp;design&nbsp;system."
       />
 
       {/* Table of content */}
@@ -111,7 +111,7 @@ export default function Colors() {
               <article key={family} className="family">
                 {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus, jsx-a11y/no-static-element-interactions */}
                 <header
-                  className={`pico-background-${family}`}
+                  className={`femto-background-${family}`}
                   onClick={() => {
                     onOpenModal();
                     setSelectedColor({
@@ -126,7 +126,7 @@ export default function Colors() {
                   {shades.map((shade) => (
                     <button
                       key={shade}
-                      className={`secondary pico-background-${family}-${shade}`}
+                      className={`secondary femto-background-${family}-${shade}`}
                       onClick={() => {
                         onOpenModal();
                         setSelectedColor({
@@ -148,20 +148,20 @@ export default function Colors() {
           <Heading level={2} anchor="usage-with-css">
             Usage with CSS
           </Heading>
-          <p>The main Pico stylesheet excludes color utilities.</p>
+          <p>The main femto stylesheet excludes color utilities.</p>
           <p>
             There is a separate stylesheet with all the color utilities that you can link in the{" "}
             <Code display="inline">{`<head>`}</Code> of your website.
           </p>
-          <Code className="small">{`<link rel="stylesheet" href="css/pico.colors.min.css">`}</Code>
+          <Code className="small">{`<link rel="stylesheet" href="dist/femto.colors.min.css">`}</Code>
           <p>
             Also available on <Link to={cdnBaseUrl}>jsDelivr CDN</Link>:
           </p>
           <Code>{`<link
   rel="stylesheet"
-  href="${cdnBaseUrl}css/pico.colors.min.css"
+  href="${cdnBaseUrl}dist/femto.colors.min.css"
 >`}</Code>
-          <p>This stylesheet is almost the same size as the entire Pico library.</p>
+          <p>This stylesheet is almost the same size as the entire femto library.</p>
           <p>
             We do not recommend including all colors on a production site. You should include only
             the color families and shades that you use.
@@ -171,16 +171,16 @@ export default function Colors() {
             Click on any color above to see details.
           </p>
           <article aria-label="Color example" className="component">
-            <h2 className="pico-color-pink-500">Pink title</h2>
+            <h2 className="femto-color-pink-500">Pink title</h2>
             <Code
               as="footer"
               className="small"
-            >{`<h2 class="pico-color-pink-500">Pink title</h2>`}</Code>
+            >{`<h2 class="femto-color-pink-500">Pink title</h2>`}</Code>
           </article>
-          <article aria-label="Background color example" className="pico-background-pink-600">
+          <article aria-label="Background color example" className="femto-background-pink-600">
             Pink card
           </article>
-          <Code>{`<article class="pico-background-pink-600">
+          <Code>{`<article class="femto-background-pink-600">
   Pink card
 </article>`}</Code>
         </section>
@@ -242,7 +242,7 @@ export default function Colors() {
             <Link to="https://www.figma.com/community/plugin/1067561134666722782/Palette-Importer">
               Palette Importer
             </Link>{" "}
-            to import all 380 Pico colors.
+            to import all 380 femto colors.
           </p>
           <p>
             <img

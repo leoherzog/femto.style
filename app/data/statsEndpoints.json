@@ -1,26 +1,26 @@
 [
   {
     "key": "githubStars",
-    "endpoint": "https://api.github.com/repos/picocss/pico",
-    "url": "https://github.com/picocss/pico",
+    "endpoint": "https://api.github.com/repos/leoherzog/femto",
+    "url": "https://github.com/leoherzog/femto",
     "dataPath": "stargazers_count",
     "label": "GitHub Stars",
-    "default": 11200
+    "default": 0
   },
   {
     "key": "npmDownloads",
-    "endpoint": "https://api.npmjs.org/downloads/point/last-month/@picocss/pico",
-    "url": "https://www.npmjs.com/package/@picocss/pico",
+    "endpoint": "https://api.npmjs.org/downloads/point/last-month/@leoherzog/femto",
+    "url": "https://www.npmjs.com/package/@leoherzog/femto",
     "dataPath": "downloads",
     "label": "Monthly Npm Downloads",
-    "default": 77500
+    "default": 0
   },
   {
     "key": "jsdelivrHits",
-    "endpoint": "https://data.jsdelivr.com/v1/stats/packages/npm/%40picocss%2Fpico?period=month",
-    "url": "https://www.jsdelivr.com/package/npm/@picocss/pico",
+    "endpoint": "https://data.jsdelivr.com/v1/stats/packages/npm/@leoherzog/femto?period=month",
+    "url": "https://www.jsdelivr.com/package/npm/@leoherzog/femto",
     "dataPath": "hits.total",
     "label": "Monthly JSDelivr Requests",
-    "default": 1800000
+    "default": 0
   }
 ]
