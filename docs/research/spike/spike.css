@@ -1,0 +1,62 @@
+/* Spike layout: a fixed header and a sticky side nav beside one long main. */
+:root {
+  --spike-header-height: 4rem;
+}
+
+html {
+  scroll-padding-top: calc(var(--spike-header-height) + 1rem);
+}
+
+/* Smooth only for a nav click, set by docs.js: on html itself, Chrome would also animate the jump to
+   a deep link's #hash on load and every back or forward, from the top of the page. */
+@media (prefers-reduced-motion: no-preference) {
+  html.is-scrolling-to-link {
+    scroll-behavior: smooth;
+  }
+}
+
+body > header {
+  position: fixed;
+  z-index: 2;
+  inset: 0 0 auto;
+  height: var(--spike-header-height);
+  padding-block: 0;
+  border-bottom: var(--femto-border-width) solid var(--femto-muted-border-color);
+  background-color: var(--femto-background-color);
+}
+
+.docs {
+  display: grid;
+  grid-template-columns: 13rem minmax(0, 1fr);
+  gap: 2rem;
+  padding-top: var(--spike-header-height);
+}
+
+.docs > aside {
+  position: sticky;
+  top: var(--spike-header-height);
+  align-self: start;
+  max-height: calc(100dvh - var(--spike-header-height));
+  overflow-y: auto;
+  padding-block: 1rem;
+}
+
+main > section + section {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: var(--femto-border-width) solid var(--femto-muted-border-color);
+}
+
+#docs-nav [aria-current] {
+  font-weight: 600;
+}
+
+@media (max-width: 1023px) {
+  .docs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .docs > aside {
+    display: none;
+  }
+}
