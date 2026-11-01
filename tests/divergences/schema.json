@@ -152,7 +152,7 @@
           "asset-path",
           "browser-limit"
         ],
-        "description": "PLAN.md, Divergence categories. dropped-route: a link, menu item or footer item for a Decision 5 route. femto-divergence: one of femto's own registered differences from Pico 2.1.1. merge-layout: an intended one-page change. id-rename: a Decision 13 rename. oracle-bug: an oracle bug the conversion fixes naturally. highlight: a difference from Prism's version or grammars. asset-path: a hashed Remix build URL (/build/_assets/<name>-<HASH>.<ext>) the conversion rewrites to its stable /assets/ path, and nothing else. browser-limit: as in femto (every skipped check)."
+        "description": "PLAN.md, Divergence categories. dropped-route: anything Decision 5 drops (a link, menu item or footer item for a dropped route, the maintenance banner, the homepage Stats) and its layout effects. femto-divergence: one of femto's own registered differences from Pico 2.1.1. merge-layout: an intended one-page change. id-rename: a Decision 13 rename. oracle-bug: an oracle bug the conversion fixes naturally. highlight: a difference from Prism's version or grammars. asset-path: a hashed Remix build URL (/build/_assets/<name>-<HASH>.<ext>) the conversion rewrites to its stable /assets/ path, or the palette download's on-load blob: URL that Phase 3 replaces with the build's static JSON file; only the URL value. browser-limit: as in femto (every skipped check)."
       },
       "reason": {
         "type": "string",

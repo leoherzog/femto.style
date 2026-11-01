@@ -27,13 +27,16 @@ femto's Selenium rig runs the parity, behavior and Safari checks. Its harness ga
 
 ```
 build.mjs                 npm run build: site/ into dist/
+vendor.mjs                npm run vendor: a femto commit into site/vendor/femto/
+eslint.config.js          npm run lint
+.htmlvalidate.mjs         html-validate's rules (from Phase 3)
 site/                     hand-authored source; every file here is plain HTML, CSS, JS, JSON or an asset
   index.html  examples.html  demo.html  404.html
   docs.html               the docs shell: head, header, side nav slot, sections slot, footer
   docs/
     menu.json             categories and sections in order: id, title, description
     sections/<id>.html    one section each: its hgroup (the h1 carries the id), content and edit link
-  partials/               head.html (inline scripts), header.html, footer.html
+  partials/               head.html (inline scripts), header.html, footer.html, docs-header.html, logo.html, nav-icons.html, structured-data.html
   assets/
     css/                  site CSS (Phase 2): common, code, fonts, docs, landing
     legacy/               the oracle's compiled CSS, frozen (Phase 1 only, deleted in Phase 2)
@@ -47,7 +50,7 @@ tests/                    harness ported from femto, oracle manifest, divergence
 docs/research/            these reports and the spike
 ```
 
-Pages are full HTML documents. `<!-- include partials/header.html -->` markers pull in the shared parts, and `{{title}}`, `{{description}}` and `{{version}}` are the only placeholders. That keeps the source readable as HTML and the build too small to need a template language.
+Pages are full HTML documents. `<!-- include partials/header.html -->` markers pull in the shared parts, and `{{title}}`, `{{description}}` and `{{version}}` are the only placeholders (Phases 1 and 2 add per-route scaffolding, PLAN.md File tree). That keeps the source readable as HTML and the build too small to need a template language.
 
 ## 2. The build
 

@@ -1,17 +1,17 @@
 # femto Documentation
 
-[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It uses [Remix](https://remix.run).
+[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`.
 
 To run the project locally, first install the dependencies:
 
 ```bash
-yarn
+npm install
 ```
 
-Next, run the development server:
+Next, build the site and run the development server (it rebuilds on every change under `site/`):
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 ## License

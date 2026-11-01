@@ -1,0 +1,206 @@
+[
+  {
+    "id": "p1-shell-og-url",
+    "kind": "head",
+    "path": "meta[property=og:url]",
+    "property": "content",
+    "a": "https://v2.picocss.com/",
+    "b": "/^https:\\/\\/femto\\.style(\\/[a-z0-9\\/-]*)?$/",
+    "category": "oracle-bug",
+    "reason": "The oracle hard-codes og:url to https://v2.picocss.com/ on every route (app/components/Head.jsx:22, docs/research/01 §5). Each static page gives its own canonical URL instead: its <link rel=canonical>, which the docs routes get from build.mjs per route."
+  },
+  {
+    "id": "p1-shell-maintenance-notice",
+    "kind": "structure",
+    "selector": "div.maintenance-notice",
+    "a": "div",
+    "b": null,
+    "category": "dropped-route",
+    "reason": "Decision 5 drops the maintenance banner, which links to the dropped /docs/maintenance. It was the first child of <body> on every route but /demo.",
+    "notes": "Two consequences no pages-mode record shows, on record here (Phase 1 integration): (1) at widths 1300 and up, on every docs route with a table of contents, aside#table-of-contents > nav.is-sticky-above-lg sits 0.25 px lower relative to main > hgroup than on the oracle (0.31 px at 1600): without the banner's 46.25 px its normal-flow top (111 px) lies 0.25 px above its sticky threshold (top: 111.25px), so position: sticky engages at scroll 0; no computed style differs (forms group, tests/results/p1-forms-fix-tocprobe/tocprobe.json). Phase 3 rebuilds the grid. (2) The breadcrumb's natural top at 375 x 812 is 81 px instead of 118 px, so behavior checks measure it from its own top (breadcrumb-sticky)."
+  },
+  {
+    "id": "p1-shell-page-height",
+    "kind": "style",
+    "selector": "html:has(> body > header), body:has(> header)",
+    "property": "/^(height|block-size|perspective-origin|transform-origin)$/",
+    "a": "*",
+    "b": "*",
+    "category": "dropped-route",
+    "reason": "The dropped maintenance banner (Decision 5) was 37 px (375) to 48.6 px (1600) tall above the header, so the document is that much shorter; perspective-origin and transform-origin are 50% of the box, so they follow the height.",
+    "notes": "Only the html and body boxes of pages with the site header, where the banner was, on every route but /, where the dropped Stats make the page shorter still (p1-landing-page-height). In the round 1 fix review's registry-free run (adv-p1-gate-parity-raw-1) the html and body heights differ by the banner's height to within 0.04 px on every other route. A route's own content changes still surface on their own elements.",
+    "where": {
+      "routes": [
+        "/^\\/(?!docs\\/v1\\/)./"
+      ]
+    }
+  },
+  {
+    "id": "p1-shell-body-grid-rows",
+    "kind": "style",
+    "selector": "body",
+    "property": "grid-template-rows",
+    "a": "/^[0-9.]+px [0-9.]+px [0-9.]+px [0-9.]+px$/",
+    "b": "/^[0-9.]+px [0-9.]+px [0-9.]+px 0px$/",
+    "category": "dropped-route",
+    "reason": "main.css lays <body> out as grid-template-rows: auto auto 1fr auto for banner, header, main and footer (html body, from _layout.scss). With the banner dropped (Decision 5) the header, main and footer take the first three tracks and the fourth is empty, 0px: the rows are the oracle's last three, each the same size, then 0px. Phase 1 changes no CSS.",
+    "notes": "Every route but / (the dropped Stats shrink main's track too: p1-landing-body-grid-rows) and the 404 page (whose footer moves: p1-shell-404-footer-track). On these routes every page is taller than the matrix's 800 px viewport at every width, so the 1fr track holds no free space and nothing moves but the banner's height; checked track by track on every cell of the round 1 fix review's registry-free run (adv-p1-gate-parity-raw-1). In a viewport taller than a page the free space would fall to the footer's track instead of main's, as on the 404 page: Phase 2's site CSS must make the rows auto 1fr auto.",
+    "where": {
+      "routes": [
+        "/^\\/(?!docs\\/v1\\/|does-not-exist$)./"
+      ]
+    }
+  },
+  {
+    "id": "p1-shell-404-footer-track",
+    "kind": "style",
+    "selector": "body",
+    "property": "grid-template-rows",
+    "a": "/^[0-9.]+px [0-9.]+px [0-9.]+px [0-9.]+px$/",
+    "b": "/^[0-9.]+px [0-9.]+px [0-9.]+px 0px$/",
+    "where": {
+      "routes": [
+        "/does-not-exist"
+      ]
+    },
+    "category": "dropped-route",
+    "reason": "A visible consequence of dropping the maintenance banner (Decision 5) under Phase 1's rule that no CSS changes: main.css's body rows are auto auto 1fr auto for banner, header, main and footer, so without the banner the footer takes the 1fr track. The 404 page is shorter than the 800 px viewport at widths 800, 1100 and 1300, and there the free space falls below the footer instead of above it: the footer sits 43 to 100 px higher than the banner's height explains (oracle rows 41.6px 82px 228.1px 448.3px against 82px 184.5px 533.5px 0px at 800), with blank space under it. At 375, 600 and 1600 the page is taller than the viewport and only the banner's height differs.",
+    "notes": "Phase 2 must fix it: its site CSS makes the body rows auto 1fr auto (the banner's track gone), which puts the free space back in main's track. No other record shows it: main and footer keep their own heights (align-items: start), and the html and body heights equal the viewport's on both sides. Any page shorter than its viewport shows the same on a taller window; at the matrix's 800 px only the 404 page is. Found by the round 1 fix review (PH-2). Whether a CSS consequence of a Decision 5 drop belongs under dropped-route is a question for the PLAN owner."
+  },
+  {
+    "id": "p1-shell-version-dropdown-v1",
+    "kind": "structure",
+    "selector": "header details.dropdown li:has(> a[href=\"/docs/v1/\"])",
+    "a": "li",
+    "b": null,
+    "category": "dropped-route",
+    "reason": "The header's version dropdown listed v1.5.13, a link to the Pico v1 docs at /docs/v1/, which Decision 5 drops. The dropdown keeps the current version only."
+  },
+  {
+    "id": "p1-shell-version-dropdown-size",
+    "kind": "style",
+    "selector": "header details.dropdown > ul",
+    "property": "/^(height|block-size|bottom|inset-block-end|perspective-origin|transform-origin)$/",
+    "a": "*",
+    "b": "*",
+    "category": "dropped-route",
+    "reason": "The version dropdown's list holds one item instead of two (the v1.5.13 item is dropped, Decision 5), so it is shorter, and the list hangs from its bottom edge (bottom is minus its height)."
+  },
+  {
+    "id": "p1-shell-version-dropdown-last-margin",
+    "kind": "style",
+    "selector": "header details.dropdown > ul > li:last-child",
+    "property": "/^margin-(bottom|block-end)$/",
+    "a": "0px",
+    "b": "/^[0-9.]+px$/",
+    "category": "dropped-route",
+    "reason": "With the v1.5.13 item dropped (Decision 5), the current version is the dropdown's last item and gets the last item's bottom margin from main.css."
+  },
+  {
+    "id": "p1-shell-docs-menu-items",
+    "kind": "structure",
+    "selector": "#documentation-menu li:has(> a[href=\"/docs/classless\"], > a[href=\"/docs/conditional\"], > a[href=\"/docs/sass\"]), #documentation-menu details:has(a[href=\"/docs/maintenance\"])",
+    "b": null,
+    "category": "dropped-route",
+    "reason": "The documentation menu lists only the kept sections of site/docs/menu.json: Class-less version, Conditional styling and Sass, and the whole About category (Maintenance, What's new in v2?, Mission, Usage scenarios, Brand, Built With) are Decision 5 routes."
+  },
+  {
+    "id": "p1-shell-docs-menu-size",
+    "kind": "style",
+    "selector": "#documentation-menu > nav, #documentation-menu > nav > details, #documentation-menu > nav > details > ul",
+    "property": "/^(height|block-size|perspective-origin|transform-origin)$/",
+    "a": "*",
+    "b": "*",
+    "category": "dropped-route",
+    "reason": "The menu's Getting started and Customization lists are shorter by their dropped items, and the menu by its dropped About category (Decision 5), so those lists, their <details> and the sticky menu itself are shorter."
+  },
+  {
+    "id": "p1-shell-docs-menu-last-margin",
+    "kind": "style",
+    "selector": "#documentation-menu > nav > details:last-child",
+    "property": "/^margin-(bottom|block-end)$/",
+    "a": "/^[0-9.]+px$/",
+    "b": "0px",
+    "category": "dropped-route",
+    "reason": "With the About category dropped (Decision 5), Components is the menu's last <details>, and docs.css gives the last one no bottom margin."
+  },
+  {
+    "id": "p1-shell-docs-menu-max-height",
+    "kind": "attribute",
+    "selector": "#documentation-menu > nav",
+    "property": "style",
+    "a": "/^--max-height: [0-9.]+px;$/",
+    "b": "/^--max-height: [0-9.]+px;$/",
+    "category": "dropped-route",
+    "reason": "--max-height is the viewport height minus the menu's top (DocumentationMenu.jsx, rebuilt by docs.js). Without the dropped maintenance banner (Decision 5) the menu starts higher, so the value is larger: by the banner's height below 1024 px, and from 1024 px, where the menu's nav is sticky, by the banner's height less 0.19 to 0.32 px (43.75 for 43.94 at 1100, 46.00 for 46.25 at 1300, 48.25 for 48.56 at 1600 in Chrome; 43.77, 46.00, 48.27 in Firefox): without the banner the nav's normal-flow top lies just above its sticky threshold, so it starts stuck, a fraction of a pixel lower than the oracle's top less the banner.",
+    "notes": "The same sub-pixel sticky offset as the table of contents' nav (p1-shell-maintenance-notice, notes). The behavior check side-menu-max-height holds the formula itself (innerHeight minus the nav's top, within 0.5 px) on load and after resizes, so this entry only absorbs the value the banner's absence gives."
+  },
+  {
+    "id": "p1-shell-docs-menu-max-height-style",
+    "kind": "style",
+    "selector": "#documentation-menu > nav",
+    "property": "/^(max-height|max-block-size)$/",
+    "a": "*",
+    "b": "*",
+    "category": "dropped-route",
+    "reason": "The menu's max-height is var(--max-height) minus its padding, so it follows the --max-height difference of the dropped banner (Decision 5): the banner's height, less 0.19 to 0.32 px from 1024 px, where the sticky nav starts stuck (p1-shell-docs-menu-max-height)."
+  },
+  {
+    "id": "p1-shell-footer-dropped-links",
+    "kind": "attribute",
+    "selector": "footer nav.links a[href=\"/docs\"]",
+    "property": "href",
+    "a": "/^\\/docs\\/(maintenance|v2|brand|mission|usage-scenarios|classless)$/",
+    "b": "/docs",
+    "category": "dropped-route",
+    "reason": "The footer's About column (Maintenance, What's new?, Brand, Mission, Usage scenarios) and its Class-less version item link to Decision 5 routes; they point at /docs instead (PLAN.md Conversion rules, Text), which keeps the footer's layout exactly as the oracle's until Phase 4 rewrites the footer.",
+    "notes": "A known accessibility regression of pointing the six links at /docs rather than removing them (PLAN.md Conversion rules allow either): on /docs all six announce aria-current=page, so a screen reader hears Maintenance, What's new?, Brand, Mission, Usage scenarios and Class-less version each as the current page. Kept for Phase 1 because removing them changes the footer's columns and height on every page; Phase 4's footer rewrite removes them (tests/README.md, Known Phase 1 deviations)."
+  },
+  {
+    "id": "p1-shell-footer-dropped-links-current",
+    "kind": "attribute",
+    "selector": "footer nav.links a[href=\"/docs\"]",
+    "property": "aria-current",
+    "a": null,
+    "b": "page",
+    "where": {
+      "routes": [
+        "/docs"
+      ]
+    },
+    "category": "dropped-route",
+    "reason": "On /docs, the six footer links pointed at /docs instead of their dropped routes (p1-shell-footer-dropped-links) are links to the page itself, so they get aria-current=page by the oracle's own rule (a link to the current path), as Quick start does.",
+    "notes": "A known accessibility regression of pointing the six links at /docs rather than removing them (PLAN.md Conversion rules allow either): on /docs all six announce aria-current=page, so a screen reader hears Maintenance, What's new?, Brand, Mission, Usage scenarios and Class-less version each as the current page. Kept for Phase 1 because removing them changes the footer's columns and height on every page; Phase 4's footer rewrite removes them (tests/README.md, Known Phase 1 deviations)."
+  },
+  {
+    "id": "p1-shell-footer-dropped-links-current-color",
+    "kind": "style",
+    "selector": "footer nav.links a[aria-current=\"page\"]",
+    "property": "/^(color|caret-color|outline-color|column-rule-color|row-rule-color|text-decoration-color|text-emphasis-color|-webkit-text-fill-color|-webkit-text-stroke-color|border-(top|right|bottom|left|block-start|block-end|inline-start|inline-end)-color)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "routes": [
+        "/docs"
+      ]
+    },
+    "category": "dropped-route",
+    "reason": "Those six links, current on /docs (p1-shell-footer-dropped-links-current), take main.css's aria-current link color, as the oracle's Quick start link does there.",
+    "notes": "A known accessibility regression of pointing the six links at /docs rather than removing them (PLAN.md Conversion rules allow either): on /docs all six announce aria-current=page, so a screen reader hears Maintenance, What's new?, Brand, Mission, Usage scenarios and Class-less version each as the current page. Kept for Phase 1 because removing them changes the footer's columns and height on every page; Phase 4's footer rewrite removes them (tests/README.md, Known Phase 1 deviations). The summary flags this entry BROAD: 102 records per /docs cell, the six links times the 17 color longhands its property pattern names, all on those links."
+  },
+  {
+    "id": "p1-quick-start-sass-link",
+    "kind": "attribute",
+    "selector": "#content a[href=\"/docs\"]",
+    "property": "href",
+    "a": "/docs/sass",
+    "b": "/docs",
+    "where": {
+      "routes": [
+        "/docs"
+      ]
+    },
+    "category": "dropped-route",
+    "reason": "Quick start's \"customization with Sass\" link goes to /docs/sass, a Decision 5 route; it points at /docs instead (PLAN.md Conversion rules, Text)."
+  }
+]

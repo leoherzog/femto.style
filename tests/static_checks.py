@@ -998,8 +998,8 @@ def criterion_5(ctx: Context) -> Result:
 # Paths that Cloudflare Pages answers otherwise than 404 by its own rules (pretty URLs: a page's .html
 # name and an index page's name redirect to the clean URL, and 404.html is an ordinary page at /404).
 # Decision 11 forbids _redirects, so the site cannot change them. Criterion 6 says "any other path
-# answers 404"; these are probed so that each answers exactly as recorded here (anything else fails),
-# and each is listed as a note for the owner to accept in PLAN.md Risks (Cloudflare) or not.
+# answers 404" and exempts these (PLAN.md Risks, Cloudflare: accepted by the owner, 2026-10-31); each
+# is probed so that it answers exactly as recorded here (anything else fails), and listed as a note.
 # path: (status, Location path or None, what Pages does)
 PAGES_INHERENT = {
     "/404": (200, None, "serves dist/404.html as an ordinary page, with status 200"),
@@ -1097,7 +1097,7 @@ def criterion_6(ctx: Context) -> Result:
                                     + f", expected {want}" + (f" -> {want_loc}" if want_loc else " with the 404.html body"))
             else:
                 r.note(f"{path} answers {status}" + (f" -> {loc}" if loc else "") + f", not 404: Cloudflare Pages {what} "
-                       "(Pages-inherent, PAGES_INHERENT; Decision 11 forbids _redirects; for the owner to accept in PLAN.md Risks)")
+                       "(Pages-inherent, PAGES_INHERENT; Decision 11 forbids _redirects; accepted in PLAN.md Risks, Cloudflare)")
         r.fails(f"{len(bad_inherent)} Pages-inherent path(s) do not answer as recorded:", bad_inherent)
         r.fails(f"{len(bad200)} page(s) do not answer 200 without a redirect:", bad200, "more pages")
         r.fails(f"{len(bad308)} of /docs/ and /docs.html do not 308 to /docs:", bad308)

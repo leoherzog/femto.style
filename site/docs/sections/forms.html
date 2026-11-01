@@ -1,0 +1,167 @@
+<hgroup>
+  <p class="chapter">Forms</p>
+  <h1>Forms overview</h1>
+  <p>All form elements are fully responsive with pure semantic HTML, enabling forms to scale gracefully across devices and viewports.</p>
+</hgroup>
+<aside id="table-of-contents">
+  <nav class="is-sticky-above-lg ">
+    <details open>
+      <summary>Content</summary>
+      <ul>
+        <li><a class="secondary" data-discover="true" href="/docs/forms">Introduction</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/forms#helper-text">Helper text</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/forms#usage-with-grid">Usage with grid</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/forms#usage-with-group">Usage with group</a></li>
+      </ul>
+    </details>
+  </nav>
+</aside>
+<div id="content" role="document">
+  <section aria-label="Introduction">
+    <p>Inputs are <code class="language-css">width: 100%;</code> by default and are the same size as the buttons to build consistent forms.</p>
+    <article aria-label="Form example" class="component">
+      <form>
+        <fieldset>
+          <label>First name<input placeholder="First name" autocomplete="given-name" name="first_name"></label>
+          <label>Email<input type="email" placeholder="Email" autocomplete="email" name="email"></label>
+        </fieldset>
+        <input type="submit" value="Subscribe">
+      </form>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
+  &lt;fieldset&gt;
+    &lt;label&gt;
+      First name
+      &lt;input
+        name="first_name"
+        placeholder="First name"
+        autocomplete="given-name"
+      /&gt;
+    &lt;/label&gt;
+    &lt;label&gt;
+      Email
+      &lt;input
+        type="email"
+        name="email"
+        placeholder="Email"
+        autocomplete="email"
+      /&gt;
+    &lt;/label&gt;
+  &lt;/fieldset&gt;
+
+  &lt;input
+    type="submit"
+    value="Subscribe"
+  /&gt;
+&lt;/form&gt;</code></pre></footer>
+    </article>
+    <p><code class="language-html">&lt;input&gt;</code> can be inside or outside <code class="language-html">&lt;label&gt;</code>.</p>
+    <article aria-label="Label and input syntax" class="component">
+      <form>
+        <label>First name<input placeholder="First name" autocomplete="given-name" name="first_name"></label>
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Email" autocomplete="email">
+      </form>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
+  
+  &lt;!-- Input inside label --&gt;
+  &lt;label&gt;
+    First name
+    &lt;input
+      name="first_name"
+      placeholder="First name"
+      autocomplete="given-name"
+    /&gt;
+  &lt;/label&gt;
+
+  &lt;!-- Input outside label --&gt;
+  &lt;label for="email"&gt;Email&lt;/label&gt;
+  &lt;input
+    type="email"
+    id="email"
+    placeholder="Email"
+    autocomplete="email"
+  /&gt;
+
+&lt;/form&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Helper text<a href="#helper-text" id="helper-text" class="secondary" tabindex="-1">#</a></h2>
+    <p><code class="language-html">&lt;small&gt;</code> below form elements are muted and act as helper texts.</p>
+    <article aria-label="Form helpers example" class="component">
+      <input type="email" placeholder="Email" autocomplete="email" aria-label="Email" aria-describedby="email-helper" name="email">
+      <small id="email-helper">We’ll never share your email with anyone else.</small>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;input
+  type="email"
+  name="email"
+  placeholder="Email"
+  autoComplete="email"
+  aria-label="Email"
+  aria-describedby="email-helper"
+/&gt;
+&lt;small id="email-helper"&gt;
+  We'll never share your email with anyone else.
+&lt;/small&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Usage with grid<a href="#usage-with-grid" id="usage-with-grid" class="secondary" tabindex="-1">#</a></h2>
+    <p>You can use <code>.grid</code> inside a form. See <a data-discover="true" href="/docs/grid">Grid</a>.</p>
+    <article aria-label="Form and grid example" class="component">
+      <form>
+        <fieldset class="grid">
+          <input placeholder="Login" aria-label="Login" autocomplete="username" name="login">
+          <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
+          <input type="submit" value="Log in">
+        </fieldset>
+      </form>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
+  &lt;fieldset class="grid"&gt;
+    &lt;input 
+      name="login"
+      placeholder="Login"
+      aria-label="Login"
+      autocomplete="username"
+    /&gt;
+    &lt;input
+      type="password"
+      name="password"
+      placeholder="Password"
+      aria-label="Password"
+      autocomplete="current-password"
+    /&gt;
+    &lt;input
+      type="submit"
+      value="Log in"
+    /&gt;
+  &lt;/fieldset&gt;
+&lt;/form&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Usage with group<a href="#usage-with-group" id="usage-with-group" class="secondary" tabindex="-1">#</a></h2>
+    <p>You can use <code>role="group"</code> with form elements. See <a data-discover="true" href="/docs/group">Group</a>.</p>
+    <article class="component" aria-label="Form group example">
+      <form>
+        <fieldset role="group">
+          <input type="email" placeholder="Enter your email" autocomplete="email" name="email">
+          <input type="submit" value="Subscribe">
+        </fieldset>
+      </form>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
+  &lt;fieldset role="group"&gt;
+    &lt;input
+      type="email"
+      name="email"
+      placeholder="Enter your email"
+      autocomplete="email"
+    /&gt;
+    &lt;input type="submit" value="Subscribe" /&gt;
+  &lt;/fieldset&gt;
+&lt;/form&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section class="edit-on-github">
+    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.forms._index.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  </section>
+</div>

@@ -1,8 +1,0 @@
-@use "settings" as *;
-
-mark {
-  padding: 0;
-  background: var(#{$css-var-prefix}mark-gradient);
-  background-clip: text;
-  color: transparent;
-}

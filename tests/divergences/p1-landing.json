@@ -1,0 +1,60 @@
+[
+  {
+    "id": "p1-landing-stats",
+    "kind": "structure",
+    "selector": "body > main.homepage > section.stats",
+    "a": "section",
+    "b": null,
+    "where": {"routes": ["/"]},
+    "category": "dropped-route",
+    "reason": "Decision 5 drops the homepage Stats: the section of GitHub stars, monthly npm downloads and monthly jsDelivr requests (homepage/Stats.jsx, filled from app/data/stats.json at build time, all 0 in the oracle). The static homepage goes from the hero straight to the features.",
+    "notes": "Category: Decision 5 names \"the homepage Stats\" among what is dropped, and dropped-route covers anything Decision 5 drops and its layout effects (PLAN.md, widened 2026-10-31), though the section holds no link to a Decision 5 route (its links go to GitHub, npm and jsDelivr); p1-shell-maintenance-notice files the maintenance banner the same way."
+  },
+  {
+    "id": "p1-landing-stats-main-height",
+    "kind": "style",
+    "selector": "body > main#content.homepage",
+    "property": "/^(height|block-size|perspective-origin|transform-origin)$/",
+    "a": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "b": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "where": {"routes": ["/"]},
+    "category": "dropped-route",
+    "reason": "Without the dropped Stats section (Decision 5, p1-landing-stats) the homepage's <main> is shorter by that section and its top margin (about 141 px at 1300 and 265 px at 375); perspective-origin and transform-origin are 50% of the box, so they follow the height.",
+    "notes": "Only <main> on /: the html and body heights of every page with the site header are p1-shell-page-height's, and the sections inside <main> keep their own boxes. Category as for p1-landing-stats: a layout effect of the dropped Stats (dropped-route, PLAN.md)."
+  },
+  {
+    "id": "p1-landing-page-height",
+    "kind": "style",
+    "selector": "html:has(> body > header), body:has(> header)",
+    "property": "/^(height|block-size|perspective-origin|transform-origin)$/",
+    "a": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "b": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "where": {"routes": ["/"]},
+    "category": "dropped-route",
+    "reason": "The homepage is shorter by two Decision 5 drops: the maintenance banner (37 px at 375 to 48.6 px at 1600, as on every page: p1-shell-page-height) and the Stats section with its margin (110 to 265 px: p1-landing-stats-main-height), 150 to 302 px in all (301.6 at 375, 149.8 at 600, 161.8 at 800, 174.4 at 1100, 187.5 at 1300, 201.1 at 1600, round 1 fix review, adv-p1-gate-parity-raw-1); perspective-origin and transform-origin are 50% of the box, so they follow the height.",
+    "notes": "Only the html and body boxes on /. Category as for p1-landing-stats: a layout effect of the dropped Stats (dropped-route, PLAN.md)."
+  },
+  {
+    "id": "p1-landing-body-grid-rows",
+    "kind": "style",
+    "selector": "body",
+    "property": "grid-template-rows",
+    "a": "/^[0-9.]+px [0-9.]+px [0-9.]+px [0-9.]+px$/",
+    "b": "/^[0-9.]+px [0-9.]+px [0-9.]+px 0px$/",
+    "where": {"routes": ["/"]},
+    "category": "dropped-route",
+    "reason": "As on every page (p1-shell-body-grid-rows), the dropped maintenance banner (Decision 5) leaves main.css's first body track to the header and the fourth empty, 0px; on / main's track is also shorter by the dropped Stats section and its margin (p1-landing-stats-main-height). The header's and footer's tracks are the oracle's.",
+    "notes": "The homepage is taller than the matrix's 800 px viewport at every width, so no free space moves. Category as for p1-landing-stats."
+  },
+  {
+    "id": "p1-landing-classless-link",
+    "kind": "attribute",
+    "selector": "body > main.homepage > section.features article a[href=\"/docs\"]",
+    "property": "href",
+    "a": "/docs/classless",
+    "b": "/docs",
+    "where": {"routes": ["/"]},
+    "category": "dropped-route",
+    "reason": "The Class-light and Semantic feature card's \"Discover the class-less version\" link goes to /docs/classless, a Decision 5 route; it points at /docs instead (PLAN.md Conversion rules, Text), which keeps the card's layout as the oracle's until Phase 4 rewrites the homepage."
+  }
+]

@@ -1,0 +1,28 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2a3140">
+<meta name="color-scheme" content="light dark">
+<meta property="og:image" content="https://femto.style/opengraph.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:site_name" content="femto">
+<meta property="og:locale" content="en_US">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" type="image/png" sizes="180x180">
+<link rel="manifest" href="/site.webmanifest">
+<script>
+  // The page's only render-blocking script (criterion 15). The reader's color-scheme choice
+  // is kept as JSON ("light" or "dark") in localStorage femtoColorScheme, the oracle's key and
+  // format (Decision 14); data-theme is set on <html> only when a choice is stored, and before
+  // the first paint, so a stored choice never flashes.
+  try {
+    const scheme = JSON.parse(localStorage.getItem("femtoColorScheme"));
+    if (scheme === "light" || scheme === "dark") document.documentElement.dataset.theme = scheme;
+  } catch {
+    // No storage (private mode, blocked cookies) or no valid JSON: keep the OS scheme.
+  }
+</script>
+<script type="module" src="/assets/js/site.js"></script>

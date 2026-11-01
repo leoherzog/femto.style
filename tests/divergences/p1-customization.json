@@ -1,0 +1,32 @@
+[
+  {
+    "id": "p1-css-variables-sass-link",
+    "kind": "attribute",
+    "selector": "#content[role=document] > section > p > a[data-discover=\"true\"][href=\"/docs\"]",
+    "property": "href",
+    "a": "/docs/sass",
+    "b": "/docs",
+    "where": {
+      "routes": [
+        "/docs/css-variables"
+      ]
+    },
+    "category": "dropped-route",
+    "reason": "CSS variables' introduction says the prefix can be changed \"by recompiling the CSS files with SASS\", and its \"SASS\" link goes to /docs/sass, a Decision 5 route; it points at /docs instead (PLAN.md Conversion rules, Text), which keeps the text and layout as the oracle's until Phase 4 rewrites the content."
+  },
+  {
+    "id": "p1-colors-palette-importer-image",
+    "kind": "attribute",
+    "selector": "#content[role=document] > section > p > img.rounded-bordered[alt=\"Figma plugin Palette Importer\"]",
+    "property": "src",
+    "a": "/build/_assets/customization-colors-palette-importer-3MH32MKA.png",
+    "b": "/assets/img/customization-colors-palette-importer.png",
+    "where": {
+      "routes": [
+        "/docs/colors"
+      ]
+    },
+    "category": "asset-path",
+    "reason": "The Import in Figma screenshot is Remix's hashed build URL in the oracle (app/images/customization-colors-palette-importer.png, imported by docs.colors.jsx); the converter rewrites it to the same file's stable path, site/assets/img/customization-colors-palette-importer.png (PLAN.md Conversion rules: hashed asset URLs are stripped). Only the URL differs: the file is byte-identical, and the element, its other attributes and its styles are compared as usual."
+  }
+]

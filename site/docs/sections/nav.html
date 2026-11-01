@@ -1,0 +1,273 @@
+<nav aria-label="overflow-with-focus">
+  <ul>
+    <li><a class="focused" data-discover="true" href="/docs/nav">About</a></li>
+    <li><a data-discover="true" href="/docs/nav">Services</a></li>
+  </ul>
+  <ul>
+    <li><a class="focused" data-discover="true" href="/docs/nav">Products</a></li>
+  </ul>
+</nav>
+<hgroup>
+  <p class="chapter">Components</p>
+  <h1>Nav</h1>
+  <p>The essential navbar component in pure semantic HTML.</p>
+</hgroup>
+<aside id="table-of-contents">
+  <nav class="is-sticky-above-lg ">
+    <details open>
+      <summary>Content</summary>
+      <ul>
+        <li><a class="secondary" data-discover="true" href="/docs/nav">Syntax</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/nav#link-variants">Link variants</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/nav#buttons">Buttons</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/nav#dropdowns">Dropdowns</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/nav#vertical-stacking">Vertical stacking</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/nav#breadcrumb">Breadcrumb</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/nav#overflow">Overflow</a></li>
+      </ul>
+    </details>
+  </nav>
+</aside>
+<div id="content" role="document">
+  <section>
+    <article aria-label="Nav example" class="component">
+      <nav>
+        <ul>
+          <li><strong>Acme Corp</strong></li>
+        </ul>
+        <ul>
+          <li><a data-discover="true" href="/docs/nav">About</a></li>
+          <li><a data-discover="true" href="/docs/nav">Services</a></li>
+          <li><a data-discover="true" href="/docs/nav">Products</a></li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;About&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Products&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+    <p><code class="language-html">&lt;ul&gt;</code> are automatically distributed horizontally.</p>
+    <p><code class="language-html">&lt;li&gt;</code> are unstyled and inlined.</p>
+    <p><code class="language-html">&lt;a&gt;</code> are underlined only on <code>:hover</code>.</p>
+  </section>
+  <section>
+    <h2>Link variants<a href="#link-variants" id="link-variants" class="secondary" tabindex="-1">#</a></h2>
+    <p>You can use <code>.secondary</code>, <code>.contrast</code>, and <code>.outline</code> classes (not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
+    <article aria-label="Nav example" class="component">
+      <nav>
+        <ul>
+          <li><strong>Acme Corp</strong></li>
+        </ul>
+        <ul>
+          <li><a class="contrast" data-discover="true" href="/docs/nav">About</a></li>
+          <li><a class="contrast" data-discover="true" href="/docs/nav">Services</a></li>
+          <li><a class="contrast" data-discover="true" href="/docs/nav">Products</a></li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" class="contrast"&gt;About&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#" class="contrast"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#" class="contrast"&gt;Products&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+    <article aria-label="Nav example" class="component">
+      <nav>
+        <ul>
+          <li><a class="secondary" aria-label="Menu" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1rem" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-menu"><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path></svg></a></li>
+        </ul>
+        <ul>
+          <li><strong>Acme Corp</strong></li>
+        </ul>
+        <ul>
+          <li><a class="secondary" aria-label="Twitter" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" height="1rem" width="100%" viewBox="0 0 512 512" class="icon-x"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"></path></svg></a></li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" class="secondary"&gt;...&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" class="secondary"&gt;...&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Buttons<a href="#buttons" id="buttons" class="secondary" tabindex="-1">#</a></h2>
+    <p>You can use <code class="language-html">&lt;button&gt;</code> inside <code class="language-html">&lt;li&gt;</code>.</p>
+    <p>Button sizes automatically match link size and margin.</p>
+    <article aria-label="Nav example" class="component">
+      <nav>
+        <ul>
+          <li><strong>Acme Corp</strong></li>
+        </ul>
+        <ul>
+          <li><a data-discover="true" href="/docs/nav">About</a></li>
+          <li><a data-discover="true" href="/docs/nav">Services</a></li>
+          <li><button class="secondary">Products</button></li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;About&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;button class="secondary"&gt;Products&lt;/button&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Dropdowns<a href="#dropdowns" id="dropdowns" class="secondary" tabindex="-1">#</a></h2>
+    <p>You can use <a data-discover="true" href="/docs/dropdown">dropdowns</a> inside Nav.</p>
+    <article aria-label="Dropdowns inside nav" class="component">
+      <nav>
+        <ul>
+          <li><strong>Acme Corp</strong></li>
+        </ul>
+        <ul>
+          <li><a class="secondary" data-discover="true" href="/docs/nav">Services</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Account</summary>
+              <ul dir="rtl">
+                <li><a data-discover="true" href="/docs/nav">Profile</a></li>
+                <li><a data-discover="true" href="/docs/nav">Settings</a></li>
+                <li><a data-discover="true" href="/docs/nav">Security</a></li>
+                <li><a data-discover="true" href="/docs/nav">Logout</a></li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" class="secondary"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;
+      &lt;details class="dropdown"&gt;
+        &lt;summary&gt;
+          Account
+        &lt;/summary&gt;
+        &lt;ul dir="rtl"&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Profile&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Settings&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Security&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Logout&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/details&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Vertical stacking<a href="#vertical-stacking" id="vertical-stacking" class="secondary" tabindex="-1">#</a></h2>
+    <p>Inside <code class="language-html">&lt;aside&gt;</code>, navs items are stacked vertically.</p>
+    <article aria-label="Vertical nav example" class="component">
+      <aside>
+        <nav>
+          <ul>
+            <li><a data-discover="true" href="/docs/nav">About</a></li>
+            <li><a data-discover="true" href="/docs/nav">Services</a></li>
+            <li><a data-discover="true" href="/docs/nav">Products</a></li>
+          </ul>
+        </nav>
+      </aside>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;aside&gt;
+  &lt;nav&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#"&gt;About&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#"&gt;Products&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+&lt;/aside&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Breadcrumb<a href="#breadcrumb" id="breadcrumb" class="secondary" tabindex="-1">#</a></h2>
+    <p>With <code class="language-html">&lt;nav aria-label="breadcrumb"&gt;</code>, you can turn a nav into a breadcrumb.</p>
+    <article aria-label="Breadcrumb example" class="component">
+      <nav aria-label="breadcrumb">
+        <ul>
+          <li><a data-discover="true" href="/docs/nav">Home</a></li>
+          <li><a data-discover="true" href="/docs/nav">Services</a></li>
+          <li>Design</li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav aria-label="breadcrumb"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;Design&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+    <p>You can change the divider with a local CSS custom property <code>--femto-nav-breadcrumb-divider</code>.</p>
+    <article aria-label="Breadcrumb example" class="component">
+      <nav aria-label="breadcrumb" style="--femto-nav-breadcrumb-divider:'✨'">
+        <ul>
+          <li><a data-discover="true" href="/docs/nav">Home</a></li>
+          <li><a data-discover="true" href="/docs/nav">Services</a></li>
+          <li>Design</li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/nav"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav
+  aria-label="breadcrumb"
+  style="--femto-nav-breadcrumb-divider: '✨';"
+&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;Design&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section id="overflow">
+    <h2>Overflow<a href="#overflow" id="overflow" class="secondary" tabindex="-1">#</a></h2>
+    <p>The <code class="language-html">&lt;nav&gt;</code> component uses <code class="language-css">overflow: visible;</code> on the container and negative margins on children to provide a nice <code>::focus-visible</code> style for links on keyboard navigation while keeping the content aligned horizontally.</p>
+    <article aria-label="Overflow example" class="component">
+      <nav aria-label="overflow">
+        <ul>
+          <li><a data-discover="true" href="/docs/nav">About</a></li>
+          <li><a data-discover="true" href="/docs/nav">Services</a></li>
+        </ul>
+        <ul>
+          <li><a data-discover="true" href="/docs/nav">Products</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="overflow-with-focus">
+        <ul>
+          <li><a class="focused" data-discover="true" href="/docs/nav">About</a></li>
+          <li><a data-discover="true" href="/docs/nav">Services</a></li>
+        </ul>
+        <ul>
+          <li><a class="focused" data-discover="true" href="/docs/nav">Products</a></li>
+        </ul>
+      </nav>
+    </article>
+  </section>
+  <section class="edit-on-github">
+    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.nav.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  </section>
+</div>

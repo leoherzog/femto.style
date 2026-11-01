@@ -1,0 +1,103 @@
+<hgroup>
+  <p class="chapter">Forms</p>
+  <h1>Select</h1>
+  <p>The native <code class="language-html">&lt;select&gt;</code> is styled like the input for consistency.</p>
+</hgroup>
+<aside id="table-of-contents">
+  <nav class="is-sticky-above-lg ">
+    <details open>
+      <summary>Content</summary>
+      <ul>
+        <li><a class="secondary" data-discover="true" href="/docs/forms/select">Syntax</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/forms/select#multiple">Multiple</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/forms/select#disabled">Disabled</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/forms/select#validation-states">Validation states</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/forms/select#dropdown">Dropdown</a></li>
+      </ul>
+    </details>
+  </nav>
+</aside>
+<div id="content" role="document">
+  <section>
+    <article aria-label="Select example" class="component">
+      <select name="favorite-cuisine" aria-label=" Select your favorite cuisine..." required><option disabled value="" selected>Select your favorite cuisine...</option><option>Italian</option><option>Japanese</option><option>Indian</option><option>Thai</option><option>French</option></select>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/select"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;select name="favorite-cuisine" aria-label="Select your favorite cuisine..." required&gt;
+  &lt;option selected disabled value=""&gt;
+    Select your favorite cuisine...
+  &lt;/option&gt;
+  &lt;option&gt;Italian&lt;/option&gt;
+  &lt;option&gt;Japanese&lt;/option&gt;
+  &lt;option&gt;Indian&lt;/option&gt;
+  &lt;option&gt;Thai&lt;/option&gt;
+  &lt;option&gt;French&lt;/option&gt;
+&lt;/select&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Select multiple<a href="#multiple" id="multiple" class="secondary" tabindex="-1">#</a></h2>
+    <article aria-label="Disabled and read-only example" class="component">
+      <select aria-label="Select your favorite snacks..." multiple size="6"><option disabled>Select your favorite snacks...</option><option>Cheese</option><option selected>Fruits</option><option selected>Nuts</option><option>Chocolate</option><option>Crackers</option></select>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/select"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;select aria-label="Select your favorite snacks..." multiple size="6"&gt;
+  &lt;option disabled&gt;
+    Select your favorite snacks...
+  &lt;/option&gt;
+  &lt;option&gt;Cheese&lt;/option&gt;
+  &lt;option selected&gt;Fruits&lt;/option&gt;
+  &lt;option selected&gt;Nuts&lt;/option&gt;
+  &lt;option&gt;Chocolate&lt;/option&gt;
+  &lt;option&gt;Crackers&lt;/option&gt;
+&lt;/select&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Disabled select<a href="#disabled" id="disabled" class="secondary" tabindex="-1">#</a></h2>
+    <article aria-label="Disabled example" class="component">
+      <select name="meal-type" aria-label="Select a meal type..." disabled><option>Select a meal type...</option></select>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/select"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;select name="meal-type" aria-label="Select a meal type..." disabled&gt;
+  &lt;option&gt;Select a meal type...&lt;/option&gt;
+  &lt;option&gt;...&lt;/option&gt;
+&lt;/select&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Validation states<a href="#validation-states" id="validation-states" class="secondary" tabindex="-1">#</a></h2>
+    <p>Validation states are provided with <code>aria-invalid</code>.</p>
+    <article aria-label="Validation states example" class="component">
+      <select name="pizza-topping" aria-label="Select your favorite pizza topping..." aria-invalid="false"><option disabled>Select your favorite pizza topping...</option><option selected>Pepperoni</option><option>Mushrooms</option><option>Onions</option><option>Green Peppers</option><option>Olives</option></select>
+      <small>Great choice!</small>
+      <select name="pizza-topping" aria-label="Select your favorite pizza topping..." required aria-invalid="true"><option disabled value="" selected>Select your favorite pizza topping...</option><option>Pepperoni</option><option>Mushrooms</option><option>Onions</option><option>Green Peppers</option><option>Olives</option></select>
+      <small>Please select your favorite pizza topping!</small>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/select"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;select aria-invalid="false"&gt;
+  ...
+&lt;/select&gt;
+&lt;small&gt;Great choice!&lt;/small&gt;
+
+&lt;select required aria-invalid="true"&gt;
+  ...
+&lt;/select&gt;
+&lt;small&gt;
+  Please select your favorite pizza topping!
+&lt;/small&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Dropdown<a href="#dropdown" id="dropdown" class="secondary" tabindex="-1">#</a></h2>
+    <p>The dropdown component allows you to build a custom select with the same style as the native select. See <a data-discover="true" href="/docs/dropdown">Dropdown</a>.</p>
+    <article aria-label="Dropdowns as selects" class="component">
+      <div class="grid">
+        <details class="dropdown">
+          <summary>Select your favorite French dessert...</summary>
+          <ul>
+            <li><label><input type="radio" name="french-dessert" value="Crème brûlée">Crème brûlée</label></li>
+            <li><label><input type="radio" name="french-dessert" value="Macarons">Macarons</label></li>
+            <li><label><input type="radio" name="french-dessert" value="Tarte tatin">Tarte tatin</label></li>
+            <li><label><input type="radio" name="french-dessert" value="Éclair">Éclair</label></li>
+          </ul>
+        </details>
+      </div>
+    </article>
+  </section>
+  <section class="edit-on-github">
+    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.forms.select.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  </section>
+</div>

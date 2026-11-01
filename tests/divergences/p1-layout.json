@@ -1,0 +1,19 @@
+[
+  {
+    "id": "p1-layout-dropped-route-links",
+    "kind": "attribute",
+    "selector": "#content[role=document] > section > p > a[data-discover=\"true\"][href=\"/docs\"]",
+    "property": "href",
+    "a": "/^\\/docs\\/(sass|classless)$/",
+    "b": "/docs",
+    "where": {
+      "routes": [
+        "/docs/container",
+        "/docs/landmarks-section",
+        "/docs/grid"
+      ]
+    },
+    "category": "dropped-route",
+    "reason": "Container's \"Sass\", \"class-less version\" and \"Class-less version\" links, Landmarks & section's \"compiling a custom version of Pico with SASS\" link and Grid's \"class-less version\" link go to /docs/sass and /docs/classless, Decision 5 routes; they point at /docs instead (PLAN.md Conversion rules, Text), which keeps the text and layout as the oracle's until Phase 4 rewrites the content."
+  }
+]

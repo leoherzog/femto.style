@@ -1,0 +1,377 @@
+<hgroup>
+  <p class="chapter">Components</p>
+  <h1>Dropdown</h1>
+  <p>Create dropdown menus and custom selects with minimal and semantic HTML, without JavaScript.</p>
+</hgroup>
+<aside id="table-of-contents">
+  <nav class="is-sticky-above-lg ">
+    <details open>
+      <summary>Content</summary>
+      <ul>
+        <li><a class="secondary" data-discover="true" href="/docs/dropdown">Syntax</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/dropdown#dropdowns-with-checkboxes-and-radios">Checkboxes and radios</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/dropdown#button-variants">Button variants</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/dropdown#validation-states">Validation states</a></li>
+        <li><a class="secondary" data-discover="true" href="/docs/dropdown#usage-with-nav">Usage with nav</a></li>
+      </ul>
+    </details>
+  </nav>
+</aside>
+<div id="content" role="document">
+  <section>
+    <p>Dropdowns are built with <code class="language-html">&lt;details class="dropdown"&gt;</code> as a wrapper and <code class="language-html">&lt;summary&gt;</code> and <code class="language-html">&lt;ul&gt;</code> as direct children. Unless they are in a <a data-discover="true" href="/docs/nav">Nav</a>, dropdowns are <code>width: 100%;</code> by default.</p>
+    <p>Dropdowns are not available in the <a data-discover="true" href="/docs">class‑less&nbsp;version</a>.</p>
+    <p>For style consistency with the form elements, dropdowns are styled like a select by default.</p>
+    <article aria-label="Dropdowns as selects" class="component">
+      <div class="grid"><details class="dropdown">
+        <summary>Dropdown</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details><select name="select" aria-label="Select" required><option value="" disabled selected>Select</option><option>Solid</option><option>Liquid</option><option>Gas</option><option>Plasma</option></select></div>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!-- Dropdown --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary&gt;Dropdown&lt;/summary&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Solid&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Liquid&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Gas&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Plasma&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;!-- Select --&gt;
+&lt;select name="select" aria-label="Select" required&gt;
+  &lt;option selected disabled value=""&gt;Select&lt;/option&gt;
+  &lt;option&gt;Solid&lt;/option&gt;
+  &lt;option&gt;Liquid&lt;/option&gt;
+  &lt;option&gt;Gas&lt;/option&gt;
+  &lt;option&gt;Plasma&lt;/option&gt;false
+&lt;/select&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Dropdowns with checkboxes and radios<a href="#dropdowns-with-checkboxes-and-radios" id="dropdowns-with-checkboxes-and-radios" class="secondary" tabindex="-1">#</a></h2>
+    <p>Dropdowns can be used as custom selects with <code class="language-html">&lt;input type="radio"&gt;</code> or <code class="language-html">&lt;input type="checkbox"&gt;</code>.</p>
+    <article aria-label="Dropdowns with radio buttons or checkboxes" class="component">
+      <details class="dropdown">
+        <summary>Select a phase of matter...</summary>
+        <ul>
+          <li><label><input type="radio" name="phase" value="Solid">Solid</label></li>
+          <li><label><input type="radio" name="phase" value="Liquid">Liquid</label></li>
+          <li><label><input type="radio" name="phase" value="Gas">Gas</label></li>
+          <li><label><input type="radio" name="phase" value="Plasma">Plasma</label></li>
+        </ul>
+      </details>
+      <details class="dropdown">
+        <summary>Select phases of matter...</summary>
+        <ul>
+          <li><label><input type="checkbox" name="solid" value="Solid">Solid</label></li>
+          <li><label><input type="checkbox" name="liquid" value="Liquid">Liquid</label></li>
+          <li><label><input type="checkbox" name="gas" value="Gas">Gas</label></li>
+          <li><label><input type="checkbox" name="plasma" value="Plasma">Plasma</label></li>
+        </ul>
+      </details>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!-- Radios --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary&gt;
+    Select a phase of matter...
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="phase" value="solid" /&gt;
+        Solid
+      &lt;/label&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="phase" value="liquid" /&gt;
+        Liquid
+      &lt;/label&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="phase" value="gas" /&gt;
+        Gas
+      &lt;/label&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="phase" value="plasma" /&gt;
+        Plasma
+      &lt;/label&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;!-- Checkboxes --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary&gt;
+    Select phases of matter...
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="checkbox" name="solid" /&gt;
+        Solid
+      &lt;/label&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="checkbox" name="liquid" /&gt;
+        Liquid
+      &lt;/label&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="checkbox" name="gas" /&gt;
+        Gas
+      &lt;/label&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+      &lt;label&gt;
+        &lt;input type="checkbox" name="plasma" /&gt;
+        Plasma
+      &lt;/label&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/details&gt;</code></pre></footer>
+    </article>
+    <p>femto does not include JavaScript code. You will probably need some JavaScript to interact with these custom dropdowns.</p>
+  </section>
+  <section>
+    <h2>Button variants<a href="#button-variants" id="button-variants" class="secondary" tabindex="-1">#</a></h2>
+    <p><code class="language-html">&lt;summary role="button"&gt;</code> transforms the dropdown into a button.</p>
+    <article aria-label="Dropdowns as buttons" class="component">
+      <details class="dropdown">
+        <summary role="button">Dropdown as a button</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
+  &lt;summary role="button"&gt;
+    Dropdown as a button
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;</code></pre></footer>
+    </article>
+    <p>Like regular buttons, they come with <code>.secondary</code>, <code>.contrast</code>, and <code>.outline</code> (not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
+    <article aria-label="Dropdowns as buttons" class="component">
+      <details class="dropdown">
+        <summary role="button">Primary</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <details class="dropdown">
+        <summary role="button" class="secondary">Secondary</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <details class="dropdown">
+        <summary role="button" class="contrast">Contrast</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <details class="dropdown">
+        <summary role="button" class="outline">Primary outline</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <details class="dropdown">
+        <summary role="button" class="outline secondary">Secondary outline</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <details class="dropdown">
+        <summary role="button" class="outline contrast">Contrast outline</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!-- Primary --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary role="button"&gt;
+    Primary
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;!-- Secondary --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary role="button" class="secondary"&gt;
+    Secondary
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;!-- Contrast --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary role="button" class="contrast"&gt;
+    Contrast
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;!-- Primary outline --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary role="button" class="outline"&gt;
+    Primary outline
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;!-- Secondary outline --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary role="button" class="outline secondary"&gt;
+    Secondary outline
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;!-- Contrast outline --&gt;
+&lt;details class="dropdown"&gt;
+  &lt;summary role="button" class="outline contrast"&gt;
+    Contrast outline
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;
+</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Validation states<a href="#validation-states" id="validation-states" class="secondary" tabindex="-1">#</a></h2>
+    <p>Just like any form elements, validation states are provided with <code>aria-invalid</code>.</p>
+    <article aria-label="Dropdowns with validation states" class="component">
+      <details class="dropdown">
+        <summary aria-invalid="false">Valid phase of matter: Solid</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <details class="dropdown">
+        <summary aria-invalid="true">Debated classification: Plasma</summary>
+        <ul>
+          <li><a data-discover="true" href="/docs/dropdown">Solid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Liquid</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Gas</a></li>
+          <li><a data-discover="true" href="/docs/dropdown">Plasma</a></li>
+        </ul>
+      </details>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
+  &lt;summary aria-invalid="false"&gt;
+    Valid phase of matter: Solid
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;
+
+&lt;details class="dropdown"&gt;
+  &lt;summary aria-invalid="true"&gt;
+    Debated classification: Plasma
+  &lt;/summary&gt;
+  &lt;ul&gt;
+    ...
+  &lt;/ul&gt;
+&lt;/details&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section>
+    <h2>Usage with <code class="language-html">&lt;nav&gt;</code><a href="#usage-with-nav" id="usage-with-nav" class="secondary" tabindex="-1">#</a></h2>
+    <p>You can use dropdowns inside <a data-discover="true" href="/docs/nav">Nav</a>.</p>
+    <p>To change the alignment of the submenu, simply use <code class="language-html">&lt;ul dir="rtl"&gt;</code>.</p>
+    <article aria-label="Dropdowns inside nav" class="component">
+      <nav>
+        <ul>
+          <li><strong>Acme Corp</strong></li>
+        </ul>
+        <ul>
+          <li><a class="secondary" data-discover="true" href="/docs/dropdown">Services</a></li>
+          <li>
+            <details class="dropdown">
+              <summary>Account</summary>
+              <ul dir="rtl">
+                <li><a data-discover="true" href="/docs/dropdown">Profile</a></li>
+                <li><a data-discover="true" href="/docs/dropdown">Settings</a></li>
+                <li><a data-discover="true" href="/docs/dropdown">Security</a></li>
+                <li><a data-discover="true" href="/docs/dropdown">Logout</a></li>
+              </ul>
+            </details>
+          </li>
+        </ul>
+      </nav>
+      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/dropdown"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" class="secondary"&gt;Services&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;
+      &lt;details class="dropdown"&gt;
+        &lt;summary&gt;
+          Account
+        &lt;/summary&gt;
+        &lt;ul dir="rtl"&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Profile&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Settings&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Security&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Logout&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/details&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></footer>
+    </article>
+  </section>
+  <section class="edit-on-github">
+    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.dropdown.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  </section>
+</div>

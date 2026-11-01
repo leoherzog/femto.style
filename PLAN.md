@@ -28,11 +28,15 @@ Decisions 1 to 9 are the owner's, made on 2026-10-30. Decisions 10 to 15 follow 
 
 ```
 build.mjs                 npm run build: site/ into dist/ (03 §2)
+vendor.mjs                npm run vendor: a femto commit into site/vendor/femto/
+eslint.config.js          npm run lint (criterion 11)
+.htmlvalidate.mjs         html-validate's rules, from Phase 3 (criterion 9)
 site/
   index.html  examples.html  demo.html  404.html  docs.html
-  docs/menu.json          categories and sections in order: id, title, description
+  docs/menu.json          categories and sections in order: id, title, description (until Phase 3, also per-route fields)
   docs/sections/<id>.html one section each: its hgroup (the h1 carries the id), content, edit link
-  partials/               head.html (inline scripts), header.html, footer.html
+  docs/sections/version-picker/<color>.html  one per color route, until Phase 3
+  partials/               head.html (inline scripts), header.html, footer.html, docs-header.html, logo.html, nav-icons.html, structured-data.html
   assets/css/             site CSS (from Phase 2): common.css, code.css, fonts.css, docs.css, landing.css
   assets/legacy/          the oracle's compiled CSS, frozen (Phase 1; deleted in Phase 2)
   assets/js/              site.js, docs.js, colors.js, picker.js, demo.js
@@ -48,6 +52,7 @@ docs/research/            01 to 05 and spike/
 `build.mjs` uses Node built-ins and `prismjs` only, and stays under about 200 lines.
 - **Includes.** `<!-- include partials/<file> -->` markers are the only include syntax.
 - **Placeholders.** `{{title}}`, `{{description}}` and `{{version}}` are the only placeholders.
+- **Per-route scaffolding, Phases 1 and 2 only.** Per-route mode also swaps literal markup in `docs.html` for each route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical and `og:url`), fills the `<!-- docs:menu -->` and `<!-- docs:sections -->` slots, and adds route stylesheets, so `build.mjs` may run past about 200 lines until then (229 at Phase 1). Phase 3's one-page assembly removes all of it (accepted by the owner, 2026-10-31).
 - **Code blocks.** They hold escaped text only, in `<code class="language-…">`.
 
 ## URL inventory
@@ -84,6 +89,7 @@ The script's output is then edited by hand into readable HTML. Use the JSX only 
 - ES modules with `type="module"`. Widgets attach through `data-` attributes from Phase 3. In Phases 1 and 2 they bind to the oracle's own markup (ids, classes, `aria-` attributes, structure), because any added attribute is a parity difference with no category.
 - No global state shared between widgets. One modal helper per dialog. Intervals run only while their element is on screen.
 - Every behavior in 01 §2 is either rebuilt or listed there as dropped.
+- Phase 1 already makes some of Phase 3's widget fixes, with their widgets: the color modal's focus and Tab handling, the swatch focus and the restored font-size switch (tests/README.md, Behavior, Expected failures; confirmed by the owner, 2026-10-31).
 - The typing demo is hand-written (Risks: TypeIt license).
 - The one-page spy starts from `docs/research/spike/docs.js`.
 
@@ -109,17 +115,18 @@ Modes are in 03 §7: `oracle`, `self`, `pages`, `styles`, `behavior` and `static
 - **Widths:** 375, 600, 800, 1100, 1300 and 1600.
 - **Masked:** spinners, the typing demo and the random progress value.
 - **Normalized:** a `blob:` URL's random UUID compares as a placeholder; the rest of the value, and the element, are compared as usual. The oracle's `/docs/colors` Download link is one, made on load (the owner, 2026-10-30). It is a value rule, not a mask.
+- **Counted once:** an exact copy of a head data block (the JSON-LD structured data), on either side. React's hydration-error re-render on the oracle's `/docs/progress` writes the block a second time on some loads (accepted by the owner, 2026-10-31; tests/README.md, Collection).
 
 Fast mode, for agents, is Chrome and Firefox at 375 and 1300.
 
 **Divergence categories:**
-- `dropped-route`: a link, menu item or footer item for a Decision 5 route.
+- `dropped-route`: anything Decision 5 drops, and its layout effects: a link, menu item or footer item for a dropped route, the maintenance banner, the homepage Stats, and the page and grid heights, the menu's `--max-height` and the footer track that change without them (widened 2026-10-31).
 - `femto-divergence`: one of femto's own registered differences from Pico 2.1.1, seeded from femto's `tests/divergences/` at the vendored commit.
 - `merge-layout`: an intended one-page change, such as the side nav, the removed TOC and subheading anchors, the per-section `hgroup`, the breadcrumb, or smooth scrolling.
 - `id-rename`: a Decision 13 rename.
 - `oracle-bug`: an oracle bug the conversion fixes naturally, such as the `og:url`, the `#close` URL, or the color-scheme flash.
 - `highlight`: a difference from Prism's version or grammars.
-- `asset-path`: a hashed Remix build URL (`/build/_assets/<name>-<HASH>.<ext>`) that the conversion rewrites to its stable `/assets/` path, such as the palette importer image on `/docs/colors` (added 2026-10-31, when Phase 1's shell agent found it had no category). Only the URL value; anything else about the element is compared as usual.
+- `asset-path`: a hashed Remix build URL (`/build/_assets/<name>-<HASH>.<ext>`) that the conversion rewrites to its stable `/assets/` path, such as the palette importer image on `/docs/colors` (added 2026-10-31, when Phase 1's shell agent found it had no category). Also the palette download's on-load `blob:` URL on `/docs/colors`, which Phase 3 replaces with the build's static JSON file. Only the URL value; anything else about the element is compared as usual.
 - `browser-limit`: as in femto.
 
 ## Acceptance criteria
@@ -141,7 +148,7 @@ Each criterion is checked mechanically, and the final report gives the evidence 
 6. **URLs served.** Under `wrangler pages dev dist`:
    - every page in the URL inventory's last column answers 200 with no redirect;
    - `/docs/` and `/docs.html` 308 to `/docs`;
-   - every old docs route path and any other path answers 404 with the `404.html` body.
+   - every old docs route path and any other path answers 404 with the `404.html` body, except the Pages-inherent paths in Risks (Cloudflare).
 7. **Docs behavior.** The suite passes in Chrome, Firefox and Safari:
    - every check in 05's round 2 results, run on the real page, with the JavaScript-off deep link in each browser the rig can run without JavaScript;
    - the mobile menu opening and closing, including Escape and focus;
@@ -153,7 +160,7 @@ Each criterion is checked mechanically, and the final report gives the evidence 
    - `docs.html` has its title, description, `og:title`, `og:description`, `og:url` and `rel=canonical` to `https://femto.style/docs`.
    - `sitemap.xml` lists only page URLs.
 9. **Valid HTML and ids.**
-   - `html-validate` passes on every HTML file in `dist/`.
+   - `html-validate` passes on every HTML file in `dist/`, under `.htmlvalidate.mjs` from Phase 3: it extends `html-validate:recommended`, and every rule it turns off or changes carries a comment with the reason.
    - No page has a duplicate id.
    - Every section heading's id matches `^[a-z]+(-[a-z]+)?$`. No other heading in `docs.html` has an id.
    - Every side-nav link targets a section id, and every section has exactly one nav link.
@@ -186,7 +193,7 @@ The executing agent writes and runs a Workflow script. It scouts first, then run
 | 0 Setup | Check the preconditions in `PROMPT.md` and stop to ask if any is missing. Branch `dev` from `main`, commit the rebrand there and tag that commit `remix-final`. Build the oracle from the tag in a temporary worktree with its locked toolchain, serve it with `wrangler pages dev`, and capture every route (HTML, hydrated DOM, CSS, screenshots, a route list). Port the harness. Write `static_checks.py` with every criterion, most of them expected to fail for now. Vendor femto (`npm run vendor`). Run the spike in Safari. | 3 or 4 | Criterion 1 in all three browsers, Safari on a light and a dark OS; the spike passes in Safari | "Add Oracle And Parity Harness" |
 | 1 Static pages | First, serially: the `site/` shell, partials, `build.mjs` (per-route mode, highlighting included), the frozen legacy CSS, fonts and `site.js`. Then a pipeline over route groups (Getting started, Customization, Layout, Content, Forms, Components, plus home, examples and demo): convert to section files, then the group's widgets in `docs.js`, `colors.js`, `picker.js` and `demo.js`, then fast-mode `pages` parity, then review and up to 2 fix rounds. Then delete the Remix, React and Sass tree, `public/` and `_redirects`. | 1, then 6 to 8 | Criterion 2 for Phase 1 (`pages` against the oracle, Chrome and Firefox full matrix). The behavior suite for every widget passes in Chrome and Firefox. Criteria 4 and 5 (both except `site/assets/legacy/`, which 03 §2 copies into `dist/` until Phase 2) and 6 (Phases 1 and 2 column). | "Convert Pages To Static HTML" |
 | 2 Styles | Tag the Phase 1 commit `static-multipage`. Write the site CSS files from the compiled output (03 §6), switch to vendored femto plus the responsive-spacings option, seed `femto-divergence` entries, delete `site/assets/legacy/`. Agents split by file: common and code and fonts, docs, landing. | 3, then 3 reviewers | Criterion 2 for Phase 2 (`styles` against `static-multipage`), criteria 4, 11 and 12 | "Move Styles To femto 3" |
-| 3 One page | Tag the Phase 2 commit `static-femto`. Serially: switch `build.mjs` to the one-page assembly with the generated side nav, then write `docs.js` from the spike, with the inline `?theme=` script and Decision 10's class. Then in parallel: section ids, id renames and re-scoped CSS (by category); the TOC and subheading anchors removed; links into the docs pointed at `#<id>`; the per-dialog modal and widget fixes; the picker's color links turned into `?theme=`; the mobile menu and breadcrumb. Measure the performance budget and record it. | 1, then 4, then 3 reviewers | `pages` mode: each section's subtree against its route's `[role=document]` at `static-femto`, zero unregistered differences. Criteria 5 to 10 and 15 in Chrome and Firefox, then the behavior suite and a full `pages` pass in Safari (light and dark). | "Merge Docs Into One Page" |
+| 3 One page | Tag the Phase 2 commit `static-femto`. Serially: switch `build.mjs` to the one-page assembly with the generated side nav, then write `docs.js` from the spike, with the inline `?theme=` script and Decision 10's class. Then in parallel: section ids, id renames and re-scoped CSS (by category); the TOC and subheading anchors removed; links into the docs pointed at `#<id>`; the per-dialog modal and the remaining widget fixes; the palette download turned from the on-load `blob:` URL into a static JSON file the build writes (01 §2, 03 §5); the picker's color links turned into `?theme=`; the mobile menu and breadcrumb. Add `.htmlvalidate.mjs` (criterion 9): fix the real errors, the 22 duplicate ids among them with Decision 13's renames, and turn off only rules that conflict with a deliberate choice, each with its reason; `static_checks.py` checks that each has one. Measure the performance budget and record it in Risks (Page size). | 1, then 4, then 3 reviewers | `pages` mode: each section's subtree against its route's `[role=document]` at `static-femto`, zero unregistered differences. Criteria 5 to 10 and 15 in Chrome and Firefox, then the behavior suite and a full `pages` pass in Safari (light and dark). | "Merge Docs Into One Page" |
 | 4 femto 3 content | Owner review of 04 §1 and the Open questions first. Then one agent per category rewrites and adds sections from femto's README, with the picker rework, homepage, footer and header. Run the content checks. | 1 scout, 6 writers, 3 reviewers (accuracy against the README, accessibility, wording) | Criteria 13 and 14, link check of `dist/`, criteria 7 to 10 rerun | "Describe femto 3" |
 | 5 Cleanup | `package.json` (Decision 3 scripts and pins), `.gitignore`, `_headers` (long caching for fonts only), `robots.txt`, `404.html`, README (develop, build, vendor, deploy) and `LICENSE.md` (keep CC BY-SA; note femto's MIT and the fonts' OFL in their folders). A `.github/workflows/check.yml` that builds and runs the static checks and lint, with no deploy. | 1 or 2 | Criteria 4, 5, 6, 11, 12 and 14 | "Finish Static Site" |
 | 6 Final review | A completeness critic against 01's behavior list and every criterion. Adversarial reviewers for accessibility and keyboard, URL and history behavior across browsers, content accuracy against femto's README, and CSS target compliance. Rerun every gate touched by a fix, then the full matrix in all three browsers. | 4 or 5 | All criteria | "Address Final Review" |
@@ -235,10 +242,10 @@ Commit messages use a Title Case subject under 60 characters, with no body unles
 | Hidden tabs throttle the spy | rAF and timers run about once a second in background tabs (05). Behavior checks run headless or in a foreground window. |
 | Highlighting parity | The oracle flattens Prism tokens through react-syntax-highlighter. Its "html" resolves to refractor's `html` alias, Prism `markup` with CSS and JS inlined: prism-light's `registerLanguage` ignores its name, so `jsx` was registered only as `jsx`. The build must reproduce the same spans, or register `highlight` differences. Proven in Phase 1's pilot: `build.mjs` with Prism 1.30 `markup` matches all 298 distinct oracle code blocks (`node tests/convert/highlight-check.mjs`). |
 | TypeIt license | TypeIt is GPL-3.0 or commercially licensed. The static site uses a hand-written typing loop instead. The animation is masked in parity runs and checked by behavior tests (it types, loops, and the form state follows). |
-| Page size | About 5,900 lines of route JSX, about 250 highlighted code blocks, about 84 live examples and 400 color swatches on one page, with `femto.colors.min.css` (4.4 KB with Brotli) loaded up front. Phase 3 measures transfer size, DOM size and the spy's cost per frame, records the budget here, and only then considers trimming, such as building the swatches from JSON on first view. `content-visibility` stays out (Decision 12). |
+| Page size | About 5,900 lines of route JSX, about 250 highlighted code blocks, about 84 live examples and 400 color swatches on one page, with `femto.colors.min.css` (4.4 KB with Brotli) loaded up front. Phase 3 measures transfer size, DOM size and the spy's cost per frame, records the budget here in the form criterion 15's check reads (one sentence that says "budget" and then gives each limit as a size, raw or "with Brotli" or "gzipped"), and only then considers trimming, such as building the swatches from JSON on first view. `content-visibility` stays out (Decision 12). |
 | The picker recolors the page | femto themes are `:root, :host` rules, so a theme color recolors the whole page, as the oracle's color routes did. With `?theme=` in the URL, reloads and shared links keep it. Phase 4 may scope a preview to a shadow root instead, which femto supports through `:host`. |
 | Search and previews | One URL, by choice (Decision 9). Sections will not rank as separate pages, and every shared link previews as the docs page. |
-| Cloudflare | Pages still works and has no sunset date, but Cloudflare steers new projects to Workers (02 §2). Check where femto.style's DNS lives before any move. Without a top-level `404.html`, Pages serves `/` for unknown paths. |
+| Cloudflare | Pages still works and has no sunset date, but Cloudflare steers new projects to Workers (02 §2). Check where femto.style's DNS lives before any move. Without a top-level `404.html`, Pages serves `/` for unknown paths. Pages also answers some paths itself, and Decision 11 leaves no `_redirects` to change them: `/404` serves the 404 page with status 200, and `/404.html`, `/index`, `/index.html`, `/docs/index` and any page's `.html` name 308 to the clean URL. Accepted (the owner, 2026-10-31); criterion 6 exempts them, and `static_checks.py` probes each one (`PAGES_INHERENT`). |
 | Tool versions | The owner wants the latest version of every tool, checked on the web at install. The one exception is the oracle's own locked toolchain, which only rebuilds the oracle. |
 
 ## Open questions for the owner

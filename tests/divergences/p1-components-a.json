@@ -1,0 +1,15 @@
+[
+  {
+    "id": "p1-components-a-classless-links",
+    "kind": "attribute",
+    "selector": "#content[role=document] > section > p > a[data-discover=\"true\"][href=\"/docs\"]",
+    "property": "href",
+    "a": "/docs/classless",
+    "b": "/docs",
+    "where": {
+      "routes": ["/docs/accordion", "/docs/dropdown"]
+    },
+    "category": "dropped-route",
+    "reason": "Accordion's \"class-less version\" link (the summary button variants note) and Dropdown's two (\"Dropdowns are not available in the class-less version\" and the button variants note) go to /docs/classless, a Decision 5 route; they point at /docs instead (PLAN.md Conversion rules, Text), which keeps the text and layout as the oracle's until Phase 4 rewrites the content."
+  }
+]

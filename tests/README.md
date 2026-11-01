@@ -198,9 +198,9 @@ counted under `align_fallbacks`.
   `head-data-near-copy`). Metas and links keep their repeat numbering: a second canonical link is a
   `#2` record. The rule applies on both sides (a `self` run's side B is the oracle too), so a page
   of `dist/` that wrote its JSON-LD twice would pass as well; `head_repeats` and the summary's
-  `head data blocks` line show it per side, and `result.json` lists the rule under `value_rules`. It is
-  a normalization PLAN.md's Parity harness does not name (it names the three masks and the `blob:`
-  rule); the owner is asked to accept it (Owner decisions 7).
+  `head data blocks` line show it per side, and `result.json` lists the rule under `value_rules`.
+  PLAN.md's Parity harness names it beside the three masks and the `blob:` rule ("Counted once";
+  accepted by the owner, 2026-10-31).
 - Requests (criterion 15): `performance.getEntriesByType("resource")` of the document and of every
   frame inside it that the page can read (same-origin iframes, `srcdoc` and `about:blank` frames,
   objects and embeds, at any depth, and those in open shadow roots, declarative ones included,
@@ -545,8 +545,8 @@ conversion fixes by being written to PLAN.md's rules (Decision 14; Conversion ru
 screen). The color modal's focus and Tab handling, the swatch focus and the restored font-size
 switch are deliberate early fixes of 03 §5's widget plan (`<dialog>`-native focus for `colors.js`)
 that PLAN.md's Workflow lists under Phase 3's per-dialog modal and widget fixes; Phase 1 landed them
-with their widgets instead of porting the bugs first, and the owner is asked to confirm that (Owner
-decisions 7). None of these is a pages-mode difference, so no registry entry records them. Nothing else is expected to fail, and nothing is
+with their widgets instead of porting the bugs first, and the owner confirmed that on 2026-10-31
+(PLAN.md, Conversion rules, JavaScript). None of these is a pages-mode difference, so no registry entry records them. Nothing else is expected to fail, and nothing is
 masked: the parity masks and the `blob:` rule belong to the pages mode. These expected failures
 live in the checks, not in `tests/divergences/`, whose entries type pages-mode records; each
 carries the same PLAN category, `oracle-bug`, and its reason.
@@ -1846,11 +1846,11 @@ rest, and the registered ones with a consequence a later phase owns.
 | woff fallbacks | The frozen `main.css` names 10 `.woff` fallbacks under `/assets/fonts/` beside the woff2 files; only woff2 ships (PLAN.md File tree), so those URLs answer 404. Every target browser takes the woff2. | Phase 2's `fonts.css` names woff2 only; `assets/legacy/` goes |
 | Pacifico on `/docs/css-variables` | The oracle loads Pacifico from Google Fonts; the static page links `/assets/legacy/pacifico.css` (menu.json `styles`), Google's stylesheet with its 5 `src` URLs pointed at the same woff2 files, byte-identical to the captured ones (`tests/oracle/capture/_fonts`), so the page loads only same-origin resources (criterion 15). The pages mode skips stylesheet links (head comparison), so this is the one stylesheet whose origin changed without a record. | Settled 2026-10-31, the owner keeps it: PLAN.md's File tree lists Pacifico 400, Phase 2's `fonts.css` takes its `@font-face` rules, and Phase 4 keeps the example |
 | React text separators | Two section files keep React's `<!-- -->` separator (`color-schemes.html`, `version-picker.html` and its 19 colors: 22 copies in `dist/`), for a sub-pixel label width (tests/convert/README.md). PLAN.md's Conversion rules strip them. | Phase 3 removes them with the per-route artifacts |
-| Per-route build scaffolding | In per-route mode `build.mjs` also swaps literal markup in `docs.html` per route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical, `og:url`), fills two slot comments (`<!-- docs:menu -->`, `<!-- docs:sections -->`) and adds route stylesheets; `menu.json` carries `route`, `label`, `routeTitle`, `toc`, `styles` and `variants` beyond the File tree's id, title, description. PLAN.md allows only the include markers and three placeholders. | Phase 3's one-page assembly removes them; the owner may accept them as scaffolding |
-| The palette download | 01 §2 and 03 §5 plan a static JSON file written by the build; Phase 1's `colors.js` makes an on-load `blob:` URL, for parity with the oracle's (normalized by the `blob:` value rule). No phase owns the switch. | The owner: accept the Blob, or give the JSON file to Phase 3 |
-| File tree extras | `site/partials/` holds `docs-header.html`, `logo.html`, `nav-icons.html` and `structured-data.html` beyond head, header and footer; the root holds `vendor.mjs` and `eslint.config.js`; `site/docs/sections/version-picker/<color>.html` are 19 per-route files. `.prettierrc` names a plugin no longer installed, `robots.txt` is absent, and `site/_headers` still caches `/build/*`. | Phase 3 deletes the color files; Phase 5 the rest; the owner may accept the extra partials and scripts |
-| Pages-inherent paths | `/404` answers 200 (the 404 page), and `/404.html`, `/index`, `/index.html`, `/docs/index` and a page's `.html` name redirect (Cloudflare Pages' pretty URLs). Criterion 6 says any other path answers 404; `static_checks.py` probes these and lists them as notes (`PAGES_INHERENT`). | The owner: accept them in PLAN.md Risks (Cloudflare) |
-| Early widget fixes | The color modal's focus and Tab handling, the swatch focus and the restored font-size switch (Behavior, Expected failures). | The owner: confirm |
+| Per-route build scaffolding | In per-route mode `build.mjs` also swaps literal markup in `docs.html` per route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical, `og:url`), fills two slot comments (`<!-- docs:menu -->`, `<!-- docs:sections -->`) and adds route stylesheets; `menu.json` carries `route`, `label`, `routeTitle`, `toc`, `styles` and `variants` beyond the File tree's id, title, description. PLAN.md allows only the include markers and three placeholders. | Settled 2026-10-31, accepted as scaffolding for Phases 1 and 2 (PLAN.md File tree, Per-route scaffolding); Phase 3's one-page assembly removes them |
+| The palette download | 01 §2 and 03 §5 plan a static JSON file written by the build; Phase 1's `colors.js` makes an on-load `blob:` URL, for parity with the oracle's (normalized by the `blob:` value rule). No phase owns the switch. | Settled 2026-10-31: Phase 3 switches to the build's static JSON file (PLAN.md Workflow) and registers the URL as `asset-path` |
+| File tree extras | `site/partials/` holds `docs-header.html`, `logo.html`, `nav-icons.html` and `structured-data.html` beyond head, header and footer; the root holds `vendor.mjs` and `eslint.config.js`; `site/docs/sections/version-picker/<color>.html` are 19 per-route files. `.prettierrc` names a plugin no longer installed, `robots.txt` is absent, and `site/_headers` still caches `/build/*`. | Settled 2026-10-31: PLAN.md's File tree lists the extra partials, `vendor.mjs`, `eslint.config.js` and the color files; Phase 3 deletes the color files, Phase 5 the rest |
+| Pages-inherent paths | `/404` answers 200 (the 404 page), and `/404.html`, `/index`, `/index.html`, `/docs/index` and a page's `.html` name redirect (Cloudflare Pages' pretty URLs). Criterion 6 says any other path answers 404; `static_checks.py` probes these and lists them as notes (`PAGES_INHERENT`). | Settled 2026-10-31: accepted in PLAN.md Risks (Cloudflare), and criterion 6 exempts them |
+| Early widget fixes | The color modal's focus and Tab handling, the swatch focus and the restored font-size switch (Behavior, Expected failures). | Settled 2026-10-31: confirmed (PLAN.md, Conversion rules, JavaScript) |
 | `<body style="min-height:100vh">` | The oracle's server HTML had it, so the static pages do (round 1 of the fixes, PH-7); site.js still sets innerHeight in px. html-validate's `no-inline-style` reports it on every page (criterion 9). | Phase 2 or 3: once the site CSS gives `<body>` its minimum height, drop the attribute |
 | Escape on the mobile menu | Not in Phase 1, as in the oracle (01 §2: no Escape); an earlier Phase 1 `docs.js` closed it on Escape, which round 1 of the fixes removed. | Phase 3 (criterion 7) |
 
@@ -1905,18 +1905,20 @@ side if the page stays visible; this has not been measured on an unlocked screen
    everything under `site/vendor/femto/`, whose stylesheets carry femto's Pico copyright banner.
 3. **`.gitignore`**: settled 2026-10-30. It reads `/dist/`, so `site/vendor/femto/dist/` is no
    longer ignored.
-4. **PLAN and its sources disagree** in four places the static checks had settled silently:
-   - Criterion 5 says `dist/` holds nothing from `assets/legacy/`, and the Phase 1 gate requires
-     criterion 5, but 03 §2 copies the frozen legacy CSS into `dist/` during Phase 1.
-     `static_checks.py` exempts it before Phase 2 (a note, not a pass); confirm or change.
-   - femto's README and `package.json` at 65453b74 name the package `@leoherzog/femto`, while PLAN
-     Decision 4 and Risks say `femto.css` and `npm/femto.css@3`. Which name do Phase 4's docs use?
-   - Criterion 15's `/docs` budget: the check reads the first sentence in PLAN's Risks that says
-     "budget" and gives sizes after it (`400 KB`, `60 KB with Brotli`, `90 KB gzipped`). Phase 3
-     should record it in that form, or PLAN should define another.
-   - Criterion 9 runs html-validate with no `.htmlvalidate.json` in the repository, so
-     `html-validate:recommended` applies (it flags a lowercase doctype, for one). Decide whether the
-     site gets a config, and which rules it changes.
+4. **PLAN and its sources disagree** in four places the static checks had settled silently. All
+   four are settled:
+   - Criterion 5 and the frozen legacy CSS in `dist/` during Phase 1: PLAN.md's Workflow (Phase 1
+     gate) exempts `site/assets/legacy/` until Phase 2, as `static_checks.py` does.
+   - The package name: `@leoherzog/femto` for now (PLAN.md Decision 4, the owner, 2026-10-30).
+   - Criterion 15's `/docs` budget: settled 2026-10-31. Phase 3 records it in the form the check
+     reads, the first sentence in PLAN's Risks that says "budget" and gives sizes after it (PLAN.md
+     Risks, Page size).
+   - Criterion 9's html-validate config: settled 2026-10-31. Phase 3 adds `.htmlvalidate.mjs`
+     extending `html-validate:recommended`, fixes the real errors (the 22 duplicate ids with
+     Decision 13's renames) and turns off only rules that conflict with a deliberate choice, each
+     with its reason (PLAN.md criterion 9 and Workflow). At Phase 1 the defaults report 1,208
+     errors in 54 files, most of them `no-implicit-button-type` (423), `unique-landmark` (327),
+     `wcag/h30` (159), `wcag/h71` (73) and `no-inline-style` (58).
 5. **The JS compat lint** (PLAN Repo changes, "if one fits"; 03 §7, "Phase 0 checks"): on
    2026-10-30 eslint 10.14.0 is current, and both eslint-plugin-compat 7.0.2 (peer eslint ^9 ||
    ^10, browserslist targets) and eslint-plugin-baseline-js 0.7.6 (peer eslint >=9.29 <11, Baseline
@@ -1926,16 +1928,13 @@ side if the page stays visible; this has not been measured on an unlocked screen
 6. **Old wrangler logs.** `~/Library/Preferences/.wrangler/logs/` holds about 1.5 GB of debug logs
    from 2026-10-30, written before the harness redirected them: the oracle servers' and 7 files
    from static check 6's temporary folders. Delete them if they are not wanted; agents did not.
-7. **Raised by round 1 of the Phase 1 fixes** (2026-10-31), none of them blocking:
-   - `dropped-route` is defined as "a link, menu item or footer item for a Decision 5 route", but the
-     registry also files under it the dropped maintenance banner and homepage Stats (Decision 5 content
-     with no link to a dropped route) and their layout effects: page and grid heights, the menu's
-     `--max-height`, the 404 page's footer track. Widen the category ("content dropped by Decision 5,
-     and its layout consequences") or add one.
-   - The pages mode counts an exact copy of a data block once (Collection), a normalization beside the
-     three masks and the `blob:` rule that PLAN.md's Parity harness does not name. Accept it, or have
-     it apply to side A only (a `self` run would then need it on both).
-   - The early widget fixes (Behavior, Expected failures): confirm landing them in Phase 1.
-   - The Known Phase 1 deviations above marked for the owner: the palette download's form, the
-     build's per-route scaffolding and the extra files, and the Pages-inherent
-     paths.
+7. **Raised by round 1 of the Phase 1 fixes** (2026-10-31). All settled the same day:
+   - `dropped-route` now covers anything Decision 5 drops and its layout effects (PLAN.md,
+     Divergence categories), so the maintenance banner, the homepage Stats and the heights and
+     tracks they change fit its wording.
+   - The data-block copy rule is accepted as it is, on both sides (PLAN.md Parity harness,
+     "Counted once").
+   - The early widget fixes are confirmed (PLAN.md, Conversion rules, JavaScript).
+   - The Known Phase 1 deviations above: Phase 3 takes the palette download's JSON file; the
+     per-route scaffolding, the extra partials and scripts, and the Pages-inherent paths are
+     accepted (PLAN.md File tree, Per-route scaffolding, and Risks, Cloudflare).
