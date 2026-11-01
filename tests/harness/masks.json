@@ -1,5 +1,5 @@
 {
-  "description": "The only masked areas (PLAN.md, Parity harness): spinners, the typing demo and the random progress value. A mask applies to an aligned element when its selector matches it on either side. contents: the element's descendants and its own text are not collected or compared (the element itself, its attributes and styles still are). text: the text of the element and its descendants is not compared. attributes: these attribute names are not compared on the element. properties: these computed longhands are not compared on the element. pixels: true covers the element's boxes on both screenshots; a selector string covers that selector's boxes instead (screenshots never gate). Masked parts are also left out of the alignment's subtree signatures. result.json lists these masks and how many elements each covered per cell.",
+  "description": "The only masked areas (PLAN.md, Parity harness): spinners, the typing demo, the random progress value and the oracle's theme-toggle animation. A mask applies to an aligned element when its selector matches it on either side. contents: the element's descendants and its own text are not collected or compared (the element itself, its attributes and styles still are). text: the text of the element and its descendants is not compared. attributes: these attribute names are not compared on the element. properties: these computed longhands are not compared on the element. pixels: true covers the element's boxes on both screenshots; a selector string covers that selector's boxes instead (screenshots never gate). Masked parts are also left out of the alignment's subtree signatures. result.json lists these masks and how many elements each covered per cell.",
   "masks": [
     {
       "id": "spinner",
@@ -33,6 +33,16 @@
       ],
       "pixels": "article[aria-label=\"Progress example\"] > footer > pre",
       "reason": "The highlighted code under the /docs/progress example prints the same random value in one token: the first attr-value token that is not punctuation (value=\"NN\" comes before max=\"100\"). Only that token's text, and the transform-origin and perspective-origin Firefox derives from its size, are not compared; every other token, its classes and the pre stay compared. Its digits shift the rest of the line, so the screenshot covers the whole pre (pixels never gate)."
+    },
+    {
+      "id": "oracle-theme-toggle",
+      "selector": "svg.icon-theme-toggle *",
+      "properties": [
+        "transform",
+        "d"
+      ],
+      "pixels": true,
+      "reason": "The oracle's animated toggle icon (toggles.dev): React adds moon after hydration when the page is dark, and the circle and rays then scale over 260 ms (the cutout path's d moves too). In Safari 27.2 the transition can start after the harness's freeze, so the oracle differed from itself in the theme-dark leg on a light OS (p0-self-safari-light-locked, 2026-11-01: 36 transform records in 18 cells, and 6 harness errors on /docs/forms/input). The site no longer has this icon (Decision 16), so only these two animated longhands of its parts are not compared; everything else about the SVG still is."
     }
   ]
 }

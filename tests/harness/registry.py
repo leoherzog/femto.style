@@ -48,7 +48,7 @@ KINDS = ("structure", "attribute", "text", "style", "head", "status", "skipped-c
 ELEMENT_KINDS = ("structure", "attribute", "text", "style")
 PAGE_KINDS = ELEMENT_KINDS + ("head",)  # matched in the page by differ.js
 CATEGORIES = ("dropped-route", "femto-divergence", "merge-layout", "id-rename", "oracle-bug", "highlight",
-              "asset-path", "browser-limit")
+              "asset-path", "browser-limit", "owner-change")
 WHERE_KEYS = ("browsers", "routes", "schemes", "widths", "comparisons")
 BROWSERS = ("chrome", "firefox", "safari")
 SCHEMES = ("light", "dark", "theme-light", "theme-dark")

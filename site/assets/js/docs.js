@@ -155,10 +155,11 @@ widgets("table of contents", tableOfContents);
 widgets("getting-started", () => {
   // /docs/color-schemes: the page's own theme switcher (docs.color-schemes.jsx), a button that
   // switches the page's scheme as the header toggle does, its icon's class and its label following
-  // the scheme: "icon-theme-toggle theme-toggle" (" moon" added when dark) and "Turn on dark mode"
-  // or "Turn off dark mode", the text after the icon. The version picker is picker.js's.
+  // the scheme: "icon-theme-toggle theme-toggle" (" moon" added when dark; the emoji of Decision 16)
+  // and "Turn on dark mode" or "Turn off dark mode", the text after the icon. The version picker is
+  // picker.js's.
   const button = document.querySelector("#content article#theme-switcher > button");
-  const icon = button?.querySelector(":scope > svg.icon-theme-toggle");
+  const icon = button?.querySelector(":scope > .icon-theme-toggle");
   const label = button && [...button.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
   if (!icon || !label) return;
   const show = (theme) => {

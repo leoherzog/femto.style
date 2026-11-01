@@ -171,7 +171,7 @@ DOCS_URL = "https://femto.style/docs"
 FEMTO_GITHUB = "github.com/leoherzog/femto"
 SECTION_ID = re.compile(r"^[a-z]+(-[a-z]+)?$")
 CATEGORIES = ("dropped-route", "femto-divergence", "merge-layout", "id-rename", "oracle-bug", "highlight", "asset-path",
-              "browser-limit")
+              "browser-limit", "owner-change")
 PICO_ALLOWED = (
     "LICENSE.md",
     "README.md",

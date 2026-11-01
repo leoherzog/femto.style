@@ -462,22 +462,44 @@
     for (const r of shadowRoots(doc)) for (const a of r.getAnimations()) set.add(a);
     return set;
   }
+  // An animation of an element (not a pseudo-element) whose every animated longhand a mask leaves
+  // uncompared on it changes nothing the diff reads, so a late one does not make the cell
+  // untrustworthy. Such animations are frozen like the others and counted apart, as masked.
+  // masks.json's oracle-theme-toggle: the oracle's toggle icon can start its transform transition
+  // after the first freeze in Safari (p0-self-safari-light-locked, 2026-11-01).
+  function animatedProps(a) {
+    if (typeof a.transitionProperty === "string") return [a.transitionProperty];
+    const out = new Set();
+    try {
+      for (const k of a.effect.getKeyframes())
+        for (const p of Object.keys(k))
+          if (!["offset", "computedOffset", "easing", "composite"].includes(p)) out.add(p.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()));
+    } catch (e) { /* no keyframes to read */ }
+    return [...out];
+  }
+  function maskedAnimation(a) {
+    const el = a.effect && a.effect.target;
+    if (!el || !el.matches || a.effect.pseudoElement) return false;
+    const props = animatedProps(a);
+    return props.length > 0 && maskDefs.some((m) => m.properties.size && props.every((p) => m.properties.has(p)) && el.matches(m.sel));
+  }
   H.freeze = function () {
-    let finished = 0, paused = 0;
-    if (!doc) return { finished, paused };
+    let finished = 0, paused = 0, masked = 0;
+    if (!doc) return { finished, paused, masked };
     for (let round = 0; round < 3; round++) {
       let changed = 0;
       for (const a of allAnimations()) {
         const t = a.effect ? a.effect.getComputedTiming() : null;
+        const m = maskedAnimation(a);
         if (t && t.endTime === Infinity) {
-          if (a.playState !== "paused" || a.currentTime !== 0) { a.pause(); a.currentTime = 0; paused++; changed++; }
+          if (a.playState !== "paused" || a.currentTime !== 0) { a.pause(); a.currentTime = 0; m ? masked++ : paused++; changed++; }
         } else if (a.playState !== "finished") {
-          try { a.finish(); finished++; changed++; } catch (e) { a.cancel(); }
+          try { a.finish(); m ? masked++ : finished++; changed++; } catch (e) { a.cancel(); }
         }
       }
       if (!changed) break;
     }
-    return { finished, paused };
+    return { finished, paused, masked };
   };
 
   // Chrome and Safari run ::file-selector-button transitions on a UA shadow element that

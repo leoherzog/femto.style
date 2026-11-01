@@ -249,7 +249,8 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
             }
             same_origin_loads(out, side, tgt, col.get("requests"))
             # An animation that starts while the styles are read means a value may have been read
-            # mid-transition: the cell cannot be trusted.
+            # mid-transition: the cell cannot be trusted. One that animates only longhands a mask
+            # leaves uncompared on its element is counted apart ("masked"; differ.js freeze).
             late = col.get("freezeAfter") or {}
             if late.get("finished") or late.get("paused"):
                 out["errors"].append(f"{side} collect: {late.get('finished', 0)} animations finished and "

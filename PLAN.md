@@ -4,7 +4,7 @@ Convert femto.style from a Remix and React app with Sass into a plain HTML, CSS 
 
 ## Decisions
 
-Decisions 1 to 9 are the owner's, made on 2026-10-30. Decisions 10 to 15 follow from the research, and the owner approved them on 2026-10-30. Do not reopen any of them without asking the owner.
+Decisions 1 to 9 are the owner's, made on 2026-10-30. Decisions 10 to 15 follow from the research, and the owner approved them on 2026-10-30. Decision 16 is the owner's, made on 2026-11-01. Do not reopen any of them without asking the owner.
 
 | # | Decision |
 |---|---|
@@ -23,6 +23,7 @@ Decisions 1 to 9 are the owner's, made on 2026-10-30. Decisions 10 to 15 follow 
 | 13 | **Headings and other ids.** Each section keeps its `h1` (in its `hgroup`) and its `h2`s, so femto's element-based sizes are unchanged. Every other id on the page is unique and never equals a section id: form controls, `aria-describedby` targets, example ids and SVG internals. A repeated one takes its section id as a prefix (01 §1). |
 | 14 | **The site's own state keeps its names.** The color-scheme choice stays in localStorage `femtoColorScheme` as JSON, and `data-theme` on `<html>` is set only when a choice is stored. The same inline head script applies it before first paint, which fixes today's flash. |
 | 15 | **Work on `dev`**, branched from `main`. Its first commit is the owner's in-progress rebrand, "Rebrand To femto", tagged `remix-final` (the owner, 2026-10-30). The plan and research follow in one commit; after that, commit only at passed gates, with the subjects in the Workflow table. Never push. Deploying is the owner's step. |
+| 16 | **The theme toggle is a sun or moon emoji.** The header toggle and the `/docs/color-schemes` switcher show ☀️ while the page is light and 🌙 while it is dark, drawn in one color (the element's text color, by a transparent glyph and its shadow) by `site/assets/css/common.css`, in place of the oracle's animated SVG (the owner, 2026-11-01). Its box, label, `moon` class and behavior stay as the oracle's. It is registered as `owner-change`; the oracle's icon animation is masked, since Safari can read it mid-transition (tests/README.md, Masks). |
 
 ## File tree
 
@@ -113,7 +114,7 @@ Modes are in 03 §7: `oracle`, `self`, `pages`, `styles`, `behavior` and `static
 - **Browsers:** Chrome Beta, Firefox and Safari. Safari is serialized, and the owner does the dark pass.
 - **Schemes:** light and dark through `prefers-color-scheme`, plus `data-theme` light and dark on `<html>` for a kitchen-sink subset.
 - **Widths:** 375, 600, 800, 1100, 1300 and 1600.
-- **Masked:** spinners, the typing demo and the random progress value.
+- **Masked:** spinners, the typing demo, the random progress value, and the `transform` and `d` of the oracle's theme-toggle SVG parts (Decision 16; Safari can read them mid-transition, 2026-11-01).
 - **Normalized:** a `blob:` URL's random UUID compares as a placeholder; the rest of the value, and the element, are compared as usual. The oracle's `/docs/colors` Download link is one, made on load (the owner, 2026-10-30). It is a value rule, not a mask.
 - **Counted once:** an exact copy of a head data block (the JSON-LD structured data), on either side. React's hydration-error re-render on the oracle's `/docs/progress` writes the block a second time on some loads (accepted by the owner, 2026-10-31; tests/README.md, Collection).
 
@@ -128,6 +129,7 @@ Fast mode, for agents, is Chrome and Firefox at 375 and 1300.
 - `highlight`: a difference from Prism's version or grammars.
 - `asset-path`: a hashed Remix build URL (`/build/_assets/<name>-<HASH>.<ext>`) that the conversion rewrites to its stable `/assets/` path, such as the palette importer image on `/docs/colors` (added 2026-10-31, when Phase 1's shell agent found it had no category). Also the palette download's on-load `blob:` URL on `/docs/colors`, which Phase 3 replaces with the build's static JSON file. Only the URL value; anything else about the element is compared as usual.
 - `browser-limit`: as in femto.
+- `owner-change`: a change the owner asked for that departs from the oracle: Decision 16's theme toggle icon (added 2026-11-01).
 
 ## Acceptance criteria
 

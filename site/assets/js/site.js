@@ -72,7 +72,8 @@ export function onThemeChange(fn) {
 }
 
 // The header toggle (ul.icons in the header nav), as Nav.jsx renders it: href is the current path
-// (Remix's Link to="#"), and the label and the icon's moon class follow the scheme.
+// (Remix's Link to="#"), and the label and the icon's moon class follow the scheme. The icon is the
+// owner's sun or moon emoji (Decision 16), not the oracle's animated SVG.
 const toggles = [...document.querySelectorAll("header nav ul.icons a[aria-label$=' dark mode']")];
 
 function applyTheme() {
@@ -84,8 +85,7 @@ function applyTheme() {
   const dark = theme === "dark";
   for (const toggle of toggles) {
     toggle.setAttribute("aria-label", dark ? "Turn off dark mode" : "Turn on dark mode");
-    // ThemeToggle.jsx joins "icon-theme-toggle" and " moon" (or "") with a space.
-    toggle.querySelector("svg.icon-theme-toggle")?.setAttribute("class", dark ? "icon-theme-toggle  moon" : "icon-theme-toggle ");
+    toggle.querySelector(".icon-theme-toggle")?.classList.toggle("moon", dark);
   }
   for (const fn of themeListeners) fn(theme);
 }

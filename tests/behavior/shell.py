@@ -13,8 +13,8 @@ KEY = "femtoColorScheme"
 THEME_STATE = """
 const a = document.querySelector(arguments[0]);
 return {theme: document.documentElement.getAttribute("data-theme"), stored: localStorage.getItem(arguments[1]),
-        label: a && a.getAttribute("aria-label"), moon: !!(a && a.querySelector("svg.icon-theme-toggle.moon")),
-        icon: !!(a && a.querySelector("svg.icon-theme-toggle"))};
+        label: a && a.getAttribute("aria-label"), moon: !!(a && a.querySelector(".icon-theme-toggle.moon")),
+        icon: !!(a && a.querySelector(".icon-theme-toggle"))};
 """
 
 
@@ -27,7 +27,7 @@ def wait_label(page, label):
     a React effect after the attribute changes)."""
     page.wait(f"toggle reads {label!r}", "(() => { const a = document.querySelector(arguments[0]);"
               " return a && a.getAttribute('aria-label') === arguments[1]"
-              " && !!a.querySelector('svg.icon-theme-toggle.moon') === (arguments[1] === 'Turn off dark mode'); })()",
+              " && !!a.querySelector('.icon-theme-toggle.moon') === (arguments[1] === 'Turn off dark mode'); })()",
               1, args=(TOGGLE, label))
 
 
@@ -45,9 +45,10 @@ def toggle_and_expect(page, theme_after, label_after):
 @check("theme-toggle", ("/", "/docs/typography"))
 def theme_toggle(page):
     """With a light OS scheme and nothing stored: <html> has no data-theme, the header toggle
-    (`ul.icons a`, its icon `svg.icon-theme-toggle`) reads "Turn on dark mode" without the `moon`
-    class. A click sets data-theme="dark" on <html>, stores localStorage femtoColorScheme = '"dark"'
-    (JSON), relabels the toggle "Turn off dark mode" and adds `moon`; the URL is unchanged (no `#`).
+    (`ul.icons a`, its icon `.icon-theme-toggle`: the oracle's SVG, the site's emoji of Decision
+    16) reads "Turn on dark mode" without the `moon` class. A click sets data-theme="dark" on
+    <html>, stores localStorage femtoColorScheme = '"dark"' (JSON), relabels the toggle "Turn off
+    dark mode" and adds `moon`; the URL is unchanged (no `#`).
     A second click stores '"light"', sets data-theme="light" and restores the label and icon."""
     s = theme(page)
     page.eq("no data-theme before any choice", s["theme"], None)

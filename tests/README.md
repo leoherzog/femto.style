@@ -258,7 +258,10 @@ counted under `align_fallbacks`.
   collected element's style, `::before` and `::after` are read once and the freeze runs again, so a
   transition that only a read starts (Chrome's closed `<details>` content) is finished too; each side
   records the three freeze counts under `freeze`, and an animation that starts after that, while
-  the styles are read, is a harness error. A transient
+  the styles are read, is a harness error. An animation of an element whose every animated longhand
+  a mask leaves uncompared on it is frozen too but counted apart (`masked`) and is no error: in
+  Safari 27.2 the oracle's theme-toggle icon can start its transform transition after the first
+  freeze (masks `oracle-theme-toggle`). A transient
   `input[type=file]::file-selector-button { transition: none !important }` cancels the transitions
   Chrome and Safari run on a UA shadow element that `getAnimations()` does not return.
 - Custom properties (tokens) are not compared in this mode: their effects are in the computed
@@ -288,7 +291,7 @@ like any other, with `via` naming the report's directive and document in `cross_
 
 ### Masks
 
-`harness/masks.json` holds the only masked areas, PLAN's three, and every run copies them into
+`harness/masks.json` holds the only masked areas, PLAN's four, and every run copies them into
 `result.json` (`masks`) with the number of elements each covered (`masked_elements`, and per cell
 under `sides`). A mask applies to an aligned element when its selector matches it on either side.
 Masked parts are also left out of the alignment's subtree signatures.
@@ -299,6 +302,7 @@ Masked parts are also left out of the alignment's subtree signatures.
 | `typing-demo` | `.demo > article.component` | its contents: descendants and own text are not collected; the article's own attributes and styles (its height is fixed) stay compared; pixels covered |
 | `progress-value` | `article[aria-label="Progress example"] > progress` | the `value` attribute; pixels covered |
 | `progress-value-code` | `article[aria-label="Progress example"] > footer > pre > code > :nth-child(1 of .attr-value:not(.punctuation))` | the one token that prints the value (`value="NN"` comes before `max="100"`): its text, and the `transform-origin` and `perspective-origin` Firefox derives from its size. Every other token, its classes, the `pre` and the copy button stay compared. The screenshot covers the whole `pre`, since the digits shift the rest of the line |
+| `oracle-theme-toggle` | `svg.icon-theme-toggle *` | `transform` and `d` on the parts of the oracle's animated toggle icon; pixels covered. React adds `moon` after hydration when the page is dark, and the circle and rays then scale over 260 ms; in Safari 27.2 the transition can start after the freeze, so the oracle differed from itself (`p0-self-safari-light-locked`, 2026-11-01: 36 records in 18 theme-dark cells on a light OS, and 6 harness errors on `/docs/forms/input`). The site has an emoji instead (PLAN Decision 16); everything else about the SVG stays compared, and in `pages` its parts are registered `owner-change` records |
 
 Mask fields: `contents` (descendants and own text not collected), `text` (the text of the element
 and its descendants not compared), `attributes` and `properties` (these attribute names and computed
@@ -723,7 +727,7 @@ tests/run.py registry` validates them, and every run validates them again.
 | `a`, `b` | side A's (the oracle's) and side B's values: exact (style values with the color tolerance), `*`, `/regex/`, or `null` for absent (an attribute or element missing on that side) |
 | `check` | `skipped-check` (required): `media:dark`, `media:light`, `pseudo:::backdrop`, ...; exact or `/regex/` |
 | `where` | optional filters, all of which must match the cell: `browsers`, `routes` (exact, or `/^regex/`), `schemes` (legs), `widths` (integers or `{"min", "max"}`), `comparisons` (`pages`; `self` for skipped-check entries only) |
-| `category` | PLAN.md's Divergence categories: `dropped-route`, `femto-divergence`, `merge-layout`, `id-rename`, `oracle-bug`, `highlight`, `asset-path`, `browser-limit` (skipped checks must use `browser-limit`) |
+| `category` | PLAN.md's Divergence categories: `dropped-route`, `femto-divergence`, `merge-layout`, `id-rename`, `oracle-bug`, `highlight`, `asset-path`, `browser-limit` (skipped checks must use `browser-limit`), `owner-change` (a change the owner asked for: Decision 16) |
 | `reason` | non-empty: why the difference is intended (criterion 3) |
 | `notes` | optional |
 
@@ -813,6 +817,8 @@ Seed: `rig.json` holds `safari-no-media-dark` (`browser-limit`), as femto's does
 oracle's `meta[property=og:url]` is `https://v2.picocss.com/` on 63 of its 64 routes, a `head`
 record once the static site fixes it); Phase 2 seeds `femto-divergence` from femto's
 `tests/divergences/` at the vendored commit; Phase 3 adds `merge-layout` and `id-rename`.
+`owner.json` holds the `owner-change` entries for PLAN Decision 16, the theme toggle's emoji icon
+(2026-11-01): the SVG-to-span tag change and the SVG's two parts.
 
 ## Output
 
@@ -1160,8 +1166,9 @@ A control whose run has a harness error fails, whatever its records.
   (`p0r2-rt-probe`, `p0r2-rt-probe-safari`). Firefox 160 also leaves out a cross-origin image it
   serves from its image cache after the first load in a session. The CSP reports cover those (the
   policy is checked before any fetch or cache), a worker's own loads and a frame in a closed shadow
-  root, in Chrome and Firefox (`p0r4-rt-frames`, `p0r4-rt-nested`); Safari's reports are not
-  probed yet. A frame the page cannot read is still a harness error on a `same_origin` side. Neither
+  root, in Chrome and Firefox (`p0r4-rt-frames`, `p0r4-rt-nested`). Safari 27.2 reports a
+  worker's loads but sent no report for a frame in a closed shadow root (Safari passes and
+  Decision 16, 2026-11-01), so in Safari such a load is not seen. A frame the page cannot read is still a harness error on a `same_origin` side. Neither
   sees a WebRTC connection (no CSP directive governs one) or a page a script opens in a new window.
 - The registry's breadth rule reads page sources with the HTML standard's tree construction for
   valid pages; it does not model the adoption agency for misnested formatting
@@ -1833,6 +1840,57 @@ passing. Criterion 4 is read on the files that would be tracked after committing
 the literal `git ls-files` needs the Phase 1 commit (plan-6). Phase 0's Safari steps below are still
 open.
 
+### Safari passes and Decision 16 (2026-11-01, morning)
+
+Phase 0's open Safari steps, run on HEAD a393112 (femto 7bcd5758) with the working tree's changes
+below, on the same rig (Safari 27.2, safaridriver 22625.2.8.11.9). macOS was on its Auto
+appearance, Dark until sunrise and Light after; no setting was changed. "Locked" means `lsappinfo
+front` reported `loginwindow`.
+
+| Run id | Command | Cells or runs | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p0-self-safari-dark-cssvars` | `self --full --browsers safari --routes /docs/css-variables` (dark OS, unlocked) | 12 (6 run, 6 the registered skip `media:light`; 31,056 elements) | **PASS: 0 differences** | 0 | 1,219 s |
+| `p0-rig-safari` | `rig --browsers safari` (dark OS; the screen had relocked) | 1 session | widths, pseudo-elements and the dark scheme as expected; the input checks did not run (locked screen) | — | about 1 min |
+| `p0-selftest-safari-light` | `selftest --browsers safari` (light OS, locked) | 36 controls | **35/36**: `cross-origin-closed-shadow` FAIL (no cross-origin load seen; the host's only-b record as expected) | 0 | 6.4 min |
+| `p0-self-safari-light-locked` | `self --full --browsers safari --routes` every kept route but `/docs/css-variables` (light OS, locked) | 732 (414 run, 318 the registered skip `media:dark`; 262,026 elements) | **FAIL: 36 unregistered**, all `transform` on the oracle's toggle icon (`svg.icon-theme-toggle g > circle, path`) in 18 theme-dark cells, read mid-transition | 6 (`/docs/forms/input` theme-dark: "2 animations finished … after the styles were read") | 609 s |
+| `p0-selftest-safari-light-shadow-recheck` | `selftest --browsers safari --cases cross-origin-closed-shadow,cross-origin-worker` | 2 controls | closed-shadow FAIL again; the worker's CSP report arrives (PASS) | 0 | 18 s |
+| `p0-self-safari-light-themedark-recheck` | `self --full --browsers safari --routes /docs,/docs/button,/docs/forms/input,/docs/table,/docs/typography --schemes theme-dark` | 30 | FAIL: 20 unregistered in 10 cells, the same icon records: reproduces | 3 | 33 s |
+| `owner-toggle-probe`, `-2` | `pages --a oracle --b dist` on `/`, `/docs/color-schemes` (and `/docs/typography`, a 404 in `-2`) at 375 and 1300, light and theme-dark, all three browsers | 24, 48 | with Decision 16's emoji in a free-sized box the nav, its list, item and link widths shift 2.5 to 5 px; with the SVG's box kept (`-2`), the only icon records are the tag change and the SVG's clipPath and g, in every browser | 0 | 45 s, 87 s |
+| `owner-toggle-bh-dist` | `behavior --target dist --groups shell,getting-started` | 110 | **110 PASS** | 0 | 118 s |
+| `owner-toggle-bh-oracle` | `behavior --target oracle --expect-oracle-bugs --groups shell,getting-started` | 110 | **102 PASS, 8 XFAIL** (the known oracle bugs) | 0 | 119 s |
+| `owner-gate-pages-full` | `pages --a oracle --b dist --full --browsers chrome,firefox` (criterion 2) | 1,488 (970,944 elements) | **PASS: 0 unregistered**; 74,388 registered, `owner-theme-toggle-icon` in 1,464 cells (every page with a header) and `owner-theme-toggle-svg-parts` with it | 0 | 332 s |
+| `owner-selftest-cf` | `selftest --browsers chrome,firefox` | 36 controls × 2 | **36/36** | 0 | 3.6 min |
+| `owner-selftest-safari-light` | `selftest --browsers safari` (light OS, locked) | 36 controls | **35/36**: `cross-origin-closed-shadow` FAIL, as above | 0 | 6.4 min |
+| `owner-self-safari-light` | as `p0-self-safari-light-locked` | 732 (414 run, 318 skipped; 262,026 elements) | **PASS: 0 differences**; the freeze counted 8 late masked animations, all on `/docs/forms/input` | **0** | 1,072 s |
+| — | `static_checks.py --phase 1` | 15 criteria | 3, 4, 5, 6, 11 and 12 PASS (11 now has site CSS to lint); 8, 9 and 14 FAIL (later phases' criteria); the rest NOT-YET | — | 11 s |
+| — | `registry` | 32 entries in 11 files | valid: `asset-path` 1, `browser-limit` 1, `dropped-route` 27, `oracle-bug` 1, `owner-change` 2 | — | 2 s |
+
+**The toggle icon.** The oracle sets its scheme in a React effect after hydration, so on a light OS
+the theme-dark leg adds `moon` to the toggle icon then, and its circle and rays scale over 260 ms.
+In Safari on a locked screen that transition can start after the collect's freezes, and the values
+were read part way (scale 1.29 to 1.39 of 1.4). The owner chose to replace the icon (Owner
+decisions, 8; PLAN.md Decision 16): `site/partials/nav-icons.html` and
+`site/docs/sections/color-schemes.html` hold an empty `span.icon-theme-toggle` (`aria-hidden`),
+`site/assets/css/common.css` draws ☀️ or 🌙 in it as a transparent glyph with a `--femto-color`
+shadow in the SVG's own box, and `site.js` and `docs.js` toggle `moon` with `classList`. The
+harness masks the oracle icon's animated longhands (Masks, `oracle-theme-toggle`), and the freeze
+counts an animation a mask fully covers apart (Collection), so the oracle's self comparison no
+longer depends on when Safari starts that transition. The behavior checks find the icon by its
+class, not its tag, so they hold for both. `eslint.config.js` allows femto's tokens as unknown
+variables, as femto's own config does.
+
+**The closed shadow root control in Safari.** `cross-origin-closed-shadow` failed in both full
+Safari selftests and the recheck: Safari 27.2 sent the CSP report of a dedicated worker's
+cross-origin `fetch()` (`cross-origin-worker` passes) but none, within the cell, for the stylesheet
+that a frame inside a closed shadow root loads (Known limits, Same-origin loads: Safari's reports
+were not probed before). Whether the report is never sent or only late is not established.
+
+**Phase 0's gate in Safari after this block.** Light OS: criterion 1 passes over the 53 routes
+(`owner-self-safari-light`); dark OS: `p0r2-self-safari-dark` and `p0-self-safari-dark-cssvars`
+(an earlier differ; the dark pass with today's harness needs a dark evening). Still open: the 6 light
+`/docs/css-variables` cells, `rig`'s input checks and the spike, all of which need an unlocked screen,
+and the closed-shadow control above.
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -1943,3 +2001,12 @@ side if the page stays visible; this has not been measured on an unlocked screen
    - The Known Phase 1 deviations above: Phase 3 takes the palette download's JSON file; the
      per-route scaffolding, the extra partials and scripts, and the Pages-inherent paths are
      accepted (PLAN.md File tree, Per-route scaffolding, and Risks, Cloudflare).
+8. **The theme toggle icon** (2026-11-01). The light Safari self pass found the oracle differing
+   from itself on its animated toggle icon: in the theme-dark leg React adds `moon` after
+   hydration, and Safari 27.2 can start the icon's 260 ms transform transition after the freeze
+   (`p0-self-safari-light-locked`: 36 transform records in 18 cells, and 6 harness errors on
+   `/docs/forms/input`; reproduced in `p0-self-safari-light-themedark-recheck`). The owner chose to
+   replace the icon rather than keep it: PLAN.md Decision 16, a sun or moon emoji drawn in the
+   text color by `site/assets/css/common.css`, registered in `divergences/owner.json`
+   (`owner-change`, a new category), with the oracle's icon animation masked (Masks,
+   `oracle-theme-toggle`) and the freeze counting a masked element's animations apart.

@@ -26,9 +26,15 @@ export default defineConfig([
     plugins: { css },
     extends: ["css/recommended"],
     rules: {
-      // No exceptions yet. Each allowance added here (allowProperties, allowSelectors,
-      // allowFunctions, ...) needs a comment with its reason, as femto's eslint.config.mjs gives.
+      // Each allowance added here (allowProperties, allowSelectors, allowFunctions, ...) needs a
+      // comment with its reason, as femto's eslint.config.mjs gives.
       "css/use-baseline": ["error", { available: "widely" }],
+
+      // The site's CSS uses femto's tokens (--femto-color, --femto-spacing, ...), which the femto
+      // stylesheet defines (until Phase 2, the frozen legacy main.css), and the rule only traces
+      // custom properties defined earlier in the same file; femto's own config allows them for the
+      // same reason. Property names and values without var() are still validated.
+      "css/no-invalid-properties": ["error", { allowUnknownVariables: true }],
     },
   },
   {
