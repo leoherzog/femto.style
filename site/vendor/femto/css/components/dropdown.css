@@ -62,15 +62,15 @@ details.dropdown > summary:not([role])[aria-invalid=true] {
 }
 
 nav details.dropdown {
-  display: inline;
-  margin: calc(var(--femto-nav-element-spacing-vertical) * -1) 0;
+  display: block;
+  margin: 0;
 }
 nav details.dropdown > summary::after {
   transform: rotate(0deg) translateX(0rem);
 }
 nav details.dropdown > summary:not([role]) {
   height: calc(1rem * var(--femto-line-height) + var(--femto-nav-link-spacing-vertical) * 2);
-  padding: calc(var(--femto-nav-link-spacing-vertical) - var(--femto-border-width) * 2) var(--femto-nav-link-spacing-horizontal);
+  padding: calc(var(--femto-nav-link-spacing-vertical) - var(--femto-border-width)) var(--femto-nav-link-spacing-horizontal);
 }
 nav details.dropdown > summary:not([role]):focus-visible {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
@@ -127,6 +127,11 @@ details.dropdown > summary + ul li a:hover, details.dropdown > summary + ul li a
 }
 details.dropdown > summary + ul li label {
   width: 100%;
+}
+details.dropdown > summary + ul li > label:only-child {
+  width: auto;
+  margin: calc(var(--femto-form-element-spacing-vertical) * -0.5) calc(var(--femto-form-element-spacing-horizontal) * -1);
+  padding: calc(var(--femto-form-element-spacing-vertical) * 0.5) var(--femto-form-element-spacing-horizontal) calc(var(--femto-form-element-spacing-vertical) * 0.5 + var(--femto-spacing) * 0.375);
 }
 details.dropdown > summary + ul li:has(label):hover {
   background-color: var(--femto-dropdown-hover-background-color);

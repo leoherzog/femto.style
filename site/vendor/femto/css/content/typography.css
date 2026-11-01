@@ -1,6 +1,6 @@
 /*
  * Typography: text-level reboot (bold, sub and sup), block text spacing and color, headings,
- * heading groups, lists, mark, blockquote, abbreviations, ins, del and text selection.
+ * heading groups, small, lists, mark, blockquote, abbreviations, ins, del and text selection.
  * Reboot based on normalize.css v8.0.1 (MIT License, github.com/necolas/normalize.css) and
  * sanitize.css v13.0.0 (CC0 1.0 Universal, github.com/csstools/sanitize.css).
  */
@@ -100,11 +100,15 @@ hgroup > *:not(:first-child):last-child {
   font-size: 1rem;
 }
 
+small {
+  font-size: var(--femto-font-size);
+}
+
 :where(ol, ul) li {
   margin-bottom: calc(var(--femto-typography-spacing-vertical) * 0.25);
 }
 
-:where(dl, ol, ul) :where(dl, ol, ul) {
+:where(dl, ol, ul) :is(dl, ol, ul) {
   margin: 0;
   margin-top: calc(var(--femto-typography-spacing-vertical) * 0.25);
 }

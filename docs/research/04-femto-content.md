@@ -1,6 +1,6 @@
 # 04: From Pico-era content to femto 3
 
-What happens to each page and section, so that the site ends up using and describing femto 3.0. The sources of truth are femto's `README.md` and `PLAN.md` at the vendored commit (e3b141f3, 3.0.0-alpha.1, on 2026-10-30). Where the docs and the README disagree, the README wins. A disagreement found while writing is reported to the owner, not resolved here.
+What happens to each page and section, so that the site ends up using and describing femto 3.0. The sources of truth are femto's `README.md` and `PLAN.md` at the vendored commit (7bcd5758, 3.0.0-alpha.1, since 2026-10-31). This report was written against e3b141f3 on 2026-10-30; by 7bcd5758 the README has a new tagline, "Semantic HTML made beautiful", and adds right-to-left, striped-row and switch-tooltip details to five class-table rows and a line on 2.1.1's rendering bug fixes under Other changes. Where the docs and the README disagree, the README wins. A disagreement found while writing is reported to the owner, not resolved here.
 
 ## Verdict
 

@@ -1903,6 +1903,11 @@ side if the page stays visible; this has not been measured on an unlocked screen
    femto's `dev` for now, e3b141f3 ("Remove Composer Package", 3.0.0-alpha.1), vendored with
    `npm run vendor -- ../femto e3b141f3472a2860d1d8a50d23f313e64872d122`. Criterion 14 now allows
    everything under `site/vendor/femto/`, whose stylesheets carry femto's Pico copyright banner.
+   Moved 2026-10-31: the owner chose the latest commit on femto's `main`, 7bcd5758 ("Register
+   Safari-Only Computed Values From The Bug Fixes", still 3.0.0-alpha.1), vendored with
+   `npm run vendor -- ../femto 7bcd57582671b2a8d2dcf15747e9ab851ce20b93`. It changes 14 files in
+   `css/` and `dist/femto.css` and `femto.min.css`; `femto.colors.css`, the themes and `LICENSE.md`
+   are unchanged.
 3. **`.gitignore`**: settled 2026-10-30. It reads `/dist/`, so `site/vendor/femto/dist/` is no
    longer ignored.
 4. **PLAN and its sources disagree** in four places the static checks had settled silently. All

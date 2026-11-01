@@ -521,10 +521,13 @@ hgroup > *:not(:first-child):last-child {
   --femto-font-weight: unset;
   font-size: 1rem;
 }
+small {
+  font-size: var(--femto-font-size);
+}
 :where(ol, ul) li {
   margin-bottom: calc(var(--femto-typography-spacing-vertical) * 0.25);
 }
-:where(dl, ol, ul) :where(dl, ol, ul) {
+:where(dl, ol, ul) :is(dl, ol, ul) {
   margin: 0;
   margin-top: calc(var(--femto-typography-spacing-vertical) * 0.25);
 }
@@ -695,6 +698,9 @@ button:is([aria-current]:not([aria-current=false])):focus,
 [role=button]:is([aria-current]:not([aria-current=false])):focus {
   --femto-box-shadow: var(--femto-button-hover-box-shadow, 0 0 0 rgba(0, 0, 0, 0)), 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
+:where(:is(button, [role=button]):not([aria-busy=true], [aria-busy=true]:not(input, select, textarea, html, form) *, details.dropdown > summary + ul *, nav[aria-label=breadcrumb] ul li a)) {
+  max-width: 100%;
+}
 [type=submit],
 [type=reset],
 [type=button] {
@@ -795,9 +801,16 @@ tfoot td {
   border-top: var(--femto-border-width) solid var(--femto-table-border-color);
   border-bottom: 0;
 }
-table.striped tbody tr:nth-child(odd) th,
-table.striped tbody tr:nth-child(odd) td {
+table.striped tbody tr:nth-child(odd of :where(:not([hidden]))) th,
+table.striped tbody tr:nth-child(odd of :where(:not([hidden]))) td {
   background-color: var(--femto-table-row-stripped-background-color);
+}
+table.striped:where([data-theme]) tbody tr:nth-child(odd of :where(:not([hidden]))) :is(th, td),
+table.striped tbody:where([data-theme]) tr:nth-child(odd of :where(:not([hidden]))) :is(th, td),
+table.striped tbody tr:nth-child(odd of :where(:not([hidden]))):where([data-theme]) :is(th, td),
+table.striped tbody tr:nth-child(odd of :where(:not([hidden]))) :is(th, td):where([data-theme]) {
+  background-color: var(--femto-background-color);
+  background-image: linear-gradient(var(--femto-table-row-stripped-background-color), var(--femto-table-row-stripped-background-color));
 }
 
 /* css/content/embedded.css */
@@ -868,7 +881,9 @@ pre {
 pre > code,
 pre > samp {
   display: block;
+  min-width: min-content;
   padding: var(--femto-spacing);
+  overflow-wrap: anywhere;
   background: none;
   line-height: var(--femto-line-height);
 }
@@ -960,6 +975,7 @@ input:not([type=checkbox], [type=radio], [type=range]) {
 }
 fieldset {
   width: 100%;
+  min-width: auto;
   margin: 0;
   margin-bottom: var(--femto-spacing);
   padding: 0;
@@ -1177,6 +1193,12 @@ label:has([type=checkbox], [type=radio]) {
   border-width: 0.35em;
   background-image: none;
 }
+input:where([type=radio]:not(:checked)) {
+  transition-property:
+    border-color,
+    color,
+    box-shadow;
+}
 [type=checkbox][role=switch] {
   --femto-background-color: var(--femto-switch-background-color);
   --femto-color: var(--femto-switch-color);
@@ -1199,6 +1221,22 @@ label:has([type=checkbox], [type=radio]) {
   box-shadow: var(--femto-switch-thumb-box-shadow);
   content: "";
   transition: margin 0.1s ease-in-out;
+}
+[type=checkbox][role=switch][data-tooltip]::before,
+[type=checkbox][role=switch][data-tooltip]:focus::before,
+[type=checkbox][role=switch][data-tooltip]:hover::before {
+  position: static;
+  padding: 0;
+  transform: none;
+  border-radius: 50%;
+  background-color: var(--femto-color);
+  content: "";
+  font-size: inherit;
+  opacity: 1;
+  animation-name: none;
+}
+[type=checkbox][role=switch][data-tooltip]::after {
+  display: none;
 }
 [type=checkbox][role=switch]:focus {
   --femto-background-color: var(--femto-switch-background-color);
@@ -1282,6 +1320,9 @@ input:not([type=checkbox], [type=radio], [type=range], [type=file]):is([type=dat
 }
 input:not([type=checkbox], [type=radio], [type=range], [type=file])[type=time] {
   background-image: var(--femto-icon-time);
+}
+:is([role=search], [role=group]) input:is([type=date], [type=datetime-local], [type=month], [type=time], [type=week]) {
+  min-width: 0;
 }
 [type=date]::-webkit-calendar-picker-indicator,
 [type=datetime-local]::-webkit-calendar-picker-indicator,
@@ -1414,6 +1455,7 @@ details {
   margin-bottom: var(--femto-spacing);
 }
 details summary {
+  display: flow-root;
   line-height: 1rem;
   list-style-type: none;
   cursor: pointer;
@@ -1506,6 +1548,10 @@ article > footer {
   border-bottom-right-radius: var(--femto-border-radius);
   border-bottom-left-radius: var(--femto-border-radius);
 }
+:where(article) th,
+:where(article) td {
+  background-color: var(--femto-card-background-color);
+}
 
 /* css/components/dropdown.css */
 details.dropdown {
@@ -1569,15 +1615,15 @@ details.dropdown > summary:not([role])[aria-invalid=true] {
   --femto-form-element-focus-color: var(--femto-form-element-invalid-focus-color);
 }
 nav details.dropdown {
-  display: inline;
-  margin: calc(var(--femto-nav-element-spacing-vertical) * -1) 0;
+  display: block;
+  margin: 0;
 }
 nav details.dropdown > summary::after {
   transform: rotate(0deg) translateX(0rem);
 }
 nav details.dropdown > summary:not([role]) {
   height: calc(1rem * var(--femto-line-height) + var(--femto-nav-link-spacing-vertical) * 2);
-  padding: calc(var(--femto-nav-link-spacing-vertical) - var(--femto-border-width) * 2) var(--femto-nav-link-spacing-horizontal);
+  padding: calc(var(--femto-nav-link-spacing-vertical) - var(--femto-border-width)) var(--femto-nav-link-spacing-horizontal);
 }
 nav details.dropdown > summary:not([role]):focus-visible {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
@@ -1638,6 +1684,11 @@ details.dropdown > summary + ul li a[aria-current]:not([aria-current=false]) {
 details.dropdown > summary + ul li label {
   width: 100%;
 }
+details.dropdown > summary + ul li > label:only-child {
+  width: auto;
+  margin: calc(var(--femto-form-element-spacing-vertical) * -0.5) calc(var(--femto-form-element-spacing-horizontal) * -1);
+  padding: calc(var(--femto-form-element-spacing-vertical) * 0.5) var(--femto-form-element-spacing-horizontal) calc(var(--femto-form-element-spacing-vertical) * 0.5 + var(--femto-spacing) * 0.375);
+}
 details.dropdown > summary + ul li:has(label):hover {
   background-color: var(--femto-dropdown-hover-background-color);
 }
@@ -1686,24 +1737,32 @@ label > details.dropdown {
   flex: 1 1 auto;
   margin-bottom: 0;
 }
-[role=search] > *:not(:first-child),
-[role=search] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=search] select:not(:first-child),
-[role=group] > *:not(:first-child),
-[role=group] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=group] select:not(:first-child) {
-  margin-left: 0;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+[role=search] > :where([role=search] > *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] input:not([type=checkbox], [type=radio]):where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] select:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] > :where([role=group] > *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] input:not([type=checkbox], [type=radio]):where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] select:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))) {
+  margin-inline-start: 0;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
 }
-[role=search] > *:not(:last-child),
-[role=search] input:not([type=checkbox], [type=radio]):not(:last-child),
-[role=search] select:not(:last-child),
-[role=group] > *:not(:last-child),
-[role=group] input:not([type=checkbox], [type=radio]):not(:last-child),
-[role=group] select:not(:last-child) {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+[role=search] > :where([role=search] > *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] input:not([type=checkbox], [type=radio]):where([role=search] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] select:where([role=search] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] > :where([role=group] > *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] input:not([type=checkbox], [type=radio]):where([role=group] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] select:where([role=group] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+[role=search] > *:is([aria-invalid=true], [aria-invalid=false]),
+[role=search] input:not([type=checkbox], [type=radio]):is([aria-invalid=true], [aria-invalid=false]),
+[role=search] select:is([aria-invalid=true], [aria-invalid=false]),
+[role=group] > *:is([aria-invalid=true], [aria-invalid=false]),
+[role=group] input:not([type=checkbox], [type=radio]):is([aria-invalid=true], [aria-invalid=false]),
+[role=group] select:is([aria-invalid=true], [aria-invalid=false]) {
+  z-index: 1;
 }
 [role=search] > *:focus,
 [role=search] input:not([type=checkbox], [type=radio]):focus,
@@ -1713,21 +1772,21 @@ label > details.dropdown {
 [role=group] select:focus {
   z-index: 2;
 }
-[role=search] button:not(:first-child),
-[role=search] [type=submit]:not(:first-child),
-[role=search] [type=reset]:not(:first-child),
-[role=search] [type=button]:not(:first-child),
-[role=search] [role=button]:not(:first-child),
-[role=search] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=search] select:not(:first-child),
-[role=group] button:not(:first-child),
-[role=group] [type=submit]:not(:first-child),
-[role=group] [type=reset]:not(:first-child),
-[role=group] [type=button]:not(:first-child),
-[role=group] [role=button]:not(:first-child),
-[role=group] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=group] select:not(:first-child) {
-  margin-left: calc(var(--femto-border-width) * -1);
+[role=search] button:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [type=submit]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [type=reset]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [type=button]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [role=button]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] input:not([type=checkbox], [type=radio]):where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] select:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] button:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [type=submit]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [type=reset]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [type=button]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [role=button]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] input:not([type=checkbox], [type=radio]):where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] select:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))) {
+  margin-inline-start: calc(var(--femto-border-width) * -1);
 }
 [role=search] button,
 [role=search] [type=submit],
@@ -1780,13 +1839,13 @@ label > details.dropdown {
     box-shadow: none;
   }
 }
-[role=search] > *:first-child {
-  border-top-left-radius: 5rem;
-  border-bottom-left-radius: 5rem;
+[role=search] > :where([role=search] > *):nth-child(1 of :where(:not([hidden], input[type=hidden]))) {
+  border-start-start-radius: 5rem;
+  border-end-start-radius: 5rem;
 }
-[role=search] > *:last-child {
-  border-top-right-radius: 5rem;
-  border-bottom-right-radius: 5rem;
+[role=search] > :where([role=search] > *):nth-last-child(1 of :where(:not([hidden], input[type=hidden]))) {
+  border-start-end-radius: 5rem;
+  border-end-end-radius: 5rem;
 }
 
 /* css/components/loading.css */
@@ -1844,9 +1903,12 @@ dialog {
   background-color: var(--femto-modal-overlay-background-color);
   color: var(--femto-color);
 }
+:where(dialog)::backdrop {
+  background: none;
+}
 dialog > article {
   width: 100%;
-  max-height: calc(100vh - var(--femto-spacing) * 2);
+  max-height: calc(100svh - var(--femto-spacing) * 2);
   margin: var(--femto-spacing);
   overflow: auto;
 }
@@ -1866,12 +1928,12 @@ dialog > article > header > * {
 dialog > article > header .close,
 dialog > article > header :is(a, button)[rel=prev] {
   margin: 0;
-  margin-left: var(--femto-spacing);
+  margin-inline-start: var(--femto-spacing);
   padding: 0;
-  float: right;
+  float: inline-end;
 }
 dialog > article > footer {
-  text-align: right;
+  text-align: end;
 }
 dialog > article > footer button,
 dialog > article > footer [role=button] {
@@ -1879,7 +1941,7 @@ dialog > article > footer [role=button] {
 }
 dialog > article > footer button:not(:first-of-type),
 dialog > article > footer [role=button]:not(:first-of-type) {
-  margin-left: calc(var(--femto-spacing) * 0.5);
+  margin-inline-start: calc(var(--femto-spacing) * 0.5);
 }
 dialog > article .close,
 dialog > article :is(a, button)[rel=prev] {
@@ -1888,7 +1950,7 @@ dialog > article :is(a, button)[rel=prev] {
   height: 1rem;
   margin-top: calc(var(--femto-spacing) * -1);
   margin-bottom: var(--femto-spacing);
-  margin-left: auto;
+  margin-inline-start: auto;
   border: none;
   background-image: var(--femto-icon-close);
   background-position: center;
@@ -2002,6 +2064,13 @@ nav li select {
   margin-left: inherit;
   padding: calc(var(--femto-nav-link-spacing-vertical) - var(--femto-border-width) * 2) var(--femto-nav-link-spacing-horizontal);
 }
+nav li :where([role=button]) {
+  margin-top: 0;
+}
+nav li [role=search]:last-child,
+nav li [role=group]:last-child {
+  margin-bottom: 0;
+}
 nav[aria-label=breadcrumb] {
   align-items: center;
   justify-content: start;
@@ -2031,22 +2100,19 @@ nav[aria-label=breadcrumb] a[aria-current]:not([aria-current=false]) {
   pointer-events: none;
 }
 aside nav,
-aside ol,
-aside ul,
-aside li {
+aside ol:where(nav *),
+aside ul:where(nav *),
+aside li:where(nav *) {
   display: block;
 }
-aside li {
+aside li:where(nav *) {
   padding: calc(var(--femto-nav-element-spacing-vertical) * 0.5) var(--femto-nav-element-spacing-horizontal);
 }
-aside li a {
+aside li:where(nav *) a {
   display: block;
 }
-aside li [role=button] {
+aside li:where(nav *) [role=button] {
   margin: inherit;
-}
-[dir=rtl] nav[aria-label=breadcrumb] ul li:not(:last-child) ::after {
-  content: "\\";
 }
 
 /* css/components/progress.css */
@@ -2077,6 +2143,9 @@ progress[value]::-webkit-progress-value {
 progress::-moz-progress-bar {
   background-color: var(--femto-progress-color);
 }
+progress:indeterminate::-moz-progress-bar {
+  background-color: transparent;
+}
 @media (prefers-reduced-motion: no-preference) {
   progress:indeterminate {
     background:
@@ -2087,9 +2156,6 @@ progress::-moz-progress-bar {
     animation: progress-indeterminate 1s linear infinite;
   }
   progress:indeterminate[value]::-webkit-progress-value {
-    background-color: transparent;
-  }
-  progress:indeterminate::-moz-progress-bar {
     background-color: transparent;
   }
 }

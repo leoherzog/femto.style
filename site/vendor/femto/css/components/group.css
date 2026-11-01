@@ -24,24 +24,33 @@
   flex: 1 1 auto;
   margin-bottom: 0;
 }
-[role=search] > *:not(:first-child),
-[role=search] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=search] select:not(:first-child),
-[role=group] > *:not(:first-child),
-[role=group] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=group] select:not(:first-child) {
-  margin-left: 0;
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
+/* The :where() before each :nth-child() tests the parent first, so elements outside a group skip the sibling count. */
+[role=search] > :where([role=search] > *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] input:not([type=checkbox], [type=radio]):where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] select:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] > :where([role=group] > *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] input:not([type=checkbox], [type=radio]):where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] select:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))) {
+  margin-inline-start: 0;
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
 }
-[role=search] > *:not(:last-child),
-[role=search] input:not([type=checkbox], [type=radio]):not(:last-child),
-[role=search] select:not(:last-child),
-[role=group] > *:not(:last-child),
-[role=group] input:not([type=checkbox], [type=radio]):not(:last-child),
-[role=group] select:not(:last-child) {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+[role=search] > :where([role=search] > *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] input:not([type=checkbox], [type=radio]):where([role=search] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] select:where([role=search] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] > :where([role=group] > *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] input:not([type=checkbox], [type=radio]):where([role=group] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] select:where([role=group] *):not(:nth-last-child(1 of :where(:not([hidden], input[type=hidden])))) {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+[role=search] > *:is([aria-invalid=true], [aria-invalid=false]),
+[role=search] input:not([type=checkbox], [type=radio]):is([aria-invalid=true], [aria-invalid=false]),
+[role=search] select:is([aria-invalid=true], [aria-invalid=false]),
+[role=group] > *:is([aria-invalid=true], [aria-invalid=false]),
+[role=group] input:not([type=checkbox], [type=radio]):is([aria-invalid=true], [aria-invalid=false]),
+[role=group] select:is([aria-invalid=true], [aria-invalid=false]) {
+  z-index: 1;
 }
 [role=search] > *:focus,
 [role=search] input:not([type=checkbox], [type=radio]):focus,
@@ -51,21 +60,21 @@
 [role=group] select:focus {
   z-index: 2;
 }
-[role=search] button:not(:first-child),
-[role=search] [type=submit]:not(:first-child),
-[role=search] [type=reset]:not(:first-child),
-[role=search] [type=button]:not(:first-child),
-[role=search] [role=button]:not(:first-child),
-[role=search] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=search] select:not(:first-child),
-[role=group] button:not(:first-child),
-[role=group] [type=submit]:not(:first-child),
-[role=group] [type=reset]:not(:first-child),
-[role=group] [type=button]:not(:first-child),
-[role=group] [role=button]:not(:first-child),
-[role=group] input:not([type=checkbox], [type=radio]):not(:first-child),
-[role=group] select:not(:first-child) {
-  margin-left: calc(var(--femto-border-width) * -1);
+[role=search] button:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [type=submit]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [type=reset]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [type=button]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] [role=button]:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] input:not([type=checkbox], [type=radio]):where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=search] select:where([role=search] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] button:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [type=submit]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [type=reset]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [type=button]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] [role=button]:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] input:not([type=checkbox], [type=radio]):where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))),
+[role=group] select:where([role=group] *):not(:nth-child(1 of :where(:not([hidden], input[type=hidden])))) {
+  margin-inline-start: calc(var(--femto-border-width) * -1);
 }
 [role=search] button,
 [role=search] [type=submit],
@@ -119,11 +128,11 @@
   }
 }
 
-[role=search] > *:first-child {
-  border-top-left-radius: 5rem;
-  border-bottom-left-radius: 5rem;
+[role=search] > :where([role=search] > *):nth-child(1 of :where(:not([hidden], input[type=hidden]))) {
+  border-start-start-radius: 5rem;
+  border-end-start-radius: 5rem;
 }
-[role=search] > *:last-child {
-  border-top-right-radius: 5rem;
-  border-bottom-right-radius: 5rem;
+[role=search] > :where([role=search] > *):nth-last-child(1 of :where(:not([hidden], input[type=hidden]))) {
+  border-start-end-radius: 5rem;
+  border-end-end-radius: 5rem;
 }

@@ -29,9 +29,12 @@ dialog {
   background-color: var(--femto-modal-overlay-background-color);
   color: var(--femto-color);
 }
+:where(dialog)::backdrop {
+  background: none;
+}
 dialog > article {
   width: 100%;
-  max-height: calc(100vh - var(--femto-spacing) * 2);
+  max-height: calc(100svh - var(--femto-spacing) * 2);
   margin: var(--femto-spacing);
   overflow: auto;
 }
@@ -50,12 +53,12 @@ dialog > article > header > * {
 }
 dialog > article > header .close, dialog > article > header :is(a, button)[rel=prev] {
   margin: 0;
-  margin-left: var(--femto-spacing);
+  margin-inline-start: var(--femto-spacing);
   padding: 0;
-  float: right;
+  float: inline-end;
 }
 dialog > article > footer {
-  text-align: right;
+  text-align: end;
 }
 dialog > article > footer button,
 dialog > article > footer [role=button] {
@@ -63,7 +66,7 @@ dialog > article > footer [role=button] {
 }
 dialog > article > footer button:not(:first-of-type),
 dialog > article > footer [role=button]:not(:first-of-type) {
-  margin-left: calc(var(--femto-spacing) * 0.5);
+  margin-inline-start: calc(var(--femto-spacing) * 0.5);
 }
 dialog > article .close, dialog > article :is(a, button)[rel=prev] {
   display: block;
@@ -71,7 +74,7 @@ dialog > article .close, dialog > article :is(a, button)[rel=prev] {
   height: 1rem;
   margin-top: calc(var(--femto-spacing) * -1);
   margin-bottom: var(--femto-spacing);
-  margin-left: auto;
+  margin-inline-start: auto;
   border: none;
   background-image: var(--femto-icon-close);
   background-position: center;
