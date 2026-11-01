@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Harness fixture: other page</title>
+<script>
+  try {
+    var t = JSON.parse(localStorage.getItem("femtoColorScheme"));
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  } catch (e) {}
+</script>
+<link rel="stylesheet" href="/fixture.css">
+</head>
+<body>
+<main id="content">
+  <h1>Other page</h1>
+  <p>A second route, removed on side B by the status-404 control.</p>
+</main>
+</body>
+</html>

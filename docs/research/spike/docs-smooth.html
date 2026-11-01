@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Documentation • femto</title>
+<script>
+window.__scrolls = [];
+addEventListener("scroll", () => __scrolls.push([Math.round(performance.now()), Math.round(scrollY)]), { passive: true });
+</script>
+<link rel="stylesheet" href="/femto.min.css">
+<link rel="stylesheet" href="/femto.colors.min.css">
+<link rel="stylesheet" href="/spike.css">
+<style>html { scroll-behavior: smooth; }</style>
+<script>
+(() => {
+  const params = new URLSearchParams(location.search);
+  const theme = params.get("theme");
+  if (theme && /^[a-z]+$/.test(theme)) {
+    const href = `/themes/${theme}.css`;
+    if (params.get("method") === "write") {
+      document.write(`<link rel="stylesheet" href="${href}">`);
+    } else {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = href;
+      if (params.get("method") === "blocking") link.setAttribute("blocking", "render");
+      document.head.append(link);
+    }
+  }
+  requestAnimationFrame((time) => {
+    window.__firstFrame = getComputedStyle(document.documentElement).getPropertyValue("--femto-primary").trim();
+    window.__firstFrameAt = Math.round(time);
+  });
+})();
+</script>
+<script type="module" src="/docs.js"></script>
+</head>
+<body>
+<header class="container-fluid"><nav><ul><li><a href="/"><strong>femto</strong></a></li></ul>
+<ul><li><a href="/docs" aria-current="page">Docs</a></li><li><a href="/examples.html">Examples</a></li></ul></nav></header>
+<div class="docs container">
+<aside><nav id="docs-nav" aria-label="Documentation">
+<details open><summary>Getting started</summary><ul>
+<li><a href="#quick-start">Quick start</a></li>
+<li><a href="#version-picker">Version picker</a></li>
+<li><a href="#color-schemes">Color schemes</a></li>
+</ul></details>
+<details open><summary>Customization</summary><ul>
+<li><a href="#css-variables">CSS variables</a></li>
+</ul></details>
+<details open><summary>Layout</summary><ul>
+<li><a href="#container">Container</a></li>
+<li><a href="#grid">Grid</a></li>
+</ul></details>
+<details open><summary>Forms</summary><ul>
+<li><a href="#forms">Forms</a></li>
+<li><a href="#input">Input</a></li>
+<li><a href="#switch">Switch</a></li>
+</ul></details>
+<details open><summary>Components</summary><ul>
+<li><a href="#accordion">Accordion</a></li>
+<li><a href="#modal">Modal</a></li>
+<li><a href="#tooltip">Tooltip</a></li>
+</ul></details>
+</nav></aside>
+<main id="content">
+<section data-title="Quick start">
+<hgroup><p>Getting started</p><h1 id="quick-start">Quick start</h1><p>Link femto from a CDN, install it from npm, or download it.</p></hgroup>
+<h2>Usage</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Install from npm</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Starter HTML template</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Version picker">
+<hgroup><p>Getting started</p><h1 id="version-picker">Version picker</h1><p>Choose a theme color and options.</p></hgroup>
+<h2>Theme color</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Options</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Usage</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Color schemes">
+<hgroup><p>Getting started</p><h1 id="color-schemes">Color schemes</h1><p>Light and dark.</p></hgroup>
+<h2>Usage</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="CSS variables">
+<hgroup><p>Customization</p><h1 id="css-variables">CSS variables</h1><p>Over 130 custom properties.</p></hgroup>
+<h2>Usage</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Examples</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>All variables</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Container">
+<hgroup><p>Layout</p><h1 id="container">Container</h1><p>Centered or fluid widths.</p></hgroup>
+<h2>Breakpoints</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Grid">
+<hgroup><p>Layout</p><h1 id="grid">Grid</h1><p>A minimal grid.</p></hgroup>
+<h2>Syntax</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Examples</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Forms">
+<hgroup><p>Forms</p><h1 id="forms">Forms</h1><p>Every form element, styled.</p></hgroup>
+<h2>Syntax</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Validation states</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Disabled</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Input">
+<hgroup><p>Forms</p><h1 id="input">Input</h1><p>Text fields and friends.</p></hgroup>
+<h2>Syntax</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Examples</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Validation states</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Switch">
+<hgroup><p>Forms</p><h1 id="switch">Switch</h1><p>A checkbox with role=switch.</p></hgroup>
+<h2>Syntax</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Accordion">
+<hgroup><p>Components</p><h1 id="accordion">Accordion</h1><p>Toggles made with details and summary.</p></hgroup>
+<h2>Syntax</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Examples</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Modal">
+<hgroup><p>Components</p><h1 id="modal">Modal</h1><p>A dialog holding an article.</p></hgroup>
+<h2>Syntax</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Examples</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<h2>Utilities</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+<section data-title="Tooltip">
+<hgroup><p>Components</p><h1 id="tooltip">Tooltip</h1><p>Short labels on hover and focus.</p></hgroup>
+<h2>Syntax</h2>
+<p>This paragraph stands in for a paragraph of the real documentation, long enough to wrap across a few lines at desktop widths so that the section lengths here resemble the routes they model. It says nothing; it only takes up the space that prose, code samples and live examples take up.</p>
+</section>
+</main>
+</div>
+<footer class="container"><small>Spike footer</small></footer>
+</body>
+</html>

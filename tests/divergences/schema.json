@@ -1,0 +1,364 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "femto.style/tests/divergences/schema.json",
+  "title": "femto.style divergence registry file",
+  "description": "Every file in tests/divergences/ except this one is a JSON array of entries. A difference between side A (the oracle) and side B passes only if at least one entry matches it. Patterns: omitted or \"*\" matches anything, \"/regex/flags\" is a regular expression (flags i, m, s, u; in route patterns it must start with ^), null (a and b only) matches an absent value (an attribute or element missing on that side), and any other string matches exactly (style values compare with the harness color tolerance: 1/255 per channel, 0.004 alpha). Self comparisons (criterion 1) apply skipped-check entries only. Every entry must be specific, judged on what it would actually match (tests/harness/registry.py evaluates its selector, path and route scope on the oracle's captured DOMs, the fixture site under every control, and dist/ once built, its path patterns with JavaScript's RegExp as differ.js applies them): every element or head entry, route-scoped or not, reaches at most 25% of the compared elements (head: head keys) of any one document past 4 of them, and with the other entries of its kind at most 50%; one that names more than 3 routes (or none) also reaches at most 5% (head: 10%) of a complete site's compared elements over the routes in its scope, and those entries together at most 25%; all entries of a kind share a budget of 25% of each complete site (the oracle; a dist build once it holds every kept route); at most 3 routes without a reference document, in one entry or in the whole registry; a status entry names at most 3 routes; a skipped-check entry names one or two browsers and at most 2 of the known checks. A rejected entry is not applied. In every cell differ.js applies the per-document limits again on the live documents (an entry over them is a harness error and is not applied there), and the registered records may cover at most 25% of either document. tests/README.md (Divergence registry) documents matching in full.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "id",
+      "kind",
+      "category",
+      "reason"
+    ],
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+        "description": "Unique across all registry files."
+      },
+      "kind": {
+        "enum": [
+          "structure",
+          "attribute",
+          "text",
+          "style",
+          "head",
+          "status",
+          "skipped-check"
+        ],
+        "description": "structure: an element on one side only, or another tag where the alignment pairs two elements (a: side A's tag or null, b: side B's). attribute: an attribute value or presence (property: the attribute name). text: an element's own text. style: a computed longhand of an element or one of its pseudo-elements. head: the title, a <meta>, a non-stylesheet <link>, <base> or a data-block <script> (application/ld+json, ...) of the document (path: the head key such as title, meta[name=description], meta[property=og:url], link[rel=canonical], base, script[type=application/ld+json]; property: text, content, href, a JSON leaf such as $.version, ...). status: the route's final document status and path (\"200 /docs\"). skipped-check: a check a browser cannot run (media:dark, pseudo:::backdrop, ...)."
+      },
+      "selector": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S",
+        "description": "Element kinds: a CSS selector the element must match, evaluated on side B, or on side A when side B has no element at that path. \"*\" for any (then its path must be narrow: no selector reaches more than 25% of a document, whatever routes it names). No pseudo-elements (the pseudo field names them)."
+      },
+      "path": {
+        "type": "string",
+        "description": "Element kinds: the record's tree path (html > body:0 > main:1 > section:0, \"#shadow\" for a shadow root's children), exact, \"*\" or /regex/. head: the head key (title, meta[name=description], link[rel=canonical], script[type=application/ld+json]; #2 for a repeat), exact or /regex/. status: the route, exact, \"*\" or a regex that starts with ^ (/^\\/docs\\/forms/), since every route starts with a slash."
+      },
+      "pseudo": {
+        "type": "string",
+        "description": "style only: \"\" for the element itself, \"::before\", \"::after\", \"::marker\", \"::placeholder\", \"::file-selector-button\", \"::backdrop\", \"*\" or /regex/. Omitted means any."
+      },
+      "property": {
+        "type": "string",
+        "description": "style: the longhand; attribute: the attribute name; head: the compared value (text for the title, else the attribute name, a JSON leaf of a data block such as $.version or $.author.name, (text) for a data block that is not JSON, or (element) for an element with no other attribute). Exact, \"*\" or /regex/. Required for all three."
+      },
+      "a": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Side A's value (the oracle): exact, \"*\", /regex/, or null for absent."
+      },
+      "b": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "description": "Side B's value: exact, \"*\", /regex/, or null for absent."
+      },
+      "check": {
+        "type": "string",
+        "description": "skipped-check: the check name (media:dark, media:light, pseudo:::backdrop, ...), exact or /regex/."
+      },
+      "where": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Optional filters; every listed key must match the comparison cell.",
+        "properties": {
+          "browsers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "enum": [
+                "chrome",
+                "firefox",
+                "safari"
+              ]
+            },
+            "description": "Required for skipped-check entries, with one or two browsers: a browser limit belongs to the browser that has it."
+          },
+          "routes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "description": "Route paths, exact (/docs/forms/input), or a regular expression that starts with ^ (/^\\/docs\\/forms/): a route starts with a slash itself, so /docs/forms/input is always the route; \"*\" or any other item that does not start with a slash is a registry error, never a wildcard. At most 3 routes make an entry route-scoped: exempt from the site shares, never from the per-document limits (a route scope narrows where an entry applies, not how much of a page it may cover) or from its kind's budget; a regular expression counts the known routes it matches, and more than 3 routes without a reference document, in one entry or in the whole registry, is an error."
+          },
+          "schemes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "enum": [
+                "light",
+                "dark",
+                "theme-light",
+                "theme-dark"
+              ]
+            }
+          },
+          "widths": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "oneOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "minProperties": 1,
+                  "properties": {
+                    "min": {
+                      "type": "integer"
+                    },
+                    "max": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "comparisons": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "enum": [
+                "self",
+                "pages"
+              ]
+            },
+            "description": "self or pages. Only skipped-check entries may name self: no element, head or status entry applies to a self comparison."
+          }
+        }
+      },
+      "category": {
+        "enum": [
+          "dropped-route",
+          "femto-divergence",
+          "merge-layout",
+          "id-rename",
+          "oracle-bug",
+          "highlight",
+          "asset-path",
+          "browser-limit"
+        ],
+        "description": "PLAN.md, Divergence categories. dropped-route: a link, menu item or footer item for a Decision 5 route. femto-divergence: one of femto's own registered differences from Pico 2.1.1. merge-layout: an intended one-page change. id-rename: a Decision 13 rename. oracle-bug: an oracle bug the conversion fixes naturally. highlight: a difference from Prism's version or grammars. asset-path: a hashed Remix build URL (/build/_assets/<name>-<HASH>.<ext>) the conversion rewrites to its stable /assets/ path, and nothing else. browser-limit: as in femto (every skipped check)."
+      },
+      "reason": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S",
+        "description": "Why the difference is intended (acceptance criterion 3)."
+      },
+      "notes": {
+        "type": "string"
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "enum": [
+                "structure",
+                "attribute",
+                "text",
+                "style"
+              ]
+            }
+          }
+        },
+        "then": {
+          "anyOf": [
+            {
+              "required": [
+                "selector"
+              ]
+            },
+            {
+              "required": [
+                "path"
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "enum": [
+                "style",
+                "attribute",
+                "head"
+              ]
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "property"
+          ]
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "status"
+            }
+          }
+        },
+        "then": {
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "selector"
+                ]
+              },
+              {
+                "required": [
+                  "property"
+                ]
+              },
+              {
+                "required": [
+                  "pseudo"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "skipped-check"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "check"
+          ],
+          "properties": {
+            "category": {
+              "const": "browser-limit"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "selector"
+                ]
+              },
+              {
+                "required": [
+                  "path"
+                ]
+              },
+              {
+                "required": [
+                  "property"
+                ]
+              },
+              {
+                "required": [
+                  "pseudo"
+                ]
+              },
+              {
+                "required": [
+                  "a"
+                ]
+              },
+              {
+                "required": [
+                  "b"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "if": {
+          "not": {
+            "properties": {
+              "kind": {
+                "const": "skipped-check"
+              }
+            }
+          }
+        },
+        "then": {
+          "not": {
+            "required": [
+              "check"
+            ]
+          }
+        }
+      },
+      {
+        "if": {
+          "not": {
+            "properties": {
+              "kind": {
+                "const": "style"
+              }
+            }
+          }
+        },
+        "then": {
+          "not": {
+            "required": [
+              "pseudo"
+            ]
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "kind": {
+              "const": "head"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "path",
+            "property"
+          ],
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "selector"
+                ]
+              },
+              {
+                "required": [
+                  "pseudo"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

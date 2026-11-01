@@ -113,7 +113,7 @@ Forms in examples with no submit handler navigate on Enter: `docs.forms._index.j
 | Package | Use | Replacement |
 |---|---|---|
 | react, react-dom, @remix-run/* | Everything | Static HTML plus ES modules |
-| react-syntax-highlighter 15.6.1 (refractor 3.6, Prism 1.29 grammars) | The Prism light build with `bash`, `css`, `scss`, and `html` registered **as the `jsx` grammar**. `useInlineStyles={false}`, so classes only. Tokens are flattened: each text run is one `span` whose class list is the union of its ancestors', e.g. `token tag attr-name`. `_code.scss` selectors depend on that. | Prism (pinned, latest) at build time, emitting the same flattened spans (03 §4). |
+| react-syntax-highlighter 15.6.1 (refractor 3.6, Prism 1.29 grammars) | The Prism light build with `bash`, `css`, `scss`, and `jsx` registered. `html` resolves to refractor's `html` alias, Prism `markup` (corrected 2026-10-31: prism-light's `registerLanguage` ignores its name argument, so registering jsx "as html" only added `jsx`). `useInlineStyles={false}`, so classes only. Tokens are flattened: each text run is one `span` whose class list is the union of its ancestors', e.g. `token tag attr-name`. `_code.scss` selectors depend on that. | Prism (pinned, latest) at build time, emitting the same flattened spans (03 §4). |
 | @makotot/ghostui 2.0.0 | TOC `Scrollspy` | `docs.js` |
 | typeit-react 2.7.8 (typeit 8.8.7) | Homepage demo | Hand-written loop |
 | react-copy-to-clipboard | Copy | `navigator.clipboard.writeText` |
@@ -122,6 +122,7 @@ Forms in examples with no submit handler navigate on Enter: `docs.forms._index.j
 | use-debounce, use-local-storage-state, use-prefers-color-scheme | Breadcrumb debounce, theme storage, matchMedia | A few lines each |
 | isbot | Unused | Dropped |
 | @fontsource/figtree, @fontsource/fira-code | Sass `faces()` mixins: Figtree 700 normal and italic, and Fira Code 400, all subsets, woff2 and woff | Self-hosted woff2 with hand-written `@font-face` (OFL-1.1) |
+| Google Fonts Pacifico 400 | The CSS variables example's heading, loaded from fonts.googleapis.com on `/docs/css-variables` only | Self-hosted woff2, the same 5 subset files (OFL-1.1) |
 
 ## 4. Styles
 

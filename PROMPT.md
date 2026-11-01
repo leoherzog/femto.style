@@ -7,7 +7,7 @@ You are on macOS with Google Chrome Beta, Firefox and Safari installed, the same
 Before any other work, confirm these preconditions. Stop and ask me if any is missing:
 
 - `dev` exists, its first commit is the rebrand ("Rebrand To femto"), and that commit is tagged `remix-final`. The working tree is clean apart from `.claude/launch.json`.
-- `../femto` is a clean checkout at the commit to vendor. Name the commit and its `package.json` version back to me before you vendor it. On 2026-10-30 I approved 65453b74 (3.0.0-alpha.1).
+- `../femto` is a clean checkout at the commit to vendor. Name the commit and its `package.json` version back to me before you vendor it. On 2026-10-30 I approved the latest commit on femto's `dev` for now: e3b141f3 (3.0.0-alpha.1).
 - `safaridriver --enable` has been run, and Safari's Allow Remote Automation is on.
 - `uv`, Node and `npx` are available, and the network is reachable for installing the oracle's locked toolchain.
 

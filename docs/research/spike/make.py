@@ -1,6 +1,7 @@
 # Writes the spike's docs.html: a dozen stand-in docs sections on one page, sized like the real ones
 # (some longer than the viewport, two much shorter, the last one short). Each section's top heading
-# carries the section's one-or-two-word id; subheadings carry none.
+# carries the section's one-or-two-word id; subheadings carry none. docs-smooth.html is the same page
+# with today's html { scroll-behavior: smooth }.
 # Run: python3 -I docs/research/spike/make.py
 from html import escape
 from pathlib import Path
@@ -45,7 +46,7 @@ FILLER = (
 # methods, chosen by ?method= for the spike's comparison: a script-inserted <link> (append, the
 # default), the same with blocking="render" (blocking), or a parser-inserted one (write).
 # __firstFrame records --femto-primary at the first animation frame, which runs only once rendering
-# is allowed.
+# is allowed, and __firstFrameAt that frame's time.
 HEAD_SCRIPT = """<script>
 (() => {
   const params = new URLSearchParams(location.search);
@@ -62,11 +63,23 @@ HEAD_SCRIPT = """<script>
       document.head.append(link);
     }
   }
-  requestAnimationFrame(() => {
+  requestAnimationFrame((time) => {
     window.__firstFrame = getComputedStyle(document.documentElement).getPropertyValue("--femto-primary").trim();
+    window.__firstFrameAt = Math.round(time);
   });
 })();
 </script>"""
+
+# Spike instrumentation, not part of the site: every scroll event's time and position from the start
+# of parsing, so the checks can tell an instant jump (one event) from an animated scroll.
+SCROLL_LOG = """<script>
+window.__scrolls = [];
+addEventListener("scroll", () => __scrolls.push([Math.round(performance.now()), Math.round(scrollY)]), { passive: true });
+</script>"""
+
+# The variant docs-smooth.html adds today's site rule (app/styles/scss/commons/layout/_document.scss),
+# to compare it with the spike's click-only class.
+PAGES = {"docs.html": "", "docs-smooth.html": "<style>html { scroll-behavior: smooth; }</style>\n"}
 
 
 def main():
@@ -88,17 +101,23 @@ def main():
         body.append("</section>")
     nav.append("</ul></details>")
 
-    page = f"""<!doctype html>
+    for name, extra in PAGES.items():
+        (HERE / name).write_text(page(nav, body, extra))
+
+
+def page(nav, body, extra):
+    return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
 <title>Documentation • femto</title>
+{SCROLL_LOG}
 <link rel="stylesheet" href="/femto.min.css">
 <link rel="stylesheet" href="/femto.colors.min.css">
 <link rel="stylesheet" href="/spike.css">
-{HEAD_SCRIPT}
+{extra}{HEAD_SCRIPT}
 <script type="module" src="/docs.js"></script>
 </head>
 <body>
@@ -116,7 +135,6 @@ def main():
 </body>
 </html>
 """
-    (HERE / "docs.html").write_text(page)
 
 
 main()

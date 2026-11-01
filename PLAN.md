@@ -11,7 +11,7 @@ Decisions 1 to 9 are the owner's, made on 2026-10-30. Decisions 10 to 15 follow 
 | 1 | Plain HTML, CSS and JavaScript. No React, Remix, Sass, PostCSS, bundler or framework, at runtime or at build time. |
 | 2 | **The docs are one page, `/docs`.** The side nav lists the sections, grouped by category, and highlights the one being read. As the reader scrolls, the URL's `#hash` becomes that section's id, written with `replaceState` once the section has been stable for 200 ms. The first section has no hash, so the top of the page is plain `/docs`. Links, deep links, back, forward and reload are the browser's own fragment navigation (02 §4, proven in 05). |
 | 3 | **One build step.** `npm run build` runs `build.mjs`, which only does five things: copies files, expands the head, header and footer includes, assembles the docs page from one source file per section with a generated side nav, pre-highlights code with a pinned Prism, and writes the sitemap (03 §2). It writes no per-path copies, includes no femto files as sample code, and never transforms CSS or JavaScript. `site/` is the hand-authored source. `dist/` is generated, gitignored and deployed. |
-| 4 | **femto is vendored.** `site/vendor/femto/` holds femto's `dist/`, `css/` and `LICENSE.md`, copied from a recorded femto commit by `npm run vendor`, and is served from the site's own origin (03 §3). Switch to the npm package only after `femto.css` is published. |
+| 4 | **femto is vendored.** `site/vendor/femto/` holds femto's `dist/`, `css/` and `LICENSE.md`, copied from a recorded femto commit by `npm run vendor`, and is served from the site's own origin (03 §3). Switch to the npm package only after `@leoherzog/femto` is published (the package name, the owner, 2026-10-30, "for now"). |
 | 5 | **Dropped, not built:** the About pages (Maintenance, What's new in v2, Mission, Usage scenarios, Brand, Built with), the homepage Stats, the maintenance banner, Class-less version, Conditional styling, Sass and the Pico v1 docs. Nothing is live, so nothing needs redirecting. |
 | 6 | **Parity first.** The oracle is the Remix site at tag `remix-final`. Phases 1 to 3 change structure while matching the oracle, which is the parity reference as femto's 2.1.1 build was. Phase 4 then rewrites the content for femto 3. |
 | 7 | **Ids.** Each section's id is one or two lowercase hyphenated words (`input`, `forms`, `overflow-auto`; the full list is in 02 §1) and sits on the section's top heading. Subheadings carry no ids, no `#` permalinks and no nav entries, and there is no "On this page" column. |
@@ -36,7 +36,7 @@ site/
   assets/css/             site CSS (from Phase 2): common.css, code.css, fonts.css, docs.css, landing.css
   assets/legacy/          the oracle's compiled CSS, frozen (Phase 1; deleted in Phase 2)
   assets/js/              site.js, docs.js, colors.js, picker.js, demo.js
-  assets/fonts/           Figtree 700 normal and italic, Fira Code 400, woff2, OFL.txt
+  assets/fonts/           Figtree 700 normal and italic, Fira Code 400, Pacifico 400, woff2, OFL.txt
   assets/img/, assets/brand/
   vendor/femto/           femto dist/, css/, LICENSE.md, SOURCE (commit, tag, version)
   _headers  robots.txt  site.webmanifest  favicon.svg  apple-touch-icon.png  opengraph.png
@@ -81,7 +81,7 @@ The script's output is then edited by hand into readable HTML. Use the JSX only 
 - `href="#"` controls that are really buttons stay as they are through Phase 3, for parity, and are listed as Phase 4 accessibility candidates.
 
 **JavaScript.**
-- ES modules with `type="module"`. Widgets attach through `data-` attributes.
+- ES modules with `type="module"`. Widgets attach through `data-` attributes from Phase 3. In Phases 1 and 2 they bind to the oracle's own markup (ids, classes, `aria-` attributes, structure), because any added attribute is a parity difference with no category.
 - No global state shared between widgets. One modal helper per dialog. Intervals run only while their element is on screen.
 - Every behavior in 01 §2 is either rebuilt or listed there as dropped.
 - The typing demo is hand-written (Risks: TypeIt license).
@@ -89,10 +89,10 @@ The script's output is then edited by hand into readable HTML. Use the JSX only 
 
 **CSS.**
 - Phase 1 changes no CSS. Only font `url()`s in the frozen copies point at `/assets/fonts/`.
-- Phase 2 replaces Pico with vendored femto plus `options/responsive-spacings.css`, and moves the site rules out of the compiled output (03 §6) into flat, unlayered files that follow femto's color, prefix and never-use rules.
+- Phase 2 replaces Pico with vendored femto plus `options/responsive-spacings.css`, and moves the site rules out of the compiled output (03 §6) into flat, unlayered files that follow femto's color, prefix and never-use rules. `fonts.css` also takes the Pacifico `@font-face` rules from `assets/legacy/pacifico.css`.
 - Phase 3 re-scopes `main.page-<id>` rules to `#<id>` sections, rebuilds the docs grid as side nav plus content, and replaces the oracle's `html { scroll-behavior: smooth }` with Decision 10's class.
 
-**Text.** Phases 1 to 3 change no wording, except links to dropped routes, which are removed or pointed at `/docs`. Phase 4 rewrites content per 04, with femto's README at the vendored commit as the source of truth.
+**Text.** Phases 1 to 3 change no wording, except links to dropped routes, which are removed or pointed at `/docs`. Phase 4 rewrites content per 04, with femto's README at the vendored commit as the source of truth. The CSS variables example keeps its Pacifico heading (the owner's choice, 2026-10-31).
 
 ## Parity harness
 
@@ -108,6 +108,7 @@ Modes are in 03 §7: `oracle`, `self`, `pages`, `styles`, `behavior` and `static
 - **Schemes:** light and dark through `prefers-color-scheme`, plus `data-theme` light and dark on `<html>` for a kitchen-sink subset.
 - **Widths:** 375, 600, 800, 1100, 1300 and 1600.
 - **Masked:** spinners, the typing demo and the random progress value.
+- **Normalized:** a `blob:` URL's random UUID compares as a placeholder; the rest of the value, and the element, are compared as usual. The oracle's `/docs/colors` Download link is one, made on load (the owner, 2026-10-30). It is a value rule, not a mask.
 
 Fast mode, for agents, is Chrome and Firefox at 375 and 1300.
 
@@ -118,6 +119,7 @@ Fast mode, for agents, is Chrome and Firefox at 375 and 1300.
 - `id-rename`: a Decision 13 rename.
 - `oracle-bug`: an oracle bug the conversion fixes naturally, such as the `og:url`, the `#close` URL, or the color-scheme flash.
 - `highlight`: a difference from Prism's version or grammars.
+- `asset-path`: a hashed Remix build URL (`/build/_assets/<name>-<HASH>.<ext>`) that the conversion rewrites to its stable `/assets/` path, such as the palette importer image on `/docs/colors` (added 2026-10-31, when Phase 1's shell agent found it had no category). Only the URL value; anything else about the element is compared as usual.
 - `browser-limit`: as in femto.
 
 ## Acceptance criteria
@@ -167,7 +169,7 @@ Each criterion is checked mechanically, and the final report gives the evidence 
 14. **No Pico.** `git grep -il pico -- . ':!docs/research' ':!tests' ':!PLAN.md' ':!PROMPT.md'` lists only:
     - `LICENSE.md` and `README.md`;
     - `site/partials/footer.html` (the CC BY-SA attribution);
-    - `site/vendor/femto/LICENSE.md` (femto's MIT notice, which keeps Pico's copyright line);
+    - anything under `site/vendor/femto/`: femto's own files, pinned by criterion 12, whose `LICENSE.md` and stylesheet banners keep Pico's copyright line as its MIT license requires;
     - `site/docs/sections/migration.html`.
 15. **Performance.**
     - Every page loads only same-origin resources.
@@ -182,7 +184,7 @@ The executing agent writes and runs a Workflow script. It scouts first, then run
 | Phase | Work | Agents | Gate | Commit |
 |---|---|---|---|---|
 | 0 Setup | Check the preconditions in `PROMPT.md` and stop to ask if any is missing. Branch `dev` from `main`, commit the rebrand there and tag that commit `remix-final`. Build the oracle from the tag in a temporary worktree with its locked toolchain, serve it with `wrangler pages dev`, and capture every route (HTML, hydrated DOM, CSS, screenshots, a route list). Port the harness. Write `static_checks.py` with every criterion, most of them expected to fail for now. Vendor femto (`npm run vendor`). Run the spike in Safari. | 3 or 4 | Criterion 1 in all three browsers, Safari on a light and a dark OS; the spike passes in Safari | "Add Oracle And Parity Harness" |
-| 1 Static pages | First, serially: the `site/` shell, partials, `build.mjs` (per-route mode, highlighting included), the frozen legacy CSS, fonts and `site.js`. Then a pipeline over route groups (Getting started, Customization, Layout, Content, Forms, Components, plus home, examples and demo): convert to section files, then the group's widgets in `docs.js`, `colors.js`, `picker.js` and `demo.js`, then fast-mode `pages` parity, then review and up to 2 fix rounds. Then delete the Remix, React and Sass tree, `public/` and `_redirects`. | 1, then 6 to 8 | Criterion 2 for Phase 1 (`pages` against the oracle, Chrome and Firefox full matrix). The behavior suite for every widget passes in Chrome and Firefox. Criteria 4 (except `site/assets/legacy/`), 5 and 6 (Phases 1 and 2 column). | "Convert Pages To Static HTML" |
+| 1 Static pages | First, serially: the `site/` shell, partials, `build.mjs` (per-route mode, highlighting included), the frozen legacy CSS, fonts and `site.js`. Then a pipeline over route groups (Getting started, Customization, Layout, Content, Forms, Components, plus home, examples and demo): convert to section files, then the group's widgets in `docs.js`, `colors.js`, `picker.js` and `demo.js`, then fast-mode `pages` parity, then review and up to 2 fix rounds. Then delete the Remix, React and Sass tree, `public/` and `_redirects`. | 1, then 6 to 8 | Criterion 2 for Phase 1 (`pages` against the oracle, Chrome and Firefox full matrix). The behavior suite for every widget passes in Chrome and Firefox. Criteria 4 and 5 (both except `site/assets/legacy/`, which 03 §2 copies into `dist/` until Phase 2) and 6 (Phases 1 and 2 column). | "Convert Pages To Static HTML" |
 | 2 Styles | Tag the Phase 1 commit `static-multipage`. Write the site CSS files from the compiled output (03 §6), switch to vendored femto plus the responsive-spacings option, seed `femto-divergence` entries, delete `site/assets/legacy/`. Agents split by file: common and code and fonts, docs, landing. | 3, then 3 reviewers | Criterion 2 for Phase 2 (`styles` against `static-multipage`), criteria 4, 11 and 12 | "Move Styles To femto 3" |
 | 3 One page | Tag the Phase 2 commit `static-femto`. Serially: switch `build.mjs` to the one-page assembly with the generated side nav, then write `docs.js` from the spike, with the inline `?theme=` script and Decision 10's class. Then in parallel: section ids, id renames and re-scoped CSS (by category); the TOC and subheading anchors removed; links into the docs pointed at `#<id>`; the per-dialog modal and widget fixes; the picker's color links turned into `?theme=`; the mobile menu and breadcrumb. Measure the performance budget and record it. | 1, then 4, then 3 reviewers | `pages` mode: each section's subtree against its route's `[role=document]` at `static-femto`, zero unregistered differences. Criteria 5 to 10 and 15 in Chrome and Firefox, then the behavior suite and a full `pages` pass in Safari (light and dark). | "Merge Docs Into One Page" |
 | 4 femto 3 content | Owner review of 04 §1 and the Open questions first. Then one agent per category rewrites and adds sections from femto's README, with the picker rework, homepage, footer and header. Run the content checks. | 1 scout, 6 writers, 3 reviewers (accuracy against the README, accessibility, wording) | Criteria 13 and 14, link check of `dist/`, criteria 7 to 10 rerun | "Describe femto 3" |
@@ -225,13 +227,13 @@ Commit messages use a Title Case subject under 60 characters, with no body unles
 |---|---|
 | The oracle must build | `.node-version` says 18.19.0; the machine has Node 24.22.0 and no yarn. Phase 0 tries `npx yarn@1.22.22 install --frozen-lockfile` under Node 24, then under an 18 or 20 runtime fetched with `npx -p node@…`. `build:fetch-stats` needs the network (stats fall back to 0) and `build:v1-documentation` needs `rsync`. |
 | The rebrand was uncommitted | The oracle must include it. Resolved 2026-10-30: the owner chose to commit it as the first commit on `dev`, which `remix-final` tags. |
-| femto's working tree | `npm run vendor` refuses a dirty tree. Resolved 2026-10-30: `../femto` is clean at 65453b74 ("Prepare 3.0.0 Alpha 1", 3.0.0-alpha.1), which the owner approved for vendoring. The vendored commit sets what Phase 4 describes. |
-| femto is alpha and unpublished | Names and files may change before 3.0.0, and `npm/femto.css@3` URLs 404 until the first publish. Re-vendoring is one command, and criterion 13 then flags stale docs. Go live after femto's first publish (04 §3). |
+| femto's working tree | `npm run vendor` refuses a dirty tree. Resolved 2026-10-30: the owner first approved 65453b74 ("Prepare 3.0.0 Alpha 1"), then rewrote femto's `dev` and chose its latest commit "for now": e3b141f3 ("Remove Composer Package", 3.0.0-alpha.1), vendored from a clean `../femto`. Re-vendor when femto moves on; `SOURCE` records the commit and the refs that reach it. The vendored commit sets what Phase 4 describes. |
+| femto is alpha and unpublished | Names and files may change before 3.0.0, and `npm/@leoherzog/femto@3` URLs 404 until the first publish. Re-vendoring is one command, and criterion 13 then flags stale docs. Go live after femto's first publish (04 §3). |
 | Safari | The spike ran only in Chrome and Firefox. Phase 0 must establish three Safari behaviors: whether `document.write` of the theme `<link>` applies before the first paint, what back does for a `#hash` entry, and the 100-calls-in-10-seconds history limit, past which WebKit throws (the spy wraps `replaceState` in `try`). Safari gates need femto's rig rules: Safari quit, the machine idle, and the owner's dark pass. |
 | `document.write` | It is the only way the spike found to apply `?theme=` before the first paint in both Chrome and Firefox (02 §5). Lighthouse flags `document.write`; the warning targets cross-origin scripts, and this one writes a same-origin `<link>` from an allow-list. If a browser ever blocks it, the fallback is a script-inserted `<link>`, which shows azure for one frame. |
 | Back in Chrome | Chrome returns to the `#hash` heading, the start of the section, rather than the exact position, as Firefox does. Accepted (05). |
 | Hidden tabs throttle the spy | rAF and timers run about once a second in background tabs (05). Behavior checks run headless or in a foreground window. |
-| Highlighting parity | The oracle flattens Prism tokens through react-syntax-highlighter and uses the `jsx` grammar for HTML. The build must reproduce the same spans, or register `highlight` differences. Check this against the captured oracle DOM in Phase 1's first route before converting the rest. |
+| Highlighting parity | The oracle flattens Prism tokens through react-syntax-highlighter. Its "html" resolves to refractor's `html` alias, Prism `markup` with CSS and JS inlined: prism-light's `registerLanguage` ignores its name, so `jsx` was registered only as `jsx`. The build must reproduce the same spans, or register `highlight` differences. Proven in Phase 1's pilot: `build.mjs` with Prism 1.30 `markup` matches all 298 distinct oracle code blocks (`node tests/convert/highlight-check.mjs`). |
 | TypeIt license | TypeIt is GPL-3.0 or commercially licensed. The static site uses a hand-written typing loop instead. The animation is masked in parity runs and checked by behavior tests (it types, loops, and the form state follows). |
 | Page size | About 5,900 lines of route JSX, about 250 highlighted code blocks, about 84 live examples and 400 color swatches on one page, with `femto.colors.min.css` (4.4 KB with Brotli) loaded up front. Phase 3 measures transfer size, DOM size and the spy's cost per frame, records the budget here, and only then considers trimming, such as building the swatches from JSON on first view. `content-visibility` stays out (Decision 12). |
 | The picker recolors the page | femto themes are `:root, :host` rules, so a theme color recolors the whole page, as the oracle's color routes did. With `?theme=` in the URL, reloads and shared links keep it. Phase 4 may scope a preview to a shadow root instead, which femto supports through `:host`. |

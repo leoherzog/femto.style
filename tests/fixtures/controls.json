@@ -1,0 +1,402 @@
+{
+ "description": "Named changes the harness's fixture server applies to tests/fixtures/site/ for side B (target fixture:<name>). edits: exact text that must occur once in the file, and its replacement. remove: files that answer 404. The selftest (tests/harness/negative.py) runs each against the unchanged site.",
+ "controls": {
+  "color-2-of-255": {
+   "describe": "h1 color rgb(45, 49, 56) to rgb(47, 49, 56): 2/255 on red",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { color: rgb(45, 49, 56); }",
+     "new": "h1 { color: rgb(47, 49, 56); }"
+    }
+   ]
+  },
+  "color-1-of-255": {
+   "describe": "h1 color rgb(45, 49, 56) to rgb(46, 49, 56): 1/255, inside the tolerance",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { color: rgb(45, 49, 56); }",
+     "new": "h1 { color: rgb(46, 49, 56); }"
+    }
+   ]
+  },
+  "attribute": {
+   "describe": "the lead paragraph's title attribute changes",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "title=\"lead paragraph\"",
+     "new": "title=\"lead para\""
+    }
+   ]
+  },
+  "added-element": {
+   "describe": "a fourth list item on side B",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<li>Three</li>",
+     "new": "<li>Three</li><li>Four</li>"
+    }
+   ]
+  },
+  "removed-element": {
+   "describe": "the third list item is gone on side B",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<li>Three</li>",
+     "new": ""
+    }
+   ]
+  },
+  "changed-tag": {
+   "describe": "<b> becomes <strong> (both render bold)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<b>fixture</b>",
+     "new": "<strong>fixture</strong>"
+    }
+   ]
+  },
+  "pseudo-content": {
+   "describe": "the ::before content changes from a right to a left arrow",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": ".pseudo::before { content: \"\\2192  \";",
+     "new": ".pseudo::before { content: \"\\2190  \";"
+    }
+   ]
+  },
+  "width-only": {
+   "describe": "a rule that applies from 790 to 810px only",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": ".wide { padding: 8px 0; }",
+     "new": ".wide { padding: 8px 0; }\n@media (min-width: 790px) and (max-width: 810px) { .wide { word-spacing: 3px; } }"
+    }
+   ]
+  },
+  "dark-only": {
+   "describe": "a rule under prefers-color-scheme: dark without data-theme",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": ".scheme { padding: 8px 0; }",
+     "new": ".scheme { padding: 8px 0; }\n@media (prefers-color-scheme: dark) { :root:not([data-theme]) .scheme { word-spacing: 3px; } }"
+    }
+   ]
+  },
+  "theme-dark-only": {
+   "describe": "a rule under html[data-theme=dark]",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": ".scheme { padding: 8px 0; }",
+     "new": ".scheme { padding: 8px 0; }\nhtml[data-theme=dark] .scheme { word-spacing: 3px; }"
+    }
+   ]
+  },
+  "text": {
+   "describe": "one word of the lead paragraph changes",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "Lead text with",
+     "new": "Lead copy with"
+    }
+   ]
+  },
+  "whitespace": {
+   "describe": "one rendered space added between the lead paragraph's link and the period after it (the old own-text rule collapsed it away: a space that renders between two inline boxes, as in the footer of round 1 of the Phase 1 fixes)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "a link</a>.</p>",
+     "new": "a link</a> .</p>"
+    }
+   ]
+  },
+  "whitespace-collapsed": {
+   "describe": "source whitespace that renders nothing changes: the list items lose the newline and indentation between them (whitespace between blocks), and the h1's space before <b> becomes a newline and indentation (still one rendered space)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<li>One</li>\n    <li>Two</li>",
+     "new": "<li>One</li><li>Two</li>"
+    },
+    {
+     "file": "index.html",
+     "old": "<h1>Harness <b>",
+     "new": "<h1>Harness\n      <b>"
+    }
+   ]
+  },
+  "whitespace-nbsp": {
+   "describe": "no-break spaces in the lead paragraph, which CSS never collapses: the space after \"Lead\" becomes &nbsp; plus a space, and the space before the link becomes two &nbsp; (round 1's own-text rule read U+00A0 as collapsible whitespace and gave no record for either, as in the adversarial review's 'Code&nbsp; licensed' footer)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "Lead text with <a href=\"/target\"",
+     "new": "Lead&nbsp; text with&nbsp;&nbsp;<a href=\"/target\""
+    }
+   ]
+  },
+  "pseudo-elements": {
+   "describe": "a change on ::marker, ::placeholder, ::file-selector-button, ::backdrop and ::after only",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": ".lead { transition: color 0.4s; }",
+     "new": ".lead { transition: color 0.4s; }\nli::marker { color: rgb(1, 2, 3); }\ninput::placeholder { letter-spacing: 2px; }\ninput[type=file]::file-selector-button { outline-offset: 7px; }\ndialog::backdrop { opacity: 0.5; }\n.pseudo::after { outline-offset: 7px; }"
+    }
+   ]
+  },
+  "masked-only": {
+   "describe": "changes inside the masked areas only: the typing demo's content, the progress value and its token in the code",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<p class=\"typing\">typing</p>",
+     "new": "<p class=\"typing\" data-changed=\"1\">typing</p><span>extra</span>"
+    },
+    {
+     "file": "index.html",
+     "old": "<progress value=\"50\" max=\"100\">",
+     "new": "<progress value=\"60\" max=\"100\">"
+    },
+    {
+     "file": "index.html",
+     "old": "<span class=\"token tag attr-value\">50</span>",
+     "new": "<span class=\"token tag attr-value\">7</span>"
+    }
+   ]
+  },
+  "status-404": {
+   "describe": "/other.html answers 404 on side B",
+   "remove": [
+    "other.html"
+   ]
+  },
+  "color-and-attribute": {
+   "describe": "the color-2-of-255 change plus the attribute change (for registry-suppression)",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { color: rgb(45, 49, 56); }",
+     "new": "h1 { color: rgb(47, 49, 56); }"
+    },
+    {
+     "file": "index.html",
+     "old": "title=\"lead paragraph\"",
+     "new": "title=\"lead para\""
+    }
+   ]
+  },
+  "head": {
+   "describe": "the title, the meta description and the canonical link change; nothing in <body> does",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<title>Harness fixture</title>",
+     "new": "<title>Harness fixture, changed</title>"
+    },
+    {
+     "file": "index.html",
+     "old": "content=\"The parity harness selftest page.\"",
+     "new": "content=\"Another description.\""
+    },
+    {
+     "file": "index.html",
+     "old": "<link rel=\"canonical\" href=\"https://fixture.test/\">",
+     "new": "<link rel=\"canonical\" href=\"https://fixture.test/other\">"
+    }
+   ]
+  },
+  "inserted-early": {
+   "describe": "a paragraph inserted as the first child of <main>, before the h1",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<main id=\"content\">\n  <h1>",
+     "new": "<main id=\"content\">\n  <p class=\"inserted\">Inserted paragraph</p>\n  <h1>"
+    }
+   ]
+  },
+  "inserted-same-tag": {
+   "describe": "a <section> inserted before two other sections (same tag as its neighbours)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<section class=\"wide\">",
+     "new": "<section class=\"extra\">Extra section</section>\n  <section class=\"wide\">"
+    }
+   ]
+  },
+  "changed-tag-content": {
+   "describe": "<b>fixture</b> becomes <strong>fixtures</strong>: another tag and another word",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<b>fixture</b>",
+     "new": "<strong>fixtures</strong>"
+    }
+   ]
+  },
+  "progress-code-token": {
+   "describe": "the max token in the masked progress code changes from 100 to 200 (outside the value mask)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<span class=\"token tag attr-value\">100</span>",
+     "new": "<span class=\"token tag attr-value\">200</span>"
+    }
+   ]
+  },
+  "head-data": {
+   "describe": "the JSON-LD data block's version and url change while it is re-indented and its keys reordered, and a <base target> is added: three head records ($.version, $.url, base target) and nothing else",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareSourceCode\",\"name\":\"Harness fixture\",\"url\":\"https://fixture.test/\",\"version\":\"1.0.0\",\"keywords\":[\"parity\",\"harness\"],\"author\":{\"@type\":\"Person\",\"name\":\"Fixture author\"}}</script>\n",
+     "new": "<script type=\"application/ld+json\">\n  {\n    \"author\": {\"name\": \"Fixture author\", \"@type\": \"Person\"},\n    \"keywords\": [\"parity\", \"harness\"],\n    \"version\": \"1.0.1\",\n    \"url\": \"https://fixture.test/other\",\n    \"name\": \"Harness fixture\",\n    \"@type\": \"SoftwareSourceCode\",\n    \"@context\": \"https://schema.org\"\n  }\n</script>\n<base target=\"_top\">\n"
+    }
+   ]
+  },
+  "head-data-copy": {
+   "describe": "a second copy of the JSON-LD data block at the end of <body>, re-indented with its keys reordered but with the same leaves, as React's client render after a hydration mismatch adds one on the oracle's /docs/progress: an exact copy is counted once, so zero differences, and side B's head_repeats is 1",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "</body>\n",
+     "new": "<script type=\"application/ld+json\">\n  {\n    \"author\": {\"name\": \"Fixture author\", \"@type\": \"Person\"},\n    \"keywords\": [\"parity\", \"harness\"],\n    \"version\": \"1.0.0\",\n    \"url\": \"https://fixture.test/\",\n    \"name\": \"Harness fixture\",\n    \"@type\": \"SoftwareSourceCode\",\n    \"@context\": \"https://schema.org\"\n  }\n</script>\n</body>\n"
+    }
+   ]
+  },
+  "head-data-near-copy": {
+   "describe": "a second JSON-LD data block at the end of <body> that differs from the first in one leaf (version 1.0.1): not a copy, so it is its own entry script[type=application/ld+json]#2, one head record per leaf (9) on side B only, and nothing else",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "</body>\n",
+     "new": "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"SoftwareSourceCode\",\"name\":\"Harness fixture\",\"url\":\"https://fixture.test/\",\"version\":\"1.0.1\",\"keywords\":[\"parity\",\"harness\"],\"author\":{\"@type\":\"Person\",\"name\":\"Fixture author\"}}</script>\n</body>\n"
+    }
+   ]
+  },
+  "cross-origin": {
+   "describe": "a script inserts a stylesheet <link> to this server under another host name (localhost instead of 127.0.0.1), a URL built at run time with no URL literal; the stylesheet is the page's own, so nothing renders differently: the run fails on one cross-origin load per cell (criterion 15) with zero differences",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<script src=\"/fixture.js\"></script>\n",
+     "new": "<script src=\"/fixture.js\"></script>\n<script>\n  (function () {\n    var l = document.createElement(\"link\");\n    l.rel = \"stylesheet\";\n    l.href = location.protocol + \"//localhost:\" + location.port + \"/fixture.css\";\n    document.head.appendChild(l);\n  })();\n</script>\n"
+    }
+   ]
+  },
+  "cross-origin-frame": {
+   "describe": "a hidden same-origin <iframe srcdoc> whose script inserts a stylesheet <link> to this server under another host name (localhost), a URL built at run time: the load is in the frame's own Resource Timing, not the page's, so this proves the check reads nested frames: one cross-origin load per cell (side B), and the only record is the iframe's own only-b structure record",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<footer class=\"site\">Fixture footer</footer>\n",
+     "new": "<footer class=\"site\">Fixture footer</footer>\n<iframe hidden srcdoc=\"<script>var p = parent.location, l = document.createElement(&quot;link&quot;); l.rel = &quot;stylesheet&quot;; l.href = p.protocol + &quot;//localhost:&quot; + p.port + &quot;/fixture.css&quot;; document.head.appendChild(l);</script>\"></iframe>\n"
+    }
+   ]
+  },
+  "registry-evasion": {
+   "describe": "one change of each element and head record kind at once (for registry-evasion): the h1 color by 2/255 (style), the lead paragraph's title (attribute) and one of its words (text), a fourth list item (structure), and the title (head)",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { color: rgb(45, 49, 56); }",
+     "new": "h1 { color: rgb(47, 49, 56); }"
+    },
+    {
+     "file": "index.html",
+     "old": "title=\"lead paragraph\"",
+     "new": "title=\"lead para\""
+    },
+    {
+     "file": "index.html",
+     "old": "Lead text with",
+     "new": "Lead copy with"
+    },
+    {
+     "file": "index.html",
+     "old": "<li>Three</li>",
+     "new": "<li>Three</li><li>Four</li>"
+    },
+    {
+     "file": "index.html",
+     "old": "<title>Harness fixture</title>",
+     "new": "<title>Harness fixture, changed</title>"
+    }
+   ]
+  },
+  "runtime-class": {
+   "describe": "the registry-evasion changes, and an inline script that adds class js-added to <html> on load (for registry-runtime): the page source has no such class, so a static read of it finds an entry keyed to .js-added reaching nothing, while on the live document it reaches every element",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { color: rgb(45, 49, 56); }",
+     "new": "h1 { color: rgb(47, 49, 56); }"
+    },
+    {
+     "file": "index.html",
+     "old": "title=\"lead paragraph\"",
+     "new": "title=\"lead para\""
+    },
+    {
+     "file": "index.html",
+     "old": "Lead text with",
+     "new": "Lead copy with"
+    },
+    {
+     "file": "index.html",
+     "old": "<li>Three</li>",
+     "new": "<li>Three</li><li>Four</li>"
+    },
+    {
+     "file": "index.html",
+     "old": "<title>Harness fixture</title>",
+     "new": "<title>Harness fixture, changed</title>"
+    },
+    {
+     "file": "index.html",
+     "old": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n</head>",
+     "new": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n<script>document.documentElement.classList.add(\"js-added\");</script>\n</head>"
+    }
+   ]
+  },
+  "missing-index": {
+   "describe": "/index.html answers 404 on side B (for registry-missing-page): a page side B does not have",
+   "remove": [
+    "index.html"
+   ]
+  },
+  "cross-origin-worker": {
+   "describe": "a script starts a dedicated worker (/worker.js) that fetches this server's stylesheet under another host name (localhost), a URL built at run time: a worker's loads are in no page's Resource Timing, so only the proxy's CSP report shows it: one cross-origin load per cell (side B), zero differences",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<script src=\"/fixture.js\"></script>\n",
+     "new": "<script src=\"/fixture.js\"></script>\n<script>new Worker(\"/worker.js\");</script>\n"
+    }
+   ]
+  },
+  "cross-origin-closed-shadow": {
+   "describe": "a hidden <iframe srcdoc> inside a closed shadow root, whose script inserts this server's stylesheet under another host name (localhost), a URL built at run time: no script outside can reach a closed shadow root, so the page cannot read that frame's Resource Timing and only the proxy's CSP report shows the load: one cross-origin load per cell (side B), and the shadow host's own only-b structure record",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<footer class=\"site\">Fixture footer</footer>\n",
+     "new": "<footer class=\"site\">Fixture footer</footer>\n<div class=\"closed-host\"></div>\n<script>\n  (function () {\n    var root = document.querySelector(\".closed-host\").attachShadow({ mode: \"closed\" });\n    var f = document.createElement(\"iframe\");\n    f.hidden = true;\n    f.srcdoc = \"<script>var p = parent.location, l = document.createElement('link'); l.rel = 'stylesheet'; l.href = p.protocol + '//localhost:' + p.port + '/fixture.css'; document.head.appendChild(l);<\\/script>\";\n    root.appendChild(f);\n  })();\n</script>\n"
+    }
+   ]
+  }
+ }
+}

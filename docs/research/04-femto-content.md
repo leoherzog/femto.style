@@ -1,6 +1,6 @@
 # 04: From Pico-era content to femto 3
 
-What happens to each page and section, so that the site ends up using and describing femto 3.0. The sources of truth are femto's `README.md` and `PLAN.md` at the vendored commit (cd081f37, 3.0.0-alpha.1, on 2026-10-30). Where the docs and the README disagree, the README wins. A disagreement found while writing is reported to the owner, not resolved here.
+What happens to each page and section, so that the site ends up using and describing femto 3.0. The sources of truth are femto's `README.md` and `PLAN.md` at the vendored commit (e3b141f3, 3.0.0-alpha.1, on 2026-10-30). Where the docs and the README disagree, the README wins. A disagreement found while writing is reported to the owner, not resolved here.
 
 ## Verdict
 
@@ -35,7 +35,7 @@ Section ids are from 02 §1.
 
 | Section (id) | Phase 1 | Phase 4 |
 |---|---|---|
-| Quick start (`quick-start`) | convert | **Rewrite** from README "Quick start": the alpha note, jsDelivr `dist/femto.min.css`, `npm install femto.css` (`@alpha` until 3.0.0), the GitHub zip, Composer `leoherzog/femto` (none for the alpha) and the starter template with `<meta name="color-scheme">`. Remove "import Pico into your SCSS". |
+| Quick start (`quick-start`) | convert | **Rewrite** from README "Quick start": the alpha note, jsDelivr `dist/femto.min.css`, `npm install @leoherzog/femto` (`@alpha` until 3.0.0), the GitHub zip and the starter template with `<meta name="color-scheme">`. Remove "import Pico into your SCSS". |
 | Version picker (`version-picker`) | convert (picker at parity; the 19 color routes become `?theme=` in Phase 3) | **Rework** into a theme and options picker: the 20 colors and the 3 option files. Choosing a color swaps the page's theme `<link>` and sets `?theme=` (02 §5). Output the `<link>` tags in load order (femto, theme, options, then "your stylesheet"), the jsDelivr combine URL with the README's "not yet confirmed" caveat, and a starter template. Remove the base select (classless), the conditional switch and the Sass output. Its title and id are the owner's call. |
 | Color schemes (`color-schemes`) | convert | **Rewrite** from README "Color schemes": `data-theme` on `<html>` or on an element, what it switches and what it does not, Decision 12's consequences, and `color-scheme` on an element. |
 | RTL (`rtl`) | convert | check wording |
@@ -70,7 +70,7 @@ New sections in Phase 4, all from femto's README. The menu placement is a propos
 
 ## 2. Outside the docs page
 
-- **Head and structured data.** Fix `og:url`, which is hard-coded to `v2.picocss.com`. `StructuredData` becomes femto's `SoftwareSourceCode`, pointing at `github.com/leoherzog/femto` and `femto.css` on npm. Align `site.webmanifest`'s `theme_color` with the head.
+- **Head and structured data.** Fix `og:url`, which is hard-coded to `v2.picocss.com`. `StructuredData` becomes femto's `SoftwareSourceCode`, pointing at `github.com/leoherzog/femto` and `@leoherzog/femto` on npm. Align `site.webmanifest`'s `theme_color` with the head.
 - **Homepage.**
   - Features: remove the class-less card link and the "Pico directly styles" wording.
   - Comparison: check its claims.
@@ -96,4 +96,4 @@ These are static checks, run on the built docs page from Phase 4 on:
 - **Version.** Every version string matches `vendor/femto/SOURCE`.
 - **No Pico.** `git grep -il pico` matches only the allowed places: `LICENSE.md`, `README.md`, the footer attribution partial, the vendored `site/vendor/femto/LICENSE.md`, the Migrating from Pico section, `docs/research/`, `tests/`, `PLAN.md` and `PROMPT.md`.
 
-**Release timing.** The Quick start URLs (`npm/femto.css@3/…`) work only after femto is published to npm. The docs follow the README's own alpha note until then. The site should go live after femto's first publish, or say plainly that the CDN URLs await it.
+**Release timing.** The Quick start URLs (`npm/@leoherzog/femto@3/…`) work only after femto is published to npm. The docs follow the README's own alpha note until then. The site should go live after femto's first publish, or say plainly that the CDN URLs await it.

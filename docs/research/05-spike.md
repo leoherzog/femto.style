@@ -17,7 +17,7 @@ Everything is in `docs/research/spike/`:
 | `make.py` | Writes `docs.html`: 12 stand-in sections modeled on real routes, of varying length. Two are much shorter than the viewport, and the last one is short. Each section's `h1` carries its one-or-two-word id; subheadings carry none. The inline head script adds the `?theme=` stylesheet by one of three methods, chosen by `?method=` for comparison, and records `--femto-primary` in the first animation frame. |
 | `docs.js` | The spy from 02 §4: scroll math per animation frame, a `replaceState` of `#id` after 200 ms (no hash for the first section), and the spy locked until 150 ms without scroll events after a click or a traversal. Smooth scrolling is on only during a nav click. |
 | `spike.css` | A fixed header and a sticky side nav beside one `main`. |
-| `femto.min.css`, `femto.colors.min.css`, `themes/` | Copied from `../femto` on 2026-10-30: commit cd081f37, 3.0.0-alpha.1, whose `dist/` had uncommitted changes. |
+| `femto.min.css`, `femto.colors.min.css`, `themes/` | Copied from `../femto` commit 65453b74 ("Prepare 3.0.0 Alpha 1", 3.0.0-alpha.1): its `dist/femto.min.css`, `dist/femto.colors.min.css` and `css/themes/`. |
 | `serve.py` | A static server that behaves like Cloudflare Pages for this case. `/x` serves `x.html`, and anything else that is not a file is a 404. It sends Pages' `Cache-Control: public, max-age=0, must-revalidate`, and delays `/themes/*` by 300 ms so a late theme shows up. |
 | `test_spike.py` | Selenium 4.52.0 under `uv`, driving the rig's Chrome Beta and Firefox headless at 1280×800, plus Chrome with JavaScript off. |
 

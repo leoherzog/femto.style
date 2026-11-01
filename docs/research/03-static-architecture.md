@@ -38,7 +38,7 @@ site/                     hand-authored source; every file here is plain HTML, C
     css/                  site CSS (Phase 2): common, code, fonts, docs, landing
     legacy/               the oracle's compiled CSS, frozen (Phase 1 only, deleted in Phase 2)
     js/                   site.js, docs.js, colors.js, picker.js, demo.js (ES modules)
-    fonts/                Figtree 700 normal and italic, Fira Code 400, woff2 only, plus OFL.txt
+    fonts/                Figtree 700 normal and italic, Fira Code 400, Pacifico 400, woff2 only, plus OFL.txt
     img/  brand/          images; femto logo files kept as plain assets
   vendor/femto/           femto's dist/, css/ and LICENSE.md at the commit named in SOURCE
   _headers  robots.txt  site.webmanifest  favicon.svg  apple-touch-icon.png  opengraph.png  …
@@ -72,7 +72,7 @@ The build stays under about 200 lines. Its only dependency is `prismjs`, as a pi
 ## 3. femto, vendored
 
 - **Source.** `site/vendor/femto/` holds femto's `dist/`, `css/` and `LICENSE.md`, copied by `npm run vendor` from a femto checkout. The default checkout is `../femto`. The script refuses a dirty tree and writes `SOURCE` with the commit, the tag (if any) and `package.json`'s version.
-- **Why vendored.** `femto.css` is not on npm yet: `npm view femto.css` returned 404 on 2026-10-30. jsDelivr's `npm/femto.css@3` URLs therefore 404 too.
+- **Why vendored.** `@leoherzog/femto` is not on npm yet: `npm view @leoherzog/femto` returned 404 on 2026-10-30. jsDelivr's `npm/@leoherzog/femto@3` URLs therefore 404 too. (The package was planned as `femto.css`; the owner named it `@leoherzog/femto` on 2026-10-30, and femto removed its Composer package at e3b141f3.)
 - **Check.** A static check compares every vendored file with `git show <commit>:<path>` in the femto repository when it is available.
 - **Every page** loads `vendor/femto/dist/femto.min.css`, then `vendor/femto/css/options/responsive-spacings.css`, then the site CSS.
 - **The docs page** also loads `dist/femto.colors.min.css` up front, and `css/themes/<color>.css` when the URL has `?theme=` (02 §5).
@@ -82,7 +82,7 @@ The build stays under about 200 lines. Its only dependency is `prismjs`, as a pi
 
 - **Prism at build time, class-only output.** Unfurlers, no-JS readers and the first paint all get colored code, and the page ships no highlighter. Prism is 7.3 KB gzipped for markup, CSS, clike and JS, plus 3 KB for bash, so client-side highlighting would have been cheap too. The build-time choice is about the first paint and parity, not size.
 - **Matching the oracle's spans.** The oracle's spans are react-syntax-highlighter's: Prism tokens flattened so that each text run is one `span` whose classes are the union of its ancestors' (`token tag attr-name`). `_code.scss` selects on those unions. The build walks `Prism.tokenize()` and emits the same flattened spans.
-- **Grammars.** The oracle's "html" is Prism's `jsx` grammar. Phase 1 keeps it for parity; Phase 4 may switch to `markup` with a recorded divergence.
+- **Grammars.** The oracle's "html" is Prism's `markup` grammar (refractor's `html` alias, with CSS and JS inlined). prism-light's `registerLanguage` ignores its name argument, so the `jsx` registration only added `jsx`. Phase 1's pilot proved it: `markup` gives the oracle's spans on all 298 distinct code blocks. (Corrected 2026-10-31; this said `jsx`.)
 - **How the build finds code.** It highlights the content of `<code class="language-…">`, whether in `<pre>` or inline. Source code blocks hold escaped text only (`&lt;`), which a static check enforces, so a simple scan suffices.
 - **Alternatives.** Shiki is more accurate on new CSS syntax, but emits inline styles by default and is far larger. highlight.js uses different class names. Neither would reproduce the oracle's spans.
 

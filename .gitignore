@@ -1,27 +1,16 @@
 node_modules
-
-# Remix
-.cache
-public/build
 .env
 
 # Cloudflare
-functions/\[\[path\]\].js
-functions/\[\[path\]\].js.map
-/functions/metafile.*
-/functions/version.txt
 .dev.vars
 .wrangler
-
-# Styles
-app/styles/css/*
-!app/styles/css/postcss.config.js
-
-# femto
-public/docs
-app/data/stats.json
 
 # System files
 .DS_Store
 Thumbs.db
 
+# Static conversion
+/dist/
+tests/oracle/
+tests/results/
+__pycache__/

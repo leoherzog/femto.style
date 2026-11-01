@@ -1,0 +1,38 @@
+{
+  "description": "The only masked areas (PLAN.md, Parity harness): spinners, the typing demo and the random progress value. A mask applies to an aligned element when its selector matches it on either side. contents: the element's descendants and its own text are not collected or compared (the element itself, its attributes and styles still are). text: the text of the element and its descendants is not compared. attributes: these attribute names are not compared on the element. properties: these computed longhands are not compared on the element. pixels: true covers the element's boxes on both screenshots; a selector string covers that selector's boxes instead (screenshots never gate). Masked parts are also left out of the alignment's subtree signatures. result.json lists these masks and how many elements each covered per cell.",
+  "masks": [
+    {
+      "id": "spinner",
+      "selector": "[aria-busy=true]",
+      "pixels": true,
+      "reason": "The loading spinner is an SVG whose internal animation cannot be frozen; its computed styles are stable and stay compared."
+    },
+    {
+      "id": "typing-demo",
+      "selector": ".demo > article.component",
+      "contents": true,
+      "pixels": true,
+      "reason": "The homepage and /demo typing demo types code on a timer and drives the form beside it, so its content depends on when it is read. The article's own box (fixed height) stays compared; the behavior suite checks the demo."
+    },
+    {
+      "id": "progress-value",
+      "selector": "article[aria-label=\"Progress example\"] > progress",
+      "attributes": [
+        "value"
+      ],
+      "pixels": true,
+      "reason": "/docs/progress renders a random value (5 to 94) and replaces it every 5 s."
+    },
+    {
+      "id": "progress-value-code",
+      "selector": "article[aria-label=\"Progress example\"] > footer > pre > code > :nth-child(1 of .attr-value:not(.punctuation))",
+      "text": true,
+      "properties": [
+        "transform-origin",
+        "perspective-origin"
+      ],
+      "pixels": "article[aria-label=\"Progress example\"] > footer > pre",
+      "reason": "The highlighted code under the /docs/progress example prints the same random value in one token: the first attr-value token that is not punctuation (value=\"NN\" comes before max=\"100\"). Only that token's text, and the transform-origin and perspective-origin Firefox derives from its size, are not compared; every other token, its classes and the pre stay compared. Its digits shift the rest of the line, so the screenshot covers the whole pre (pixels never gate)."
+    }
+  ]
+}
