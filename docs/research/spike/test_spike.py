@@ -28,6 +28,7 @@ import time
 from pathlib import Path
 
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.service import Service
 
 BASE = f"http://127.0.0.1:{sys.argv[1] if len(sys.argv) > 1 else 8790}"
@@ -190,6 +191,14 @@ def top_of(d, sid):
     return d.execute_script(f"return Math.round(document.getElementById('{sid}').getBoundingClientRect().top)")
 
 
+def click_nav(d, sid):
+    """Clicks a nav link with WebDriver's element click, which is real input, so the page sees a user
+    gesture as it does for a reader's click. A script's element.click() has none, and WebKit's back
+    skips over history entries made without one: in Safari 27.2, back from the entry such a click
+    made went two entries back."""
+    d.find_element(By.CSS_SELECTOR, f'#docs-nav a[href="#{sid}"]').click()
+
+
 def run(name, d):
     results = []
 
@@ -241,7 +250,7 @@ def run(name, d):
     scroll_to("document.getElementById('modal').closest('section').offsetTop + 200")
     before = state()
     d.execute_script("window.__navSeen = []; new MutationObserver(() => window.__navSeen.push(document.querySelector('#docs-nav [aria-current]')?.textContent)).observe(document.getElementById('docs-nav'), {subtree: true, attributes: true, attributeFilter: ['aria-current']});")
-    d.execute_script("document.querySelector('#docs-nav a[href=\"#container\"]').click()")
+    click_nav(d, "container")
     time.sleep(1.8)
     after, seen = state(), d.execute_script("return window.__navSeen")
     top = top_of(d, "container")
@@ -264,17 +273,24 @@ def run(name, d):
     fwd = state()
     check("forward returns", fwd["url"] == "/docs#container" and fwd["nav"] == "Container", fwd)
 
-    # 8. Reload mid-section: does the browser restore the position or jump to the #hash target?
+    # 8. Reload mid-section: Chrome and Firefox restore the exact position, Safari scrolls to the
+    # #hash heading, as Chrome does on back. Either is fine (the owner, 2026-11-02).
     scroll_to("document.getElementById('css-variables').closest('section').offsetTop + 900")
     before = state()
     d.execute_script("location.reload()")
     time.sleep(1.5)
-    after = state()
-    check("reload keeps position", after["url"] == before["url"] and abs(after["y"] - before["y"]) < 5, {"before": before, "after": after})
+    after, top = state(), top_of(d, "css-variables")
+    exact = abs(after["y"] - before["y"]) < 5
+    check("reload returns (exact or to #css-variables)", after["url"] == before["url"] and (exact or 60 < top < 140)
+          and after["nav"] == "CSS variables", {"before": before, "after": after, "headingTop": top, "exact": exact})
+    print(f"   {name}: location.reload() {'kept the exact position' if exact else 'scrolled to the #hash heading'}"
+          f" (y before {before['y']}, after {after['y']}; #css-variables heading at {top} px)")
     d.refresh()
     time.sleep(1.5)
-    hard = state()
-    check("hard reload shows the section", hard["url"] == before["url"] and hard["nav"] == "CSS variables", {"before": before, "after": hard})
+    hard, top = state(), top_of(d, "css-variables")
+    check("hard reload shows the section", hard["url"] == before["url"] and hard["nav"] == "CSS variables",
+          {"before": before, "after": hard, "headingTop": top})
+    print(f"   {name}: WebDriver refresh: y {hard['y']}, #css-variables heading at {top} px")
 
     # 9. ?theme= applies before the first frame, by either insertion method, and survives the spy and clicks.
     for method in ("append", "blocking", "write"):
@@ -287,14 +303,19 @@ def run(name, d):
         if method == "write":
             check("?theme=jade before first frame (document.write)", ok, {"firstFrame": first, "afterLoad": now})
     scroll_to("document.getElementById('modal').closest('section').offsetTop - 40")
-    d.execute_script("document.querySelector('#docs-nav a[href=\"#forms\"]').click()")
+    click_nav(d, "forms")
     time.sleep(1.8)
     s = state()
     check("?theme= kept by spy and clicks", s["url"] == "/docs?theme=jade&method=write#forms", s)
-    d.execute_script("document.querySelector('#docs-nav a[href=\"#quick-start\"]').click()")
+    # The first section's heading lands on the scroll-padding line, as every nav click's does, and the
+    # spy then drops the hash. Where that leaves the page depends on the padding (y 10 in Chrome and
+    # Firefox at a 100 px padding, 30 in Safari 27.2 at 80 px), so the check reads the heading, not the page's y.
+    click_nav(d, "quick-start")
     time.sleep(1.8)
-    s = state()
-    check("Quick start click → plain /docs", s["url"] == "/docs?theme=jade&method=write" and s["y"] < 30, s)
+    s, top = state(), top_of(d, "quick-start")
+    check("Quick start click → plain /docs", s["url"] == "/docs?theme=jade&method=write" and 60 < top < 140,
+          {**s, "headingTop": top})
+    print(f"   {name}: Quick start click: y {s['y']}, #quick-start heading at {top} px")
 
     print(f"\n== {name} {d.capabilities.get('browserVersion')}")
     for label, ok, detail in results:
@@ -451,7 +472,7 @@ def probe_smooth(name, d):
         time.sleep(2.0)
         r["deep link"] = {**d.execute_script(SCROLL_SUMMARY), "from": 0, "headingTop": top_of(d, "input")}
         steps = (
-            ("click", lambda: d.execute_script("document.querySelector('#docs-nav a[href=\"#modal\"]').click()"), "modal"),
+            ("click", lambda: click_nav(d, "modal"), "modal"),
             ("back", d.back, "input"),
             ("forward", d.forward, "modal"),
         )

@@ -466,7 +466,8 @@
   // uncompared on it changes nothing the diff reads, so a late one does not make the cell
   // untrustworthy. Such animations are frozen like the others and counted apart, as masked.
   // masks.json's oracle-theme-toggle: the oracle's toggle icon can start its transform transition
-  // after the first freeze in Safari (p0-self-safari-light-locked, 2026-11-01).
+  // after the first freeze in Safari (p0-self-safari-light-locked, 2026-11-01); its
+  // oracle-maintenance-notice covers the banner link's color transitions the same way.
   function animatedProps(a) {
     if (typeof a.transitionProperty === "string") return [a.transitionProperty];
     const out = new Set();

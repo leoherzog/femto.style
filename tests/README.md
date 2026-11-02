@@ -261,9 +261,9 @@ counted under `align_fallbacks`.
   the styles are read, is a harness error. An animation of an element whose every animated longhand
   a mask leaves uncompared on it is frozen too but counted apart (`masked`) and is no error: in
   Safari 27.2 the oracle's theme-toggle icon can start its transform transition after the first
-  freeze (masks `oracle-theme-toggle`). A transient
-  `input[type=file]::file-selector-button { transition: none !important }` cancels the transitions
-  Chrome and Safari run on a UA shadow element that `getAnimations()` does not return.
+  freeze (masks `oracle-theme-toggle`, and `oracle-maintenance-notice` for the banner link's color).
+  A transient `input[type=file]::file-selector-button { transition: none !important }` cancels the
+  transitions Chrome and Safari run on a UA shadow element that `getAnimations()` does not return.
 - Custom properties (tokens) are not compared in this mode: their effects are in the computed
   styles. The `styles` mode (Phase 2) adds femto's token comparison.
 
@@ -291,7 +291,7 @@ like any other, with `via` naming the report's directive and document in `cross_
 
 ### Masks
 
-`harness/masks.json` holds the only masked areas, PLAN's four, and every run copies them into
+`harness/masks.json` holds the only masked areas, PLAN's five, and every run copies them into
 `result.json` (`masks`) with the number of elements each covered (`masked_elements`, and per cell
 under `sides`). A mask applies to an aligned element when its selector matches it on either side.
 Masked parts are also left out of the alignment's subtree signatures.
@@ -303,6 +303,7 @@ Masked parts are also left out of the alignment's subtree signatures.
 | `progress-value` | `article[aria-label="Progress example"] > progress` | the `value` attribute; pixels covered |
 | `progress-value-code` | `article[aria-label="Progress example"] > footer > pre > code > :nth-child(1 of .attr-value:not(.punctuation))` | the one token that prints the value (`value="NN"` comes before `max="100"`): its text, and the `transform-origin` and `perspective-origin` Firefox derives from its size. Every other token, its classes, the `pre` and the copy button stay compared. The screenshot covers the whole `pre`, since the digits shift the rest of the line |
 | `oracle-theme-toggle` | `svg.icon-theme-toggle *` | `transform` and `d` on the parts of the oracle's animated toggle icon; pixels covered. React adds `moon` after hydration when the page is dark, and the circle and rays then scale over 260 ms; in Safari 27.2 the transition can start after the freeze, so the oracle differed from itself (`p0-self-safari-light-locked`, 2026-11-01: 36 records in 18 theme-dark cells on a light OS, and 6 harness errors on `/docs/forms/input`). The site has an emoji instead (PLAN Decision 16); everything else about the SVG stays compared, and in `pages` its parts are registered `owner-change` records |
+| `oracle-maintenance-notice` | `div.maintenance-notice > a` | `color` and the 15 longhands that follow `currentColor` (`caret-color`, `column-rule-color`, `outline-color`, `text-decoration-color`, `text-emphasis-color`, `-webkit-text-fill-color`, `-webkit-text-stroke-color` and the 8 border colors) on the link in the oracle's maintenance banner; pixels covered. The banner takes the inverse theme, and React sets its `data-theme` after hydration, so on a dark page it flips from dark to light and the link's colors transition over 0.2 s. Safari 27.2 once read it mid-transition without the freeze seeing a transition (`p0-self-safari-dark`, 2026-11-01: 16 records in `/docs/link` dark 375, no harness error). The site drops the banner (PLAN Decision 5, `p1-shell-maintenance-notice`); the banner, its `data-theme`, the link's text and its other styles stay compared |
 
 Mask fields: `contents` (descendants and own text not collected), `text` (the text of the element
 and its descendants not compared), `attributes` and `properties` (these attribute names and computed
@@ -1891,6 +1892,47 @@ were not probed before). Whether the report is never sent or only late is not es
 `/docs/css-variables` cells, `rig`'s input checks and the spike, all of which need an unlocked screen,
 and the closed-shadow control above.
 
+### The owner's Safari script and the banner mask (2026-11-01, late morning)
+
+The owner ran `tests/owner-safari.sh` (Owner's Safari steps) on HEAD 161053b with the spike's
+`test_spike.py` change uncommitted, Safari 27.2 on an unlocked screen, from 10:50 to 11:37. The
+script set Light, then Dark, and put Light back.
+
+| Run id | Command | Cells or runs | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p0-spike-safari.txt` | `test_spike.py 8794 safari --probes` (light OS) | 13 checks and the probes | **11/13**: `location.reload()` returns to the `#hash` heading, and the Quick start click puts the heading at its 80 px scroll padding, so y 30, against the check's cutoff of below 30 (`docs/research/05-spike.md`, Results) | — | 68 s |
+| `p0-rig-safari-unlocked` | `rig --browsers safari` (light OS) | 1 session | widths, pseudo-elements, the light and theme-dark legs, and the input checks (hover, active, focus-visible) all as expected | — | about 5 s |
+| `p0-self-safari-light-cssvars` | `self --full --browsers safari --routes /docs/css-variables` (light OS) | 12 (6 run, 6 the registered skip `media:dark`; 31,056 elements) | **PASS: 0 differences** | 0 | 1,178 s |
+| `p0-self-safari-dark` | `self --full --browsers safari` (dark OS) | 744 (420 run, 324 the registered skip `media:light`; 293,082 elements) | **FAIL: 16 unregistered in 1 cell**, `/docs/link` dark 375: the color longhands of the maintenance banner's link | 0 | 1,555 s |
+| `p0-selftest-safari-dark` | `selftest --browsers safari --cases self,dark-only,theme-dark-only` (dark OS) | 3 controls | **3/3** | 0 | about 30 s |
+| `owner-mask-self-cf` | `self --full --browsers chrome,firefox` (criterion 1, with the banner mask) | 1,488 (1,015,632 elements) | **PASS: 0 differences**; `oracle-maintenance-notice` covered 2,928 links, both sides of every cell but `/demo`'s | 0 | 419 s |
+| `owner-mask-pages-cf` | `pages --a oracle --b dist --full --browsers chrome,firefox` (criterion 2) | 1,488 (970,944 elements) | **PASS: 0 unregistered**; 74,388 registered, as in `owner-gate-pages-full`; the mask covered side A's 1,464 links, whose banner side B does not have | 0 | 328 s |
+| — | `static_checks.py --phase 1`; `registry` | 15 criteria; 32 entries | as in the block above | — | — |
+| `p0-spike-safari-2.txt` | `tests/owner-safari.sh spike`: `test_spike.py 8794 safari --probes` with the revised reload and Quick start checks (unlocked, 2026-11-02 16:45) | 13 checks and the probes | **13/13**; positions and probes as in the first run | — | 67 s |
+| `p0-self-safari-dark-masked` | `tests/owner-safari.sh dark`: `self --full --browsers safari` (dark OS, unlocked, 2026-11-02 15:41 to 16:07) | 744 (420 run, 324 the registered skip `media:light`; 293,082 elements) | **PASS: 0 differences**; `oracle-maintenance-notice` covered 828 links (both sides of the 414 run cells with a banner); no late masked animation | 0 | 1,548 s |
+
+**The banner link.** The oracle's maintenance banner takes the inverse of the page's theme, and React
+sets its `data-theme` in the effect after hydration that also sets the toggle's `moon` (PageContext).
+On a dark page it flips from dark to light, and the link's `color` and `text-decoration-color`
+then transition over 0.2 s. On side A the freeze finished the two transitions; on side B it saw
+none, and the link was read part way from the dark theme's secondary color to the light one's (side
+A `rgb(93, 107, 137)`, side B `rgb(135, 145, 165)`; `text-decoration-color` the same at alpha 0.5).
+The 16 records are `color` and the longhands that follow `currentColor`. The banner's own
+`data-theme` matched, so the flip had happened on both sides. The site drops the banner
+(PLAN.md Decision 5), so the owner chose to mask its link's colors (Masks,
+`oracle-maintenance-notice`) rather than make the oracle's readiness wait for the theme effect. The
+other elements that effect changes (the homepage comparison's code blocks, the `/docs/table` header)
+have not differed in any pass.
+
+**Phase 0's gate in Safari after this block.** Light OS: criterion 1 passes on every kept route
+(`owner-self-safari-light`, `p0-self-safari-light-cssvars`), and `rig`'s input checks pass. Dark OS:
+criterion 1 passes on every kept route with the mask (`p0-self-safari-dark-masked`), and the dark
+selftest controls pass. The owner accepted Safari's reload to the `#hash` heading and the spike's
+reload and Quick start checks were revised (2026-11-02; `docs/research/05-spike.md`, Verdict), and
+the spike passes all 13 in Chrome, Firefox and Safari (`p0-spike-safari-2.txt`). Both parts of
+PLAN's Phase 0 gate in Safari pass. The closed-shadow control is still a known Safari limit (Safari
+passes and Decision 16, above).
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -1914,44 +1956,26 @@ rest, and the registered ones with a consequence a later phase owns.
 
 ### Owner's Safari steps
 
-Quit Safari (Cmd-Q), unlock the screen, leave the machine alone while each command runs, and keep
-macOS on Light for the first block (the full light pass, because the differ changed after the first
-one; it includes `/docs/css-variables`):
+`tests/owner-safari.sh` runs them, and only the owner runs it, since it switches macOS's appearance
+(to Light, then Dark) and puts back the one it found, even when stopped with Ctrl-C. Quit Safari
+(Cmd-Q), unlock the screen and leave the Mac alone until it prints `done`:
 
 ```sh
-caffeinate -d -i uv run tests/run.py rig --browsers safari --run-id p0-rig-safari
-caffeinate -d -i uv run tests/run.py selftest --browsers safari --run-id p0-selftest-safari-light
-caffeinate -d -i uv run tests/run.py self --full --browsers safari --run-id p0-self-safari-light
+tests/owner-safari.sh
+tests/owner-safari.sh dark
+tests/owner-safari.sh spike
 ```
 
-The spike in Safari (PLAN Risks: whether `document.write` of the theme `<link>` applies before the
-first paint, what back does for a `#hash` entry, and WebKit's history rate limit). Pick a free port
-(never 8790), serve the spike in one terminal and run it in another, then record the three Safari
-behaviors in `docs/research/05-spike.md`:
-
-```sh
-python3 -I docs/research/spike/serve.py 8793
-caffeinate -d -i uv run docs/research/spike/test_spike.py 8793 safari --probes
-```
-
-Then the dark pass's remaining cells, `/docs/css-variables` (rounds 1 and 2 ran the other 53 routes
-and the dark selftest on a locked screen, round 2 with the current differ; switch macOS to dark, or wait for the Auto appearance to turn
-dark, run, and switch back if you switched it):
-
-```sh
-osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to true'
-caffeinate -d -i uv run tests/run.py self --full --browsers safari --routes /docs/css-variables --run-id p0-self-safari-dark-cssvars
-osascript -e 'tell application "System Events" to tell appearance preferences to set dark mode to false'
-```
-
-For a whole dark pass instead, `self --full --browsers safari --run-id p0-self-safari-dark` and
-`selftest --browsers safari --cases self,dark-only,theme-dark-only --run-id p0-selftest-safari-dark`.
-
-Check that `log.txt` of the dark run says `OS scheme dark` and that its skipped checks are
-`media:light`. The `blob:` placeholder rule is the default since the owner's decision of
-2026-10-30 (Diff rule), so the commands need no flag for it. Expect about 45 to 60 minutes per Safari `self`
-pass: about 5 s a cell, and several minutes for each `/docs/css-variables` cell (about two minutes a
-side if the page stays visible; this has not been measured on an unlocked screen yet).
+With no argument it runs the spike (into `results/p0-spike-safari.txt`, for
+`docs/research/05-spike.md`), `rig` with its input checks, the six light `/docs/css-variables` cells,
+the dark self pass over every kept route and the three selftest controls that compare on a dark OS:
+about 70 minutes. `dark` runs only the dark self pass, as `p0-self-safari-dark-masked`: about 26
+minutes. `spike` runs only the spike, into `results/p0-spike-safari-2.txt`, and leaves the
+appearance as it is: about a minute. Each step is one `uv run` command in the script under `caffeinate -d -i`, so one can also
+be run by hand. At the end the script prints how often each self run's `log.txt` says
+`OS scheme light` or `OS scheme dark`: the light run must say light and the dark run dark, and the
+dark run's skipped checks are `media:light`. Measured on an unlocked screen: a full dark pass
+1,555 s, and about 190 s for each `/docs/css-variables` cell (closed `<details>` style recompute).
 
 ### Owner decisions and questions
 
@@ -2010,3 +2034,14 @@ side if the page stays visible; this has not been measured on an unlocked screen
    text color by `site/assets/css/common.css`, registered in `divergences/owner.json`
    (`owner-change`, a new category), with the oracle's icon animation masked (Masks,
    `oracle-theme-toggle`) and the freeze counting a masked element's animations apart.
+9. **The maintenance banner's link** (2026-11-01). The dark Safari self pass found the oracle
+   differing from itself on the banner link's colors in one cell (`p0-self-safari-dark`,
+   `/docs/link` dark 375): the banner's inverse `data-theme` is set after hydration, and Safari read
+   the link's color transition part way. The owner chose to mask the link's colors (Masks,
+   `oracle-maintenance-notice`) over making the oracle's readiness wait for its theme effect; the
+   site drops the banner (PLAN.md Decision 5).
+10. **Safari's reload in the spike** (2026-11-02). In Safari 27.2 `location.reload()` returns to the
+   `#hash` section's heading rather than the exact position. The owner accepted it, as Chrome's
+   back already is, and the spike's reload check now passes on either. The Quick start check reads
+   the heading on the scroll-padding line instead of the page's y, which depends on the padding
+   (`docs/research/05-spike.md`).
