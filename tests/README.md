@@ -84,14 +84,18 @@ A **cell** is one comparison: browser × route × scheme leg × width. Side A's 
 3. For each side (A, then B) Python selects the side on the proxy; the host page empties
    `localStorage` and `sessionStorage` (they belong to the shared origin), stores the leg's theme
    when the leg has one, creates a **fresh iframe** exactly the cell's width and 800 px high, loads
-   the route and waits for its `load` event. From the load until the readiness hook returns, the
-   host page requests an animation frame every frame (see Rig notes, Chrome: idle periods).
+   the route and waits for its `load` event. In Safari the route carries a `harness-load` parameter
+   that no other load had, which the proxy removes (The proxy). From the load until the readiness
+   hook returns, the host page requests an animation frame every frame (see Rig notes, Chrome: idle
+   periods).
 4. The side's **readiness hook** runs: `oracle` (`oracle.wait_ready(driver)`, run inside the iframe:
    the Remix router initialized, React attached to `<body>`, the `use100vh` effect run,
    `document.fonts.ready` resolved and two animation frames passed), `static` (the document is
    complete, `document.fonts.ready` resolved and two animation frames passed, with a 100 ms timer
-   standing in for a frame where rAF never runs), or `none`. A side that is still not ready after
-   30 s is loaded once more; the cell records the first attempt under `ready_retries`, and a second
+   standing in for a frame where rAF never runs), or `none`. `oracle` and `static` both end with
+   the stylesheet check: every stylesheet `<link>` on the document's own origin has a sheet with
+   rules (Chrome and Firefox give a stylesheet that answered 404 an empty sheet; control
+   `stylesheet-404`). A side that fails a hook or is still not ready after 30 s is loaded once more; the cell records the first attempt under `ready_retries`, and a second
    failure is a harness error. The same holds when the proxy could not get the document from the
    side's server at all (refused, or no answer within the proxy's 60 s; once on 2026-10-30 the
    Safari pass's oracle server took 64 s for one `/demo` request): the iframe then holds the proxy's
@@ -134,6 +138,24 @@ and marks every response `Cache-Control: no-store`: the two sides serve differen
 URLs (`/favicon.svg`, fonts, stylesheets), and the browser must not reuse one side's file for the
 other. Location headers on the server's origin are rewritten to the proxy's. It forwards HTTP only:
 no WebSocket, so no live reload reaches the documents.
+
+`no-store` does not cover Safari's speculative loading. When a load starts, WebKit requests the
+subresources that the previous load of the same URL used, and keeps the responses for the next
+document that asks for them. The first Safari styles runs (`p2-styles-safari-light` and `-dark`,
+2026-11-03) show it:
+- side B's load of a route made side B's server answer side A's `legacy/` stylesheets with 404s;
+- the next load of that route, side A's in the next cell, got those 404s for its own stylesheets
+  and rendered without them.
+
+So in Safari each document load gets a URL of its own: the route plus `harness-load=<load tag>.<attempt>`
+(compare.py), so WebKit has no earlier load of it to repeat. The proxy removes the parameter before
+it forwards or logs the request, so both servers, the request log and the cell's paths see the
+route as Chrome and Firefox do. It also puts the parameter back on a redirect's same-origin
+`Location`. Chrome and Firefox load the bare route, as before. The page itself can still read the
+parameter in `location.search`. Only `picker.js` reads `location.search`, after a swatch click. The
+state replays stop every click before the page's listeners see it (States), so that code never
+runs. The behavior mode loads one side's server per check, so it has no other side to cross-load
+and gets no parameter.
 
 Every response it forwards also carries a report-only Content Security Policy, `default-src 'self'
 'unsafe-inline' 'unsafe-eval' data: blob:; report-uri /__harness/csp/<tag>`: it allows everything on
@@ -1311,6 +1333,13 @@ they still apply, plus this harness's own.
 - safaridriver leaves its `--automation` Safari running even after a clean quit (seen twice on
   2026-10-30), so every Safari session's quit terminates it, still under the Safari lock
   (`p0-gate-safari-quit-check` left no Safari, safaridriver or oracle process behind).
+- **Speculative loading.** At the start of a load, Safari requests the subresources the last load
+  of the same URL used, `Cache-Control: no-store` notwithstanding, and serves the responses to the
+  next document that asks for them. Phase 0's Safari runs couldn't show it, since both sides there
+  served the same files. In the first styles runs (2026-11-03) it caused over 99% of the
+  records: 23 cells in Light and 14 in Dark rendered without stylesheets that had answered 404 from
+  the other side's server. So every Safari document load gets a URL of its own (The proxy,
+  `harness-load`), and the stylesheet check reloads a side whose own stylesheet didn't load.
 
 **Oracle server (wrangler 4.0.0, the tag's locked toolchain).**
 - wrangler's `InspectorProxyWorker` enables the worker's DevTools `Network` domain and keeps every
@@ -1416,6 +1445,7 @@ grows, never decide whether detection is proved.
 | `cross-origin-worker` | a dedicated worker (`fixtures/site/worker.js`) that `fetch()`es the same cross-origin stylesheet, a URL built at run time: no page's Resource Timing lists a worker's loads, so it proves the proxy's CSP reports: one cross-origin load per cell (side B, `via` a CSP report), zero differences, and the run fails |
 | `cross-origin-closed-shadow` | a hidden `<iframe srcdoc>` inside a closed shadow root, whose script inserts the same cross-origin stylesheet: no script outside can reach that frame, so only the CSP report shows the load: one cross-origin load per cell (side B), and the shadow host's own `only-b` record as the only difference |
 | `status-404` | `/other.html` answers 404 on side B: a `status` record `200` against `404` |
+| `stylesheet-404` | `/fixture.css` answers 404 on side B: side B fails the stylesheet check, is loaded once more (`ready_retries`, side B only), and every cell's error is `b ready: stylesheet /fixture.css has no rules (after one reload)` |
 | `registry-suppression` | the color and attribute changes together, with a registry holding one entry for the h1: the h1 records are registered, the attribute record stays unregistered |
 | `registry-evasion` | one change of each element and head record kind, with a registry of 69 catch-alls written to pass (the reviews' own, two skipped checks over the state checks (`/^state:/` for Chrome and Firefox, which turned every state that did not match into a silent skip, and an exact state check for two browsers), a side-B-only scope, a theme-leg scope, a route hidden in a selector, a catch-all split in twelve, `*` as a route, a scope of uncaptured v1 routes, a style catch-all split by route into 29 entries of three routes, four path patterns JavaScript reads otherwise than Python (`\Z`, `\A`, `{,1}`, for a style, text, attribute and head entry), and the 20 uncaptured v1 routes split three to an entry) beside one narrow entry: every catch-all is a registry error and registers nothing, every record kind stays unregistered, and the narrow entry still registers its two records |
 | `registry-runtime` | the `registry-evasion` changes, and an inline script that adds class `js-added` to `<html>` on load, with four entries keyed to `.js-added, .js-added *`: valid statically (the page source has no such class), they reach every element of side B's live document, so the in-page guard reports each (`breadth:`), applies none, and every record kind stays unregistered |
@@ -2334,8 +2364,81 @@ parity reviewer compared the ported entries field by field with femto's.
 | `p2-gate-selftest-3` | `selftest --browsers chrome,firefox` (final) | 61 controls × 2 browsers | **61/61** | 0 | about 6 min |
 | — | `registry`; `npm run lint`; `static_checks.py --phase 2` | — | valid; exit 0; **4, 11 and 12 PASS** (3, 5 and 6 too); 8, 9 and 14 FAIL, later phases' criteria as in Phase 1 | — | — |
 
-Not run: Safari. The `styles` mode needs an unlocked screen with the automation window in front for
-its state replays, so a Safari styles pass is the owner's, as for Phase 0.
+The gate doesn't include Safari. The `styles` mode needs an unlocked screen with the automation
+window in front for its state replays, so a Safari styles pass is the owner's, as for Phase 0:
+`tests/owner-safari.sh styles` (Owner's Safari steps).
+
+**Safari (2026-11-03).** The owner ran `tests/owner-safari.sh styles` on Safari 27.2. Both runs
+failed, almost entirely on a harness bug:
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p2-styles-safari-light` | `styles --full --browsers safari`, macOS Light | 744 (420 run, 324 skipped as `media:dark`) | FAIL: **786,021 unregistered in 63 cells** | 0 | 1,936 s |
+| `p2-styles-safari-dark` | the same, macOS Dark | 744 (420 run, 324 skipped as `media:light`) | FAIL: **724,535 unregistered in 41 cells** | 0 | 1,922 s |
+
+What the records were:
+1. **Speculative loading** (Rig notes, Safari): over 99% of the records, in 23 cells in Light and 14
+   in Dark. In those cells:
+   - the request counts were off, for example 15 for side A and 8 for side B where the route's
+     usual is 10 and 13;
+   - on `/`, side A's server answered side B's `fonts.css`, `code.css` and `landing.css` with 404s;
+   - a side whose own stylesheets had been served from the other side's 404s rendered without them.
+
+   Chrome and Firefox had no failed subresource request in any of the gate's 1,488 cells.
+2. **The docs menu's `--max-height`**: 29 cells in Light and 17 in Dark. Where nothing was
+   cross-loaded it was 1 to 7 records per cell. `docs.js` measures the nav once, when the module
+   runs (and again on resize). In Safari the measure sometimes saw an earlier layout of the page,
+   on either side, in cells whose request logs are normal. For example, it measured 60.8 px where
+   the other side measured 662.2 px at 1600 px. Both sides run the same script, so it isn't the CSS
+   change. Whether it is the harness's timing or a Safari bug of the site's own script is open
+   until the rerun.
+3. **The `Login` text field under `:focus` at 375 px**: 277 px on one side and 250 px on the other,
+   either side, on `/docs/color-schemes`, `/docs/version-picker/jade` and `/docs/forms`. That is 8
+   cells in Light and 7 in Dark. The 27 px is the size of Safari's AutoFill button, which Safari
+   shows on a field it takes for a login. This is not confirmed.
+4. **`/docs/colors` at 800 and 1100 px, OS-scheme legs only**: the swatch grid's tracks are 1/64 px
+   apart, which is WebKit's layout unit. For example, `55.609375px` against `55.59375px`. That is
+   1,898 and 650 records, the same in both runs. It is the one real difference between the two
+   stylesheets: invisible, and absent in Chrome and Firefox.
+5. **A footer link's border colors under `:focus-visible`**: 1 to 2 of 255, in one cell.
+
+**The fix** (The proxy; How one comparison works, step 4):
+- Each Safari document load carries `harness-load=<tag>.<attempt>`. The proxy removes it before
+  forwarding and logging.
+- Both readiness hooks end with the stylesheet check, which reloads a side whose own stylesheet
+  didn't load (control `stylesheet-404`).
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p2-selftest-sheets` | `selftest --browsers chrome,firefox --cases stylesheet-404,status-404,self` | 3 controls × 2 browsers | **3/3**; Chrome and Firefox both report `has no rules` | 0 | 21 s |
+| — | `styles --browsers chrome` on `/`, `/docs`, `/docs/colors` and `/docs/version-picker/jade` at 375 and 1300 px, with `harness-load` turned on for Chrome for this run only | 28 | **PASS: 0 unregistered**; the cells' paths are the bare routes, no reloads, and neither server's log has the parameter (run deleted afterwards) | 0 | about 1 min |
+| `p2-sfix-selftest-cf` | `selftest --browsers chrome,firefox` | 62 controls × 2 browsers | **62/62** | 0 | 376 s |
+| `p2-sfix-styles-full-cf` | `styles --full --browsers chrome,firefox` | 1,488 (970,944 elements) | **PASS: 0 unregistered**; 2,258,364 registered and 804,336 inherited, as in `p2-gate-styles-full-3`; 0 reloads, 0 cross-origin loads | 0 | 546 s |
+
+The owner then reran `tests/owner-safari.sh styles` with the fix (2026-11-03, afternoon):
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p2-styles-safari-light-2` | `styles --full --browsers safari`, macOS Light | 744 (420 run, 324 skipped as `media:dark`) | FAIL: **3,013 unregistered in 26 cells** | 0 | 1,935 s |
+| `p2-styles-safari-dark-2` | the same, macOS Dark | 744 (420 run, 324 skipped as `media:light`) | FAIL: **2,638 unregistered in 20 cells** | 0 | 1,910 s |
+
+Nothing was cross-loaded: every cell's request counts are its route's usual ones, with no failed
+request, no reload and no cross-origin load. Item 5 did not recur. Three kinds of record are left,
+all Safari's:
+- **The docs menu's `--max-height`** (item 2): 13 cells in Light and 12 in Dark, 1 or 7 records
+  each, or 184 on `/docs/button` at 1600 px, where the focus-visible replays add the nav's height
+  and origins. At each width the value is one of two, the same on either side. For example,
+  662.1875 px or 60.78125 px at 1600, and 688.75 or 140.015625 at 1300. So `docs.js` sometimes
+  measures the nav in a layout where it sits several hundred pixels lower, most likely before the
+  page's stylesheets apply. Chrome and Firefox never do. This is the site's script, not the
+  harness, and Safari visitors would get it too. The behavior check `side-menu-max-height` has
+  not run in Safari.
+- **AutoFill** (item 3): 11 cells in Light and 6 in Dark, 4 records each. Under `:focus`, the
+  width of the `Login` field is always 27 px more on one side, at every width:
+  - on `/docs/color-schemes` and `/docs/version-picker/jade`;
+  - also the `Email` field on `/docs/forms/input` and a field on `/docs/forms`.
+- **`/docs/colors`' grid tracks** (item 4): the same 1,898 and 650 records at 800 and 1100 px as in
+  the first runs.
 
 ### Known Phase 1 deviations
 
@@ -2368,6 +2471,7 @@ rest, and the registered ones with a consequence a later phase owns.
 tests/owner-safari.sh
 tests/owner-safari.sh dark
 tests/owner-safari.sh spike
+tests/owner-safari.sh styles
 ```
 
 With no argument it runs the spike (into `results/p0-spike-safari.txt`, for
@@ -2375,8 +2479,13 @@ With no argument it runs the spike (into `results/p0-spike-safari.txt`, for
 the dark self pass over every kept route and the three selftest controls that compare on a dark OS:
 about 70 minutes. `dark` runs only the dark self pass, as `p0-self-safari-dark-masked`: about 26
 minutes. `spike` runs only the spike, into `results/p0-spike-safari-2.txt`, and leaves the
-appearance as it is: about a minute. Each step is one `uv run` command in the script under `caffeinate -d -i`, so one can also
-be run by hand. At the end the script prints how often each self run's `log.txt` says
+appearance as it is: about a minute. `styles` is Phase 2's gate (criterion 2) in Safari: it builds
+`dist/`, which the harness serves as it finds it, then runs `styles --full --browsers safari` in
+Light as `p2-styles-safari-light-2` and in Dark as `p2-styles-safari-dark-2`. Each run compares 420
+of Safari's 744 cells, the OS scheme's leg and both theme legs, and the two together cover all 744:
+about 65 minutes (the first runs, `p2-styles-safari-light` and `-dark` without the `-2`, took 1,936 s
+and 1,922 s; Phase 2 below). Each step is one command in the script under `caffeinate -d -i`, so one can also be run
+by hand. At the end the script prints how often each self or styles run's `log.txt` says
 `OS scheme light` or `OS scheme dark`: the light run must say light and the dark run dark, and the
 dark run's skipped checks are `media:light`. Measured on an unlocked screen: a full dark pass
 1,555 s, and about 190 s for each `/docs/css-variables` cell (closed `<details>` style recompute).

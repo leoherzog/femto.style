@@ -560,7 +560,28 @@
     return { errors, url: finalUrl, path: finalPath, readyState: doc.readyState, contentType: doc.contentType, ms: performance.now() - t0 };
   };
 
-  // The static readiness hook: the document is complete, its fonts are loaded and two frames passed.
+  // Every stylesheet <link> of the document on its own origin has a sheet with rules. Safari gave a
+  // document another load's 404 for a stylesheet of its own (p2-styles-safari-light, 2026-11-03;
+  // proxy.py, harness-load), and a document read without its CSS differs everywhere: as a readiness
+  // failure it is loaded once more (compare.py). Other origins are criterion 15's loads.
+  function sheetErrors() {
+    const errors = [];
+    for (const link of doc.querySelectorAll("link[rel~=stylesheet i]")) {
+      if (link.disabled || /(^|\s)alternate(\s|$)/i.test(link.rel)) continue;
+      let url;
+      try { url = new URL(link.href); } catch (e) { continue; }
+      if (url.origin !== win.location.origin) continue;
+      const where = url.pathname + url.search;
+      if (!link.sheet) { errors.push("stylesheet " + where + " did not load"); continue; }
+      let rules;
+      try { rules = link.sheet.cssRules; } catch (e) { continue; }
+      if (!rules.length) errors.push("stylesheet " + where + " has no rules");
+    }
+    return errors;
+  }
+
+  // The static readiness hook: the document is complete, its fonts are loaded, two frames passed and
+  // its stylesheets loaded.
   H.ready = async function (ms) {
     const errors = [];
     const t0 = performance.now();
@@ -571,6 +592,7 @@
       }
       if (doc.fonts && doc.fonts.ready) await withTimeout(doc.fonts.ready, Math.max(1000, ms - (performance.now() - t0)), "document.fonts.ready");
       await frames(2);
+      for (const e of sheetErrors()) errors.push("ready: " + e);
     } catch (e) { errors.push("ready: " + (e && e.message ? e.message : e)); }
     return { errors, ms: performance.now() - t0 };
   };

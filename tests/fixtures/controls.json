@@ -182,6 +182,12 @@
     "other.html"
    ]
   },
+  "stylesheet-404": {
+   "describe": "/fixture.css answers 404 on side B",
+   "remove": [
+    "fixture.css"
+   ]
+  },
   "color-and-attribute": {
    "describe": "the color-2-of-255 change plus the attribute change (for registry-suppression)",
    "edits": [

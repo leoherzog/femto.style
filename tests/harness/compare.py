@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 
 from . import matrix
 from .browsers import FRAME_HEIGHT, RigError
-from .proxy import document_status
+from .proxy import document_status, strip_load_param, with_load_param
 from .targets import run_ready
 
 SITE_ORIGIN = ("https", "femto.style", 443)  # the deployed site's origin: same-origin once deployed
@@ -216,9 +216,15 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
             sess.proxy.owners[tags[side]] = (out, side, tgt)
             sess.proxy.use(side, tags[side])
             for attempt in range(2):
-                ld = sess.ajs("load", cell["route"], cell["width"], FRAME_HEIGHT, {"storage": storage})
+                # Safari gets a URL no other load had (proxy.py, harness-load); the proxy forwards
+                # and logs the route without it, and the cell records the route.
+                url = cell["route"]
+                if sess.browser == "safari":
+                    url = with_load_param(url, f"{tags[side]}.{attempt}")
+                ld = sess.ajs("load", url, cell["width"], FRAME_HEIGHT, {"storage": storage})
                 if not ld.get("path"):
                     break
+                ld["path"] = strip_load_param(ld["path"])
                 # The proxy could not get the document from the side's server (it refused or did not
                 # answer within the proxy's 60 s): the iframe holds the proxy's error page, not the
                 # side's document. Load it once more, like a readiness failure.

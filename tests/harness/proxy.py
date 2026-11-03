@@ -19,6 +19,13 @@ report the document's final status and subresource errors.
 The host page removes side A's iframe before Python switches the proxy to side B, so nothing side A
 still requests can reach side B's server.
 
+Safari starts a load by requesting the subresources the previous load of the same URL used (WebKit's
+speculative loading), and keeps their responses for the next document that asks: a side then gets
+the other side's 404 for a stylesheet of its own (p2-styles-safari-light, 2026-11-03). So in Safari
+every document load carries a parameter of its own, harness-load (compare.py, with_load_param): no
+two loads share a URL. The proxy removes it before it forwards or logs a request, so the servers and
+the request log see the route as in Chrome and Firefox, and puts it back on a redirect's Location.
+
 Every forwarded response also carries a report-only Content Security Policy that allows everything
 on the proxy's own origin (inline code, eval, data: and blob: URLs included) and reports anything
 else to /__harness/csp/<tag> on the proxy, tagged with the load it belongs to (use()). It blocks
@@ -30,6 +37,7 @@ reports are criterion 15 evidence for the cell of their tag (compare.py, csp_loa
 import http.client
 import http.server
 import json
+import re
 import threading
 import time
 import urllib.parse
@@ -49,6 +57,25 @@ CSP_PATH = HARNESS_PREFIX + "csp/"
 # fetch directive (scripts, styles, images, fonts, media, frames, workers, connect, manifests).
 CSP_POLICY = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; report-uri " + CSP_PATH + "{tag}"
 CSP_MAX_REPORTS = 200  # per tag: a page that reports more is failing anyway
+LOAD_PARAM = "harness-load"
+_LOAD_RE = re.compile(r"([?&])" + LOAD_PARAM + r"=([^&#]*)(&?)")
+
+
+def with_load_param(path, value):
+    """path with harness-load=value added to its query, before any fragment."""
+    base, hash_, frag = path.partition("#")
+    return f"{base}{'&' if '?' in base else '?'}{LOAD_PARAM}={value}{hash_}{frag}"
+
+
+def strip_load_param(path):
+    """path without its harness-load parameter, the others as written; unchanged when it has none."""
+    return _LOAD_RE.sub(lambda m: m.group(1) if m.group(3) else "", path)
+
+
+def load_param(path):
+    """The value of path's harness-load parameter, or None."""
+    m = _LOAD_RE.search(path.partition("#")[0])
+    return m.group(2) if m else None
 
 
 class _Handler(http.server.BaseHTTPRequestHandler):
@@ -83,7 +110,8 @@ class _Handler(http.server.BaseHTTPRequestHandler):
     def _forward(self):
         t0 = time.time()
         side, upstream = self.proxy.current()
-        path = self.path
+        load = load_param(self.path)
+        path = strip_load_param(self.path)
         length = int(self.headers.get("Content-Length") or 0)
         body = self.rfile.read(length) if length else None
         if not upstream:
@@ -105,6 +133,8 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                     continue
                 if kl == "location":
                     v = self.proxy.rewrite_location(v, upstream)
+                    if load is not None and v.startswith("/") and not v.startswith("//"):
+                        v = with_load_param(v, load)
                 out.append((k, v))
         except (OSError, http.client.HTTPException) as e:
             self.proxy._note(side, self.command, path, 502, t0, f"{type(e).__name__}: {e}")

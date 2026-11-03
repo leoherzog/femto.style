@@ -354,6 +354,20 @@ def build_cases(reg_dir):
     case("status-404", "status-404", status, "a route that answers 404 on side B is a status record",
          routes="/other.html")
 
+    def stylesheet_404(r):
+        # differ.js sheetErrors: a side whose own stylesheet did not load is not ready, so it is
+        # loaded once more, and the second failure is the cell's error; side A is never reloaded.
+        want = "b ready: stylesheet /fixture.css "
+        errs = [[e for e in c.get("errors", []) if e.startswith(want) and e.endswith("(after one reload)")]
+                for c in r["cells"]]
+        retried = [sorted({x["side"] for x in c.get("ready_retries") or []}) for c in r["cells"]]
+        return (all(errs) and all(x == ["b"] for x in retried) and r["status"] == "FAIL",
+                f"cells with the error {sum(map(bool, errs))} of {len(errs)} {[e[:1] for e in errs[:1]]}, reloaded "
+                f"sides {retried[:1]}, run {r['status']}")
+    case("stylesheet-404", "stylesheet-404", stylesheet_404,
+         "a stylesheet that answers 404 on side B makes side B not ready: it is loaded once more, and the cell "
+         "records the error", expect_errors=("b ready: stylesheet /fixture.css ",))
+
     def suppression(r):
         recs = [x for _, x in _records(r)]
         h1 = [x for x in recs if x["path"].startswith("html > body:0 > main:1 > h1:0")]
