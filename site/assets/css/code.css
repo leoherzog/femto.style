@@ -1,0 +1,172 @@
+/* Code blocks: the .code card with its copy-to-clipboard link, code as an article footer, standalone
+   code blocks with their own responsive spacing, and the colors of the spans the build writes from
+   Prism's tokens (build.mjs, step 4). The colors are common.css's --femto-code-* tokens. */
+
+/**
+ * Code
+ */
+pre,
+code {
+  font-family: "Fira Code", var(--femto-font-family-monospace);
+}
+
+/* All code blocks */
+.code {
+  position: relative;
+  background-color: var(--femto-card-background-color);
+}
+
+.code pre {
+  margin-bottom: 0;
+}
+
+.code code {
+  min-width: min-content;
+  margin-right: var(--femto-block-spacing-horizontal);
+  padding: 0;
+}
+
+@media (min-width: 1024px) {
+  .code code {
+    font-size: 16px;
+  }
+}
+
+.code > a.copy-to-clipboard {
+  z-index: 1;
+  position: absolute;
+  top: 1rem;
+  right: 0;
+  padding: 0.25rem 1rem 0.25rem 0.25rem;
+  background-color: var(--femto-card-background-color);
+  color: var(--femto-code-comment);
+  transition: color var(--femto-transition);
+}
+
+.code > a.copy-to-clipboard > svg {
+  display: block;
+  width: 1.125rem;
+  height: 1.125rem;
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity var(--femto-transition);
+}
+
+.code > a.copy-to-clipboard:hover svg {
+  opacity: 1;
+}
+
+.code > a.copy-to-clipboard svg.check {
+  color: var(--femto-code-copied);
+  opacity: 1;
+}
+
+.code > a.copy-to-clipboard[data-tooltip]::before,
+.code > a.copy-to-clipboard[data-tooltip]::after {
+  font-size: 0.75em;
+}
+
+/* No tooltip once the link shows its check mark */
+.code > a.copy-to-clipboard[data-tooltip]:has(svg.check)::after {
+  display: none;
+}
+
+.code::after {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--femto-border-radius);
+  content: "";
+  pointer-events: none;
+}
+
+/* Code blocks as article footer */
+article footer.code {
+  padding: 0;
+  border-top-right-radius: 0;
+  border-top-left-radius: 0;
+}
+
+article footer.code pre {
+  padding: calc(var(--femto-block-spacing-vertical) * 0.66) var(--femto-block-spacing-horizontal);
+  background-color: transparent;
+}
+
+/* Standalone code blocks: from 576px up, 1.25 to 2.5 times --femto-spacing around the code */
+.code:not(article footer.code) {
+  margin-bottom: var(--femto-block-spacing-vertical);
+  overflow: hidden;
+  border-radius: var(--femto-border-radius);
+  box-shadow: var(--femto-card-box-shadow);
+}
+
+@media (min-width: 576px) {
+  .code:not(article footer.code) {
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.25);
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.25);
+  }
+}
+
+@media (min-width: 768px) {
+  .code:not(article footer.code) {
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.5);
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.5);
+  }
+}
+
+@media (min-width: 1024px) {
+  .code:not(article footer.code) {
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.75);
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.75);
+  }
+}
+
+@media (min-width: 1280px) {
+  .code:not(article footer.code) {
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 2);
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 2);
+  }
+}
+
+@media (min-width: 1536px) {
+  .code:not(article footer.code) {
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 2.5);
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 2.5);
+  }
+}
+
+/* "transparent 0 0": the oracle's served CSS had "background: 0 0", its minifier's form of
+   "transparent", which also sets the position to 0px 0px */
+.code:not(article footer.code) pre {
+  padding: calc(var(--femto-block-spacing-vertical) * 0.66) var(--femto-block-spacing-horizontal);
+  background: transparent 0 0;
+}
+
+/* Small code blocks */
+.code.small > a.copy-to-clipboard {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Color syntax */
+code .token.tag:not(.punctuation),
+code .token.property {
+  color: var(--femto-code-tag);
+}
+
+code .token.tag.attr-name:not(.punctuation),
+code .token.selector:not(.punctuation),
+code .token.keyword,
+code .token.boolean,
+code .token.function {
+  color: var(--femto-code-attr);
+}
+
+code .token.tag.attr-value:not(.attr-equals),
+code .token.string {
+  color: var(--femto-code-value);
+}
+
+code .token.comment:not(.punctuation),
+code .token.doctype {
+  color: var(--femto-code-comment);
+}

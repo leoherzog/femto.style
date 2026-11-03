@@ -10,6 +10,12 @@ Side A is <base A><path> and side B is <base B><path>. A side is one of:
   process group and stops with every child when the run ends. `dist:<path>` serves any built
   folder exactly as `dist` serves dist/ (the same wrangler, options, readiness and same-origin
   rule), so several agents can compare their own builds at once.
+* a command target with `build_tag`, such as `static-multipage`: the harness first builds that tag
+  of this repository into the target's folder (harness.tagbuild: a temporary git worktree, node
+  build.mjs --out), rebuilding when the folder's index.html or build.json is missing, the tag's
+  commit or the prismjs version differs from the one build.json records, or the folder no longer
+  matches its recorded tree hash (tagbuild.stale_reason), then serves the folder exactly as `dist`
+  serves dist/.
 * a base URL (`http://127.0.0.1:8788`): a server someone else runs; nothing is started or stopped.
 
 wrangler is always the repository's own: `npm exec --no -- wrangler`, checked first against the exact
@@ -124,6 +130,9 @@ class Side:
                 raise TargetError(f"unknown target {spec!r}: name one of {', '.join(sorted(targets))} or a base URL")
             self.name, self.conf = name, targets[name]
             self.kind = self.conf["kind"]
+            if self.conf.get("build_tag") and control:
+                raise TargetError(f"target {name} serves its own build of tag {self.conf['build_tag']}; it takes no "
+                                  f"folder (got {spec!r})")
             if "dir" in self.conf:
                 # dist:<path>: any built folder, served exactly as the target serves its own.
                 d = Path(control or self.conf["dir"]).expanduser()
@@ -154,6 +163,12 @@ class Side:
             d["control"] = self.control
         if self.dir is not None:
             d["dir"] = _rel(self.dir)
+        if self.conf.get("build_tag"):
+            from .tagbuild import BUILDS
+            try:
+                d["build"] = json.loads((BUILDS / self.conf["build_tag"] / "build.json").read_text())
+            except (OSError, ValueError):
+                d["build"] = None
         if self.wrangler:
             d["wrangler"] = {k: v for k, v in self.wrangler.items() if k != "argv"}
         if self.conf.get("same_origin"):
@@ -173,6 +188,13 @@ class Side:
             except ControlError as e:
                 raise TargetError(str(e)) from None
         elif self.kind == "command":
+            tag = self.conf.get("build_tag")
+            if tag:
+                from .tagbuild import BuildError, ensure
+                try:
+                    ensure(tag, log=lambda m: print(m, flush=True))
+                except BuildError as e:
+                    raise TargetError(f"target {self.spec}: {e}") from None
             if self.dir is not None and not self.dir.is_dir():
                 raise TargetError(f"target {self.spec}: {_rel(self.dir)} is not a folder (build it first)")
             req = self.conf.get("requires")
@@ -309,6 +331,13 @@ def start(stack, side, log, log_dir):
         stack.callback(srv.close)
         side.base = srv.base
     elif side.kind == "command":
+        if side.conf.get("build_tag"):
+            # Hold the tag's build lock shared while the server reads the folder (tagbuild.serving).
+            from .tagbuild import BuildError, serving
+            try:
+                stack.enter_context(serving(side.conf["build_tag"], log))
+            except BuildError as e:
+                raise TargetError(str(e)) from None
         c = _Command(side, log, log_dir)
         stack.callback(c.stop)
         side.base = c.base

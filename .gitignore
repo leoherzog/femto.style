@@ -13,4 +13,5 @@ Thumbs.db
 /dist/
 tests/oracle/
 tests/results/
+tests/builds/
 __pycache__/

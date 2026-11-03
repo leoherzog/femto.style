@@ -2,9 +2,13 @@
 
 Each file is a JSON array of entries. Every difference the harness finds must match at least one
 entry, or the run fails. tests/divergences/schema.json and tests/README.md document the fields.
-Element records (structure, attribute, text, style) and head records are matched in the page
-(differ.js), because selectors are evaluated against the documents; this module validates entries,
-filters them per cell with `where`, and matches status records and skipped checks.
+Element records (structure, attribute, text, style), head records and the styles mode's token
+records (token, token-raw, surface-missing, surface-added) are matched in the page (differ.js),
+because selectors are evaluated against the documents; this module validates entries, filters them
+per cell with `where`, and matches status records and skipped checks. A styles comparison applies
+only the entries whose where.comparisons names styles (and skipped checks), so no pages-mode entry
+hides a difference between two builds of the static site; where.states is matched per record in
+the page.
 
 Three rules keep the registry from hiding what it should not:
 - Self comparisons (criterion 1, "zero differences") apply skipped-check entries only: no element,
@@ -16,7 +20,8 @@ Three rules keep the registry from hiding what it should not:
   with the HTML standard's tree construction; see _reference_docs), its path patterns with
   JavaScript's RegExp, the engine differ.js applies them with (_js_regexes). Every element or head
   entry, route-scoped or not, reaches at most DOC_SHARE_MAX of the compared elements (head: head
-  keys) of any one document, and together with every other entry of its kind at most UNION_DOC_MAX
+  keys) of any one document (a pinned entry, _pinned: PINNED_DOC_MAX on the repeats of one
+  example), and together with every other entry of its kind at most UNION_DOC_MAX
   (past DOC_FLOOR elements). An entry that is not route-scoped (where.routes naming at most
   ROUTE_SCOPE_MAX routes; items are routes or ^-regexes, never "*") also reaches at most
   SITE_SHARE_MAX of a whole site's compared elements over the routes in its scope, and those
@@ -25,7 +30,8 @@ Three rules keep the registry from hiding what it should not:
   oracle's 64 routes and a dist build that holds every kept route, so a partial build never
   decides them. At most ROUTE_SCOPE_MAX routes without a reference document may be named, in one
   entry or in the whole registry. A status entry must name at most ROUTE_SCOPE_MAX routes. A
-  skipped-check entry must name one or two browsers and at most SKIP_CHECKS_MAX known checks.
+  skipped-check entry must name one or two browsers and at most SKIP_CHECKS_MAX known checks; one for
+  a replayed state names one exact state check (STATE_CHECK_RE) and one browser.
 - An entry the validator rejects is not applied: it registers nothing, so the differences it would
   have hidden are reported as unregistered, besides the registry error that fails the run.
 
@@ -33,7 +39,10 @@ differ.js applies the same per-document limits again in every cell, on the live 
 (limits()): an entry or a kind that reaches too much of either side's document there is a harness
 error and is not applied in that cell, and the registered records of a cell may cover at most
 COVER_MAX of either document. That catches what a static read cannot see: markup a script adds, and
-a page the other side does not have.
+a page the other side does not have. for_cell marks the entries those in-page limits allow more:
+pinned entries and the style entries that name one route (a layout consequence when they name only
+geometry longhands; both cover nothing), and surface entries whose token pattern is a closed set
+(_closed_set, SURFACE_CLOSED_MAX).
 """
 import hashlib
 import html.parser
@@ -44,18 +53,26 @@ from pathlib import Path
 
 from .paths import DIVERGENCES, FIXTURES, MASKS, REPO, TESTS
 
-KINDS = ("structure", "attribute", "text", "style", "head", "status", "skipped-check")
+KINDS = ("structure", "attribute", "text", "style", "head", "status", "skipped-check", "token", "token-raw",
+         "surface-missing", "surface-added")
 ELEMENT_KINDS = ("structure", "attribute", "text", "style")
-PAGE_KINDS = ELEMENT_KINDS + ("head",)  # matched in the page by differ.js
+PAGE_KINDS = ELEMENT_KINDS + ("head",)  # matched in the page by differ.js and judged on the reference documents
+# The styles mode's token records (harness/styles.py), matched in the page by differ.js too. Their
+# breadth is judged in the page, on the cell's token names (limits(): TOKEN_SHARE_MAX).
+TOKEN_KINDS = ("token", "token-raw", "surface-missing", "surface-added")
+IN_PAGE_KINDS = PAGE_KINDS + TOKEN_KINDS
 CATEGORIES = ("dropped-route", "femto-divergence", "merge-layout", "id-rename", "oracle-bug", "highlight",
               "asset-path", "browser-limit", "owner-change")
-WHERE_KEYS = ("browsers", "routes", "schemes", "widths", "comparisons")
+WHERE_KEYS = ("browsers", "routes", "schemes", "widths", "comparisons", "states")
 BROWSERS = ("chrome", "firefox", "safari")
 SCHEMES = ("light", "dark", "theme-light", "theme-dark")
-COMPARISONS = ("self", "pages")
+COMPARISONS = ("self", "pages", "styles")
+# The states a record can be found in: base (the document as loaded) and the styles mode's replayed
+# interactive states (tests/README.md, Tokens and states).
+STATES = ("base", "hover", "focus", "focus-visible", "active")
 PSEUDOS = ("", "::before", "::after", "::marker", "::placeholder", "::file-selector-button", "::backdrop")
-FIELDS = ("id", "kind", "selector", "path", "pseudo", "property", "a", "b", "check", "where", "category", "reason",
-          "notes")
+FIELDS = ("id", "kind", "selector", "path", "pseudo", "property", "token", "a", "b", "check", "where", "category",
+          "reason", "notes")
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 
 # Breadth limits (tests/README.md, Divergence registry, Breadth).
@@ -86,6 +103,49 @@ KNOWN_CHECKS = ("media:light", "media:dark") + tuple(f"pseudo:{p}" for p in PSEU
 # One limit is one leg or one pseudo-element; the media pair is the widest (Safari runs one media
 # leg per pass).
 SKIP_CHECKS_MAX = 2
+# A replayed state that does not match (harness/styles.py) is the check state:<state>:<tag>, with
+# [type=<type>] when the element has a type. A skipped-check entry for one is written as that exact
+# string and names one browser: it skips one state on one kind of element, never the state assertion
+# (a pattern is a registry error when it matches any check of STATE_CHECKS, and match_skipped never
+# lets a pattern match a state check).
+STATE_CHECK_RE = re.compile(r"^state:(hover|focus|focus-visible|active):[a-z][a-z0-9-]*(\[type=[a-z0-9-]+\])?\Z")
+_STATE_TAGS = (
+    "a abbr address area article aside audio b bdi bdo blockquote body br button canvas caption cite code col "
+    "colgroup data datalist dd del details dfn dialog div dl dt em embed fieldset figcaption figure footer form "
+    "h1 h2 h3 h4 h5 h6 header hgroup hr html i iframe img input ins kbd label legend li main map mark menu meter "
+    "nav object ol optgroup option output p picture pre progress q rp rt ruby s samp search section select slot "
+    "small source span strong sub summary sup svg table tbody td textarea tfoot th thead time tr track u ul var "
+    "video wbr x-element my-element"
+).split()
+_STATE_TYPES = ("", "text", "email", "password", "search", "tel", "url", "number", "range", "date", "datetime-local",
+                "month", "week", "time", "color", "checkbox", "radio", "file", "submit", "reset", "button", "image")
+STATE_CHECKS = tuple(f"state:{s}:{t}" + (f"[type={ty}]" if ty else "") for s in STATES[1:] for t in _STATE_TAGS
+                     for ty in _STATE_TYPES)
+# In a cell (differ.js): a token entry reaches at most this share of either side's token names (past
+# DOC_FLOOR). Its value patterns narrow what it registers, and one explained difference can span many
+# names: femto's light-dark() raw text covers 85 of its tokens (femto tests/divergences/tokens.json).
+TOKEN_SHARE_MAX = 0.5
+# In a cell (differ.js): the token entries of a kind together (token apart from token-raw) reach at most
+# this share of either side's token names, so a catch-all split by name is caught. It sits above
+# TOKEN_SHARE_MAX because femto's light-dark() raw text is two entries (femto-tokens.json) that name 82
+# of the 163 names of the 404 page (50.3%); a split catch-all names all of them.
+TOKEN_UNION_MAX = 0.6
+# In a cell (differ.js): a surface entry whose token pattern is a closed set (_closed_set: the names it
+# can match are written out, so a reader sees each one) may name up to this share of either side's
+# token names, and the surface entries of a kind together at most this share, closed sets or not
+# (those that are not closed sets: TOKEN_UNION_MAX). femto's color bundle adds its 380 shades to the
+# 190 names of the oracle's color picker routes, 66.7% of them, in one closed-set entry.
+SURFACE_CLOSED_MAX = 0.7
+# The most names a closed-set pattern may expand to: more is not a list a reader checks.
+CLOSED_SET_MAX = 1000
+# A pinned entry (_pinned): one femto rule that changes one longhand from one exact value to another
+# on the repeats of one example on one page, such as femto's button max-width on the 380 color
+# swatches of /docs/colors (29% of its compared elements). It may reach up to PINNED_DOC_MAX of a
+# document when every element it reaches there has one shape (PINNED_SHAPES_MAX: the same tree path
+# but for its sibling indices), and its records cover nothing in a cell (differ.js coverage), since
+# it registers that one value change and nothing else.
+PINNED_DOC_MAX = 0.4
+PINNED_SHAPES_MAX = 1
 
 ORACLE_ROUTES = TESTS / "oracle-routes.json"
 CAPTURE = TESTS / "oracle" / "capture"
@@ -98,7 +158,7 @@ FIXTURE_ROUTES = ("/index.html", "/other.html")
 REGEX_RE = re.compile(r"^/(.+)/([imsu]*)\Z", re.S)
 # Fields differ.js matches with JavaScript's RegExp (element and head records); the rest (routes,
 # status records, skipped checks) are matched here, with Python's re.
-JS_FIELDS = ("path", "pseudo", "property", "a", "b")
+JS_FIELDS = ("path", "pseudo", "property", "token", "a", "b")
 
 # Python's re and JavaScript's RegExp read some patterns differently (\Z and \A are anchors in
 # Python and the letters Z and A in JavaScript without the u flag; {,2} is a quantifier in Python
@@ -185,6 +245,110 @@ def _pattern_match(pat, value, present=True, route=False) -> bool:
     return pat == value
 
 
+def _plain(v) -> bool:
+    """An exact value: a string that is neither * nor a /regex/."""
+    return isinstance(v, str) and v != "*" and not _is_regex(v)
+
+
+def _one_route(e):
+    """The one exact route of a femto-divergence style entry that applies in styles runs only, or
+    None. Only such an entry can be pinned (_pinned) or a layout consequence (differ.js coverage)."""
+    w = e.get("where") if isinstance(e.get("where"), dict) else {}
+    rs = w.get("routes")
+    if e.get("kind") != "style" or e.get("category") != "femto-divergence" or w.get("comparisons") != ["styles"]:
+        return None
+    if not isinstance(rs, list) or len(rs) != 1 or not _plain(rs[0]) or not rs[0].startswith("/"):
+        return None
+    return rs[0]
+
+
+def _pinned(e) -> bool:
+    """A pinned entry (PINNED_DOC_MAX): one route (_one_route), one exact property and exact values
+    on both sides, so it registers one value change and nothing else."""
+    return _one_route(e) is not None and _plain(e.get("property")) and _plain(e.get("a")) and _plain(e.get("b"))
+
+
+def _closed_set(pat):
+    """The names a token pattern can match, when it writes them out: an exact name, or a /regex/
+    without flags, anchored with ^ and $, made only of literal characters, groups of alternatives
+    and character classes of letters and digits (no quantifier, no dot, no negated class), that
+    expands to at most CLOSED_SET_MAX names. Else None: the pattern is open (a prefix, a range of
+    names), and only TOKEN_SHARE_MAX and TOKEN_UNION_MAX limit it."""
+    if _plain(pat):
+        return {pat}
+    if not isinstance(pat, str) or not REGEX_RE.match(pat) or not pat.endswith("/"):
+        return None
+    body = pat[1:-1]
+    if not (body.startswith("^") and body.endswith("$")) or body.endswith("\\$"):
+        return None
+    s, k = body[1:-1], 0
+
+    def seq():
+        # A sequence of atoms up to | or ), as a set of strings.
+        nonlocal k
+        out = {""}
+        while k < len(s) and s[k] not in "|)":
+            c = s[k]
+            if c == "(":
+                k += 3 if s.startswith("(?:", k) else 1
+                alts = alt()
+                if alts is None or k >= len(s) or s[k] != ")":
+                    return None
+                k += 1
+            elif c == "[":
+                end = s.find("]", k)
+                if end < 0:
+                    return None
+                alts, inner, j = set(), s[k + 1:end], 0
+                if not inner or inner.startswith("^"):
+                    return None
+                while j < len(inner):
+                    if j + 2 < len(inner) and inner[j + 1] == "-":
+                        lo, hi = inner[j], inner[j + 2]
+                        if not (lo.isalnum() and hi.isalnum() and lo <= hi):
+                            return None
+                        alts |= {chr(x) for x in range(ord(lo), ord(hi) + 1)}
+                        j += 3
+                    elif inner[j].isalnum() or inner[j] in "-_":
+                        alts.add(inner[j])
+                        j += 1
+                    else:
+                        return None
+                k = end + 1
+            elif c == "\\" and k + 1 < len(s) and s[k + 1] in "-_":
+                alts = {s[k + 1]}
+                k += 2
+            elif c.isalnum() or c in "-_":
+                alts = {c}
+                k += 1
+            else:
+                return None
+            if k < len(s) and s[k] in "*+?{":
+                return None
+            out = {x + y for x in out for y in alts}
+            if len(out) > CLOSED_SET_MAX:
+                return None
+        return out
+
+    def alt():
+        nonlocal k
+        out = set()
+        while True:
+            part = seq()
+            if part is None:
+                return None
+            out |= part
+            if len(out) > CLOSED_SET_MAX:
+                return None
+            if k < len(s) and s[k] == "|":
+                k += 1
+                continue
+            return out
+
+    names = alt()
+    return names if names is not None and k == len(s) else None
+
+
 def _route_match(pat, route) -> bool:
     """A where.routes item: an exact route or a /^regex/; never a wildcard (validate_entry rejects
     anything else, and this matcher never treats "*" as one)."""
@@ -223,6 +387,25 @@ def validate_entry(e, where, errs, ids, js=None):
         errs.append(f"{where}: notes must be a string")
     if kind in ELEMENT_KINDS and "selector" not in e and "path" not in e:
         errs.append(f"{where}: {kind} entries need selector or path")
+    if kind in TOKEN_KINDS:
+        tok = e.get("token")
+        if not isinstance(tok, str) or not tok.strip() or tok == "*":
+            errs.append(f"{where}: {kind} entries need token (a --femto-* name or a /regex/ of names, never *)")
+        comps = (e.get("where") or {}).get("comparisons") if isinstance(e.get("where"), dict) else None
+        if not isinstance(comps, list) or "styles" not in comps:
+            errs.append(f"{where}: {kind} entries apply in the styles mode only: name where.comparisons [\"styles\"]")
+        if "states" in (e.get("where") or {}):
+            errs.append(f"{where}: {kind} entries take no where.states (tokens are compared in the document as loaded)")
+        if kind == "token" and "property" not in e:
+            errs.append(f"{where}: token entries need property (the probe property the token resolves through)")
+        if kind != "token" and "property" in e:
+            errs.append(f"{where}: {kind} entries take no property")
+        if kind in ("surface-missing", "surface-added"):
+            for f in ("selector", "path", "a", "b"):
+                if f in e:
+                    errs.append(f"{where}: {kind} entries take no {f} (a surface record names a token only)")
+    elif "token" in e:
+        errs.append(f"{where}: only token, token-raw, surface-missing and surface-added entries take token")
     if kind in ("style", "attribute", "head") and "property" not in e:
         errs.append(f"{where}: {kind} entries need property (the longhand, attribute name or head value)")
     if kind == "head":
@@ -246,8 +429,8 @@ def validate_entry(e, where, errs, ids, js=None):
         errs.append(f"{where}: status entries take path (the route) but no selector or property")
     if "selector" in e and (not isinstance(e["selector"], str) or not e["selector"].strip()):
         errs.append(f"{where}: selector must be a non-empty string")
-    in_page = js if kind in PAGE_KINDS else None
-    for f in ("path", "pseudo", "property", "check"):
+    in_page = js if kind in IN_PAGE_KINDS else None
+    for f in ("path", "pseudo", "property", "token", "check"):
         if f in e:
             _check_pattern(e[f], f, errs, where, route=(f == "path" and kind == "status"),
                            js=in_page if f in JS_FIELDS else None)
@@ -276,6 +459,10 @@ def validate_entry(e, where, errs, ids, js=None):
             errs.append(f"{where}: where.schemes items are {', '.join(SCHEMES)}")
         elif k == "comparisons" and set(v) - set(COMPARISONS):
             errs.append(f"{where}: where.comparisons items are {', '.join(COMPARISONS)}")
+        elif k == "states" and set(v) - set(STATES):
+            errs.append(f"{where}: where.states items are {', '.join(STATES)}")
+        elif k == "states" and kind not in ELEMENT_KINDS:
+            errs.append(f"{where}: only element entries ({', '.join(ELEMENT_KINDS)}) take where.states")
         elif k == "comparisons" and "self" in v and kind != "skipped-check":
             errs.append(f"{where}: only skipped-check entries apply to self comparisons (criterion 1 asks for zero "
                         "differences between the oracle and itself)")
@@ -311,7 +498,7 @@ _SVG_CASE = {t.lower(): t for t in (
     "linearGradient radialGradient textPath").split()}
 # As differ.js: skipped in the tree (never compared, never counted in a path index).
 SKIP_TAGS = frozenset(("head", "meta", "title", "script", "link", "style", "template", "base", "noscript"))
-HARNESS_TAGS = frozenset(("harness-mq", "harness-cover"))
+HARNESS_TAGS = frozenset(("harness-mq", "harness-cover", "harness-probe"))
 _HEAD_SKIP_RELS = frozenset(("stylesheet", "preload", "modulepreload", "prefetch", "preconnect", "dns-prefetch",
                              "prerender"))
 _JS_TYPES = frozenset(("", "module", "application/ecmascript", "application/javascript", "application/x-ecmascript",
@@ -1771,6 +1958,21 @@ class _Breadth:
                 out.append((r, theme, hit, len(d.compared)))
         return out
 
+    def pinned_over(self, reach):
+        """For a pinned entry (_pinned): the documents where it reaches more than DOC_SHARE_MAX, each
+        as (share, label, matched, total, shapes), shapes being the distinct tree paths of what it
+        reaches there with the sibling indices dropped (one shape: repeats of one example)."""
+        _, _, texts = self.refs()
+        out = []
+        for r, theme, hit, total in reach:
+            if not total or len(hit) <= DOC_FLOOR or len(hit) / total <= DOC_SHARE_MAX:
+                continue
+            d = _get_doc(r.key, texts, self.masks)
+            shapes = {re.sub(r":\d+", "", d.compared[i].path) for i in hit}
+            v = r.variant + (f", data-theme {theme}" if theme else "")
+            out.append((len(hit) / total, f"{r.site} {r.route} ({v})", len(hit), total, len(shapes)))
+        return out
+
     @staticmethod
     def worst(reach):
         """The highest site share, over a complete site's routes in scope in one document variant
@@ -1812,9 +2014,22 @@ def _judge(entries, errs, known=None, dist_dirs=()):
         if kind == "skipped-check":
             w = e.get("where") or {}
             br = w.get("browsers") or []
-            checks = [c for c in KNOWN_CHECKS if _pattern_match(e.get("check"), c)]
+            chk = e.get("check")
+            checks = [c for c in KNOWN_CHECKS if _pattern_match(chk, c)]
             info[eid] = {"scope": "checks", "browsers": br, "checks": checks}
             why = []
+            if isinstance(chk, str) and chk.startswith("state:") and not _is_regex(chk):
+                # One state on one kind of element, for one browser (STATE_CHECK_RE).
+                if not STATE_CHECK_RE.match(chk):
+                    why.append(f"its check {chk!r} is no state check: write state:<state>:<tag>, with [type=<type>] "
+                               "when the element has a type (hover, focus, focus-visible or active)")
+                if len(set(br)) != 1:
+                    why.append("a skipped state check names exactly one browser in where.browsers")
+                info[eid]["checks"] = [chk]
+            elif any(_pattern_match(chk, c) for c in STATE_CHECKS):
+                n = sum(1 for c in STATE_CHECKS if _pattern_match(chk, c))
+                why.append(f"its check matches {n} state checks (state:hover:a, ...): a skipped state check is the exact "
+                           "check string, state:<state>:<tag>[type=<type>], so no pattern switches the state assertion off")
             if not br or len(set(br)) >= len(BROWSERS):
                 why.append(f"it applies to {'every browser' if not br else 'all three browsers'}, and a skipped check "
                            "names the browser (or two) that cannot run it in where.browsers")
@@ -1880,7 +2095,21 @@ def _judge(entries, errs, known=None, dist_dirs=()):
         why = []
         if not route_scoped and site and site[0] > cap:
             why.append(f"{site[2]} of the {site[3]} {what} ({_pct(site[0])}) on the {site[1]}, more than {_pct(cap)}")
-        if doc and doc[0] > DOC_SHARE_MAX:
+        if doc and doc[0] > DOC_SHARE_MAX and _pinned(e):
+            # A pinned entry may reach up to PINNED_DOC_MAX of a document, on repeats of one example.
+            over = b.pinned_over(reach)
+            info[eid]["pinned"] = {"documents": len(over), "shapes": max(x[4] for x in over)}
+            for share, lbl, n, t, shapes in over:
+                if share > PINNED_DOC_MAX:
+                    why.append(f"{n} of the {t} {what} ({_pct(share)}) of {lbl}, more than the {_pct(PINNED_DOC_MAX)} "
+                               "a pinned entry may reach in one document")
+                    break
+                if shapes > PINNED_SHAPES_MAX:
+                    why.append(f"{n} of the {t} {what} ({_pct(share)}) of {lbl}, more than {_pct(DOC_SHARE_MAX)} of one "
+                               f"document, in {shapes} shapes of tree path: a pinned entry passes {_pct(DOC_SHARE_MAX)} "
+                               "only on the repeats of one example (one tree path but for its sibling indices)")
+                    break
+        elif doc and doc[0] > DOC_SHARE_MAX:
             why.append(f"{doc[2]} of the {doc[3]} {what} ({_pct(doc[0])}) of {doc[1]}, more than "
                        f"{_pct(DOC_SHARE_MAX)} of one document" + (" (a route scope narrows where an entry applies, not "
                                                                    "how much of a page it may cover)" if route_scoped else ""))
@@ -1901,11 +2130,26 @@ def _judge(entries, errs, known=None, dist_dirs=()):
                     f"{', ...' if len(all_unjudged) > 4 else ''}), more than the {ROUTE_SCOPE_MAX} the whole registry may "
                     "name without being judged (tests/README.md, Divergence registry, Breadth)")
         rejected.update(ids)
-    for kind in list(unions):
-        unions[kind] = [g for g in unions[kind] if g[0] not in rejected]
-    _unions(unions, info, rejected, errs, unit)
-    _kind_budget(b, unions, info, rejected, errs, unit)
+    # The union and budget limits apply per comparison: the entries that apply in pages runs (no
+    # where.comparisons, or naming pages) together, and those that apply in styles runs (naming
+    # styles) together; an entry that names both counts in both.
+    fams = {e.get("id"): _families(e) for _, e in entries}
+    for fam in ("pages", "styles"):
+        sub = {k: [g for g in grp if fam in fams.get(g[0], ()) and g[0] not in rejected] for k, grp in unions.items()}
+        _unions(sub, info, rejected, errs, unit)
+        _kind_budget(b, sub, info, rejected, errs, unit)
     return info, rejected
+
+
+def _families(e):
+    """The comparisons an element or head entry applies in, for the union and budget limits."""
+    comps = (e.get("where") or {}).get("comparisons") if isinstance(e.get("where"), dict) else None
+    out = set()
+    if not comps or "pages" in comps:
+        out.add("pages")
+    if comps and "styles" in comps:
+        out.add("styles")
+    return out
 
 
 def _unions(unions, info, rejected, errs, unit):
@@ -2099,7 +2343,9 @@ class Registry:
 
     def limits(self):
         """The per-document limits differ.js applies in every cell, on the live documents."""
-        return {"doc": DOC_SHARE_MAX, "union": UNION_DOC_MAX, "floor": DOC_FLOOR, "cover": COVER_MAX}
+        return {"doc": DOC_SHARE_MAX, "union": UNION_DOC_MAX, "floor": DOC_FLOOR, "cover": COVER_MAX,
+                "token": TOKEN_SHARE_MAX, "tokenUnion": TOKEN_UNION_MAX, "closed": SURFACE_CLOSED_MAX,
+                "pinned": PINNED_DOC_MAX, "shapes": PINNED_SHAPES_MAX}
 
     def _applied(self):
         """The entries in force: an entry with a registry error is never applied."""
@@ -2111,6 +2357,12 @@ class Registry:
     @staticmethod
     def _where_ok(e, cell) -> bool:
         w = e.get("where") or {}
+        # A styles comparison (Phase 2) applies only the entries that name it: the Phase 1 entries
+        # explain the oracle against the static site, and none of them may hide a difference between
+        # two builds of the static site. Skipped checks are the browsers' and apply everywhere.
+        if cell.get("comparison") == "styles" and e.get("kind") != "skipped-check" \
+                and "styles" not in (w.get("comparisons") or []):
+            return False
         if "browsers" in w and cell["browser"] not in w["browsers"]:
             return False
         if "routes" in w and not any(_route_match(p, cell["route"]) for p in w["routes"]):
@@ -2137,9 +2389,23 @@ class Registry:
         if cell.get("comparison") == "self":
             return out
         for e in self._applied():
-            if e.get("kind") not in PAGE_KINDS or not self._where_ok(e, cell):
+            if e.get("kind") not in IN_PAGE_KINDS or not self._where_ok(e, cell):
                 continue
-            out.append({k: e[k] for k in ("id", "kind", "selector", "path", "pseudo", "property", "a", "b") if k in e})
+            d = {k: e[k] for k in ("id", "kind", "selector", "path", "pseudo", "property", "token", "a", "b") if k in e}
+            states = (e.get("where") or {}).get("states")
+            if states:
+                d["states"] = states  # matched per record in the page (differ.js matchRecord)
+            # The in-page limits' allowances (differ.js breadthGuard, coverage): a pinned entry, a
+            # style entry that names one route (a layout consequence when it names only geometry
+            # longhands, which differ.js judges on the cell's property list), and a surface entry
+            # whose token pattern writes its names out.
+            if _pinned(e):
+                d["pinned"] = True
+            if _one_route(e) is not None:
+                d["oneRoute"] = True
+            if e.get("kind") in ("surface-missing", "surface-added") and _closed_set(e.get("token")) is not None:
+                d["closed"] = True
+            out.append(d)
         return out
 
     def match_python(self, rec, cell) -> list:
@@ -2153,8 +2419,11 @@ class Registry:
                 and _pattern_match(e.get("b"), rec.get("b"), "b" in e)]
 
     def match_skipped(self, check: str, cell) -> list:
+        # A state check is matched by an entry naming it exactly, never by a pattern (STATE_CHECK_RE).
+        exact = check.startswith("state:")
         return [e["id"] for e in self._applied()
-                if e.get("kind") == "skipped-check" and _pattern_match(e.get("check"), check) and self._where_ok(e, cell)]
+                if e.get("kind") == "skipped-check" and self._where_ok(e, cell)
+                and (e.get("check") == check if exact else _pattern_match(e.get("check"), check))]
 
     def record_hits(self, counts: dict):
         for k, n in counts.items():

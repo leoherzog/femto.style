@@ -1,9 +1,11 @@
-"""`run.py selftest`: controls that prove the pages mode detects what it must and tolerates what it may.
+"""`run.py selftest`: controls that prove the pages and styles modes detect what they must and tolerate
+what they may.
 
-Each control runs `run.py pages --a fixture --b fixture:<control>` in a subprocess exactly as a user
-would: side A is the selftest site in tests/fixtures/site/, side B the same site with one named change
-from tests/fixtures/controls.json, each served by its own harness server. The check then reads the
-run's result.json. Ported from femto's negative.py; the controls are new.
+Each control runs `run.py pages --a fixture --b fixture:<control>` (the styles controls: `run.py
+styles`, with the fixture's state targets, tests/fixtures/states.json) in a subprocess exactly as a
+user would: side A is the selftest site in tests/fixtures/site/, side B the same site with one named
+change from tests/fixtures/controls.json, each served by its own harness server. The check then reads
+the run's result.json. Ported from femto's negative.py; the controls are new.
 """
 import json
 import re
@@ -11,7 +13,7 @@ import subprocess
 import sys
 import time
 
-from .paths import DIVERGENCES, RESULTS, TESTS
+from .paths import DIVERGENCES, FIXTURES, RESULTS, TESTS
 from .report import fmt_rec as fmt
 
 WIDTHS = "375,600,800,1100,1300,1600"
@@ -63,13 +65,15 @@ def build_cases(reg_dir):
     (base_dir / "rig.json").write_text((DIVERGENCES / "rig.json").read_text())
 
     def case(name, control, check, describe, routes="/index.html", widths="1300", schemes="light", extra=(),
-             registry_errors=False, expect_errors=()):
+             registry_errors=False, expect_errors=(), mode="pages"):
         # registry_errors: the control expects registry errors (harness errors starting "registry: "),
         # and its check judges them; expect_errors: substrings of the cell harness errors it expects
         # (the in-page "breadth: " and "coverage: " guards). Any other harness error still fails it.
         if "--registry" not in extra:
             extra = (*extra, "--registry", str(base_dir))
-        argv = ["pages", "--a", "fixture", "--b", f"fixture:{control}" if control else "fixture",
+        if mode == "styles":
+            extra = (*extra, "--states", str(FIXTURES / "states.json"))
+        argv = [mode, "--a", "fixture", "--b", f"fixture:{control}" if control else "fixture",
                 "--routes", routes, "--widths", widths, "--schemes", schemes, *extra]
         cases.append({"name": name, "argv": argv, "check": check, "describe": describe,
                       "registry_errors": registry_errors, "expect_errors": tuple(expect_errors)})
@@ -385,6 +389,10 @@ def build_cases(reg_dir):
         x("evade-head", "head", path="/^[a-z]/", property="*"),
         x("evade-routes", "text", selector="*", where={"routes": ["/^\\/(?!does-not-exist)/"]}),
         x("evade-skip", "skipped-check", check="*"),
+        # Round 5 (p2 harness review): a pattern over the state checks would switch the state assertion
+        # off; a skipped state check is one exact check for one browser.
+        x("evade-skip-states", "skipped-check", check="/^state:/", where={"browsers": ["chrome", "firefox"]}),
+        x("evade-skip-state-browsers", "skipped-check", check="state:hover:a", where={"browsers": ["chrome", "firefox"]}),
         x("evade-b-only", "style", selector=":root:has([title=\"lead para\"]) *", property="*"),
         x("evade-theme", "text", selector="[data-theme] *"),
         x("evade-one-route", "attribute", selector=":root:has(a[download]) body *", property="*"),
@@ -436,7 +444,7 @@ def build_cases(reg_dir):
          "every catch-all the review wrote, and the next ones in line (a side-B-only scope, a theme-leg scope, one route "
          "hidden in a selector, a catch-all split in twelve, \"*\" as a route, a scope of uncaptured routes, a catch-all "
          "split by route, path patterns JavaScript reads otherwise than Python, uncaptured routes split three to an "
-         "entry), is a registry error, registers nothing, and leaves each record kind unregistered; a narrow entry "
+         "entry, a pattern over the state checks, a state check for two browsers), is a registry error, registers nothing, and leaves each record kind unregistered; a narrow entry "
          "beside them still applies",
          extra=("--registry", str(evasion_dir)), registry_errors=True)
 
@@ -554,7 +562,453 @@ def build_cases(reg_dir):
          "an entry scoped to /index.html registers the h1 records there and none on /other.html (the attribute "
          "change stays unregistered); a style catch-all scoped to its one route is a registry error",
          routes="/index.html,/other.html", extra=("--registry", str(scoped_dir)), registry_errors=True)
+    # An inherited longhand: a registered record on an element is not repeated by the descendants that
+    # inherit it (differ.js inheritedFrom); a descendant with a value of its own is a record of its own.
+    inh_dir = reg_dir.parent / "registry-inherited"
+    inh_dir.mkdir(parents=True, exist_ok=True)
+    inh_entries = [x("ok-lead", "style", "Positive control: the lead paragraph's tab-size.", selector=".lead",
+                     property="tab-size"),
+                   x("ok-list", "style", "Positive control: the list's tab-size.", selector="ul.list",
+                     property="tab-size")]
+    (inh_dir / "inherited.json").write_text(json.dumps(inh_entries, indent=1))
+    first_li = "html > body:0 > main:1 > ul:2 > li:0"
+
+    def inherited(r):
+        recs = [y for _, y in _records(r)]
+        got = sorted((y["path"], y.get("pseudo"), y["prop"]) for y in recs)
+        folded = {}
+        for c in r["cells"]:
+            for k, n in ((c.get("result") or {}).get("inherited") or {}).items():
+                folded[k] = folded.get(k, 0) + n
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        # Chrome Beta 158 and Firefox 160 both report tab-size on ::marker (Firefox reports no word-spacing
+        # there), so the markers are asked for only where the first item's is reported.
+        markers = (first_li, "::marker", "tab-size") in got
+        want = [(first_li, "", "tab-size")] + ([(first_li, "::marker", "tab-size")] if markers else [])
+        ok = got == want and used == {"ok-lead": 1, "ok-list": 1} and folded == {"ok-lead": 1, "ok-list": 4 if markers else 2}
+        return ok, (f"unregistered {got}; registered {used}; folded into them {folded} (want the link under ok-lead, "
+                    "the two other items, and their markers where the first item's is reported, under ok-list)")
+    case("inherited", "inherited", inherited,
+         "tab-size on the lead paragraph and the list, registered on those two elements, is folded on the link and the "
+         "list items that inherit it (and their markers); the first item's own value, and its marker's, stay "
+         "unregistered", extra=("--registry", str(inh_dir)))
+    styles_cases(case, zero, x, reg_dir)
     return cases
+
+
+MAIN = "html > body:0 > main:1"  # the fixture's <main>: an anchor (harness/styles.py ANCHORS)
+LINK = "html > body:0 > main:1 > p:1 > a:0"  # the link the fixture's state targets name first
+INPUT = "html > body:0 > main:1 > form:4 > input:0"  # the text input the fixture's focus target names
+
+
+def styles_cases(case, zero, x, reg_dir):
+    """The styles mode's controls (tests/README.md, Selftest): tokens, interactive states, and the
+    registry's token and state matching."""
+    def tokens_ran(r):
+        idx = [c for c in r["cells"] if c["route"] == "/index.html"]
+        names = {((c.get("sides") or {}).get("a") or {}).get("tokens", {}).get("names") for c in r["cells"]}
+        states = {c.get("states_a") for c in idx} | {c.get("states_b") for c in idx}
+        return names, states
+
+    def styles_self(r):
+        ok0, msg = zero(r)
+        names, states = tokens_ran(r)
+        return (ok0 and names == {10} and states == {7},
+                f"{msg}; token names per cell {sorted(names, key=str)}; states replayed per side on /index.html "
+                f"{sorted(states, key=str)}")
+    case("styles-self", None, styles_self,
+         "styles mode, the fixture site against itself, every leg, two widths, two routes: tokens (10 names, through "
+         "@media, @supports, nesting and @property) and 7 state replays per side, zero differences",
+         routes="/index.html,/other.html", widths="375,1300", schemes="light,dark,theme-light,theme-dark", mode="styles")
+
+    def recs_of(r):
+        return [y for c in r["cells"] for y in (c.get("result") or {}).get("unregistered", [])]
+
+    def kinds_of(recs):
+        return sorted({y["kind"] for y in recs})
+
+    # Chrome Beta 158 resolves a token that is no color, in the color probes, to the initial text color
+    # of the probe's scheme (black on light, white on dark); Firefox 160 keeps one initial color. So
+    # in Chrome the other tokens show too, through those three probes only.
+    scheme_probes = {"color", "border-top-color", "outline-color"}
+
+    def token_resolution(r):
+        recs = recs_of(r)
+        tok = [y for y in recs if y["kind"] == "token"]
+        mine = sorted({y["prop"] for y in tok if y["token"] == "--femto-scheme-color"})
+        others = sorted({y["prop"] for y in tok if y["token"] != "--femto-scheme-color"})
+        outside = [y["path"] for y in tok if not y["path"].startswith(MAIN)]
+        kinds = kinds_of(recs)
+        return (mine == ["background-color", "border-top-color", "color", "outline-color"] and set(others) <= scheme_probes
+                and not outside and "token-raw" not in kinds and not {"surface-added", "surface-missing"} & set(kinds),
+                f"--femto-scheme-color through {mine}; other tokens through {others}; anchors outside main "
+                f"{outside[:2]}; kinds {kinds}")
+    case("token-resolution", "token-resolution", token_resolution,
+         "main gets color-scheme dark: --femto-scheme-color (light-dark()) keeps its raw text and resolves to its dark "
+         "color through the four color probes, at the anchors in main only, and no token-raw record exists (in Chrome "
+         "the other tokens' color, border-top-color and outline-color probes follow the scheme too)", mode="styles")
+
+    def one_kind(kind, token, per_anchor=False):
+        def chk(r):
+            recs = recs_of(r)
+            per_cell = {len((c.get("result") or {}).get("unregistered", [])) for c in r["cells"]}
+            anchors = {((c.get("sides") or {}).get("b") or {}).get("tokens", {}).get("anchors") for c in r["cells"]}
+            want = anchors if per_anchor else {1}
+            toks = sorted({y.get("token") for y in recs})
+            return (kinds_of(recs) == [kind] and toks == [token] and per_cell == want,
+                    f"kinds {kinds_of(recs)}, tokens {toks}, records per cell {sorted(per_cell)} (want {sorted(want, key=str)})")
+        return chk
+    case("token-raw", "token-raw", one_kind("token-raw", "--femto-raw", per_anchor=True),
+         "--femto-raw written #f00 instead of #ff0000: one token-raw record per anchor, and no token record (it "
+         "resolves the same through every probe property)", mode="styles")
+    case("token-added", "token-added", one_kind("surface-added", "--femto-new"),
+         "a token only side B declares is one surface-added record and nothing else", mode="styles")
+    case("token-missing", "token-missing", one_kind("surface-missing", "--femto-gone"),
+         "a token only side A declares is one surface-missing record and nothing else", mode="styles")
+
+    def only_state(state):
+        def chk(r):
+            recs = recs_of(r)
+            states = sorted({str(y.get("state")) for y in recs})
+            paths = sorted({y["path"] for y in recs})
+            props = sorted({y["prop"] for y in recs if y["kind"] == "style"})
+            return (bool(recs) and states == [state] and paths == [LINK] and kinds_of(recs) == ["style"],
+                    f"states with records {states}, paths {paths}, properties {props}, kinds {kinds_of(recs)}")
+        return chk
+    case("hover-only", "hover-only", only_state("hover"),
+         "a rule under #link:hover:not(:active) shows in the hover replay only, on the link only (none in the "
+         "document as loaded, focus-visible or active)", mode="styles")
+    case("focus-visible-only", "focus-visible-only", only_state("focus-visible"),
+         "a rule under #link:focus-visible shows in the focus-visible replay (a real Tab) only, on the link only",
+         mode="styles")
+    case("active-only", "active-only", only_state("active"),
+         "a rule under #link:active shows in the active replay (pointer down) only, on the link only", mode="styles")
+
+    def focus_only(r):
+        recs = recs_of(r)
+        states = sorted({str(y.get("state")) for y in recs})
+        paths = sorted({y["path"] for y in recs})
+        return (bool(recs) and states == ["focus"] and paths == [INPUT] and kinds_of(recs) == ["style"],
+                f"states with records {states}, paths {paths}, kinds {kinds_of(recs)}")
+    case("focus-only", "focus-only", focus_only,
+         "a rule under the text input's :focus shows in the focus replay (focus()) only, on the input only (and its "
+         "::placeholder, which inherits it)", mode="styles")
+
+    def dark_only_token(r):
+        recs = recs_of(r)
+        legs = sorted({c["scheme"] for c in r["cells"] if (c.get("result") or {}).get("unregisteredTotal")})
+        toks = sorted({y.get("token") for y in recs})
+        kinds = kinds_of(recs)
+        return (legs == ["dark"] and toks == ["--femto-spacing"] and "token-raw" in kinds and set(kinds) <= {"token", "token-raw"},
+                f"legs with records {legs}, tokens {toks}, kinds {kinds}")
+    case("dark-only-token", "dark-only-token", dark_only_token,
+         "a token changed only under prefers-color-scheme: dark (no data-theme) shows only in leg dark, as token and "
+         "token-raw records", schemes=ALL_LEGS, mode="styles")
+
+    color_probes = {"color", "background-color", "border-top-color", "outline-color"}
+
+    def token_color2(r):
+        recs = recs_of(r)
+        tok = [y for y in recs if y["kind"] == "token"]
+        props = sorted({y["prop"] for y in tok})
+        toks = sorted({y.get("token") for y in recs})
+        kinds = kinds_of(recs)
+        return (kinds == ["token", "token-raw"] and toks == ["--femto-accent"] and "color" in props
+                and set(props) <= color_probes,
+                f"kinds {kinds} (no style record, though ::selection reads it), tokens {toks}, token probes {props}")
+    case("token-color-2-of-255", "token-color-2-of-255", token_color2,
+         "--femto-accent rgb(1, 106, 168) to rgb(3, 106, 168) (2/255), a token only ::selection reads, which no "
+         "collected style shows: token resolution detects it through the color probes, and its raw text differs",
+         mode="styles")
+    case("token-color-1-of-255", "token-color-1-of-255",
+         lambda r: (kinds_of(recs_of(r)) == ["token-raw"] and {y.get("token") for y in recs_of(r)} == {"--femto-accent"},
+                    f"kinds {kinds_of(recs_of(r))}, tokens {sorted({y.get('token') for y in recs_of(r)})}"),
+         "--femto-accent rgb(1, 106, 168) to rgb(2, 106, 168) (1/255) is tolerated by token resolution: only its raw "
+         "text differs", mode="styles")
+
+    # The minifier rule (differ.js sameRaw, sameMinified): clean-css's spellings compare as equal, the
+    # same edits are found with --exact-minified, and real changes written the same way still are.
+    H1 = "html > body:0 > main:1 > h1:0"
+    MINIFIED = {"outline-width", "background-position", "background-position-x", "background-position-y"}
+
+    def minified(r, real):
+        recs = recs_of(r)
+        style = [y for y in recs if y["kind"] == "style"]
+        props = sorted({y["prop"] for y in style})
+        outside = [y["path"] for y in style if not y["path"].startswith(H1)]
+        toks = sorted({y.get("token") for y in recs if y["kind"] != "style"})
+        kinds = kinds_of(recs)
+        # Chrome Beta 158 collects the background-position shorthand, Firefox 160 its two longhands.
+        position = [y for y in style if y["prop"].startswith("background-position")]
+        if real:
+            ok = ({"outline-width", "outline-style"} <= set(props) and position and "background-position-x" not in props
+                  and all(y["b"].endswith("1px") for y in position) and kinds == ["style", "token", "token-raw"])
+        else:
+            ok = "outline-width" in props and position and set(props) <= MINIFIED and kinds == ["style", "token-raw"]
+        return (ok and not outside and toks == ["--femto-shadow"] and not r["harness_errors"],
+                f"kinds {kinds}, style properties {props}, style records outside h1 {outside[:2]}, tokens {toks}")
+    case("minified-equal", "minified-equal", zero,
+         "h1's outline: 0 and background: 0 0 for none, and --femto-shadow's .5rem and comma spacing, as clean-css "
+         "wrote the oracle's: zero differences", mode="styles")
+    case("minified-exact", "minified-equal", lambda r: minified(r, False),
+         "the same control with --exact-minified: h1's outline-width and background-position records and "
+         "--femto-shadow's token-raw records, nothing else", extra=("--exact-minified",), mode="styles")
+    case("minified-real", "minified-real", lambda r: minified(r, True),
+         "h1's outline: 2px solid and background: 0 1px, and --femto-shadow's blur 0.5rem to .3rem: outline-width "
+         "(outline-style is solid on side B), the position's 1px (the shorthand in Chrome, -y in Firefox), and "
+         "--femto-shadow's raw text and resolution are found; background-position-x, 0% against 0px, is not", mode="styles")
+
+    # The state coverage rule counts what a state adds: a registered difference of the document that a
+    # state's small subtree holds again was judged in the document, so it is no coverage error there.
+    cov_dir = reg_dir.parent / "registry-state-coverage"
+    cov_dir.mkdir(parents=True, exist_ok=True)
+    (cov_dir / "coverage.json").write_text(json.dumps([
+        x("ok-punctuation", "style", "Positive control: the progress code's punctuation tokens' word-spacing.",
+          selector="article[aria-label=\"Progress example\"] span.punctuation", property="word-spacing",
+          where={"comparisons": ["styles"], "routes": ["/index.html"]})], indent=1))
+
+    def state_coverage(r):
+        cov = [e for e in r["harness_errors"] if "coverage: " in e]
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        hover = sum(1 for c in r["cells"] for y in ((c.get("result") or {}).get("samples") or {}).get("ok-punctuation", [])
+                    if y.get("state") == "hover")
+        return (not cov and r["totals"]["unregistered"] == 0 and used.get("ok-punctuation") == 16,
+                f"coverage errors {cov[:1]}; unregistered {r['totals']['unregistered']}; registered {used} (8 in the "
+                f"document, 8 again under the footer's hover); hover samples {hover}")
+    case("state-coverage", "state-coverage", state_coverage,
+         "8 registered punctuation records are 16% of the document and 38% of the article the footer's hover "
+         "collects: under the state they repeat the document's records, add nothing and cover nothing, so neither "
+         "coverage check fails", extra=("--registry", str(cov_dir)), mode="styles")
+
+    # The registry's token and state fields match only what they name: a token entry by token, anchor
+    # and probe property, a token-raw entry by token and anchor path, a surface entry by token, and a
+    # style entry's where.states by state. Entries that name no styles comparison never apply in one,
+    # and a token entry that names every token is rejected (statically for *, in the page for a
+    # pattern that reaches most of the cell's names).
+    st = {"comparisons": ["styles"]}
+    entries = [
+        x("ok-token", "token", "Positive control: --femto-accent at main through color only.", token="--femto-accent",
+          selector="main", property="color", where=st),
+        x("ok-token-raw", "token-raw", "Positive control: --femto-accent's raw text at main only.", token="--femto-accent",
+          path=MAIN, where=st),
+        x("ok-surface", "surface-added", "Positive control: --femto-new only.", token="--femto-new", where=st),
+        x("ok-hover", "style", "Positive control: the link's word-spacing under hover only.", selector="#link",
+          property="word-spacing", where={"comparisons": ["styles"], "states": ["hover"]}),
+        x("pages-only-hover", "style", "Negative control: an entry that names no comparison applies in pages runs, "
+          "never in styles runs.", selector="#link", property="word-spacing"),
+        x("evade-token-star", "token-raw", token="*", where=st),
+        x("evade-token-nocomp", "token-raw", token="--femto-spacing"),
+        x("evade-token-states", "token-raw", token="--femto-spacing", where={"comparisons": ["styles"], "states": ["hover"]}),
+        x("evade-token-dot", "token-raw", token="/./", where=st),
+    ]
+    st_dir = reg_dir.parent / "registry-styles"
+    st_dir.mkdir(parents=True, exist_ok=True)
+    (st_dir / "styles.json").write_text(json.dumps(entries, indent=1))
+
+    def registry_styles(r):
+        reg_errs = [e for e in r["harness_errors"] if e.startswith("registry: ")]
+        guard = [e for e in r["harness_errors"] if "breadth: registry entry " in e]
+        rejected = sorted(e["id"] for e in entries if any(f"[{e['id']}]" in m for m in reg_errs))
+        guarded = sorted(e["id"] for e in entries if any(f"entry {e['id']} matches" in g for g in guard))
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        recs = recs_of(r)
+
+        def has(kind, token=None, at=None, not_at=None, prop=None, not_prop=None, state=None):
+            return any(y["kind"] == kind and (token is None or y.get("token") == token)
+                       and (at is None or y.get("path") == at) and (not_at is None or y.get("path") != not_at)
+                       and (prop is None or y.get("prop") == prop) and (not_prop is None or y.get("prop") != not_prop)
+                       and (state is None or y.get("state") == state) for y in recs)
+        stays = {  # records no entry names: they stay unregistered
+            "token --femto-accent at main, other probe properties": has("token", "--femto-accent", at=MAIN, not_prop="color"),
+            "token --femto-accent at other anchors": has("token", "--femto-accent", not_at=MAIN, prop="color"),
+            "token-raw --femto-accent at other anchors": has("token-raw", "--femto-accent", not_at=MAIN),
+            "token and token-raw --femto-spacing": has("token", "--femto-spacing") and has("token-raw", "--femto-spacing"),
+            "surface-added --femto-other": has("surface-added", "--femto-other"),
+            "the link's word-spacing under active": has("style", at=LINK, prop="word-spacing", state="active"),
+        }
+        gone = {  # records an entry names: none stays unregistered
+            "token --femto-accent at main through color": has("token", "--femto-accent", at=MAIN, prop="color"),
+            "token-raw --femto-accent at main": has("token-raw", "--femto-accent", at=MAIN),
+            "surface-added --femto-new": has("surface-added", "--femto-new"),
+            "the link's word-spacing under hover": has("style", at=LINK, prop="word-spacing", state="hover"),
+        }
+        want_used = {"ok-token", "ok-token-raw", "ok-surface", "ok-hover"}
+        ok = (rejected == ["evade-token-nocomp", "evade-token-star", "evade-token-states"] and guarded == ["evade-token-dot"]
+              and set(used) == want_used and all(stays.values()) and not any(gone.values()) and r["status"] == "FAIL")
+        return ok, (f"registry errors name {rejected}; in-page breadth errors name {guarded}; registered {used}; "
+                    f"left unregistered: {[k for k, v in stays.items() if not v] or 'all as expected'} missing; "
+                    f"wrongly unregistered: {[k for k, v in gone.items() if v] or 'none'}; run {r['status']}")
+    case("registry-styles", "registry-tokens-states", registry_styles,
+         "token, token-raw and surface entries match only the token, anchor and probe property they name, and a style "
+         "entry's where.states only its state; an entry naming no styles comparison never applies in one; token *, a "
+         "token entry without where.comparisons styles or with where.states is a registry error, and token /./ "
+         "is taken out of the cell by the in-page breadth guard",
+         extra=("--registry", str(st_dir)), registry_errors=True, expect_errors=("breadth: registry entry ",),
+         mode="styles")
+
+    # A catch-all split by name: each token-raw entry names under half of the cell's token names, and
+    # together they name all of them. The token entries of a kind share one limit (differ.js
+    # breadthGuard), so none of them is applied and the raw text changes stay unregistered.
+    split = [x("evade-raw-a-m", "token-raw", token="/^--femto-[a-m]/", where=st),
+             x("evade-raw-n-r", "token-raw", token="/^--femto-[n-r]/", where=st),
+             x("evade-raw-s-z", "token-raw", token="/^--femto-[s-z]/", where=st)]
+    split_dir = reg_dir.parent / "registry-token-split"
+    split_dir.mkdir(parents=True, exist_ok=True)
+    (split_dir / "split.json").write_text(json.dumps(split, indent=1))
+
+    def token_split(r):
+        guard = [e for e in r["harness_errors"] if "breadth: the 3 token-raw entries" in e]
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        raw = sorted({y["token"] for y in recs_of(r) if y["kind"] == "token-raw"})
+        return (bool(guard) and not used and raw == ["--femto-accent", "--femto-spacing"],
+                f"union errors {len(guard)}; registered {used}; token-raw records left unregistered for {raw}")
+    case("registry-token-split", "registry-tokens-states", token_split,
+         "three token-raw entries that each name under half of the cell's token names and together all of them are "
+         "taken out of the cell by the in-page union limit, so the raw text changes stay unregistered",
+         extra=("--registry", str(split_dir)), expect_errors=("breadth: the 3 token-raw entries",), mode="styles")
+
+    def reg_dir_of(name, entries):
+        d = reg_dir.parent / name
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "entries.json").write_text(json.dumps(entries, indent=1))
+        return d
+
+    # The same split for surface entries: the surface-added entries of a cell whose patterns are open
+    # (a prefix, a range of names) share the token union limit, so the added names stay unregistered.
+    surface_split = [x(f"evade-surface-{rng}", "surface-added", token=f"/^--femto-[{rng}]/", where=st)
+                     for rng in ("a-m", "n-r", "s-z")]
+    surface_dir = reg_dir_of("registry-surface-split", surface_split)
+
+    def surface_split_chk(r):
+        guard = [e for e in r["harness_errors"] if "breadth: the 3 surface-added entries with an open token pattern" in e]
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        added = sorted({y["token"] for y in recs_of(r) if y["kind"] == "surface-added"})
+        return (bool(guard) and not used and added == ["--femto-new", "--femto-other"],
+                f"union errors {len(guard)}; registered {used}; surface-added records left unregistered for {added}")
+    case("registry-surface-split", "registry-tokens-states", surface_split_chk,
+         "three surface-added entries with open patterns that each name under half of the cell's token names and "
+         "together all of them are taken out of the cell by the in-page union limit, so the added tokens stay "
+         "unregistered", extra=("--registry", str(surface_dir)),
+         expect_errors=("breadth: the 3 surface-added entries with an open token pattern",), mode="styles")
+
+    # A surface entry whose pattern writes its names out (registry.py _closed_set) may name up to 70%
+    # of a cell's token names; the same names with one open alternative (r.w) are held to 50%.
+    surface_closed = [
+        x("ok-surface-closed", "surface-added", "Positive control: seven names written out, the two added among them.",
+          token="/^--femto-(new|other|accent|gone|media|nested|raw)$/", where=st),
+        x("evade-surface-open", "surface-added", token="/^--femto-(new|other|accent|gone|media|nested|r.w)$/", where=st),
+    ]
+    closed_dir = reg_dir_of("registry-surface-closed", surface_closed)
+
+    def surface_closed_chk(r):
+        guard = [e for e in r["harness_errors"] if "breadth: registry entry " in e]
+        named = sorted(e["id"] for e in surface_closed if any(f"entry {e['id']} matches" in g for g in guard))
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        left = recs_of(r)
+        return (named == ["evade-surface-open"] and used == {"ok-surface-closed": 2}
+                and all(y["kind"] != "surface-added" for y in left),
+                f"in-page breadth errors name {named}; registered {used}; surface-added records left "
+                f"{[y['token'] for y in left if y['kind'] == 'surface-added']}")
+    case("registry-surface-closed", "registry-tokens-states", surface_closed_chk,
+         "a surface-added entry that writes out 7 of the 11 token names of side B (64%) registers the two added "
+         "tokens; the same pattern with one open alternative is held to 50% and taken out of the cell",
+         extra=("--registry", str(closed_dir)), expect_errors=("breadth: registry entry ",), mode="styles")
+
+    # A pinned entry (registry.py _pinned): one route, one property, exact values. It may reach up to
+    # 40% of a document on the repeats of one example, and its records cover nothing; an entry for
+    # the same elements with open values, or a pinned one over two shapes of tree path, is held to
+    # 25% (registry errors).
+    fd = {"routes": ["/index.html"], "comparisons": ["styles"]}
+    spans = "article[aria-label=\"Progress example\"] code > span"
+
+    def femto(e):
+        return dict(e, category="femto-divergence")
+    pinned = [
+        femto(x("ok-pinned", "style", "Positive control: the code tokens' tab-size.", selector=spans, pseudo="",
+                property="tab-size", a="8", b="4", where=fd)),
+        femto(x("evade-pinned-shapes", "style", selector=f"{spans}:nth-child(-n+12), ul.list > li", pseudo="",
+                property="cursor", a="auto", b="pointer", where=fd)),
+        femto(x("evade-pinned-open", "style", selector=spans, pseudo="", property="touch-action", a="*", b="*",
+                where=fd)),
+    ]
+    pinned_dir = reg_dir_of("registry-pinned", pinned)
+
+    def pinned_chk(r):
+        reg_errs = [e for e in r["harness_errors"] if e.startswith("registry: ")]
+        rejected = sorted(e["id"] for e in pinned if any(f"[{e['id']}]" in m for m in reg_errs))
+        bad = [e for e in r["harness_errors"] if "breadth: " in e or "coverage: " in e]
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        left = recs_of(r)
+        props = sorted({y["prop"] for y in left})
+        per_cell = {((c.get("result") or {}).get("registered") or {}).get("ok-pinned") for c in r["cells"]}
+        n = next(iter(per_cell)) if len(per_cell) == 1 else None
+        return (rejected == ["evade-pinned-open", "evade-pinned-shapes"] and not bad and set(used) == {"ok-pinned"}
+                and isinstance(n, int) and n >= 16 and props == ["cursor", "touch-action"] and kinds_of(left) == ["style"],
+                f"registry errors name {rejected}; breadth or coverage errors {bad[:1]}; registered {used} "
+                f"({sorted(per_cell, key=str)} per cell); left unregistered {props}, kinds {kinds_of(left)}")
+    case("registry-pinned", "registry-pinned", pinned_chk,
+         "a pinned entry (one route, one property, exact values) registers the tab-size of the 17 code tokens, 35% of "
+         "the document and one shape of tree path, with no breadth or coverage error; the same tokens with open "
+         "values, and a pinned entry over two shapes, are registry errors, so their records stay unregistered",
+         extra=("--registry", str(pinned_dir)), registry_errors=True, mode="styles")
+
+    # Layout consequences: a style entry for one route that names only geometry longhands (differ.js
+    # GEOMETRY) covers nothing, so a registered change and the sizes it moves can pass 25% of a page
+    # together; the same entry without its route counts, and the coverage rule fails the cell.
+    cons_props = "/^(height|block-size|transform-origin|perspective-origin)$/"
+
+    def consequence_entries(scoped):
+        return [
+            x("ok-cursor", "style", "Positive control: ten elements' cursor.",
+              selector=".lead, .pseudo, h1, .wide, .scheme, ul.list > li, pre, footer.site", pseudo="", property="cursor",
+              a="auto", b="pointer", where=fd),
+            x("ok-padding", "style", "Positive control: the list's padding-block.", selector="ul.list", pseudo="",
+              property="/^padding-(top|bottom|block-start|block-end)$/", a="0px", b="4px", where=fd),
+            femto(x("ok-layout", "style", "Positive control: the list's and its ancestors' heights and origins.",
+                    selector="html, body, main, ul.list", pseudo="", property=cons_props,
+                    where=fd if scoped else st)),
+        ]
+    cons_dir = reg_dir_of("registry-consequence", consequence_entries(True))
+    cons_open_dir = reg_dir_of("registry-consequence-unscoped", consequence_entries(False))
+
+    def consequence(scoped):
+        def chk(r):
+            cov = [e for e in r["harness_errors"] if "coverage: " in e]
+            used = {k: v for k, v in r["registered_by_entry"].items() if v}
+            left = r["totals"]["unregistered"]
+            ok = set(used) == {"ok-cursor", "ok-padding", "ok-layout"} and left == 0 and (not cov if scoped else bool(cov))
+            return ok, f"coverage errors {cov[:1]}; registered {used}; unregistered {left}"
+        return chk
+    case("registry-consequence", "registry-consequence", consequence(True),
+         "a cursor change on ten elements and the list's padding are registered, and the heights and origins the padding "
+         "moves (the list, main, body, html) by a layout consequence for /index.html: together 29% of the document, "
+         "the consequence covers nothing, so the coverage rule passes",
+         extra=("--registry", str(cons_dir)), mode="styles")
+    case("registry-consequence-unscoped", "registry-consequence", consequence(False),
+         "the same entries with the consequence naming no route: it covers what it registers, so the cell's "
+         "registered records cover 29% of the document and the coverage rule fails it",
+         extra=("--registry", str(cons_open_dir)), expect_errors=("coverage: ",), mode="styles")
+
+    # The replay's scrolling is instant (differ.js armStates): side B's html { scroll-behavior: smooth }
+    # (registered) would make the focus() and Tab of #far smooth, and other.html's scroll spy would
+    # count the positions in between. After the replay html's scroll-behavior is the page's own again.
+    smooth_dir = reg_dir_of("registry-scroll-smooth", [
+        x("ok-smooth", "style", "Positive control: html's scroll-behavior.", selector="html", pseudo="",
+          property="scroll-behavior", a="auto", b="smooth", where={"routes": ["/other.html"], "comparisons": ["styles"]})])
+
+    def scroll_smooth(r):
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        left = recs_of(r)
+        far = {(c.get("states_a"), c.get("states_b")) for c in r["cells"]}
+        after = {(c.get("scroll_behavior_a"), c.get("scroll_behavior_b")) for c in r["cells"]}
+        return (not left and used == {"ok-smooth": len(r["cells"])} and far == {(3, 3)} and after == {("auto", "smooth")},
+                f"unregistered {[fmt(y) for y in left[:3]]}; registered {used}; state replays per side {sorted(far, key=str)}; "
+                f"html scroll-behavior after the replay (A, B) {sorted(after, key=str)}")
+    case("scroll-smooth", "scroll-smooth", scroll_smooth,
+         "side B's html { scroll-behavior: smooth } is one registered record; the focus (from the top), focus-visible "
+         "and hover replays of #far below the fold scroll instantly on both sides, so other.html's scroll spy counts "
+         "the same positions, and afterwards html's scroll-behavior is each side's own again", routes="/other.html",
+         extra=("--registry", str(smooth_dir)), mode="styles")
 
 
 def run_selftest(args):

@@ -1,0 +1,142 @@
+[
+  {
+    "id": "femto-nav-dropdown-no-negative-margin",
+    "kind": "style",
+    "selector": "nav details.dropdown",
+    "pseudo": "",
+    "property": "/^margin-(top|bottom|block-start|block-end)$/",
+    "a": "/^-[0-9.]+px$/",
+    "b": "0px",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "2.1.1 gives nav details.dropdown a negative vertical margin of --femto-nav-element-spacing-vertical. Where <details> honors display: inline, as it does since the details layout change that also brought ::details-content (Chrome 131, Firefox 143, Safari 18.4), that margin does nothing. Firefox 128 to 142, including ESR 128 and 140, lays <details> out as a block container even when it is inline, and there the margin lifted every nav dropdown 2.5 to 2.75px above the nav links beside it, with its text 3.5 to 4.25px above theirs; it also shortened the nav and pulled a dropdown in an aside nav up against the item above it. femto sets the margin to 0, so the dropdown lines up with the links there, and where the details is inline only the computed margin changes.",
+    "notes": "Seeded from femto's tests/divergences/components-dropdown.json at 7bcd5758 (nav-dropdown-no-negative-margin; femto category natural-fix, module components/dropdown). Site: the header's version dropdown and the nav dropdown examples of /docs/dropdown and /docs/nav; femto lists the pages that have one, so the scope is the selector."
+  },
+  {
+    "id": "femto-nav-dropdown-summary-padding",
+    "kind": "style",
+    "selector": "nav details.dropdown > summary:not([role])",
+    "pseudo": "",
+    "property": "/^padding-(top|bottom|block-start|block-end)$/",
+    "a": "/^[0-9.]+px$/",
+    "b": "/^[0-9.]+px$/",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "2.1.1 pads the fixed-height nav summary with the nav link spacing minus two border widths, which leaves one border width of extra space under the text, so the summary text sat one border width (1 to 1.5px at femto's root sizes) above the text of the nav links beside it. femto subtracts one border width, so the content box holds exactly one line and the text and chevron line up with the links. The summary box keeps its size and position, and a summary with role=button keeps its padding.",
+    "notes": "Seeded from femto's tests/divergences/components-dropdown.json at 7bcd5758 (nav-dropdown-summary-padding; femto category natural-fix, module components/dropdown). Site: the header's version dropdown summary and the plain nav summaries of /docs/dropdown and /docs/nav."
+  },
+  {
+    "id": "femto-nav-dropdown-block-details",
+    "kind": "style",
+    "selector": "nav details.dropdown",
+    "pseudo": "",
+    "property": "/^(display|width|height|inline-size|block-size|transform-origin|perspective-origin)$/",
+    "a": "/^(inline|auto|0px 0px)$/",
+    "b": "/^(block|[0-9.]+px( [0-9.]+px)?)$/",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "2.1.1 sets nav details.dropdown to display: inline, so the details is an inline box split around its block summary, and that split box is the containing block of the absolutely positioned list. Firefox 143 and later place the list against an empty fragment of it (nav-dropdown-open-list-placement). femto makes the details a block, which with its zero margin fills the nav item exactly as the summary did, so the details box is the list's containing block. Every browser now reports display: block and the details' used width, height, inline-size and block-size, with transform and perspective origins at its center, where the inline box reported auto and 0px 0px. A nav dropdown that is the only content of its nav item keeps its closed, hover, focus and open layout in Chrome and Firefox 143 and later.",
+    "notes": "Seeded from femto's tests/divergences/components-dropdown.json at 7bcd5758 (nav-dropdown-block-details; femto category natural-fix, module components/dropdown). Site: the nav dropdowns of /docs/dropdown and /docs/nav (the header's version dropdown has its own display in site/assets/css/common.css)."
+  },
+  {
+    "id": "femto-nav-dropdown-block-details-safari-insets",
+    "kind": "style",
+    "selector": "nav details.dropdown",
+    "pseudo": "",
+    "property": "/^(top|right|bottom|left|inset-(block|inline)-(start|end))$/",
+    "a": "auto",
+    "b": "0px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of nav-dropdown-block-details in Safari's computed style only. The dropdown is position: relative with every inset auto, so it does not move. Safari's getComputedStyle reports the insets of a relatively positioned inline box as auto but those of a block as their used value, 0px, so the details changing from inline to block changes what Safari reports. Chrome and Firefox report the same value for both, so they show no difference.",
+    "notes": "Seeded from femto's tests/divergences/components-dropdown.json at 7bcd5758 (nav-dropdown-block-details-safari-insets; femto category natural-fix, module components/dropdown). Site: the same nav dropdowns as femto-nav-dropdown-block-details. Not run here (agents run no Safari)."
+  },
+  {
+    "id": "femto-nav-dropdown-open-list-placement",
+    "kind": "style",
+    "selector": "nav details.dropdown[open] > summary + ul, nav details.dropdown[open] > summary + ul li, nav details.dropdown[open] > summary + ul li a",
+    "pseudo": "",
+    "property": "/^(left|right|bottom|inset-(inline-start|inline-end|block-end)|width|inline-size|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "browsers": [
+        "firefox",
+        "safari"
+      ],
+      "routes": [
+        "/docs/button"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of nav-dropdown-block-details. With 2.1.1's inline nav details, Firefox 143 and later place the open list against an empty fragment beside the summary instead of the summary's box: a right-aligned list (ul dir=rtl) ends at the summary's left edge and hangs over the neighbouring link, a left-aligned list shrinks to its items, and in an rtl page a left-aligned list starts at the summary's right edge. With the details a block, the list lines up under the summary at its width, as in Chrome, so the list's resolved insets, its width and the widths and origins of its items and links change. picocss/pico#671 reports the same misplacement of a dir=rtl list in Safari 18.4.",
+    "notes": "Seeded from femto's tests/divergences/components-dropdown.json at 7bcd5758 (nav-dropdown-open-list-placement; femto category natural-fix, module components/dropdown). Site: the header's version dropdown, whose list is ul dir=rtl, opened by the header-version-item state target of tests/harness/states.json on /docs/button."
+  },
+  {
+    "id": "femto-dropdown-lone-label-fills-row",
+    "kind": "style",
+    "selector": "details.dropdown > summary + ul li > label:only-child",
+    "pseudo": "",
+    "property": "/^(width|height|inline-size|block-size|margin-(top|right|bottom|left|block-start|block-end|inline-start|inline-end)|padding-(top|right|bottom|left|block-start|block-end|inline-start|inline-end)|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "routes": [
+        "/docs/dropdown",
+        "/docs/forms/select"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "2.1.1 pads every dropdown li, and a checkbox or radio label alone in its li sits inside that padding with the global label rule's bottom margin of 0.375 * --femto-spacing below it. The whole li highlights on hover, but the label covered only its middle, so a click in the side or top padding or in the bottom strip hit the li and did not toggle the input. femto keeps the li's padding and lets a label that is the li's only element reach over it, as link rows already do: negative margins of the row padding, the same padding on the label, and the former bottom margin added to its bottom padding. The label's border box is now the row, so its computed width, height, inline and block sizes, margins, paddings and transform and perspective origins change, and its cursor covers the whole row. For a label holding its input and text, the row size, the input and text positions, the hover color and the painted pixels do not change. A lone label whose last child is a block with a bottom margin, such as a field with a <small> helper, makes its row taller by 0.375 * --femto-spacing, since that margin no longer collapses through the label. :only-child ignores text nodes, so an li with bare text beside its only label element also matches; the li keeps its padding there and the text does not move. Rows where the label sits beside its input (input + label for) or beside other elements keep 2.1.1's layout.",
+    "notes": "Seeded from femto's tests/divergences/components-dropdown.json at 7bcd5758 (dropdown-lone-label-fills-row; femto category natural-fix, module components/dropdown). Site: the checkbox and radio label rows of the dropdown examples on /docs/dropdown and /docs/forms/select."
+  },
+  {
+    "id": "femto-dropdown-lone-label-row-rounding",
+    "kind": "style",
+    "selector": "details.dropdown > summary + ul li:has(> label:only-child), details.dropdown > summary + ul:has(> li > label:only-child)",
+    "pseudo": "",
+    "property": "/^(height|block-size|bottom|inset-block-end|transform-origin|perspective-origin)$/",
+    "a": "/^-?[0-9.]+px( -?[0-9.]+px)?$/",
+    "b": "/^-?[0-9.]+px( -?[0-9.]+px)?$/",
+    "where": {
+      "browsers": [
+        "firefox"
+      ],
+      "routes": [
+        "/docs/dropdown",
+        "/docs/forms/select"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-dropdown-lone-label-fills-row in Firefox's layout only: a lone label now reaches over its row's padding with negative margins and matching padding, and Firefox rounds each of them to 1/60px, so at root sizes where the spacing is not a whole number of sixtieths (600, 1100 and 1600) the row comes out 1/60px shorter (44.65px to 44.6333px at 600), and the list, its bottom inset and the origins follow by the same amount.",
+    "notes": "A site consequence of femto's dropdown-lone-label-fills-row (femto tests/divergences/components-dropdown.json at 7bcd5758, femto category natural-fix), whose fixtures ran only at 390 and 1280. Seen in Firefox on the label rows of /docs/dropdown (p2-registry-widths-1). Both values are pinned to lengths."
+  }
+]

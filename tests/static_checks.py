@@ -213,7 +213,7 @@ PHASE_COMMITS = (
 )
 PHASE_TAGS = ((2, "static-multipage"), (3, "static-femto"))
 
-HARNESS = {  # tests/run.py modes (tests/harness/cli.py); styles and behavior are announced there, not built yet
+HARNESS = {  # tests/run.py modes (tests/harness/cli.py) that the criteria below need a browser for
     1: "uv run tests/run.py self --full (the oracle against itself in the PLAN.md matrix: Chrome, Firefox, then Safari serialized; the owner's dark Safari pass too)",
     7: "uv run tests/run.py behavior (Chrome, Firefox and Safari; the mode is not implemented yet)",
     10: "an axe-core pass in the harness (Chrome and Firefox, light and dark, 375 and 1300); tests/run.py has no such mode yet",
@@ -774,7 +774,7 @@ def criterion_2(ctx: Context) -> Result:
     r = Result(2, "Each parity gate (Phases 1, 2 and 3) reports zero unregistered differences in its full matrix")
     gates = {
         1: "uv run tests/run.py pages --a oracle --b dist --full (the static routes against the oracle; Chrome and Firefox)",
-        2: "uv run tests/run.py styles --full (against tag static-multipage; the mode is not implemented yet)",
+        2: "uv run tests/run.py styles --full --browsers chrome,firefox (dist against tag static-multipage: everything pages compares, plus femto's tokens and interactive states; tests/README.md, Tokens and states)",
         3: "uv run tests/run.py pages --full (each section against its route's [role=document] at tag static-femto; then Safari, light and dark)",
     }
     current = gates.get(min(max(ctx.phase, 1), 3))

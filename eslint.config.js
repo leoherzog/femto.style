@@ -1,9 +1,9 @@
 // npm run lint (eslint --max-warnings 0 --no-error-on-unmatched-pattern site): the site's own CSS and
 // JavaScript against femto's browser target, Baseline Widely Available (PLAN.md Decision 12, acceptance
 // criterion 11). It only checks; it never fixes. build.mjs, vendor.mjs and tests/ are tooling that ships
-// nothing, and they are outside the linted folder. --no-error-on-unmatched-pattern lets the lint pass
-// while site/ holds no CSS or JS of its own yet (only the ignored folders below); static_checks.py's
-// planted-violation probe proves that every site file is linted once there are some.
+// nothing, and they are outside the linted folder. --no-error-on-unmatched-pattern dates from Phase 0,
+// when site/ held no CSS or JS of its own; it no longer has any effect. static_checks.py's
+// planted-violation probe proves that every site file is linted.
 import { defineConfig } from "eslint/config";
 import css from "@eslint/css";
 import baselineJs from "eslint-plugin-baseline-js";
@@ -11,10 +11,6 @@ import baselineJs from "eslint-plugin-baseline-js";
 export default defineConfig([
   {
     ignores: [
-      // The oracle's compiled CSS, frozen as served (Phase 1 conversion rules) and deleted in Phase 2.
-      // It is the parity reference, so it is never edited to satisfy a lint; the site CSS that
-      // replaces it (site/assets/css/) is linted.
-      "site/assets/legacy/",
       // femto's own files at the commit vendor/femto/SOURCE names, byte for byte (criterion 12).
       // femto lints its CSS against the same target in its own repository.
       "site/vendor/",
@@ -28,12 +24,26 @@ export default defineConfig([
     rules: {
       // Each allowance added here (allowProperties, allowSelectors, allowFunctions, ...) needs a
       // comment with its reason, as femto's eslint.config.mjs gives.
-      "css/use-baseline": ["error", { available: "widely" }],
+      "css/use-baseline": ["error", {
+        available: "widely",
+        allowProperties: [
+          // The docs header's blur (common.css) is written after -webkit-backdrop-filter, which
+          // femto keeps for Safari 17.5 to 17.x; backdrop-filter is Baseline 2024 (Safari 18), and
+          // femto's config allows it for the same pair.
+          "backdrop-filter",
+        ],
+        allowPropertyValues: {
+          // The oracle's footer build info (common.css) and the landing pages' hero text and example
+          // titles (landing.css) balance their lines. A browser without it wraps the text as usual,
+          // a progressive enhancement femto's feature tiers allow.
+          "text-wrap": ["balance"],
+        },
+      }],
 
-      // The site's CSS uses femto's tokens (--femto-color, --femto-spacing, ...), which the femto
-      // stylesheet defines (until Phase 2, the frozen legacy main.css), and the rule only traces
-      // custom properties defined earlier in the same file; femto's own config allows them for the
-      // same reason. Property names and values without var() are still validated.
+      // The site's CSS uses femto's tokens (--femto-color, --femto-spacing, ...), which the vendored
+      // femto stylesheet defines, and the rule only traces custom properties defined earlier in the
+      // same file; femto's own config allows them for the same reason. Property names and values
+      // without var() are still validated.
       "css/no-invalid-properties": ["error", { allowUnknownVariables: true }],
     },
   },

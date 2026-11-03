@@ -1,0 +1,999 @@
+/* The docs pages, after common.css and code.css: the docs tokens for each color scheme, the main
+   grid with its breadcrumb, side menu, header, table of contents and document, the rules of single
+   docs pages (main.page-<id>, until Phase 3), and the docs components: the menu's focus style, the
+   version picker card, the color families and color dialog of /docs/colors, inline example dialogs,
+   heading anchors and bordered images. */
+
+/**
+ * Docs color schemes
+ */
+
+/* Light color scheme (Default)
+   Can be forced with data-theme="light" */
+[data-theme=light],
+:root:not([data-theme=dark]),
+:host:not([data-theme=dark]) {
+  /* Aside */
+  --femto-aside-link-current-background-color: #eff1f4;
+}
+
+/* Forced dark color scheme */
+[data-theme=light] article footer.code[data-theme=dark],
+:root:not([data-theme=dark]) article footer.code[data-theme=dark],
+:host:not([data-theme=dark]) article footer.code[data-theme=dark] {
+  --femto-card-background-color: #181c25;
+  --femto-card-border-color: var(--femto-card-background-color);
+  --femto-card-box-shadow: var(--femto-box-shadow);
+  --femto-card-sectioning-background-color: rgb(28, 33, 43.5);
+}
+
+/* Dark color scheme (Auto)
+   Automatically enabled if user has Dark mode enabled */
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :host:not([data-theme]) {
+    /* Aside */
+    --femto-aside-link-current-background-color: #202632;
+  }
+}
+
+/* Dark color scheme (Forced)
+   Enabled if forced with data-theme="dark" */
+[data-theme=dark] {
+  /* Aside */
+  --femto-aside-link-current-background-color: #202632;
+}
+
+/**
+ * Docs: Main
+ */
+body {
+  --femto-main-top-offset: 0rem;
+}
+
+body > header.is-fixed-above-lg + main {
+  --femto-main-top-offset: var(--femto-header-height);
+}
+
+body > main {
+  display: grid;
+  grid-template-rows: 1fr;
+  row-gap: 2rem;
+  margin-bottom: calc(var(--femto-spacing) * 4);
+  padding: 0;
+}
+
+body > main > * {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+@media (min-width: 1024px) {
+  body > main {
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 11rem 1fr;
+    grid-template-areas: "menu header" "menu body";
+    column-gap: 3rem;
+    row-gap: 3rem;
+  }
+
+  /* The oracle's fallback for browsers without `:has()`. Every target browser has it; kept until Phase 3 */
+  body > main.has-table-of-contents {
+    grid-template-rows: auto auto 1fr;
+    grid-template-columns: 11rem 1fr;
+    grid-template-areas: "menu header" "menu table-of-content" "menu body";
+  }
+
+  body > main:has(aside#table-of-contents) {
+    grid-template-rows: auto auto 1fr;
+    grid-template-columns: 11rem 1fr;
+    grid-template-areas: "menu header" "menu table-of-content" "menu body";
+  }
+
+  body > main > nav[aria-label=breadcrumb] {
+    display: none;
+  }
+
+  body > main > aside > nav {
+    margin-top: calc(var(--femto-block-spacing-vertical) / 2);
+  }
+
+  body > main > aside > nav.is-sticky-above-lg {
+    position: sticky;
+    top: calc(var(--femto-main-top-offset) + var(--femto-block-spacing-vertical) / 2);
+    max-height: calc(var(--max-height) - var(--femto-spacing));
+    overflow: auto;
+    transition: top var(--femto-transition);
+    transition-delay: 0.05s;
+  }
+
+  body > main > aside#documentation-menu {
+    grid-area: menu;
+  }
+
+  body > main > hgroup {
+    grid-area: header;
+    margin-top: calc(var(--femto-block-spacing-vertical) / 2);
+  }
+
+  body > main > aside#table-of-contents {
+    grid-area: table-of-content;
+  }
+
+  body > main > [role=document] {
+    grid-area: body;
+  }
+}
+
+@media (min-width: 1280px) {
+  body > main {
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 10.5rem 1fr;
+    grid-template-areas: "menu header" "menu body";
+    row-gap: 4rem;
+  }
+
+  /* The oracle's fallback for browsers without `:has()`. Every target browser has it; kept until Phase 3 */
+  body > main.has-table-of-contents {
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 10.5rem 1fr 10.5rem;
+    grid-template-areas: "menu header table-of-content" "menu body table-of-content";
+  }
+
+  body > main:has(aside#table-of-contents) {
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 10.5rem 1fr 10.5rem;
+    grid-template-areas: "menu header table-of-content" "menu body table-of-content";
+  }
+
+  body > main > aside#documentation-menu {
+    grid-area: menu;
+  }
+
+  body > main > hgroup {
+    grid-area: header;
+  }
+
+  body > main > aside#table-of-contents {
+    grid-area: table-of-content;
+  }
+
+  body > main > [role=document] {
+    grid-area: body;
+  }
+}
+
+@media (min-width: 1536px) {
+  body > main {
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 10rem 1fr 10rem;
+    grid-template-areas: "menu header table-of-content" "menu body table-of-content";
+    row-gap: 5rem;
+  }
+}
+
+/* Loading */
+body > main.is-loading > hgroup,
+body > main.is-loading > aside#table-of-contents,
+body > main.is-loading > [role=document] {
+  animation-duration: 1s;
+  animation-fill-mode: forwards;
+  animation-name: docs-loading;
+  opacity: 0.5;
+}
+
+@keyframes docs-loading {
+  from {
+    opacity: 1;
+  }
+}
+
+html {
+  scroll-padding-top: calc(var(--femto-breadcrumb-height) + 1rem);
+}
+
+@media (min-width: 1024px) {
+  html {
+    scroll-padding-top: calc(var(--femto-header-height) + 2rem - 0.375rem);
+  }
+}
+
+/**
+ * Docs: Breadcrumb
+ */
+html {
+  --femto-breadcrumb-height: calc(3.5rem + var(--femto-border-width));
+}
+
+main > [aria-label=breadcrumb] {
+  z-index: 3;
+  position: sticky;
+  top: -1px;
+  margin: 0 calc(var(--femto-spacing) * -1);
+  margin-top: calc(var(--femto-block-spacing-vertical) / 2);
+  padding: 0 var(--femto-spacing);
+  border-bottom: var(--femto-border-width) solid transparent;
+  background-color: var(--femto-background-color);
+  transition: border var(--femto-transition), box-shadow var(--femto-transition);
+}
+
+/* Full bleed in the sm and md containers (510px and 700px wide) */
+@media (min-width: 576px) and (max-width: 1023px) {
+  main > [aria-label=breadcrumb] {
+    margin: 0 calc((100vw - 510px) / 2 * -1);
+    padding: 0 calc((100vw - 510px) / 2);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  main > [aria-label=breadcrumb] {
+    margin: 0 calc((100vw - 700px) / 2 * -1);
+    padding: 0 calc((100vw - 700px) / 2);
+  }
+}
+
+main > [aria-label=breadcrumb].is-sticky {
+  border-bottom-color: var(--femto-header-border-color);
+  box-shadow: var(--femto-card-box-shadow);
+}
+
+main > [aria-label=breadcrumb] ul {
+  max-width: 100%;
+}
+
+main > [aria-label=breadcrumb] ul li {
+  flex-shrink: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+main > [aria-label=breadcrumb] ul li:not(:last-child)::after {
+  content: ">";
+}
+
+main > [aria-label=breadcrumb] ul li:first-child a {
+  color: var(--femto-secondary);
+  cursor: pointer;
+}
+
+main > [aria-label=breadcrumb] ul li:first-child a:hover {
+  color: var(--femto-secondary-hover);
+}
+
+main > [aria-label=breadcrumb] ul li:last-child {
+  flex-shrink: 1;
+}
+
+@media (min-width: 576px) {
+  main > [aria-label=breadcrumb] ul li:first-child::after {
+    display: inline-block;
+  }
+}
+
+main > [aria-label=breadcrumb] svg {
+  width: auto;
+  height: 1.125rem;
+  margin-right: var(--femto-nav-link-spacing-horizontal);
+  transform: translateY(-0.0625rem);
+}
+
+main > [aria-label=breadcrumb] a[aria-current] {
+  pointer-events: auto;
+}
+
+/**
+ * Docs: Aside
+ */
+main > aside {
+  --femto-font-size: 16px;
+  font-size: var(--femto-font-size);
+}
+
+main > aside nav details:last-of-type {
+  margin-bottom: 0;
+}
+
+main > aside nav details summary {
+  font-weight: 600;
+  line-height: var(--femto-line-height);
+}
+
+main > aside nav details summary:focus-visible:not([role]) {
+  outline-offset: 0;
+}
+
+main > aside nav details summary::after {
+  height: calc(1em * var(--femto-line-height));
+}
+
+@media (min-width: 1024px) {
+  main > aside nav details summary:not(:focus-visible)::after {
+    display: none;
+  }
+}
+
+main > aside nav details[open] > summary {
+  margin-bottom: calc(var(--femto-spacing) * 0.5);
+}
+
+main > aside nav details[open] > summary:not([role]):not(:focus) {
+  color: inherit;
+}
+
+main > aside nav details ul {
+  border-left: var(--femto-border-width) solid var(--femto-muted-border-color);
+}
+
+main > aside nav details ul:first-of-type {
+  margin: 0;
+  padding: 0;
+}
+
+main > aside nav details ul li {
+  margin: 0;
+  padding: calc(var(--femto-nav-element-spacing-vertical) * 0.25) 0;
+}
+
+/* The -webkit-text-decoration item is kept for Safari 17.5 to 26.1, where it is what animates the
+   underline, as femto keeps it in content/link.css */
+main > aside nav details ul li a {
+  margin: 0;
+  margin-left: calc(var(--femto-border-width) * -1);
+  padding: 0;
+  padding-left: calc(var(--femto-nav-element-spacing-horizontal) * 1.5);
+  border-left: var(--femto-border-width) solid transparent;
+  border-radius: 0;
+  font-weight: 400;
+  transition: background-color var(--femto-transition), color var(--femto-transition), text-decoration var(--femto-transition), box-shadow var(--femto-transition), border-color var(--femto-transition), font-weight var(--femto-transition), -webkit-text-decoration var(--femto-transition);
+}
+
+main > aside nav details ul li a:hover {
+  border-color: var(--femto-secondary-underline);
+}
+
+main > aside nav details ul li a[aria-current] {
+  border-color: var(--femto-primary);
+  color: var(--femto-primary-hover);
+  font-weight: 600;
+}
+
+main > aside nav details ul li a[aria-current]:hover {
+  text-decoration: none;
+}
+
+main > aside nav details ul li a mark {
+  border-radius: 0.125rem;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  vertical-align: text-bottom;
+}
+
+/**
+ * Docs: Documentation Menu
+ */
+main > aside#documentation-menu {
+  position: relative;
+}
+
+main > aside#documentation-menu header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  height: var(--femto-header-height);
+  margin-bottom: var(--femto-spacing);
+}
+
+main > aside#documentation-menu header h2 {
+  --femto-font-size: 1.25rem;
+  margin-bottom: 0;
+}
+
+main > aside#documentation-menu header a {
+  opacity: 0.5;
+  transition: background-color var(--femto-transition), color var(--femto-transition), opacity var(--femto-transition);
+}
+
+main > aside#documentation-menu header a svg {
+  display: block;
+  width: auto;
+  height: 1.125rem;
+}
+
+main > aside#documentation-menu header a:hover {
+  opacity: 1;
+}
+
+@media (min-width: 1024px) {
+  main > aside#documentation-menu header {
+    display: none;
+  }
+}
+
+/* Below lg the menu is a full-screen panel that slides in from the left */
+@media (max-width: 1023px) {
+  main > aside#documentation-menu {
+    display: grid;
+    z-index: 4;
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    grid-template-rows: auto 1fr;
+    transform: translateX(calc(-100% - var(--femto-spacing)));
+    transition: transform var(--femto-transition);
+  }
+
+  main > aside#documentation-menu header,
+  main > aside#documentation-menu nav {
+    padding: 0 var(--femto-spacing);
+  }
+
+  main > aside#documentation-menu nav {
+    margin-bottom: var(--femto-spacing);
+    margin-block: calc(var(--femto-outline-width) * -1);
+    padding-block: var(--femto-outline-width);
+    overflow: auto;
+  }
+
+  main > aside#documentation-menu::before {
+    z-index: -1;
+    position: fixed;
+    inset: 0;
+    background-color: var(--femto-background-color);
+    content: "";
+  }
+
+  main > aside#documentation-menu.is-open-on-mobile {
+    transform: translateX(0);
+  }
+}
+
+/* The open panel keeps to the sm and md containers (510px and 700px wide) */
+@media (min-width: 576px) and (max-width: 1023px) {
+  main > aside#documentation-menu.is-open-on-mobile {
+    max-width: calc(510px + var(--femto-spacing) * 2);
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  main > aside#documentation-menu.is-open-on-mobile::before {
+    inset: 0 calc((100vw - 510px) / 2 * -1);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  main > aside#documentation-menu.is-open-on-mobile {
+    max-width: calc(700px + var(--femto-spacing) * 2);
+  }
+
+  main > aside#documentation-menu.is-open-on-mobile::before {
+    inset: 0 calc((100vw - 700px) / 2 * -1);
+  }
+}
+
+@media (min-width: 1024px) {
+  main > aside#documentation-menu {
+    transition: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  html:has(aside#documentation-menu.is-open-on-mobile) {
+    overflow: hidden;
+  }
+}
+
+/**
+ * Docs: Header
+ */
+main > hgroup p.chapter {
+  margin-bottom: calc(var(--femto-spacing) * 0.25);
+}
+
+main > hgroup h1 {
+  margin-bottom: calc(var(--femto-spacing) * 0.5);
+  font-family: "Figtree", var(--femto-font-family);
+}
+
+@media (min-width: 576px) {
+  main > hgroup h1 {
+    --femto-font-size: 2.5rem;
+  }
+}
+
+/* The oracle's Sass nests this h1 in the h1 rule, so it matches no element; kept as compiled */
+@media (min-width: 1536px) {
+  main > hgroup h1 h1 {
+    --femto-font-size: 3rem;
+  }
+}
+
+main > hgroup p {
+  /* eslint-disable-next-line css/use-baseline -- text-wrap: pretty is not Baseline; a browser without it wraps the text as usual, a progressive enhancement femto's feature tiers allow for text-wrap */
+  text-wrap: pretty;
+}
+
+/**
+ * Docs: Table of Contents
+ */
+main > aside#table-of-contents details {
+  border-bottom: none;
+}
+
+main > aside#table-of-contents details summary {
+  pointer-events: none;
+}
+
+main > aside#table-of-contents details summary::after {
+  display: none;
+}
+
+@media (max-width: 1279px) {
+  /* Bring back underline for small devices */
+  main > aside#table-of-contents details ul li a:not(:hover) {
+    text-decoration: underline;
+    text-decoration-color: var(--femto-secondary-underline);
+  }
+
+  /* Override aria-current link styles for small devices */
+  main > aside#table-of-contents details ul li a[aria-current] {
+    border-color: transparent;
+    color: var(--femto-secondary);
+    font-weight: normal;
+    text-decoration-color: var(--femto-secondary-underline);
+  }
+
+  main > aside#table-of-contents details ul li a[aria-current]:hover {
+    border-color: var(--femto-secondary-underline);
+    color: var(--femto-secondary-hover);
+    text-decoration: underline;
+  }
+}
+
+/**
+ * Docs: Document
+ */
+main > [role=document] section {
+  margin-bottom: calc(var(--femto-spacing) * 3);
+}
+
+main > [role=document] article > *:last-child:not(footer, .grid),
+main > [role=document] article form > *:last-child:not(footer, .grid) {
+  margin-bottom: 0;
+}
+
+main > [role=document] .edit-on-github svg {
+  width: auto;
+  height: 1rem;
+  margin-right: calc(var(--femto-spacing) * 0.25);
+  transform: translateY(-0.0625rem);
+}
+
+/**
+ * Page: Card
+ */
+
+/* Remove responsive spacings to demo this component
+   because it's not the default behavior anymore. */
+main.page-card article {
+  --femto-block-spacing-vertical: var(--femto-spacing);
+  --femto-block-spacing-horizontal: var(--femto-spacing);
+}
+
+/**
+ * Page: Color schemes
+ */
+main.page-color-schemes article#theme-switcher button {
+  display: block;
+  width: 100%;
+  margin-inline: auto;
+}
+
+@media (min-width: 576px) {
+  main.page-color-schemes article#theme-switcher button {
+    width: 50%;
+    min-width: fit-content;
+  }
+}
+
+/**
+ * Page: Grid
+ */
+main.page-grid .btn-group button {
+  width: 100%;
+  margin-bottom: var(--femto-spacing);
+}
+
+main.page-grid .btn-group button svg {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.5em;
+  transform: translateY(-0.125em);
+}
+
+@media (min-width: 576px) {
+  main.page-grid .btn-group button {
+    width: auto;
+  }
+
+  main.page-grid .btn-group button:not(:last-child) {
+    margin-right: var(--femto-spacing);
+  }
+}
+
+main.page-grid .grid > div {
+  padding: calc(var(--femto-spacing) / 2) 0;
+  border-radius: var(--femto-border-radius);
+  background-color: var(--femto-code-background-color);
+  color: var(--femto-muted-color);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+/**
+ * Page: Loading
+ */
+main.page-loading .grid#buttons {
+  margin-bottom: var(--femto-spacing);
+}
+
+/**
+ * Page: Modal
+ */
+main.page-modal article#modal-demo button {
+  display: block;
+  width: 100%;
+  margin-inline: auto;
+}
+
+@media (min-width: 576px) {
+  main.page-modal article#modal-demo button {
+    width: 50%;
+    min-width: fit-content;
+  }
+}
+
+/**
+ * Page: Nav
+ */
+main.page-nav section#overflow article nav {
+  border: 1px dashed var(--femto-del-color);
+}
+
+main.page-nav section#overflow article nav:not(:last-child) {
+  border-bottom-color: transparent;
+}
+
+main.page-nav section#overflow article nav ul li a.focused {
+  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
+  color: var(--femto-primary-hover);
+}
+
+/**
+ * Page: Typography
+ */
+main.page-typography table#responsive-font-sizes {
+  font-size: 16px;
+}
+
+main.page-typography table#responsive-font-sizes caption {
+  display: none;
+}
+
+/* Seven columns: 100% / 7 */
+main.page-typography table#responsive-font-sizes th,
+main.page-typography table#responsive-font-sizes td {
+  width: 14.2857142857%;
+  padding: calc(var(--femto-spacing) / 2);
+  white-space: nowrap;
+}
+
+main.page-typography table#responsive-font-sizes [data-tooltip] {
+  border-bottom-color: var(--femto-muted-color);
+}
+
+main.page-typography table#responsive-font-sizes [data-tooltip]::before,
+main.page-typography table#responsive-font-sizes [data-tooltip]::after {
+  font-size: 12px;
+}
+
+/**
+ * Page: Version Picker
+ */
+main.page-version-picker select + small {
+  /* eslint-disable-next-line css/no-important -- the oracle's !important (docs/pages/_version-picker.scss), kept for parity: Phase 2 changes no rule's weight */
+  margin-bottom: calc(var(--femto-spacing) * 2) !important;
+}
+
+/**
+ * Docs nav: the menu's keyboard focus
+ */
+main > aside > nav details > summary:focus-visible:not([role]),
+main > aside > nav details > ul li a:not([role=button]):focus-visible:not([role]) {
+  outline: 0;
+  box-shadow: none;
+  color: var(--femto-primary-hover);
+  text-decoration: underline;
+}
+
+/**
+ * Card: color picker (/docs/version-picker)
+ */
+article.color-picker > header {
+  grid-gap: var(--femto-block-spacing-horizontal);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  overflow: hidden;
+  border-top-right-radius: var(--femto-border-radius);
+  border-top-left-radius: var(--femto-border-radius);
+}
+
+article.color-picker > header a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1/1;
+  border-radius: 50%;
+}
+
+article.color-picker > header a[aria-busy=true]::before {
+  max-width: 1.5rem;
+  filter: brightness(0) invert(1);
+  opacity: 0.875;
+}
+
+/* A dark spinner on the light swatches */
+article.color-picker > header a[aria-busy=true].femto-background-lime::before,
+article.color-picker > header a[aria-busy=true].femto-background-yellow::before,
+article.color-picker > header a[aria-busy=true].femto-background-amber::before,
+article.color-picker > header a[aria-busy=true].femto-background-pumpkin::before,
+article.color-picker > header a[aria-busy=true].femto-background-sand::before,
+article.color-picker > header a[aria-busy=true].femto-background-grey::before {
+  filter: brightness(0);
+}
+
+article.color-picker > header a svg {
+  width: 50%;
+  max-width: 1.5rem;
+  height: auto;
+  opacity: 0.875;
+}
+
+@media (min-width: 768px) {
+  article.color-picker > header {
+    grid-gap: calc(var(--femto-block-spacing-horizontal) * 0.5);
+    grid-template-columns: repeat(10, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  article.color-picker > header {
+    grid-gap: 0;
+    grid-template-columns: repeat(20, 1fr);
+    padding: 0;
+  }
+
+  article.color-picker > header a {
+    border-radius: 0;
+  }
+}
+
+article.color-picker h2 {
+  color: var(--femto-primary);
+  font-size: 1.5rem;
+  line-height: 1.175;
+}
+
+article.color-picker > hgroup,
+article.color-picker > form,
+article.color-picker > footer {
+  transition: opacity var(--femto-transition), filter var(--femto-transition);
+}
+
+/**
+ * Color families (/docs/colors)
+ */
+.color-families {
+  grid-column-gap: 2rem;
+  grid-row-gap: 4rem;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .color-families {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.color-families .family {
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.color-families .family header {
+  aspect-ratio: 16/9;
+  margin: 0;
+  margin-bottom: 0.75rem;
+  padding: 0;
+  padding: 1rem 2rem;
+  border-radius: var(--femto-border-radius);
+  border-color: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.color-families .family main {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.75rem;
+}
+
+.color-families .family main > button {
+  display: flex;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1/1;
+  margin-bottom: 0;
+  padding: 0;
+  border-width: 0;
+  border-radius: var(--femto-border-radius);
+  font-size: 0.75rem;
+}
+
+/**
+ * Dialog: color (/docs/colors)
+ */
+dialog.color {
+  --femto-font-size: 0.875rem;
+  padding: 0;
+}
+
+dialog.color > article {
+  transform: translate3d(0, 0, 0);
+  background: var(--femto-background-color);
+  box-shadow: 0 0 0 var(--femto-border-width) var(--femto-secondary-focus), 0 0 6rem 0 var(--femto-glowing-color), var(--femto-box-shadow);
+  transition: box-shadow var(--femto-transition);
+}
+
+@media (min-width: 1024px) {
+  dialog.color > article {
+    max-width: 950px;
+  }
+}
+
+dialog.color > article p {
+  color: inherit;
+}
+
+dialog.color > article p,
+dialog.color > article pre {
+  margin-bottom: 0;
+}
+
+dialog.color > article header {
+  font-weight: bold;
+  transition: color var(--femto-transition), background-color var(--femto-transition);
+}
+
+dialog.color > article header a.close {
+  z-index: 1;
+  position: relative;
+  height: inherit;
+  background-image: none;
+  background-position: inherit;
+  background-size: inherit;
+  background-repeat: inherit;
+  color: inherit;
+  line-height: initial;
+}
+
+dialog.color > article header hgroup {
+  margin-bottom: 0;
+}
+
+dialog.color > article header hgroup h3 {
+  color: inherit;
+}
+
+dialog.color > article header hgroup p {
+  --femto-font-size: 0.875em;
+  opacity: 0.5;
+}
+
+dialog.color > article pre {
+  --femto-block-spacing-vertical: var(--femto-spacing);
+}
+
+dialog.color > article .grid .code {
+  margin-bottom: 0;
+  box-shadow: none;
+}
+
+@media (min-width: 768px) {
+  dialog.color > article .grid {
+    grid-template-columns: min-content auto;
+    align-items: center;
+    white-space: nowrap;
+  }
+}
+
+/**
+ * Dialog: example, a modal shown open inside the page
+ */
+dialog.example {
+  z-index: inherit;
+  position: relative;
+  min-height: inherit;
+  margin: 0 calc(var(--femto-spacing) * -1) var(--femto-block-spacing-vertical) calc(var(--femto-spacing) * -1);
+  inset: inherit;
+}
+
+@media (min-width: 576px) {
+  dialog.example {
+    margin: 0;
+    margin-bottom: var(--femto-block-spacing-vertical);
+  }
+}
+
+dialog.example > article {
+  animation: none;
+}
+
+/**
+ * Heading with anchor
+ */
+:is(h1, h2, h3, h4, h5, h6) {
+  position: relative;
+}
+
+/* The oracle's transition has no comma between its two items, so browsers drop it; kept as
+   compiled */
+:is(h1, h2, h3, h4, h5, h6) > a[id] {
+  padding-left: calc(var(--femto-spacing) * 0.5);
+  font-weight: normal;
+  text-decoration: none;
+  opacity: 0;
+  transition: color var(--femto-transition) opacity var(--femto-transition);
+}
+
+@media (min-width: 1024px) {
+  :is(h1, h2, h3, h4, h5, h6) > a[id] {
+    position: absolute;
+    left: 0;
+    padding-right: calc(var(--femto-spacing) * 0.5);
+    transform: translateX(-100%);
+  }
+}
+
+:is(h1, h2, h3, h4, h5, h6) > a[id]:focus-visible {
+  box-shadow: none;
+  color: var(--femto-primary);
+  opacity: 1;
+}
+
+:is(h1, h2, h3, h4, h5, h6):hover > a[id] {
+  opacity: 0.25;
+}
+
+:is(h1, h2, h3, h4, h5, h6):hover > a[id]:hover {
+  opacity: 0.5;
+}
+
+:is(h1, h2, h3, h4, h5, h6):hover > a[id]:focus-visible {
+  opacity: 1;
+}
+
+/**
+ * Image: rounded and bordered
+ */
+img.rounded-bordered {
+  border: 1px solid var(--femto-muted-border-color);
+  border-radius: var(--femto-border-radius);
+}

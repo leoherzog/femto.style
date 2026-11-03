@@ -397,6 +397,211 @@
      "new": "<footer class=\"site\">Fixture footer</footer>\n<div class=\"closed-host\"></div>\n<script>\n  (function () {\n    var root = document.querySelector(\".closed-host\").attachShadow({ mode: \"closed\" });\n    var f = document.createElement(\"iframe\");\n    f.hidden = true;\n    f.srcdoc = \"<script>var p = parent.location, l = document.createElement('link'); l.rel = 'stylesheet'; l.href = p.protocol + '//localhost:' + p.port + '/fixture.css'; document.head.appendChild(l);<\\/script>\";\n    root.appendChild(f);\n  })();\n</script>\n"
     }
    ]
+  },
+  "token-resolution": {
+   "describe": "main gets color-scheme dark on side B: --femto-scheme-color, a light-dark() pair, keeps its raw text everywhere and resolves to its dark color at the anchors in main",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "main { max-width: 100%; }",
+     "new": "main { max-width: 100%; color-scheme: dark; }"
+    }
+   ]
+  },
+  "token-raw": {
+   "describe": "--femto-raw is written #f00 instead of #ff0000: other raw text, the same resolved values (red would not do: it is also a font-family and a transition-property name)",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "  --femto-raw: #ff0000;",
+     "new": "  --femto-raw: #f00;"
+    }
+   ]
+  },
+  "token-added": {
+   "describe": "side B declares one more token, --femto-new",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "  --femto-gone: 2px;",
+     "new": "  --femto-gone: 2px;\n  --femto-new: 3px;"
+    }
+   ]
+  },
+  "token-missing": {
+   "describe": "side B no longer declares --femto-gone",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "  --femto-gone: 2px;\n",
+     "new": ""
+    }
+   ]
+  },
+  "hover-only": {
+   "describe": "a rule for the link under :hover, but not :active (the pointer is over the element in both)",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\n#link:hover:not(:active) { word-spacing: 3px; }"
+    }
+   ]
+  },
+  "focus-visible-only": {
+   "describe": "a rule for the link under :focus-visible",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\n#link:focus-visible { outline-offset: 5px; }"
+    }
+   ]
+  },
+  "active-only": {
+   "describe": "a rule for the link under :active",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\n#link:active { word-spacing: 4px; }"
+    }
+   ]
+  },
+  "registry-tokens-states": {
+   "describe": "two token values change (--femto-accent and --femto-spacing), two tokens are added (--femto-new, --femto-other) and the link gets a :hover rule (which :active also matches), for the registry's token and state matching",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "  --femto-accent: rgb(1, 106, 168);\n  --femto-spacing: 1rem;",
+     "new": "  --femto-accent: rgb(9, 106, 168);\n  --femto-spacing: 1.5rem;\n  --femto-new: 3px;\n  --femto-other: 4px;"
+    },
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\n#link:hover { word-spacing: 3px; }"
+    }
+   ]
+  },
+  "inherited": {
+   "describe": "the lead paragraph and the list get tab-size 4 (no tab in their text, so nothing moves), which their descendants inherit, and the list's first item 2 of its own",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": ".lead { transition: color 0.4s; }",
+     "new": ".lead { transition: color 0.4s; tab-size: 4; }\nul.list { tab-size: 4; }\nul.list > li:first-child { tab-size: 2; }"
+    }
+   ]
+  },
+  "focus-only": {
+   "describe": "a rule for the fixture's text input under :focus",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\nform > input[name=name]:focus { word-spacing: 3px; }"
+    }
+   ]
+  },
+  "dark-only-token": {
+   "describe": "--femto-spacing changes only under prefers-color-scheme: dark without data-theme (no element reads it)",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "@media (min-width: 1px) { :root { --femto-media: 2px; } }",
+     "new": "@media (min-width: 1px) { :root { --femto-media: 2px; } }\n@media (prefers-color-scheme: dark) { :root:not([data-theme]) { --femto-spacing: 2rem; } }"
+    }
+   ]
+  },
+  "token-color-2-of-255": {
+   "describe": "--femto-accent rgb(1, 106, 168) to rgb(3, 106, 168): 2/255 on red, in a token only ::selection reads",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "  --femto-accent: rgb(1, 106, 168);",
+     "new": "  --femto-accent: rgb(3, 106, 168);"
+    }
+   ]
+  },
+  "token-color-1-of-255": {
+   "describe": "--femto-accent rgb(1, 106, 168) to rgb(2, 106, 168): 1/255, inside the tolerance",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "  --femto-accent: rgb(1, 106, 168);",
+     "new": "  --femto-accent: rgb(2, 106, 168);"
+    }
+   ]
+  },
+  "state-coverage": {
+   "describe": "the progress example's 8 punctuation tokens get word-spacing 3px: 16% of the document, 40% of the article the footer's hover collects",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\narticle[aria-label=\"Progress example\"] span.punctuation { word-spacing: 3px; }"
+    }
+   ]
+  },
+  "registry-pinned": {
+   "describe": "the progress example's 17 code tokens get tab-size 4, cursor pointer and touch-action manipulation (no tab in their text, so nothing moves): 35% of the document, one shape of tree path",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\narticle[aria-label=\"Progress example\"] code > span { tab-size: 4; cursor: pointer; touch-action: manipulation; }"
+    }
+   ]
+  },
+  "registry-consequence": {
+   "describe": "ten elements get cursor pointer, and the list padding-block 4px, which makes the list, main, body and html taller: the list's and its ancestors' heights and origins are layout consequences",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\n.lead, .pseudo, h1, .wide, .scheme, ul.list > li, pre, footer.site { cursor: pointer; }\nul.list { padding-block: 4px; }"
+    }
+   ]
+  },
+  "scroll-smooth": {
+   "describe": "html gets scroll-behavior smooth, so the browser's own scrolls (a focus(), a Tab) are smooth on side B unless the replay makes them instant",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "#link { text-decoration-thickness: 1px; }",
+     "new": "#link { text-decoration-thickness: 1px; }\nhtml { scroll-behavior: smooth; }"
+    }
+   ]
+  },
+  "minified-equal": {
+   "describe": "h1's outline: none and background: none written outline: 0 and background: 0 0, and --femto-shadow written 0 0 .5rem rgba(0,0,0,.25), as clean-css wrote the oracle's stylesheets",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { outline: none; background: none; }",
+     "new": "h1 { outline: 0; background: 0 0; }"
+    },
+    {
+     "file": "fixture.css",
+     "old": "  --femto-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.25);",
+     "new": "  --femto-shadow: 0 0 .5rem rgba(0,0,0,.25);"
+    }
+   ]
+  },
+  "minified-real": {
+   "describe": "h1 gets outline: 2px solid and background: 0 1px, and --femto-shadow's blur goes from 0.5rem to .3rem (written as clean-css would): real changes behind the minifier's spellings",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { outline: none; background: none; }",
+     "new": "h1 { outline: 2px solid; background: 0 1px; }"
+    },
+    {
+     "file": "fixture.css",
+     "old": "  --femto-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.25);",
+     "new": "  --femto-shadow: 0 0 .3rem rgba(0,0,0,.25);"
+    }
+   ]
   }
  }
 }

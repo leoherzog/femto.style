@@ -1,0 +1,15 @@
+{
+  "description": "The selftest site's state targets for the styles mode (tests/harness/states.json has the site's; tests/README.md, Tokens and states). The styles controls in controls.json add the state rules.",
+  "targets": [
+    {"id": "link", "selector": "#link", "states": ["hover", "focus-visible", "active"], "routes": ["/index.html"], "scope": "p.lead",
+     "why": "an inline link inside a paragraph: the pointer states and a real Tab"},
+    {"id": "input", "selector": "form > input[name=name]", "states": ["focus"], "routes": ["/index.html"], "scope": "form",
+     "why": "a text input, focused by focus()"},
+    {"id": "nav", "selector": "header nav a", "states": ["hover"], "routes": ["/index.html"], "scope": "header", "max": 2,
+     "why": "two matches of one selector, both replayed"},
+    {"id": "progress-footer", "selector": "article[aria-label=\"Progress example\"] > footer", "states": ["hover"], "routes": ["/index.html"], "scope": "article", "max": 1,
+     "why": "a scope of 20 elements, for the state coverage rule (control state-coverage)"},
+    {"id": "far", "selector": "#far", "states": ["focus", "focus-visible", "hover"], "routes": ["/other.html"], "scope": "p#spy",
+     "why": "a link below the fold: its focus(), first, scrolls the page from the top, and a Tab from #near back, which other.html's spy counts (control scroll-smooth)"}
+  ]
+}

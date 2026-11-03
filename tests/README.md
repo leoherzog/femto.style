@@ -26,6 +26,8 @@ uv run tests/run.py self --full                           # criterion 1: the ful
 uv run tests/run.py fast --a oracle --b dist --routes /docs/forms,/docs/forms/input   # a route group agent's check
 uv run tests/run.py fast --a oracle --b dist:build/forms --routes /docs/forms   # an agent's own build folder
 uv run tests/run.py pages --a oracle --b dist --full      # a parity gate (criterion 2)
+uv run tests/run.py styles --full                         # the Phase 2 gate: static-multipage against dist, tokens and states
+uv run tests/run.py styles --b dist:build/p2 --routes /docs/button   # an agent's own build, fast axes
 uv run tests/run.py registry                              # validate tests/divergences/
 uv run tests/run.py oracle                                # build, serve and capture the oracle
 uv run tests/run.py static                                # the static checks
@@ -52,17 +54,20 @@ chromedriver and geckodriver into `~/.cache/selenium`; Safari uses `/usr/bin/saf
 | `oracle-routes.json` | oracle | the oracle's routes: path, kind, kept (Decision 5), title; the 20 static Pico v1 pages are listed as kind `v1-page` (old paths for criterion 6, never captured or compared) |
 | `static_checks.py` | static | the mechanical acceptance criteria (`run.py static` calls its `main(argv)`) |
 | `divergences/` | harness (schema, rig seed); phase agents add entries | divergence registry, `schema.json` |
-| `fixtures/` | harness | the selftest site (`site/`) and its named controls (`controls.json`) |
+| `fixtures/` | harness | the selftest site (`site/`), its named controls (`controls.json`) and its state targets for the styles controls (`states.json`) |
+| `harness/states.json` | harness | the styles mode's interactive state targets (Tokens and states) |
 | `behavior/` | behavior | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per route group (`shell.py`, `getting-started.py`, `customization.py`, `layout.py`, `content.py`, `forms.py`, `components-a.py`, `components-b.py`, `landing.py`); see Behavior |
 | `harness/behavior.py` | behavior | the `behavior` mode: its subcommand, the page API checks drive, sessions, runner and report |
-| `oracle/`, `results/` | generated | gitignored |
+| `oracle/`, `results/`, `builds/` | generated | gitignored; `builds/<tag>/` holds a tag's build (`harness/tagbuild.py`) |
 
 Python modules in `harness/`: `cli.py` (modes and the planner), `matrix.py` (legs, widths, routes,
 cells), `targets.py` (sides, their servers and readiness hooks), `proxy.py` (the per-session reverse
 proxy), `server.py` (the fixture server), `runner.py` (worker pool and session start-up),
 `compare.py` (one cell, pixel diff), `browsers.py` (drivers and the color-scheme and input
 mechanisms), `registry.py`, `report.py`, `negative.py` (selftest), `rig.py`, `locks.py` (femto's,
-unchanged), `paths.py`, `behavior.py` (the behavior mode; Behavior).
+unchanged), `paths.py`, `behavior.py` (the behavior mode; Behavior), `styles.py` (the styles mode's
+tokens and state replay; Tokens and states), `tagbuild.py` (a tag of this repository built for a
+target such as `static-multipage`).
 
 ## How one comparison works
 
@@ -114,6 +119,10 @@ A **cell** is one comparison: browser × route × scheme leg × width. Side A's 
    Python adds a `status` record.
 9. Both sides are screenshotted (the iframe viewport, the top 800 px, with the masked boxes
    covered) and pixel-diffed. Pixel differences are reported, never gating.
+
+In the styles mode the collect also reads the tokens, the diff compares them, and each side replays
+its interactive states after its collect (side B after the diff) and before its screenshot (Tokens
+and states).
 
 ### The proxy
 
@@ -264,8 +273,8 @@ counted under `align_fallbacks`.
   freeze (masks `oracle-theme-toggle`, and `oracle-maintenance-notice` for the banner link's color).
   A transient `input[type=file]::file-selector-button { transition: none !important }` cancels the
   transitions Chrome and Safari run on a UA shadow element that `getAnimations()` does not return.
-- Custom properties (tokens) are not compared in this mode: their effects are in the computed
-  styles. The `styles` mode (Phase 2) adds femto's token comparison.
+- Custom properties (tokens) are not compared in the pages mode: their effects are in the computed
+  styles. The `styles` mode adds femto's token comparison and interactive states (Tokens and states).
 
 ### Same-origin loads
 
@@ -319,8 +328,8 @@ placeholder) must be identical. Colors inside quoted strings and `url()` are tex
 text, tags and statuses compare exactly. `result.json` lists the rules in force (`value_rules`), with
 the two collection rules that are always on: element text as Collection reads it, and exact copies
 of a data block counted once.
-No other tolerance exists; the selftest proves that a 2/255 change is detected and a 1/255 change
-is not.
+Apart from the two rules below, no other tolerance exists; the selftest proves that a 2/255 change
+is detected and a 1/255 change is not.
 
 **`blob:` URLs are normalized** (the owner's decision, 2026-10-30). The oracle's `/docs/colors`
 Download button links to a `blob:` URL made on load (`URL.createObjectURL` of the palette JSON). Its
@@ -332,12 +341,30 @@ attributes and its styles are still compared, and PLAN.md's three masks stay the
 `--exact-blob-urls` turns the rule off (the run then logs a `cap:` line);
 `--blob-uuid-placeholder`, the old opt-in, is still accepted and does nothing.
 
+**The oracle minifier's spellings are normalized** (the owner's decision, 2026-11-02). The oracle's
+stylesheets went through clean-css, which writes some values differently from the source it was
+given, and femto's are not minified. In Phase 2's first full styles gate (`p2-gate-styles-full-1`)
+these were the only unregistered records left: 675,780 of them, all equal once normalized. So by
+default (`differ.js` `sameRaw`, `sameMinified`):
+- a token's raw text compares without a `0` before a decimal point and without the whitespace after
+  a comma (`.25rem` and `0.25rem`, `rgba(0,0,0,.25)` and `rgba(0, 0, 0, 0.25)`; 444,288 records);
+- `outline-width` compares only when `outline-style` is not `none` on both sides: clean-css writes
+  `outline: none` as `outline:0`, so one side reads `0px` and the other `medium` (`3px`), and neither
+  draws an outline (215,184 records, on links, buttons, summaries and inputs, in every state);
+- `background-position` and its `-x` and `-y` longhands compare `0px` as `0%`: clean-css writes
+  `background: none` as `background:0 0`, whose position reads `0px 0px` against `0% 0%` (16,308).
+
+Everything else in those values stays exact, and a token's resolved values through the probe
+properties are compared as before. `--exact-minified` turns the rule off (a `cap:` line).
+Controls `minified-equal`, `minified-exact` and `minified-real` prove that it hides these spellings,
+that they are found without it, and that real changes written the same way are still found.
+
 ## Modes
 
-Common options for `self`, `pages` and `fast`: `--browsers chrome,firefox,safari`, `--routes`,
+Common options for `self`, `pages`, `fast` and `styles`: `--browsers chrome,firefox,safari`, `--routes`,
 `--widths`, `--schemes light,dark,theme-light,theme-dark` (those legs on every route instead of the
 matrix's legs), `--no-shots`, `--workers chrome=2,firefox=2`, `--max-records N`, `--run-id`,
-`--label`, `--registry DIR`, `--exact-blob-urls` (see Diff rule), and `--plan`
+`--label`, `--registry DIR`, `--exact-blob-urls` and `--exact-minified` (see Diff rule), and `--plan`
 (print the planned cells per browser and exit, starting no server and no browser). `pages` and `fast` take `--a` and `--b` (a named target, `dist:<path>` or a base URL),
 `--ready-a`/`--ready-b` (`oracle`, `static`, `none`) and `--root-a`/`--root-b` (CSS selectors of the
 alignment roots, for Phase 3's section-against-route comparisons). Without `--routes` the routes
@@ -353,7 +380,7 @@ are the oracle's kept routes from `tests/oracle-routes.json`.
 | `registry` | Validates `tests/divergences/` and lists the entries by category. Every comparison run validates them again (a registry error is a harness error). |
 | `oracle` | `harness/oracle.py`'s `main(argv)`: build the oracle if missing or stale, serve it, capture every route into `tests/oracle/`. |
 | `static` | `tests/static_checks.py`'s `main(argv)`. |
-| `styles` | Phase 2, not implemented yet: femto's native mode. One document (the `static-multipage` build), two stylesheet lists (the frozen legacy CSS against vendored femto plus the site CSS), with femto's token comparison and interactive states. It exits 2 for now. |
+| `styles` | The Phase 2 gate (criterion 2), femto's native mode ported to this site: one document, two stylesheet lists. `--a` (default `static-multipage`, the tag's build: the frozen legacy CSS) against `--b` (default `dist`: vendored femto, the responsive-spacings option and the site CSS). Phase 2 changes no markup apart from the stylesheet links, so the two documents align element for element, and everything `pages` compares is compared (tree, attributes, text, computed styles, head, status, same-origin loads, with the same routes, legs, widths, masks, value rules, chunking, Safari handling and `--full` matrix), plus femto's tokens and interactive states (Tokens and states). `--states FILE` replaces `harness/states.json`, `--no-states` replays none (a `cap:` line). The same target on both sides (`--a static-multipage --b static-multipage`) is a self comparison: no registry entry but a skipped check applies, the mode's criterion-1 check. A styles comparison applies only the registry entries that name it (Divergence registry). Fast axes; `--full` runs the full matrix. |
 | `behavior` | Scripted checks of every widget in 01 §2 that Phase 1 rebuilds, against one target (`--target oracle`, `dist`, `dist:<path>` or a base URL), in headless Chrome and Firefox; see Behavior. Phase 3 adds the docs spy, `#hash` and history behavior and `?theme=` (criterion 7), growing from the spike's `test_spike.py`, and Safari. |
 
 Named targets (`harness/targets.json`):
@@ -363,6 +390,7 @@ Named targets (`harness/targets.json`):
 | `oracle` | the Remix site at `remix-final`, built if needed and served by `oracle.serve()` | `oracle` |
 | `dist` | `npm exec --no -- wrangler pages dev dist` on free ports, with the wrangler pinned in `package.json` (`--no` never downloads one; before starting, the harness checks that `node_modules/wrangler` is the exact version `package.json` pins, else exit 2), its debug log and its own `--persist-to` state folder in the run's folder; needs `dist/index.html`; `same_origin` | `static` |
 | `dist:<path>` | any built folder, served exactly as `dist` serves `dist/`: the same wrangler, options, readiness and same-origin rule; `<path>` is absolute or relative to the repository root, and needs `<path>/index.html`. Several agents can each compare their own build at once (`fast --a oracle --b dist:build/forms`), since every server has its own ports, log and state folder. The folder's pages are also reference documents for the registry's breadth rule, like `dist/`'s | `static` |
+| `static-multipage` | the static site at tag `static-multipage` (the Phase 1 commit), built by the harness into `tests/builds/static-multipage/dist` (gitignored) and served exactly as `dist` serves `dist/`; `same_origin`. The build (`harness/tagbuild.py`): a detached `git worktree add` of the tag's commit in a temporary folder, the repository's `node_modules` linked into it, `node build.mjs --out <folder>`, then `git worktree remove --force` and `git worktree prune`. `build.json` beside the folder records the tag, commit, Node version, the prismjs version the build highlighted with (`node_modules/prismjs/package.json`, 1.30.0), file count, a SHA-256 of the built tree (every file's path and content) and seconds (0.3 s on 2026-11-02: 187 files). A run rebuilds when the folder's `index.html` or `build.json` is missing, the tag's commit is not the recorded one, the repository's prismjs is another version, or the folder no longer hashes to the recorded tree (a file under it edited, added or removed); the server start checks all of it again; `tests/builds/static-multipage.lock` is held exclusively by a build and shared by every server of the folder, so two runs never build at once and none rebuilds under a running server. `result.json` records `sides.<a|b>.build` | `static` |
 | `fixture`, `fixture:<control>` | the selftest site, optionally changed by a control from `fixtures/controls.json`; `same_origin` | `static` |
 | a base URL | a server someone else runs (`http://127.0.0.1:8788`); nothing is started or stopped | `static` unless `--ready-a`/`--ready-b` |
 
@@ -471,6 +499,152 @@ That is 2,232 cells. On a light OS, Safari's 324 `dark` cells are the registered
 ones. Its `theme-light` cells run with light media on a light OS (a `media:dark` skip is recorded on
 each) and with dark media in the dark pass. The fast axes plan 248 cells per browser in Chrome and
 Firefox (54 routes × light and dark × 2 widths, plus 8 theme routes × 2 theme legs × 2 widths).
+
+## Tokens and states
+
+The `styles` mode's additions (`harness/styles.py`; `differ.js` `collectTokens`, `prepTarget`,
+`afterState`), ported from femto's `tests/` at the vendored commit 7bcd5758 (its README's Tokens and
+States, `differ.js` and `compare.py`'s `apply_state`). femto compares one fixture page under two
+stylesheet lists; here side A and side B are two builds of the same markup, so each side reads its
+own document after the pages mode's collect, and the two are compared by tree path. Every record of
+this section goes through the registry like any other (Divergence registry).
+
+### Tokens
+
+- **Names**: every `--femto-*` custom property declared in either side's stylesheets: a CSSOM walk
+  through `document.styleSheets`, `@import`ed sheets, nested and conditional rules (`@media`,
+  `@supports`), `@property`, and every open shadow root's sheets and adopted sheets. A sheet whose
+  rules cannot be read is a harness error.
+- **Surface**: a name only side A declares is a `surface-missing` record, one only side B declares a
+  `surface-added` record. Resolution and raw text are compared only for names on both sides.
+- **Anchors**: femto's (`html`, `body`, every `[data-theme]` element, every `article` and `dialog`,
+  each open shadow root, where a host's probes go in its shadow root) and the site's equivalents of
+  femto's `[data-module]` wrappers (`styles.py` `ANCHORS`): `body > header`, `body > footer`,
+  `main`, `main > aside` (the docs menu and the table of contents), `[role=document]` (the docs
+  content) and `main > section` (the landing page's sections). These are the units the site's CSS
+  styles as wholes (the fixed header, the docs grid and its columns, the landing's hero, features
+  and comparison), so a token that resolves differently inside one of them shows at its anchor;
+  every other element takes its tokens from one of them, from an article (every example card) or
+  from a `[data-theme]` element (every code block's footer). The set stays small: 9 anchors on
+  `/docs/forms/range` to 59 on `/docs/colors`. Anchors are matched by tree path, and an anchor on
+  one side only is a harness error (the two documents align element for element).
+- **Resolution**: under each anchor a hidden `harness-probe` container with `all: initial;
+  color-scheme: inherit; display: none` holds one child per token whose inline style sets each probe
+  property to `var(<token>)`: femto's 25 (`color`, `background-color`, `border-top-color`,
+  `outline-color`, `box-shadow`, `background-image`, `filter`, `backdrop-filter`, `opacity`,
+  `font-size`, `font-family`, `font-weight`, `line-height`, `letter-spacing`, `width`, `padding-top`,
+  `margin-top`, `border-top-width`, `border-top-left-radius`, `outline-width`, `outline-offset`,
+  `text-decoration-line`, `text-underline-offset`, `transition`, `content`). The computed values are
+  compared per token, anchor and probe property (kind `token`, colors with the Diff rule's
+  tolerance). Resolution depends only on the anchor's token values and its `color-scheme`, so
+  anchors with the same signature share one probe set (3 to 10 sets a document on the kept
+  routes). The probes are removed at once and are never collected (`harness-probe` is skipped like
+  the other harness tags).
+- **Raw text**: `getPropertyValue(<token>)` at each anchor, trimmed, compared exactly (kind
+  `token-raw`).
+- Chrome Beta 158 resolves a token that is no color, through a color probe, to the initial text
+  color of the probe's scheme (black under a light anchor, white under a dark one); Firefox 160 keeps
+  one initial color. So where an anchor's `color-scheme` differs between the sides, Chrome also
+  reports every token that is no color through `color`, `border-top-color` and `outline-color`
+  (control `token-resolution`, 2026-11-02).
+
+### States
+
+The site's markup carries no `data-states` attributes (Phase 2 changes no markup), so the targets
+come from `harness/states.json` (`--states FILE` for another file; the selftest's is
+`fixtures/states.json`):
+
+| Field | Meaning |
+|---|---|
+| `id` | unique |
+| `selector` | the target's elements; side A takes the first `max` (default 2) that render (a client rect, `visibility: visible`) and are not inside a contents mask, and side B replays exactly those, by tree path |
+| `states` | some of `hover`, `focus`, `focus-visible`, `active`, replayed in this order |
+| `routes` | exact routes or `/^regex/` patterns |
+| `scope` | the closest ancestor matching it holds the subtree collected under each state, so `:focus-within` parents, `:has()` and tooltip pseudo-elements are caught; default the element's parent |
+| `open` | details matching it are opened first and closed after (menu items in a dropdown) |
+| `widths` | integers or `{"min", "max"}`: the widths where the elements render (the docs menu from 1024 px, the breadcrumb below it) |
+| `why` | what the target covers |
+
+For each target, element and state, on both sides in the same order, after the side's collect (side
+B after the document's diff) and before its screenshot:
+
+| State | Input | Asserted |
+|---|---|---|
+| `hover` | scroll the element into view inside the iframe (wait two frames if it scrolled), move the pointer to the centre of its largest line box that hit-tests to it | `:hover` |
+| `active` | the same point, pointer down; collect; pointer up at the same point | `:active` |
+| `focus` | `element.focus()` | `:focus` |
+| `focus-visible` | focus the preceding keyboard-focusable element (or the document), then a real Tab key press; if that misses, the following element and Shift+Tab; if that misses too, `focus()` on the element, Shift+Tab and Tab, the browser's own order (Chrome and Firefox stop at a keyboard-focusable scroller, such as a `pre` that overflows at 375 px, which the harness's list of focusable elements cannot see). Safari uses Option+Tab, and after the Tabs miss calls `focus()` right after the key presses (femto) | `:focus-visible` |
+
+- A state that does not match is a harness error (pointer states retry once; a point outside the
+  iframe viewport after scrolling is reported as such and never moved to), unless a `skipped-check`
+  entry names that exact check, `state:<state>:<tag>[type=<type>]`, for one browser (no pattern
+  matches a state check: Divergence registry). An element side A took that does not render on
+  side B is a harness error too; the document diff shows why.
+- After the state is applied the harness waits, when the document's scroll position has moved since
+  the last wait, until it holds for two frames (at most 1 s), so the page's scroll listeners have
+  run; then it finishes transitions, reads the subtree under the scope exactly as a
+  document's collect does (tree, attributes, own text, computed styles and pseudo-elements, masks
+  applied) and keeps it (side A) or aligns and diffs it against side A's subtree of the same element
+  and state (side B). Every record found there carries `state`; the cell's in-page breadth guard
+  stays in force, and the coverage rule applies to the subtree, counting only what the state adds: a
+  registered record equal to one of the document diff's (the same element, pseudo-element, property
+  and values) was judged there and covers nothing in the subtree. Before that rule, a registered
+  difference of the docs header (9 of its 31 elements at 600 px) failed every hover and focus-visible
+  replay inside it (`p2-registry-full-2`: 256 such harness errors).
+- Scrolling is instant while a side replays its states: from `armStates` to the end of the replay a
+  transient harness style sets `html { scroll-behavior: auto !important }`, and it is removed before
+  the screenshot. The scrolls of a real Tab, a `focus()` and a pointer move follow the page's own
+  `scroll-behavior`, and side A's legacy CSS has `html { scroll-behavior: smooth }` where side B has
+  none (registered), so side A's state was collected mid-scroll and the table of contents' scroll spy
+  had marked another link (`p2-docs-5-button-1600-dist`: 8 `aria-current` records under hover and
+  focus-visible, 0 with the same build plus `scroll-behavior: smooth`; 0 again after the fix,
+  `p2-fix-harness-r1-button-1600`). `html`'s `scroll-behavior` is compared in the document's collect,
+  before the replay, and `html` lies outside every state's scope; after the replay a cell records
+  each side's `html` `scroll-behavior` (`scroll_behavior_a`, `scroll_behavior_b`), and a harness
+  style left in the document is a harness error (control `scroll-smooth`). The wait and the override cost about 6 ms a replay
+  in Chrome and 13 ms in Firefox (median 59 and 38 ms, `p2-fix-harness-r1-recheck`, against 53 and
+  25 ms in `p2-review-parity-1-fast-1`).
+- Between states the pointer parks on the host page's strip and the focused element is blurred.
+  Each side's replay starts with a pointer click on that strip, outside the document, so both sides
+  start from the same input modality (whether `focus()` matches `:focus-visible` follows the last
+  input).
+- Activation is cancelled in the document while states are replayed: capture-phase listeners on its
+  window stop every `click`, `auxclick` and `submit` (`preventDefault()` and
+  `stopImmediatePropagation()`, so neither the browser's default action nor the page's own
+  listeners run: femto cancelled the defaults only, and this site's scripts act on clicks, such as
+  the theme toggle and the copy button), and cancel every `mousedown` on a `select` (otherwise the
+  native picker opens, stays open in Firefox and swallows later input).
+- Safari replays states only with the screen unlocked and the automation window in front; a cell
+  where `interactive()` fails is a harness error.
+
+**What `states.json` covers** (50 targets, 112 target states, on 22 routes): the header's text and
+icon links, theme toggle (Decision 16's emoji), logo, version dropdown and its item, and the skip
+link, and the footer's text and icon links, on `/` and `/docs/button`; on `/docs/button` the docs
+menu's summaries, its first two links (Typography and Link) and its current link (Button) (from
+1024 px), the table of contents, the breadcrumb (below 1024 px), a
+subheading permalink, the code copy button and its tooltip, the edit link, and the button variants,
+outline buttons, input buttons and `role=button`; the link variants (`/docs/link`); form controls:
+text inputs, a textarea, a select, two checked checkboxes and an unchecked one, radios (Tab enters a group on its checked radio, so
+the unchecked one is hovered and pressed only), switches, a range and the forms overview's form; the
+accordion, dropdowns and their items (one opened), nav links, a group's input and buttons, the
+modal's buttons, and tooltips on a link, a button and an inline element; the color scheme switcher
+(`/docs/color-schemes`) and the forced-theme examples' inputs; color swatches (`/docs/colors`); the
+version picker's first two swatches (red and pink), its current swatch on
+`/docs/version-picker/jade` and its themed preview form (`/docs/version-picker`,
+`/docs/version-picker/jade`); the landing page's calls to action and feature links; the examples
+page's card links. Each component is replayed on its own docs route and the shell on two routes, a
+few elements per component rather than every match: 1 to 67 replays per side in a cell
+(`/docs/button` has the most).
+
+**Cost** (Chrome Beta 158, Firefox 160, 2026-11-02): a state replay takes about 60 ms per side in
+Chrome and 35 ms in Firefox, the tokens 20 to 160 ms per side (`/docs/colors` the most).
+The full Chrome and Firefox pass of the mode's self check (`styles --a static-multipage --b
+static-multipage --full --browsers chrome,firefox`, run `p2-harness-styles-self-full`) took 502 s
+for 1,488 cells: 7,320 state replays per side in 648 cells, tokens in 2,976 documents (up to 573
+names, 45,072 anchors, 131 s of the four sessions' time), zero differences and zero harness errors.
+That is 1.5 times the full pages pass of the Phase 1 gate (`owner-gate-pages-full`, 332 s).
+The Phase 2 gate (`p2-gate-styles-full-2`, side B `dist`) took 553 s: 7,536 state replays per side
+(the round 2 scroll check adds a little), tokens in 166 s of session time.
 
 ## Behavior
 
@@ -720,14 +894,15 @@ tests/run.py registry` validates them, and every run validates them again.
 | Field | Meaning |
 |---|---|
 | `id` | unique across all files, `^[a-z0-9][a-z0-9._-]*$` |
-| `kind` | `structure`, `attribute`, `text`, `style`, `head`, `status`, `skipped-check` |
+| `kind` | `structure`, `attribute`, `text`, `style`, `head`, `status`, `skipped-check`; the styles mode's `token`, `token-raw`, `surface-missing`, `surface-added` (Tokens and states) |
 | `selector` | element kinds: a CSS selector the element must match, evaluated on side B, or on side A when side B has no element at that path (`*` for any). Element kinds need `selector` or `path`; `head` entries take no selector. |
 | `path` | element kinds: the record's tree path; `head`: the head key (`title`, `meta[name=description]`, `link[rel=canonical]`, `script[type=application/ld+json]`), required; `status`: the route. Exact, `*` or `/regex/` |
 | `pseudo` | `style` only: `""` for the element itself, `::before`, `::after`, `::marker`, `::placeholder`, `::file-selector-button`, `::backdrop`, `*` or `/regex/`; omitted means any |
-| `property` | `style`: the longhand; `attribute`: the attribute name; `head`: `text` (the title), the attribute (`content`, `href`), or a JSON leaf (`$.version`). Required for all three. Exact, `*` or `/regex/` |
+| `property` | `style`: the longhand; `attribute`: the attribute name; `head`: `text` (the title), the attribute (`content`, `href`), or a JSON leaf (`$.version`); `token`: the probe property the token resolves through. Required for all four. Exact, `*` or `/regex/` |
+| `token` | the token kinds (required): the token's name (`--femto-primary`) or a `/regex/` of names, never `*`. A `token` or `token-raw` entry may also take a `selector` (the anchor must match it, on side B, else side A) and a `path` (the anchor's tree path); a surface entry takes neither, nor `a` or `b`. `token-raw` and surface entries take no `property` |
 | `a`, `b` | side A's (the oracle's) and side B's values: exact (style values with the color tolerance), `*`, `/regex/`, or `null` for absent (an attribute or element missing on that side) |
 | `check` | `skipped-check` (required): `media:dark`, `media:light`, `pseudo:::backdrop`, ...; exact or `/regex/` |
-| `where` | optional filters, all of which must match the cell: `browsers`, `routes` (exact, or `/^regex/`), `schemes` (legs), `widths` (integers or `{"min", "max"}`), `comparisons` (`pages`; `self` for skipped-check entries only) |
+| `where` | optional filters, all of which must match the cell: `browsers`, `routes` (exact, or `/^regex/`), `schemes` (legs), `widths` (integers or `{"min", "max"}`), `comparisons` (`pages`, `styles`; `self` for skipped-check entries only), and `states` (element kinds only: `base`, the document as loaded, `hover`, `focus`, `focus-visible`, `active`; matched per record in the page, a record found under no state being `base`) |
 | `category` | PLAN.md's Divergence categories: `dropped-route`, `femto-divergence`, `merge-layout`, `id-rename`, `oracle-bug`, `highlight`, `asset-path`, `browser-limit` (skipped checks must use `browser-limit`), `owner-change` (a change the owner asked for: Decision 16) |
 | `reason` | non-empty: why the difference is intended (criterion 3) |
 | `notes` | optional |
@@ -743,6 +918,15 @@ error), and a `status` entry's `path` is a route, `*` or such a regular expressi
 every entry that matches counts a hit. The summary lists entries with no hit in the run as unused
 (informational; a fast run leaves most entries unused). Unregistered differences, and unregistered
 skipped checks, fail the run.
+
+**Comparisons.** A pages comparison applies the entries without `where.comparisons` or naming
+`pages`. A styles comparison (Phase 2) applies only the entries whose `where.comparisons` names
+`styles`, and skipped checks: the Phase 1 entries explain the oracle against the static site, and
+none of them may hide a difference between two builds of the static site. Token, token-raw and
+surface entries apply only there, so they must name it (a registry error otherwise), and they take
+no `where.states` (tokens are read in the document as loaded). Every Phase 2 entry, the seeded
+`femto-divergence` ones included, therefore carries `"where": {"comparisons": ["styles"]}`. The
+summary of a styles run says so.
 
 Three rules keep the registry from hiding what it must not:
 
@@ -771,7 +955,16 @@ Three rules keep the registry from hiding what it must not:
   `property`, `a`, `b`) must also compile in JavaScript. Every element or head entry
   - reaches at most 25% of the compared elements (head: head keys) of any one document, past 4 of
     them, route-scoped or not: a route scope narrows where an entry applies, not how much of a page
-    it may cover, so a catch-all that names one route is one too;
+    it may cover, so a catch-all that names one route is one too. The one allowance is a **pinned**
+    entry (`_pinned`): a `femto-divergence` style entry for styles runs only that names one exact
+    route in `where.routes`, one exact `property`, and exact `a` and `b` values (no `*`, no regex,
+    no `null`). It registers one value change and nothing else, so it may reach up to 40% of a
+    document when every element it reaches there has one shape, the same tree path but for its
+    sibling indices (the repeats of one example). femto's button `max-width: 100%` reaches the 380
+    color swatch buttons of `/docs/colors`, 29.3% of its 1,297 compared elements, all
+    `html > body > main > div > section > article > main > button`; the swatches take one pinned
+    entry for each of `max-width` and `max-inline-size` (`none` to `100%`), beside the entry for
+    every other button;
   - together with every other entry of its kind (route-scoped ones included) reaches at most 50% of
     any one document, past 4 elements;
   - unless it names at most 3 routes (`where.routes`: an exact route counts once, a regex counts the
@@ -789,24 +982,92 @@ Three rules keep the registry from hiding what it must not:
   folder) once it holds a page for every kept route: until then its pages count document by
   document only, so whether an entry is valid never depends on how much of `dist/` is built. A
   status entry names at most 3 routes; a skipped-check entry names one or two browsers and at most 2
-  of the 8 known checks. A selector with a pseudo-element, a namespace prefix other than `*|`, or
+  of the 8 known checks. A skipped check for a replayed state is the exact check string,
+  `state:<state>:<tag>[type=<type>]`, and names one browser; a pattern that matches any state check
+  (of every state, HTML tag and input type, `registry.py` `STATE_CHECKS`) is a registry error, and a
+  state check is never matched by a pattern, so no entry switches the state assertion off. A selector with a pseudo-element, a namespace prefix other than `*|`, or
   text the engine cannot parse is an error. An entry that breaks a rule is a registry error and is
   never applied, so what it would have hidden is reported as unregistered. `Registry.breadth` keeps
   each entry's figures.
+- **Token entries** are judged in the page: in every cell, a token entry whose `token` pattern
+  names more than 50% of either side's token names (past 4) is a harness error (`breadth:`) and is
+  not applied there, and so are the `token` entries, and the `token-raw` entries, of a cell that
+  together name more than 60% of them (all of that kind are then taken out), so a catch-all split by
+  name is caught (`p2-fix-harness-r1-probe-evade-2`: four `token-raw` entries splitting the names
+  `a-b`, `c`, `d-l`, `m-z`, which had registered every raw text record of `/docs/button`). One
+  explained difference can span many names: femto's `light-dark()` raw text, two entries, names 82
+  of the 404 page's 163 names (50.3%; a union limit of 50% took both out there,
+  `p2-fix-harness-r1-widths`), hence 60%. An entry need not carry a value pattern; `a` and `b` narrow what it
+  registers within its names. Surface entries share the same limits, with one allowance: a surface
+  entry whose `token` pattern is a **closed set** (`registry.py` `_closed_set`: an exact name, or a
+  regex without flags, anchored with `^` and `$`, of literal characters, groups of alternatives and
+  character classes of letters and digits only, no quantifier, dot or negated class, that expands
+  to at most 1,000 names) may name up to 70% of either side's names, since a reader sees every name
+  it can match. The surface entries of a kind together name at most 60% of them, counting those
+  whose pattern is open (a prefix such as `/^--femto-[a-m]/`, which names whatever a stylesheet
+  adds), and at most 70% with the closed sets included, so neither a split by name nor a list of
+  every name registers a whole cell (`p2-fix-harness-r2-surface-split`: three `surface-missing`
+  entries `/^--femto-[a-e]/`, `[f-o]` and `[p-z]`, all of `/docs/button`'s 171 names, are taken out
+  of the cell, and its 5 `--femto-scale-color-*` records stay unregistered). femto's color bundle
+  adds its 380 shades to the 190 names of `/docs/version-picker` and its color routes (66.7% of the
+  570 names there; on `/docs/colors` both sides declare them), one closed-set entry: 20 hues and the
+  shades `(50|[1-9]50|[1-9]00)`. The union and kind-budget limits below count the entries of each
+  comparison apart: those that apply in pages runs together, and those that name `styles` together.
 - **In every cell, on the live documents** (`differ.js`, `breadthGuard` and `coverage`), the same
   per-document limits apply again: an entry whose selector and path reach more than 25% of either
   side's compared elements (head: head keys), past 4, and the entries of a kind that together reach
   more than 50%, are a harness error (`breadth:`) and are not applied in that cell, so their
-  records are reported as unregistered. This sees what the reference documents cannot: markup a
+  records are reported as unregistered (a pinned entry: past 40%, or past 25% over more than one
+  shape of tree path). This sees what the reference documents cannot: markup a
   script adds (a class set on load reaches 0% of a page's source and 100% of the live page), and
   JavaScript's own reading of every pattern. Then the registered records of the cell together may
   cover at most 25% of either document, past 4 elements: a registered structure record covers its
   whole subtree, any other element record the element on each side, a head record its key
   (`coverage:`, a harness error naming the entries by what they cover). Entries explain
   differences; they never stand in for most of a page, so a page one side does not have fails
-  however narrow the entries are. The `registry-evasion`, `registry-route-scope`,
-  `registry-runtime`, `registry-missing-page` and `registry-root-path` controls prove these rules
-  (Selftest).
+  however narrow the entries are. Two kinds of entry cover nothing (`differ.js` `consequences`),
+  as an inherited record covers nothing: a pinned entry, and a **layout consequence**, a
+  `femto-divergence` style entry for styles runs only that names one exact route and only longhands
+  whose computed value is what layout makes of the box (`GEOMETRY`: `width`, `height`,
+  `inline-size`, `block-size`, the four insets and their logical forms, `transform-origin`,
+  `perspective-origin`, `grid-template-rows` and `grid-template-columns`, judged on the cell's
+  property list). Such an entry registers the sizes and positions a registered change elsewhere
+  moves on one page; the coverage rule counts what the registry explains, not the layout it moves,
+  and every breadth limit still applies to it. A record another entry also registers still covers.
+  On `/docs/typography` at 600 px the registered records cover 191 of the 740 compared elements
+  (25.8%; `p2-review-parity-r2-full-1`, 16 harness errors in Chrome and Firefox), 132 of them
+  through `femto-small-font-size-table-widths` and 96 through `femto-small-font-size-tooltip-insets`,
+  the widths, insets and origins of the font size table that the larger `small` moves. Both are
+  layout consequences for that route, and without them the cell passes the coverage rule
+  (`p2-fix-harness-r2-site-1`, 375, 600 and 1300 px, light and dark, Chrome and Firefox, with a
+  copy of the registry that adds the two pinned swatch entries and merges the two shade entries
+  into one closed set: no harness error on that route, nor on `/docs/colors` and the picker routes,
+  and the swatch and shade records all registered). The `registry-evasion`, `registry-route-scope`,
+  `registry-runtime`, `registry-missing-page` and `registry-root-path` controls prove these rules,
+  and `registry-styles` the token and state fields and the comparisons rule, `registry-token-split`
+  and `registry-surface-split` the token and surface union limits, `registry-surface-closed` the
+  closed-set allowance, `registry-pinned` the pinned entry, `registry-consequence` and
+  `registry-consequence-unscoped` the layout consequence and `state-coverage` the state rule below
+  (Selftest). Under a replayed state
+  the guard's choices for the cell stay in force, and the coverage rule applies to the state's
+  subtree, counting only the registered records the state adds: one equal to a record of the
+  document diff (element, pseudo-element, property and values) was judged there.
+- **Inherited records** (`differ.js`, `inheritedFrom`): a style record no entry matches, of an
+  inherited longhand (CSS's "Inherited: yes", `INHERITED`), on an element whose parent pair holds a
+  registered record of the same longhand with the same value on each side, or on an inheriting
+  pseudo-element (`::before`, `::after`, `::marker`, `::placeholder`, `::file-selector-button`) of
+  an element that holds one, is that difference inherited. It is folded into the parent's record:
+  counted under the parent's entries as `inherited` (`result.json` `totals.inherited`,
+  `inherited_by_entry`; the summary's `(+N inherited by descendants)`), apart from `registered`, and
+  it covers nothing; a folded record passes the fold on to its own descendants. So an entry names
+  the element femto's rule styles and not every descendant that inherits the value: on
+  `/docs/button` at 1600 px the `overflow-wrap` that
+  `femto-pre-code-scroll-end-padding-overflow-wrap` registers on `pre > code` is inherited by the
+  highlighted spans, 1,463 records in the document and under its states
+  (`p2-fix-harness-r1-button-1600`), more than the breadth and coverage limits let any entry register. A descendant with another value, on either side, is a
+  record of its own (control `inherited`). The harness cannot see whether the descendant has a rule
+  of its own for the longhand; one that gives it its parent's values on both sides is the same
+  difference.
 
 The summary shows, for each entry, how many cells it registered records in and the most it
 registered in one cell, and flags an entry with 100 or more in one cell as `BROAD`: check that it
@@ -817,7 +1078,8 @@ Seed: `rig.json` holds `safari-no-media-dark` (`browser-limit`), as femto's does
 `dropped-route`, `highlight` and `oracle-bug` entries (among them PLAN's `og:url` example: the
 oracle's `meta[property=og:url]` is `https://v2.picocss.com/` on 63 of its 64 routes, a `head`
 record once the static site fixes it); Phase 2 seeds `femto-divergence` from femto's
-`tests/divergences/` at the vendored commit; Phase 3 adds `merge-layout` and `id-rename`.
+`tests/divergences/` at the vendored commit (each naming `where.comparisons` `styles`); Phase 3 adds
+`merge-layout` and `id-rename`.
 `owner.json` holds the `owner-change` entries for PLAN Decision 16, the theme toggle's emoji icon
 (2026-11-01): the SVG-to-span tag change and the SVG's two parts.
 
@@ -825,15 +1087,18 @@ record once the static site fixes it); Phase 2 seeds `femto-divergence` from fem
 
 `tests/results/<run-id>/` (run id `YYYYMMDD-HHMMSS-<mode>-<pid>` unless `--run-id`):
 
-- `result.json`: `run_id`, `mode`, `comparison` (`self` or `pages`), `full`, `argv`, `git`,
+- `result.json`: `run_id`, `mode`, `comparison` (`self`, `pages` or `styles`), `full`, `argv`, `git`,
   `sides` (each side's target, base URL of the last chunk, readiness hook and root; a `dist` side's
-  folder and wrangler), `server_chunks`
+  folder and wrangler; a `build_tag` side's `build.json`), `styles` (the styles mode: token prefix,
+  probe properties, anchors, and the states file with its target and target-state counts),
+  `server_chunks`
   (cells per server life and chunk sizes), `masks`, `planned` (cells per
   browser, leg and width), `status` (`PASS`/`FAIL`), `duration_s`, `totals` (cells per browser,
   cells run and skipped, elements compared, differences by kind, unregistered, registered, harness
   errors, unregistered skipped checks, pixel-diff cells, readiness reloads, alignment fallbacks,
   cross-origin loads, `head_repeat_documents`: per side, the documents whose head held an exact copy
-  of a data block), `cross_origin_loads` (cell, side, URL: the failing ones), `site_origin_loads`
+  of a data block; `styles`: state replays per side, cells with states, token documents, the most
+  names, anchors and seconds), `cross_origin_loads` (cell, side, URL: the failing ones), `site_origin_loads`
   (side, URL, cells: loads from `https://femto.style` by a `same_origin` side, never failing),
   `cross_origin_reported` (side, URL, routes: sides not held to same-origin loading), `caps`,
   `masked_elements`, `rig` (one record per session: versions, launch time, OS scheme,
@@ -845,9 +1110,13 @@ record once the static site fixes it); Phase 2 seeds `femto-divergence` from fem
   request count, subresource errors, element, pseudo-element and head-entry counts, `head_repeats`,
   Resource Timing entries, cross-origin URLs, `frames_read` and `frames_unreadable`, `csp_reports`,
   `csp_cross_origin` and `csp_other` (the proxy's CSP reports), masked elements
-  and freeze counts, and the pixel result).
-- `summary.txt`: status line, both sides, unregistered differences first (5 records per cell, 40
-  cells), harness errors, cross-origin loads (failing, then loads from the deployed site, then
+  and freeze counts, and the pixel result; in the styles mode per side `tokens` (names, anchors,
+  probe groups, milliseconds), `states_a` and `states_b` (state replays), `state_targets` (each
+  target's tree paths), `scroll_behavior_a` and `scroll_behavior_b` (`html`'s `scroll-behavior`
+  after the replay) and the `a_states` and `b_states` timings).
+- `summary.txt`: status line, both sides, the styles mode's tokens and state replays, unregistered
+  differences first (5 records per cell, 40 cells; a record found under a state starts with it, as
+  `[hover] style ...`), harness errors, cross-origin loads (failing, then loads from the deployed site, then
   reported), readiness reloads, skipped checks, registered counts per entry, unused
   entries, masks, matrix caps, pixel diffs, then one line per browser and route.
 - `log.txt`: the sides, the sessions, one line per cell as it finishes.
@@ -921,6 +1190,9 @@ The same locks as femto's harness, in the same place and under the same names, s
   Selenium Manager runs corrupt `~/.cache/selenium/se-metadata.json`.
 - Locks are `flock`s on files in `FEMTO_HARNESS_LOCK_DIR` (default `~/.cache/femto-harness/locks`);
   each holds the pid and label of its owner and is released when the process exits.
+- **Tag builds**: `tests/builds/<tag>.lock` (`harness/tagbuild.py`), held exclusively while a run
+  builds the tag (the `static-multipage` target) and shared by every server of its folder and every
+  freshness check, so two runs never build it at once and none rebuilds it under a running server.
 
 Servers do not take slots. Each `self` run starts two oracle servers (wrangler plus workerd, about
 0.7 s each once built); ports are free ports from the OS, never 8790. A target may set
@@ -1055,6 +1327,18 @@ they still apply, plus this harness's own.
   the run's folder and static check 6 into its temporary folder, so no harness run writes to
   `~/Library/Preferences/.wrangler/logs/` any more.
 
+**The styles mode (Chrome Beta 158, Firefox 160, 2026-11-02).**
+- Both browsers make a scroller with no focusable content a Tab stop: at 375 px a code block's `pre`
+  overflows, and Tab from the control before a dropdown's summary on `/docs/dropdown` landed on the
+  `pre` between them, not on the summary. The focus-visible replay's last method (`focus()`,
+  Shift+Tab, Tab) follows the browser's own order and reaches it.
+- Tab enters a radio group on its checked radio only, so an unchecked radio never matches
+  `:focus-visible` from the keyboard; `states.json` hovers and presses it instead.
+- A token that is no color, read through a color probe, resolves in Chrome to the initial text color
+  of the probe's scheme, in Firefox to one fixed color (Tokens and states).
+- A state replay takes about 60 ms per side in Chrome and 35 ms in Firefox (a pointer move or key
+  press, the subtree's collect, and on side B its diff); the tokens 20 to 160 ms per side.
+
 **All three.**
 - `getComputedStyle()` returns an empty declaration for an unknown pseudo-element, reads
   `::backdrop` on a closed dialog too, and accepts single-colon `:before`.
@@ -1084,7 +1368,13 @@ they still apply, plus this harness's own.
 ## Selftest: proving detection
 
 `uv run tests/run.py selftest [--browsers ...] [--cases ...]` runs these controls, each through the
-real CLI as `run.py pages --a fixture --b fixture:<control>`. The fixture site
+real CLI as `run.py pages --a fixture --b fixture:<control>` (the styles controls as `run.py styles`
+with `--states tests/fixtures/states.json`: the link `#link` hovered, pressed and reached by Tab,
+the form's text input focused, two header links hovered, the progress example's footer hovered,
+whose scope, the example's `article`, holds 21 elements, and on `/other.html` the link `#far`
+below the fold focused, reached by Tab from `#near` and hovered, in that order). `/other.html` has a
+scroll spy like the site's table of contents: it counts the scroll positions the page has been at
+in `p#spy`'s `data-positions`, which a smooth scroll raises (control `scroll-smooth`). The fixture site
 (`fixtures/site/`) has the oracle's nondeterminism in miniature: a "typing demo" that rewrites its
 `.demo > article.component` every 30 ms, and a random progress value (one or two digits) printed in
 the highlighted code under it (Prism-style tokens, as on the oracle's `/docs/progress`), replaced
@@ -1127,11 +1417,43 @@ grows, never decide whether detection is proved.
 | `cross-origin-closed-shadow` | a hidden `<iframe srcdoc>` inside a closed shadow root, whose script inserts the same cross-origin stylesheet: no script outside can reach that frame, so only the CSP report shows the load: one cross-origin load per cell (side B), and the shadow host's own `only-b` record as the only difference |
 | `status-404` | `/other.html` answers 404 on side B: a `status` record `200` against `404` |
 | `registry-suppression` | the color and attribute changes together, with a registry holding one entry for the h1: the h1 records are registered, the attribute record stays unregistered |
-| `registry-evasion` | one change of each element and head record kind, with a registry of 67 catch-alls written to pass (the reviews' own, a side-B-only scope, a theme-leg scope, a route hidden in a selector, a catch-all split in twelve, `*` as a route, a scope of uncaptured v1 routes, a style catch-all split by route into 29 entries of three routes, four path patterns JavaScript reads otherwise than Python (`\Z`, `\A`, `{,1}`, for a style, text, attribute and head entry), and the 20 uncaptured v1 routes split three to an entry) beside one narrow entry: every catch-all is a registry error and registers nothing, every record kind stays unregistered, and the narrow entry still registers its two records |
+| `registry-evasion` | one change of each element and head record kind, with a registry of 69 catch-alls written to pass (the reviews' own, two skipped checks over the state checks (`/^state:/` for Chrome and Firefox, which turned every state that did not match into a silent skip, and an exact state check for two browsers), a side-B-only scope, a theme-leg scope, a route hidden in a selector, a catch-all split in twelve, `*` as a route, a scope of uncaptured v1 routes, a style catch-all split by route into 29 entries of three routes, four path patterns JavaScript reads otherwise than Python (`\Z`, `\A`, `{,1}`, for a style, text, attribute and head entry), and the 20 uncaptured v1 routes split three to an entry) beside one narrow entry: every catch-all is a registry error and registers nothing, every record kind stays unregistered, and the narrow entry still registers its two records |
 | `registry-runtime` | the `registry-evasion` changes, and an inline script that adds class `js-added` to `<html>` on load, with four entries keyed to `.js-added, .js-added *`: valid statically (the page source has no such class), they reach every element of side B's live document, so the in-page guard reports each (`breadth:`), applies none, and every record kind stays unregistered |
 | `registry-missing-page` | `/index.html` answers 404 on side B, with `--root-a body --root-b body` (no head records) and seven entries each under every limit (a status entry for the route; structure entries for `main#content`, `footer.site`, `header > nav` and `pre`; text for `pre`; style for `body`) that register every record: the registered records cover all 48 compared elements of side A's document, so the coverage guard (`coverage:`) fails the run |
 | `registry-route-scope` | the color and attribute changes on `/index.html` and `/other.html`, with an entry for the h1 scoped to `/index.html` and a style catch-all scoped to `/other.html`: the catch-all is a registry error (a route scope does not exempt an entry from the per-document limits); the h1 entry registers the h1 records on `/index.html` and nothing on `/other.html`, whose h1 records stay unregistered, and the attribute record stays unregistered |
+| `inherited` | `tab-size` 4 on the lead paragraph and the list (no tab in their text, so nothing moves) and 2 on the list's first item, with entries for `.lead` and `ul.list`: each registers its element's record, the link's record is folded under `.lead` and the other two items' and their markers' under `ul.list` (`inherited` 1 and 4), and the first item's own value and its marker's stay unregistered |
 | `registry-root-path` | the `registry-evasion` changes with `--root-a body --root-b body` and entries keyed to the old root path form (`path: "/\\{/"`): every record's path starts `html > body:0`, the entries register nothing, and every element kind stays unregistered (no head records under a root) |
+
+The styles controls (the fixture's `fixture.css` declares nine `--femto-*` tokens: on `:root`, in a
+nested rule, under `@media` and `@supports`, and through `@property`; only `::selection`, which the
+collector does not read, uses `--femto-accent`):
+
+| Control | Expectation |
+|---|---|
+| `styles-self` | the styles mode, the site against itself, every leg, widths 375 and 1300, two routes: 10 token names in every cell, 7 state replays per side on `/index.html`, zero differences, no errors |
+| `token-resolution` | `main` gets `color-scheme: dark`: `--femto-scheme-color`, a `light-dark()` pair, keeps its raw text and resolves to its dark color: `token` records for it through the four color probes, at the anchors in `main` only, and no `token-raw` record (in Chrome the other tokens' `color`, `border-top-color` and `outline-color` probes follow the scheme too; Tokens) |
+| `token-raw` | `--femto-raw` written `#f00` instead of `#ff0000`: one `token-raw` record per anchor and nothing else (no probe property reads them differently; `red` would not do, being a font-family and transition-property name) |
+| `token-added` | a token only side B declares: one `surface-added` record per cell and nothing else |
+| `token-missing` | a token only side A declares: one `surface-missing` record per cell and nothing else |
+| `hover-only` | a rule under `#link:hover:not(:active)`: records in the `hover` replay only, on the link only |
+| `focus-visible-only` | a rule under `#link:focus-visible`: records in the `focus-visible` replay (a real Tab) only, on the link only |
+| `active-only` | a rule under `#link:active`: records in the `active` replay (pointer down) only, on the link only |
+| `focus-only` | a rule under the text input's `:focus`: records in the `focus` replay (`focus()`) only, on the input only (its own and its `::placeholder`'s) |
+| `dark-only-token` | `--femto-spacing` changed only under `prefers-color-scheme: dark` without `data-theme`, every leg: `token` and `token-raw` records for it in leg `dark` only |
+| `token-color-2-of-255` | `--femto-accent` from `rgb(1, 106, 168)` to `rgb(3, 106, 168)`, read only by `::selection`: `token` records through the color probes and `token-raw` records, and no style record |
+| `token-color-1-of-255` | `rgb(2, 106, 168)` (1/255): token resolution tolerates it, and only `token-raw` records remain (the raw text differs) |
+| `minified-equal` | `h1`'s `outline: none` and `background: none` written `outline: 0` and `background: 0 0`, and `--femto-shadow` written `0 0 .5rem rgba(0,0,0,.25)`, as clean-css wrote the oracle's: zero differences (Diff rule) |
+| `minified-exact` | the same control with `--exact-minified`: `h1`'s `outline-width` and background position records (the shorthand in Chrome, `-x` and `-y` in Firefox) and `--femto-shadow`'s `token-raw` records, nothing else |
+| `minified-real` | `h1`'s `outline: 2px solid` and `background: 0 1px`, and `--femto-shadow`'s blur `0.5rem` to `.3rem`: `outline-width` and `outline-style`, the position's `1px`, and `--femto-shadow`'s `token` and `token-raw` records are found; `background-position-x` (`0%` against `0px`) is not |
+| `state-coverage` | word-spacing on the progress example's 8 punctuation tokens, with one entry for them: 16% of the document and 38% of the `article` the footer's hover collects; the state's records repeat the document's, so they cover nothing there, and the run has no coverage error and no unregistered record (16 registered: 8 in the document, 8 under hover) |
+| `registry-styles` | two token values change, two tokens are added and the link gets a `:hover` rule (which `:active` matches too), with a registry of four narrow entries (a `token` entry for one token at `main` through `color`, a `token-raw` entry for it by `main`'s path, a `surface-added` entry for one token, a style entry with `where.states` `hover`), one style entry naming no comparison, and four that must not apply (`token: "*"`, a token entry without `where.comparisons` `styles`, one with `where.states`, and `token: "/./"`): each narrow entry registers exactly what it names, and the same token through other probes, at other anchors, the other changed and added tokens and the `active` records stay unregistered; the entry naming no comparison registers nothing; the first three bad ones are registry errors and `/./` is taken out of the cell by the in-page breadth guard |
+| `registry-token-split` | the `registry-styles` changes, with three `token-raw` entries that split the names by first letter (`a-m`, `n-r`, `s-z`), each under half of the cell's names and together all of them: the in-page union limit takes all three out of the cell (`breadth:`), and the raw text records of `--femto-accent` and `--femto-spacing` stay unregistered |
+| `registry-surface-split` | the same split for three `surface-added` entries with open patterns: the in-page union limit takes all three out of the cell (`breadth: the 3 surface-added entries with an open token pattern`), and the `--femto-new` and `--femto-other` records stay unregistered |
+| `registry-surface-closed` | the `registry-styles` changes, with a `surface-added` entry that writes out 7 names (`/^--femto-(new\|other\|accent\|gone\|media\|nested\|raw)$/`: 7 of side B's 11 names, 64%, and 5 of side A's 9) and its twin with one open alternative (`r.w`): the closed set registers the two added tokens, and the twin, held to 50%, is taken out of the cell (`breadth: registry entry`) |
+| `registry-pinned` | the progress example's 17 code tokens get `tab-size: 4`, `cursor: pointer` and `touch-action: manipulation`, 35% of the document's 49 elements, all one shape of tree path: a pinned entry (`/index.html`, `tab-size`, `8` to `4`) registers the `tab-size` records (32 per cell: the 16 tokens outside the value mask, and again under the footer's hover) with no breadth or coverage error; a pinned `cursor` entry over two shapes (12 tokens and the 3 list items, 31%) and a `touch-action` entry with `a` and `b` `*` are registry errors, so their records stay unregistered |
+| `registry-consequence` | ten elements get `cursor: pointer` and the list `padding-block: 4px`, which makes the list, `main`, `body` and `html` taller: entries for the cursor and the padding (11 elements) and a layout consequence for `/index.html` (their heights, block sizes and origins) register every record; together they reach 14 of the 49 elements (29%), and the consequence covers nothing, so the cell has no coverage error and no unregistered record |
+| `registry-consequence-unscoped` | the same, with the consequence naming no route: it covers what it registers, and the coverage rule fails the cell (`coverage:`) |
+| `scroll-smooth` | side B gets `html { scroll-behavior: smooth }`, one registered record; the replays of `#far` on `/other.html` scroll instantly on both sides (`differ.js` `armStates`), so the spy's count is the same and nothing is unregistered, and after the replay `html`'s `scroll-behavior` is each side's own again (`result.json` cells' `scroll_behavior_a` `auto`, `scroll_behavior_b` `smooth`). With the override switched off in a copy of the harness, Chrome's `focus()` scrolls smoothly from the top and every state of `#far` shows `data-positions` `2` against `38` (`p2-fix-harness-r2-mutant-noscroll-2`); Firefox 160 scrolls a `focus()` and a Tab instantly whatever the page's `scroll-behavior`, so there the control passes either way |
 
 A control whose run has a harness error fails, whatever its records.
 
@@ -1139,9 +1461,19 @@ A control whose run has a harness error fails, whatever its records.
 
 - One Safari pass compares only the OS scheme's media leg (registered `media:*` skip), so each
   Safari gate needs the owner's dark pass.
-- Interactive states (hover, focus, active) are not compared: the pages mode reads each document as
-  loaded. Widgets and their states belong to the behavior mode; Phase 2's `styles` mode brings
-  femto's state replay back for CSS.
+- Interactive states (hover, focus, focus-visible, active) are compared only in the styles mode, and
+  only for the elements `harness/states.json` names, on its routes and widths (Tokens and states): a
+  few elements per component, not every match, and one state at a time (no hover and focus
+  together, no `:checked` or `:invalid` the user would cause, no open menu but the dropdowns it
+  opens). The pages mode reads each document as loaded; widgets and their behavior belong to the
+  behavior mode.
+- The replay's instant scrolling is proved in Chrome only (control `scroll-smooth`): Firefox 160
+  scrolls a `focus()` and a Tab instantly whatever the page's `scroll-behavior` (with the override
+  off, `p2-fix-harness-r2-mutant-noscroll-2`, the spy counted 38 positions in Chrome and 2 in
+  Firefox, as on side A), so there a smooth page never scrolls mid-state, with or without it.
+- Tokens are probed under the anchors only (Tokens and states): a token whose value an element below
+  an anchor overrides shows only through that element's computed styles. Inline `style` attributes
+  that declare tokens are not walked for names (femto's rule); their elements' styles are compared.
 - Every document is read in its first-visit state: storage is emptied before each load, so only
   the stored color scheme of a data-theme leg ever reaches a page.
 - Alignment pairs elements by content and keys (see Alignment and record kinds). When an element
@@ -1203,6 +1535,9 @@ A control whose run has a harness error fails, whatever its records.
 - The documents run in an iframe: a script that compares `window.top` with `window`, or that frames
   itself, would behave differently; neither the oracle nor the static site does.
 - The proxy forwards HTTP only, not WebSocket.
+- An inherited record is folded into its parent's registered record by value (Divergence registry,
+  Inherited records): the harness cannot see whether the descendant has a rule of its own that gives
+  it the parent's values on both sides; such a rule is the same difference.
 
 ## Harness proof
 
@@ -1933,6 +2268,75 @@ the spike passes all 13 in Chrome, Firefox and Safari (`p0-spike-safari-2.txt`).
 PLAN's Phase 0 gate in Safari pass. The closed-shadow control is still a known Safari limit (Safari
 passes and Decision 16, above).
 
+### Phase 2: styles (2026-11-02)
+
+PLAN's Phase 2: the site leaves the frozen `site/assets/legacy/` CSS for vendored femto (default
+build plus `options/responsive-spacings.css`) and five site files written from the compiled output
+(`fonts.css` 147 lines, `common.css` 562, `code.css` 172, `docs.css` 999, `landing.css` 957).
+`femto.colors.min.css` replaces `color-utilities.css` on `/docs/colors` and `color-picker.css` on
+`/docs/version-picker`, with `css/themes/<color>.css` after it on each color route. Its gate:
+criterion 2 (`styles --full` against `static-multipage`, Chrome and Firefox), with criteria 4, 11 and
+12. Rig as in the Safari passes above (Chrome Beta 158.0.8127.2, Firefox 160.0, Selenium 4.52.0,
+Node 24.22.0, wrangler 4.156.0).
+
+**How it ran.** One workflow (`wf_f6ca1e2c-b4e`, 19 agents, about 4 h 15 min). The harness agent
+built the `styles` mode while the common agent switched the pages to femto. A registry agent ported
+femto's `femto-divergence` entries. Then the docs and landing agents rewrote their files while
+common fixed what traced to its files. Three reviewers (parity, CSS, harness) ran twice, each round
+followed by fixes from the owners of the files. Round 1 had 19 findings (6 high, 9 medium, 4 low),
+round 2 had 16. After it the lead:
+- fixed `picker.js`, which no agent owned: its in-place theme switch still looked for
+  `color-picker.css` and `custom-themes/`, so a swatch click threw (`p2-lead-picker-fix`:
+  `picker-swatch` and `picker-logo` PASS in Chrome and Firefox);
+- added the harness fixer's two drafted swatch entries (pinned, `/docs/colors`) and merged the two
+  shade entries into one closed set;
+- added the minifier value rule (owner decision 11, Diff rule) and its three controls, and wrote
+  the site's own variables normally again;
+- made the body rows `auto 1fr auto` (`p2-common-body-rows`), the fix Phase 1's registry left to
+  Phase 2: on the 404 page at 800 px main's track is 269.7 px and the footer's 448.3 px, the
+  oracle's footer track (`p2-lead-body-rows-probe`).
+
+**Against PLAN's letter.**
+- The tag `static-multipage` names `9383e6b` ("Pass Phase 0 Safari Gate"), not Phase 1's `de65ccf`:
+  the later commit has Decision 16's emoji toggle, so the gate measures only the CSS change.
+- The oracle's `html { scroll-behavior: smooth }` is gone now rather than in Phase 3: criterion 11
+  allows it only under Decision 10's class, which Phase 3 adds (`p2-common-html-smooth-scroll`,
+  `merge-layout`).
+- The gate's runs used femto 7bcd5758; the commit vendors d4f8d1fd (owner decision 2). Its only
+  change to the vendored files is a comment in `css/forms/input-date.css`, a file no page links,
+  and `dist/` is unchanged, so the runs stand. Criterion 12 and the build were checked again on
+  d4f8d1fd.
+
+**What the harness gained** (Tokens and states, Divergence registry and Diff rule above): the
+`styles` mode with the tag built by `tagbuild.py`, femto's token comparison (`token`, `token-raw`,
+`surface-missing`, `surface-added`), interactive states from `states.json` (47 targets, 105 target
+states, 22 routes), inherited records folded into their parent's registered record, pinned entries
+and layout consequences, union limits for every token kind, an instant-scroll override while states
+replay, and the minifier rule. The selftest went from 36 controls to 61.
+
+**Registry.** 77 entries in 24 files: `femto-divergence` 40 (in the ten `femto-*.json` files),
+`dropped-route` 30, `merge-layout` 2, `owner-change` 2, and `asset-path`, `browser-limit` and
+`oracle-bug` 1 each. A styles comparison applies only the entries that name it (and skipped checks),
+so Phase 1's pages-mode entries take no part; in the final gate all 43 entries that apply registered
+records. Two femto entries apply to nothing here: `femto-modal-dialog-backdrop-tint` (the harness
+never opens the modal) and `femto-nav-dropdown-block-details-safari-insets` (Safari only). The
+summary flags 10 entries `BROAD`, the most 704 records in one cell
+(`femto-dropdown-lone-label-fills-row`, the lone labels of the dropdown menus times their geometry
+longhands). Each is a femto entry's own selector, scoped to femto's elements and properties; round 2's
+parity reviewer compared the ported entries field by field with femto's.
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p2-gate-styles-full-1` | `styles --full --browsers chrome,firefox` (criterion 2), before the minifier rule | 1,488 (970,944 elements) | FAIL: **675,780 unregistered**, all the minifier's spellings (444,288 `token-raw`, 215,184 `outline-width`, 16,308 background position) | 0 | 551 s |
+| `p2-gate-styles-full-2` | the same, with the minifier rule | 1,488 | **PASS: 0 unregistered**; 2,256,712 registered, 804,336 inherited | 0 | 553 s |
+| `p2-gate-selftest-2` | `selftest --browsers chrome,firefox` | 61 controls × 2 browsers | **61/61** | 0 | about 6 min |
+| `p2-gate-styles-full-3` | the same as `-2`, after the body rows change (final) | 1,488 (970,944 elements) | **PASS: 0 unregistered**; 2,258,364 registered (`p2-common-body-rows` 1,584 in every cell), 804,336 inherited; 0 cross-origin loads | 0 | 550 s |
+| `p2-gate-selftest-3` | `selftest --browsers chrome,firefox` (final) | 61 controls × 2 browsers | **61/61** | 0 | about 6 min |
+| — | `registry`; `npm run lint`; `static_checks.py --phase 2` | — | valid; exit 0; **4, 11 and 12 PASS** (3, 5 and 6 too); 8, 9 and 14 FAIL, later phases' criteria as in Phase 1 | — | — |
+
+Not run: Safari. The `styles` mode needs an unlocked screen with the automation window in front for
+its state replays, so a Safari styles pass is the owner's, as for Phase 0.
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -1941,10 +2345,10 @@ rest, and the registered ones with a consequence a later phase owns.
 
 | Item | What | Owner |
 |---|---|---|
-| The 404 page's footer | Without the banner, main.css's `auto auto 1fr auto` body rows give the footer the free space: on the 404 page at 800 to 1300 px it sits 43 to 100 px higher, with blank space under it, and so would any page shorter than a taller window (p1-shell-404-footer-track). | Phase 2: rows `auto 1fr auto` |
+| The 404 page's footer | Without the banner, main.css's `auto auto 1fr auto` body rows give the footer the free space: on the 404 page at 800 to 1300 px it sits 43 to 100 px higher, with blank space under it, and so would any page shorter than a taller window (p1-shell-404-footer-track). | Settled in Phase 2: `common.css` writes the rows `auto 1fr auto` (p2-common-body-rows) |
 | Six footer links on `/docs` | The About column's five items and Class-less version point at `/docs` (PLAN.md Text: removed or pointed at `/docs`), so on `/docs` they carry `aria-current="page"` and a screen reader hears each as the current page (p1-shell-footer-dropped-links-current). Kept so the footer's columns and height stay the oracle's. | Phase 4's footer rewrite removes them |
-| woff fallbacks | The frozen `main.css` names 10 `.woff` fallbacks under `/assets/fonts/` beside the woff2 files; only woff2 ships (PLAN.md File tree), so those URLs answer 404. Every target browser takes the woff2. | Phase 2's `fonts.css` names woff2 only; `assets/legacy/` goes |
-| Pacifico on `/docs/css-variables` | The oracle loads Pacifico from Google Fonts; the static page links `/assets/legacy/pacifico.css` (menu.json `styles`), Google's stylesheet with its 5 `src` URLs pointed at the same woff2 files, byte-identical to the captured ones (`tests/oracle/capture/_fonts`), so the page loads only same-origin resources (criterion 15). The pages mode skips stylesheet links (head comparison), so this is the one stylesheet whose origin changed without a record. | Settled 2026-10-31, the owner keeps it: PLAN.md's File tree lists Pacifico 400, Phase 2's `fonts.css` takes its `@font-face` rules, and Phase 4 keeps the example |
+| woff fallbacks | The frozen `main.css` names 10 `.woff` fallbacks under `/assets/fonts/` beside the woff2 files; only woff2 ships (PLAN.md File tree), so those URLs answer 404. Every target browser takes the woff2. | Settled in Phase 2: `fonts.css` names woff2 only, and `assets/legacy/` is gone |
+| Pacifico on `/docs/css-variables` | The oracle loads Pacifico from Google Fonts; the static page links `/assets/legacy/pacifico.css` (menu.json `styles`), Google's stylesheet with its 5 `src` URLs pointed at the same woff2 files, byte-identical to the captured ones (`tests/oracle/capture/_fonts`), so the page loads only same-origin resources (criterion 15). The pages mode skips stylesheet links (head comparison), so this is the one stylesheet whose origin changed without a record. | Settled 2026-10-31, the owner keeps it: PLAN.md's File tree lists Pacifico 400, Phase 2's `fonts.css` took its `@font-face` rules (menu.json no longer links a stylesheet for it), and Phase 4 keeps the example |
 | React text separators | Two section files keep React's `<!-- -->` separator (`color-schemes.html`, `version-picker.html` and its 19 colors: 22 copies in `dist/`), for a sub-pixel label width (tests/convert/README.md). PLAN.md's Conversion rules strip them. | Phase 3 removes them with the per-route artifacts |
 | Per-route build scaffolding | In per-route mode `build.mjs` also swaps literal markup in `docs.html` per route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical, `og:url`), fills two slot comments (`<!-- docs:menu -->`, `<!-- docs:sections -->`) and adds route stylesheets; `menu.json` carries `route`, `label`, `routeTitle`, `toc`, `styles` and `variants` beyond the File tree's id, title, description. PLAN.md allows only the include markers and three placeholders. | Settled 2026-10-31, accepted as scaffolding for Phases 1 and 2 (PLAN.md File tree, Per-route scaffolding); Phase 3's one-page assembly removes them |
 | The palette download | 01 §2 and 03 §5 plan a static JSON file written by the build; Phase 1's `colors.js` makes an on-load `blob:` URL, for parity with the oracle's (normalized by the `blob:` value rule). No phase owns the switch. | Settled 2026-10-31: Phase 3 switches to the build's static JSON file (PLAN.md Workflow) and registers the URL as `asset-path` |
@@ -1989,7 +2393,9 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    Safari-Only Computed Values From The Bug Fixes", still 3.0.0-alpha.1), vendored with
    `npm run vendor -- ../femto 7bcd57582671b2a8d2dcf15747e9ab851ce20b93`. It changes 14 files in
    `css/` and `dist/femto.css` and `femto.min.css`; `femto.colors.css`, the themes and `LICENSE.md`
-   are unchanged.
+   are unchanged. Moved 2026-11-03: the owner chose femto's latest commit, d4f8d1fd ("Add Android
+   Browsers", on `dev` and `main`, still 3.0.0-alpha.1), vendored with
+   `npm run vendor -- ../femto d4f8d1fd`. It changes only a comment in `css/forms/input-date.css`.
 3. **`.gitignore`**: settled 2026-10-30. It reads `/dist/`, so `site/vendor/femto/dist/` is no
    longer ignored.
 4. **PLAN and its sources disagree** in four places the static checks had settled silently. All
@@ -2045,3 +2451,7 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    back already is, and the spike's reload check now passes on either. The Quick start check reads
    the heading on the scroll-padding line instead of the page's y, which depends on the padding
    (`docs/research/05-spike.md`).
+11. **The oracle minifier's spellings** (2026-11-02). Phase 2's styles gate found 675,780 records
+   that differ only in how clean-css wrote the oracle's values (`.25rem`, `outline:0`,
+   `background:0 0`), which no PLAN category covered. The owner chose a value rule over a new
+   category (Diff rule), so the site's CSS writes its own values normally (`0.125rem`).

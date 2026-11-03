@@ -1,5 +1,5 @@
 {
-  "description": "Named comparison sides for tests/run.py (--a, --b). kind oracle: harness.oracle.serve(); kind fixture: the selftest site in tests/fixtures/site/ (fixture:<control> applies a control from tests/fixtures/controls.json); kind command: a server the harness starts in its own process group ({port} and {inspector_port} are free ports, never 8790; {dir} is the target's folder; {log_dir} the run's result folder; an argument \"{wrangler}\" is the repository's pinned wrangler, npm exec --no -- wrangler, or FEMTO_WRANGLER) and stops with every child; dir: the folder a command serves, which <name>:<path> replaces (dist:<path> serves any built folder exactly like dist); requires: a path that must exist first ({dir} filled in); env: environment variables for the command ({port}, {dir} and {log_dir} filled in). ready: the readiness hook run before collecting (oracle, static, none). max_documents: the most documents one server instance serves; a longer run is split into chunks, each with freshly started servers and browser sessions. same_origin: every document this side serves must load only same-origin resources (PLAN.md criterion 15); a cross-origin load in its Resource Timing entries fails the run outside the diff, where no registry entry applies. See tests/README.md, Modes.",
+  "description": "Named comparison sides for tests/run.py (--a, --b). kind oracle: harness.oracle.serve(); kind fixture: the selftest site in tests/fixtures/site/ (fixture:<control> applies a control from tests/fixtures/controls.json); kind command: a server the harness starts in its own process group ({port} and {inspector_port} are free ports, never 8790; {dir} is the target's folder; {log_dir} the run's result folder; an argument \"{wrangler}\" is the repository's pinned wrangler, npm exec --no -- wrangler, or FEMTO_WRANGLER) and stops with every child; dir: the folder a command serves, which <name>:<path> replaces (dist:<path> serves any built folder exactly like dist); requires: a path that must exist first ({dir} filled in); env: environment variables for the command ({port}, {dir} and {log_dir} filled in). ready: the readiness hook run before collecting (oracle, static, none). max_documents: the most documents one server instance serves; a longer run is split into chunks, each with freshly started servers and browser sessions. build_tag: a tag of this repository that the harness builds first into dir (tests/harness/tagbuild.py: a temporary git worktree of the tag, node build.mjs --out dir, rebuilt when dir/index.html or build.json beside it is missing, the tag's commit or the repository's prismjs version differs from the one build.json records, or dir no longer matches its recorded tree hash; the build holds tests/builds/<tag>.lock exclusively and every server of it holds the lock shared). same_origin: every document this side serves must load only same-origin resources (PLAN.md criterion 15); a cross-origin load in its Resource Timing entries fails the run outside the diff, where no registry entry applies. See tests/README.md, Modes.",
   "targets": {
     "oracle": {
       "kind": "oracle",
@@ -44,6 +44,39 @@
       "dir": "dist",
       "dir_why": "dist:<path> serves another built folder (a relative path is read from the repository root) exactly like dist: the same wrangler, options, readiness and same-origin rule, so several agents can each compare their own build at once.",
       "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state."
+    },
+    "static-multipage": {
+      "kind": "command",
+      "ready": "static",
+      "same_origin": true,
+      "same_origin_why": "PLAN.md criterion 15: every page loads only same-origin resources. The harness reads each document's own network log (Resource Timing), so a script that only displays a CDN URL passes and a fetch() or inserted <link> to another origin fails, whatever builds the URL.",
+      "requires": "{dir}/index.html",
+      "command": [
+        "{wrangler}",
+        "pages",
+        "dev",
+        "{dir}",
+        "--ip",
+        "127.0.0.1",
+        "--port",
+        "{port}",
+        "--inspector-port",
+        "{inspector_port}",
+        "--persist-to",
+        "{log_dir}/wrangler-state-{port}",
+        "--show-interactive-dev-session=false"
+      ],
+      "about": "The static site at tag static-multipage (the Phase 1 commit, with the oracle's compiled CSS frozen in site/assets/legacy/), built by the harness into tests/builds/static-multipage/dist and served exactly as dist is. The styles mode's side A (tests/README.md, Modes).",
+      "env": {
+        "WRANGLER_SEND_METRICS": "false",
+        "WRANGLER_LOG_PATH": "{log_dir}/wrangler-debug-{port}.log"
+      },
+      "env_why": "wrangler writes a debug log on every run; WRANGLER_LOG_PATH keeps it in the run's result folder instead of ~/Library/Preferences/.wrangler/logs.",
+      "dir": "tests/builds/static-multipage/dist",
+      "dir_why": "Gitignored (.gitignore: tests/builds/). The folder is the harness's own: a run never builds into dist/, and the build is redone only when the tag moves.",
+      "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state.",
+      "build_tag": "static-multipage",
+      "build_tag_why": "PLAN.md Workflow, 2 Styles: the Phase 2 gate compares the Phase 2 site against the Phase 1 commit, tagged static-multipage. Building the tag, not reading the working tree, keeps side A fixed while the site's CSS changes."
     }
   }
 }

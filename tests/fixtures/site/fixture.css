@@ -42,3 +42,28 @@ pre > code { display: block; }
   vertical-align: -0.125em;
   animation: spin 0.75s linear infinite;
 }
+/* Tokens for the styles mode's selftest (harness/styles.py): --femto-* custom properties declared on
+   :root, in a nested rule, under @media and @supports, and through @property, so the CSSOM walk that
+   finds the names reaches each kind of rule. The styles controls in ../controls.json edit these lines. */
+:root {
+  --femto-accent: rgb(1, 106, 168);
+  --femto-spacing: 1rem;
+  --femto-raw: #ff0000;
+  --femto-gone: 2px;
+  --femto-scheme-color: light-dark(rgb(10, 20, 30), rgb(200, 210, 220));
+  --femto-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.25);
+}
+main { & .lead { --femto-nested: 1px; } }
+@media (min-width: 1px) { :root { --femto-media: 2px; } }
+@supports (display: grid) { :root { --femto-supports: 3px; } }
+@property --femto-registered { syntax: "<length>"; inherits: true; initial-value: 4px; }
+/* Only ::selection reads --femto-accent, and the collector reads no ::selection style: token
+   resolution alone sees it change (controls token-color-2-of-255 and token-color-1-of-255). */
+::selection { background-color: var(--femto-accent); }
+/* other.html's spacer puts its link #far below the fold, so its focus and Tab scroll the page. */
+.spacer { height: 2000px; }
+/* The state targets (../states.json) have no state rules of their own; the controls add them. */
+#link { text-decoration-thickness: 1px; }
+/* The minifier controls (minified-equal, minified-exact, minified-real) write this line and
+   --femto-shadow as clean-css wrote the oracle's: outline:0, background:0 0, .5rem, no comma spaces. */
+h1 { outline: none; background: none; }

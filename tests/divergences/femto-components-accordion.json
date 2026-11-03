@@ -1,0 +1,231 @@
+[
+  {
+    "id": "femto-accordion-summary-flow-root",
+    "kind": "style",
+    "selector": "details summary",
+    "pseudo": "",
+    "property": "display",
+    "a": "/^(list-item|block)$/",
+    "b": "flow-root",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "2.1.1 floats the accordion chevron (summary::after) to the end of the summary's last line, but leaves the summary a list item (a block in Safari 17.5), which does not contain floats. When the last line is too full for the chevron, it drops below the text and hangs out of the summary: by its full height under a plain summary, against the content of an open accordion and across the keyboard focus ring; half outside the background of a summary[role=button] or role=button dropdown; and below a block heading inside a summary, at every width, pushing the content's first line aside. femto makes every summary a flow root, so it holds its chevron and grows by one row when the chevron needs one. A summary whose chevron fits beside its last line keeps its size and chevron position, the marker stays hidden and toggling is unchanged. As a block formatting context, a summary also contains the bottom margin of a block heading or paragraph inside it, so such a summary grows by that margin plus the chevron row, and it no longer runs under a float from outside it: a summary of auto width narrows beside the float and a full-width summary[role=button] moves below it. The rule is details summary, at specificity (0,0,2), so an author rule that sets a summary's display needs at least that specificity and must come after femto, and bringing back the browser's disclosure triangle also needs display: list-item; a reset loaded before femto that sets summary { display: list-item }, as normalize.css, modern-normalize and Tailwind's preflight do, does not undo it.",
+    "notes": "Seeded from femto's tests/divergences/components-accordion.json at 7bcd5758 (accordion-summary-flow-root; femto category natural-fix, module components/accordion). Site: every summary: the header's version dropdown, the docs menu's categories and the accordion and dropdown examples."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-item",
+    "kind": "style",
+    "selector": "body > header nav li:has(> details.dropdown > summary:not([role]))",
+    "pseudo": "",
+    "property": "/^(height|block-size|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "widths": [
+        600
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of accordion-summary-flow-root in a squeezed nav. A select-like nav dropdown's summary has a fixed height; when its label wraps, which already overflows that height in 2.1.1, the chevron floats on the second line, below the summary box. 2.1.1's summary did not contain that float, so the nav item, which does, grew to hold it and the nav row became taller than its links. femto's summary contains it, so the item keeps the height of the summary box. The chevron still paints below the box, as in 2.1.1; in a header nav it can now reach a few pixels below the header instead of sitting inside a taller one.",
+    "notes": "Seeded from femto's tests/divergences/components-accordion.json at 7bcd5758 (accordion-nav-dropdown-item; femto category natural-fix, module components/accordion). Site: femto's own case, a header nav: the site header's select-like version dropdown, whose summary label wraps at 600 (the only matrix width where it does). With the chevron contained, its nav item goes from 68px to 59.5px tall in Chrome. The details itself, which femto does not list, is femto-accordion-nav-dropdown-header-details."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-header-details",
+    "kind": "style",
+    "selector": "body > header nav li > details.dropdown:has(> summary:not([role]))",
+    "pseudo": "",
+    "property": "/^(height|block-size|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "widths": [
+        600
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-accordion-nav-dropdown-item on the site's header: site/assets/css/common.css makes the header's version dropdown display: inline-block, a box that contains floats. 2.1.1's chevron, which escaped the wrapped select-like summary, made that box taller, as it made the nav item taller; femto's summary contains the chevron, so the dropdown keeps the height of its summary box.",
+    "notes": "A site consequence of femto's accordion-nav-dropdown-item (femto tests/divergences/components-accordion.json at 7bcd5758), which names only the nav item: femto's nav dropdown is a block (femto-nav-dropdown-block-details), whose height did not hold the escaped chevron. At 600 the dropdown goes from 58.38px to 42.5px tall in Chrome."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-page-shift",
+    "kind": "style",
+    "selector": ":is(html, body, body > header:has(nav details.dropdown), body > header nav:has(details.dropdown), body > header nav:has(details.dropdown) > ul)",
+    "pseudo": "",
+    "property": "/^(height|block-size|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "widths": [
+        600
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of accordion-nav-dropdown-item: that item was the tallest in kitchen-sink.html's header nav, so the nav, both of its lists, the header, the body and the document get shorter by the same amount, and the nav keeps the height of its other items.",
+    "notes": "Seeded from femto's tests/divergences/components-accordion.json at 7bcd5758 (accordion-nav-dropdown-page-shift; femto category natural-fix, module components/accordion). Site: the header nav's item was its tallest, so at 600 the nav, both of its lists (the links and the icons), the header (86px to 77.5px), the body and the document get shorter by the same 8.5px on every route. femto's header holds its nav directly; the site's holds it in a .container (femto-accordion-nav-dropdown-header-container), and its body is a grid (femto-accordion-nav-dropdown-body-rows)."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-header-container",
+    "kind": "style",
+    "selector": "body > header > .container",
+    "pseudo": "",
+    "property": "/^(height|block-size|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "widths": [
+        600
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-accordion-nav-dropdown-page-shift on the site's header, which holds its logo and nav in a .container: the container gets shorter with the nav, by the same 8.5px at 600.",
+    "notes": "A site consequence of femto's accordion-nav-dropdown-page-shift (femto tests/divergences/components-accordion.json at 7bcd5758), whose kitchen-sink.html header holds its nav directly."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-body-rows",
+    "kind": "style",
+    "selector": "body",
+    "pseudo": "",
+    "property": "grid-template-rows",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "widths": [
+        600
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-accordion-nav-dropdown-page-shift on the site's body, a grid whose first auto row holds the header (site/assets/css/common.css): the computed grid-template-rows lists the row's used height, which gets shorter with the header, by the same 8.5px at 600.",
+    "notes": "A site consequence of femto's accordion-nav-dropdown-page-shift (femto tests/divergences/components-accordion.json at 7bcd5758), whose fixture body is not a grid."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-breadcrumb-shift",
+    "kind": "style",
+    "selector": "article nav[aria-label=breadcrumb] ul li:not(:last-child)",
+    "pseudo": "::after",
+    "property": "/^(top|bottom|inset-block-start|inset-block-end)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "routes": [
+        "/docs/nav"
+      ],
+      "widths": [
+        600
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of accordion-nav-dropdown-page-shift: the breadcrumb dividers are absolutely positioned at their static position, so when the header above them gets shorter, their resolved vertical insets change by the same amount.",
+    "notes": "Seeded from femto's tests/divergences/components-accordion.json at 7bcd5758 (accordion-nav-dropdown-breadcrumb-shift; femto category natural-fix, module components/accordion). Site: the dividers of the breadcrumb examples on /docs/nav, below the header, which is 8.5px shorter at 600 (femto-accordion-nav-dropdown-page-shift); their resolved top and bottom insets move by that amount."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-header-list-insets",
+    "kind": "style",
+    "selector": "body > header nav details.dropdown > summary:not([role]) + ul",
+    "pseudo": "",
+    "property": "/^(left|bottom|inset-inline-end|inset-block-end)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "widths": [
+        600
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-accordion-summary-flow-root in the site's squeezed header nav, as femto's accordion-nav-dropdown-list-width. Chrome and Firefox hold the list of a closed dropdown in a ::details-content box that is an independent formatting context and the list's containing block. The chevron that 2.1.1 let escape below the wrapped select-like version summary narrowed that box; contained in the summary, it no longer reaches it, so the box is as wide as the dropdown. The version list is wider than that box (min-width: fit-content) and is a ul dir=rtl placed with right: 0, so it keeps its width and its resolved left inset, its inline end, moves instead. Open, the list sits below the dropdown, which is shorter with the chevron contained (femto-accordion-nav-dropdown-header-details), so its resolved bottom inset changes too. The list is not rendered while closed.",
+    "notes": "A site translation of femto's accordion-nav-dropdown-list-width (femto tests/divergences/components-accordion.json at 7bcd5758, femto category natural-fix), which registers the list's width, items and links: in kitchen-sink.html the list is narrower than its box and shrinks with it. The site's version list keeps its width, items and links (no record for them in p2-fix-registry-r1-probe-nosite), so femto's entry is not seeded. At 600 the list's left and inset-inline-end go from -51.19px to -20.44px in Chrome (-51.22px to -20.47px in Firefox) and, open under the header-version-item state on /docs/button, its bottom and inset-block-end from -39.25px to -55.13px in Chrome; femto-nav-dropdown-open-list-placement also matches Firefox's open list there."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-item-select-example",
+    "kind": "style",
+    "selector": "article[aria-label=\"Dropdowns as selects\"] :is(.grid, details.dropdown:has(> summary:not([role])))",
+    "pseudo": "",
+    "property": "/^(height|block-size|grid-template-rows|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "routes": [
+        "/docs/forms/select"
+      ],
+      "widths": [
+        375
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-accordion-summary-flow-root, as femto-accordion-nav-dropdown-item outside a nav: the select-like dropdown of the 'Dropdowns as selects' example sits in a .grid, and at 375 its summary label wraps; 2.1.1's list-item summary let the floated chevron hang below it, which made the dropdown and its grid row taller, and femto's flow-root summary contains it, so the dropdown goes from 61px to 50px tall in Chrome and the .grid's row with it.",
+    "notes": "A site translation of femto's accordion-nav-dropdown-item (femto tests/divergences/components-accordion.json at 7bcd5758, femto category natural-fix), whose femto id the header case keeps. Seen only at 375 (p2-registry-probe-1, every width)."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-list-width-select-example",
+    "kind": "style",
+    "selector": "article[aria-label=\"Dropdowns as selects\"] details.dropdown > summary:not([role]) + ul, article[aria-label=\"Dropdowns as selects\"] details.dropdown > summary:not([role]) + ul li",
+    "pseudo": "",
+    "property": "/^(width|inline-size|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "routes": [
+        "/docs/forms/select"
+      ],
+      "widths": [
+        375
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-accordion-summary-flow-root, as femto's accordion-nav-dropdown-list-width outside a nav: the closed list of the same dropdown is held in the details' content box, which 2.1.1's escaped chevron narrowed; with the chevron contained the list and its rows are as wide as the dropdown (274px to 311px at 375 in Chrome).",
+    "notes": "A site translation of femto's accordion-nav-dropdown-list-width (femto tests/divergences/components-accordion.json at 7bcd5758), whose femto id is not seeded: the header's version list keeps its width (femto-accordion-nav-dropdown-header-list-insets). Its rows are lone labels, whose own box femto-dropdown-lone-label-fills-row covers."
+  },
+  {
+    "id": "femto-accordion-nav-dropdown-page-shift-select-example",
+    "kind": "style",
+    "selector": ":is(html, body, main, [role=document], section):has(article[aria-label=\"Dropdowns as selects\"]), article[aria-label=\"Dropdowns as selects\"]",
+    "pseudo": "",
+    "property": "/^(height|block-size|grid-template-rows|transform-origin|perspective-origin)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "routes": [
+        "/docs/forms/select"
+      ],
+      "widths": [
+        375
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Consequence of femto-accordion-nav-dropdown-item-select-example: the example's article and the section, document, main, body and html that hold it get shorter by the same 11px at 375 (Chrome); body and main are grids, so their grid-template-rows follow.",
+    "notes": "A site translation of femto's accordion-nav-dropdown-page-shift (femto tests/divergences/components-accordion.json at 7bcd5758)."
+  }
+]

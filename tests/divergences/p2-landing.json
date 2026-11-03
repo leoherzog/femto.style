@@ -1,0 +1,11 @@
+[
+  {
+    "id": "p2-landing-stats-color",
+    "kind": "surface-missing",
+    "token": "--femto-stats-color",
+    "where": {"comparisons": ["styles"]},
+    "category": "dropped-route",
+    "reason": "Decision 5 drops the homepage Stats (p1-landing-stats). The oracle's landings.css declares --femto-stats-color in its three color-scheme blocks for the Stats counts (homepage/_stats.scss, p.count) and for nothing else; landing.css drops it with the Stats rules, so nothing is left that pointed at the Stats.",
+    "notes": "No computed style changes: the Stats markup is gone since Phase 1, so the token and its rules matched nothing on side A either. A surface entry takes no selector or route; the oracle's landings.css loads only on /, /examples and /demo."
+  }
+]

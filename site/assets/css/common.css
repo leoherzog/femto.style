@@ -1,9 +1,513 @@
+/* The site's shared styles, on every page after femto and its responsive-spacings option: the
+   site's own tokens for each color scheme, the header, document and footer layout, and the skip
+   link, logo, theme toggle, chapter label and component card. Code blocks are in code.css. */
+
+/* Landmarks and sections get 4 times --femto-spacing above and below from 1536px up, past the
+   2.25 that responsive-spacings.css gives them */
+@media (min-width: 1536px) {
+  body > header,
+  body > main,
+  body > footer,
+  section {
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 4);
+  }
+}
+
+/**
+ * Color schemes
+ */
+
+/* Light color scheme (Default)
+   Can be forced with data-theme="light" */
+[data-theme=light],
+:root:not([data-theme=dark]),
+:host:not([data-theme=dark]) {
+  /* Header */
+  --femto-header-background: rgba(255, 255, 255, 0.8);
+  --femto-header-border-color: transparent;
+  /* Logo */
+  --femto-logo-wordmark: #2a3140;
+  --femto-logo-small-sparkles: #ffbf00;
+  --femto-logo-big-sparkle: #ff9500;
+  /* Current version checkmark */
+  --femto-current-version-checkmark: rgb(28.5, 105.5, 84);
+  /* Card for components */
+  --femto-card-component-outline-width: 0;
+  --femto-card-component-outline-color: transparent;
+  /* Code */
+  --femto-code-color: #5c6370;
+  --femto-code-tag: #8b4f00;
+  --femto-code-attr: rgb(152, 45.75, 121);
+  --femto-code-value: #2e685b;
+  --femto-code-comment: #7b8495;
+  --femto-code-copied: rgb(28.5, 105.5, 84);
+  /* Chapter */
+  --femto-chapter-color: var(--femto-code-tag);
+}
+
+/* Footer */
+[data-theme=light] footer,
+:root:not([data-theme=dark]) footer,
+:host:not([data-theme=dark]) footer {
+  --femto-logo-small-sparkles: #cfd5e2;
+  --femto-logo-big-sparkle: #b0b9d0;
+}
+
+/* Dark color scheme (Auto)
+   Automatically enabled if user has Dark mode enabled */
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]),
+  :host:not([data-theme]) {
+    /* Header */
+    --femto-header-background: rgba(19, 22.5, 30.5, 0.9);
+    --femto-header-border-color: rgba(32, 38, 50, 0.9);
+    /* Logo */
+    --femto-logo-wordmark: #fff;
+    --femto-logo-small-sparkles: #ff9500;
+    --femto-logo-big-sparkle: #ffbf00;
+    /* Current version checkmark */
+    --femto-current-version-checkmark: #62af9a;
+    /* Card for components */
+    --femto-card-component-outline-width: 2px;
+    --femto-card-component-outline-color: var(--femto-card-background-color);
+    /* Code */
+    --femto-code-color: #969eaf;
+    --femto-code-tag: rgb(186.75, 150.5, 43.75);
+    --femto-code-attr: rgb(199, 131.5, 183);
+    --femto-code-value: rgb(112.5, 163.5, 161.25);
+    --femto-code-comment: #6f7887;
+    --femto-code-copied: #62af9a;
+    /* Chapter */
+    --femto-chapter-color: var(--femto-code-tag);
+  }
+
+  /* Footer */
+  :root:not([data-theme]) footer,
+  :host:not([data-theme]) footer {
+    --femto-logo-small-sparkles: #5d6b89;
+    --femto-logo-big-sparkle: #8191b5;
+  }
+}
+
+/* Dark color scheme (Forced)
+   Enabled if forced with data-theme="dark" */
+[data-theme=dark] {
+  /* Header */
+  --femto-header-background: rgba(19, 22.5, 30.5, 0.9);
+  --femto-header-border-color: rgba(32, 38, 50, 0.9);
+  /* Logo */
+  --femto-logo-wordmark: #fff;
+  --femto-logo-small-sparkles: #ff9500;
+  --femto-logo-big-sparkle: #ffbf00;
+  /* Current version checkmark */
+  --femto-current-version-checkmark: #62af9a;
+  /* Card for components */
+  --femto-card-component-outline-width: 2px;
+  --femto-card-component-outline-color: var(--femto-card-background-color);
+  /* Code */
+  --femto-code-color: #969eaf;
+  --femto-code-tag: rgb(186.75, 150.5, 43.75);
+  --femto-code-attr: rgb(199, 131.5, 183);
+  --femto-code-value: rgb(112.5, 163.5, 161.25);
+  --femto-code-comment: #6f7887;
+  --femto-code-copied: #62af9a;
+  /* Chapter */
+  --femto-chapter-color: var(--femto-code-tag);
+}
+
+/* Footer */
+[data-theme=dark] footer {
+  --femto-logo-small-sparkles: #5d6b89;
+  --femto-logo-big-sparkle: #8191b5;
+}
+
+/**
+ * Header
+ */
+html {
+  --femto-header-height: calc(4.5rem + var(--femto-border-width));
+}
+
+body > header {
+  z-index: 4;
+  position: relative;
+  padding: 0.5rem 0;
+  border-bottom: var(--femto-border-width) solid transparent;
+}
+
+body > header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+body > header .container > a {
+  margin: calc(var(--femto-spacing) * -0.125) calc(var(--femto-spacing) * -0.25);
+  padding: calc(var(--femto-spacing) * 0.125) calc(var(--femto-spacing) * 0.25);
+  border-radius: var(--femto-border-radius);
+}
+
+body > header .container > a svg.femto-logo {
+  transform: translateY(-22%);
+}
+
+body > header .container nav svg {
+  display: inline-block;
+  width: auto;
+  height: 1.125rem;
+  transform: translateY(-0.0625rem);
+}
+
+/* Hide docs link on mobile */
+@media (max-width: 575px) {
+  body > header .container nav ul li.hide-before-sm {
+    display: none;
+  }
+}
+
+/* Icons separator */
+@media (min-width: 576px) {
+  body > header .container nav ul.icons::before {
+    display: block;
+    height: 1.125rem;
+    margin-inline: var(--femto-nav-element-spacing-horizontal);
+    border-left: var(--femto-border-width) solid var(--femto-form-element-border-color);
+    content: "";
+  }
+}
+
+/* Dropdown menu */
+body > header .container nav details[class=dropdown] {
+  display: inline-block;
+  margin: calc(var(--femto-nav-element-spacing-vertical) * -1) calc(var(--femto-nav-element-spacing-horizontal) * -1);
+}
+
+body > header .container nav details[class=dropdown]:not(:focus-within) summary,
+body > header .container nav details[class=dropdown] summary:not(:hover, :focus, :focus-visible) {
+  border-color: transparent;
+  background-color: transparent;
+}
+
+body > header .container nav details[class=dropdown] summary:hover,
+body > header .container nav details[class=dropdown] summary:focus,
+body > header .container nav details[class=dropdown] summary:focus-visible {
+  color: var(--femto-secondary-hover);
+}
+
+body > header .container nav details[class=dropdown] summary:focus {
+  border: var(--femto-border-width) solid var(--femto-dropdown-border-color);
+  box-shadow: none;
+}
+
+body > header .container nav details[class=dropdown] summary:focus-visible {
+  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
+}
+
+body > header .container nav details[class=dropdown] summary::after {
+  transform: rotate(0) translate(0.2rem) translateY(0.0625rem);
+}
+
+body > header .container nav details[class=dropdown] ul li a svg {
+  stroke: var(--femto-current-version-checkmark);
+  margin-left: 0.25rem;
+  transform: scale(0.75);
+}
+
+/* Fixed header: the docs header, from 1024px up (site.js adds is-fixed once the page scrolls) */
+@media (min-width: 1024px) {
+  body > header.is-fixed-above-lg {
+    z-index: 2;
+    position: sticky;
+    top: 0;
+    -webkit-backdrop-filter: blur(1rem);
+    backdrop-filter: blur(1rem);
+    background-color: var(--femto-header-background);
+    transition: border-top-color 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+  }
+
+  body > header.is-fixed-above-lg.is-fixed {
+    border-bottom-color: var(--femto-header-border-color);
+    box-shadow: var(--femto-card-box-shadow);
+  }
+}
+
+/**
+ * Document
+ * The oracle's scroll-behavior: smooth on html is gone: Decision 10 gives it to a class that the
+ * docs page's script sets during a nav click (Phase 3).
+ */
+html {
+  overflow-x: hidden;
+}
+
+/* Header, main and footer. The oracle's rows were auto auto 1fr auto, with the maintenance banner
+   first, which the site drops (Decision 5): main takes the free space again, not the footer */
+html body {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
+  min-height: 100vh;
+}
+
+/**
+ * Footer
+ */
+body > footer .container section:first-of-type {
+  display: grid;
+  grid-template-areas: "logo" "links" "resources" "built";
+  column-gap: calc(var(--femto-spacing) * 2);
+  row-gap: calc(var(--femto-spacing) * 2);
+  justify-content: stretch;
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  body > footer .container section:first-of-type {
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "logo links" "built built" "resources resources";
+    row-gap: calc(var(--femto-spacing) * 2);
+    justify-content: space-around;
+  }
+}
+
+@media (min-width: 1024px) {
+  body > footer .container section:first-of-type {
+    grid-template-columns: 1fr 2fr;
+    grid-template-areas: "logo links" "built links" "resources links";
+    row-gap: var(--femto-spacing);
+  }
+}
+
+@media (min-width: 1280px) {
+  body > footer .container section:first-of-type {
+    column-gap: calc(var(--femto-spacing) * 4);
+  }
+}
+
+/* Logo */
+body > footer .container section:first-of-type svg.femto-icon {
+  grid-area: logo;
+}
+
+/* Links */
+body > footer .container section:first-of-type nav.links {
+  --femto-nav-element-spacing-vertical: 0.125rem;
+  --femto-nav-link-spacing-vertical: 0.125rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: calc(var(--femto-spacing) * 3);
+  row-gap: calc(var(--femto-spacing) * 2);
+  grid-area: links;
+  align-items: start;
+  width: fit-content;
+}
+
+@media (min-width: 576px) {
+  body > footer .container section:first-of-type nav.links {
+    column-gap: calc(var(--femto-spacing) * 6);
+  }
+}
+
+@media (min-width: 768px) {
+  body > footer .container section:first-of-type nav.links {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    column-gap: calc(var(--femto-spacing) * 2);
+    justify-content: flex-end;
+    width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  body > footer .container section:first-of-type nav.links {
+    margin-left: auto;
+  }
+}
+
+@media (min-width: 1280px) {
+  body > footer .container section:first-of-type nav.links {
+    column-gap: calc(var(--femto-spacing) * 4);
+    margin-left: auto;
+  }
+}
+
+body > footer .container section:first-of-type nav.links ul {
+  display: grid;
+  margin-inline: calc(var(--femto-nav-element-spacing-horizontal) * -1);
+}
+
+body > footer .container section:first-of-type nav.links ul li {
+  display: block;
+}
+
+body > footer .container section:first-of-type nav.links ul li strong a {
+  color: currentColor;
+}
+
+/* Build info */
+body > footer .container section:first-of-type p.build-info {
+  grid-area: built;
+  margin-bottom: 0;
+  color: var(--femto-muted-color);
+  text-wrap: balance;
+}
+
+/* Resources */
+body > footer .container section:first-of-type ul.resources {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: calc(var(--femto-spacing) / 2);
+  grid-area: resources;
+  width: fit-content;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+body > footer .container section:first-of-type ul.resources li {
+  margin: 0;
+  list-style: none;
+}
+
+body > footer .container section:first-of-type ul.resources li svg {
+  display: inline-block;
+  width: auto;
+  height: 1rem;
+}
+
+body > footer .container section:first-of-type ul.resources li svg.icon-npm {
+  transform: scale(1.5);
+  transform-origin: left;
+}
+
+body > footer .container section:last-of-type {
+  margin-block: calc(var(--femto-spacing) * 2);
+  padding-top: calc(var(--femto-spacing) * 2);
+  border-top: var(--femto-border-width) solid var(--femto-muted-border-color);
+  font-size: 12px;
+}
+
+body > footer .container section:last-of-type p {
+  margin-bottom: 0;
+  color: var(--femto-muted-color);
+}
+
+@media (min-width: 576px) {
+  body > footer .container section:last-of-type p {
+    display: inline;
+  }
+
+  body > footer .container section:last-of-type p:not(:first-of-type) {
+    margin-inline-start: calc(var(--femto-spacing) / 2);
+  }
+}
+
+body > footer .container section:last-of-type p code {
+  padding: 0;
+  background-color: transparent;
+  font-size: 1em;
+}
+
+/**
+ * Skip to content
+ */
+.skip-to-content {
+  z-index: 999;
+  position: absolute;
+  top: calc(var(--femto-spacing) * 0.75);
+  left: calc(var(--femto-spacing) * 0.75);
+  transform: translateY(-1000%);
+  --femto-box-shadow: var(--femto-card-box-shadow);
+  opacity: 0;
+}
+
+.skip-to-content:focus {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/**
+ * Logo
+ */
+svg.femto-logo,
+svg.femto-icon {
+  width: auto;
+  height: 2.25rem;
+}
+
+/* The three sparkles of an animated logo pop in one after the other */
+svg.femto-logo.animated path:first-of-type,
+svg.femto-logo.animated path:nth-of-type(2),
+svg.femto-logo.animated path:nth-of-type(3),
+svg.femto-icon.animated path:first-of-type,
+svg.femto-icon.animated path:nth-of-type(2),
+svg.femto-icon.animated path:nth-of-type(3) {
+  animation-duration: var(--animate-duration);
+  animation-timing-function: ease-in-out;
+  animation-delay: var(--animate-delay);
+  animation-fill-mode: both;
+  animation-name: sparkle;
+}
+
+svg.femto-logo.animated path:nth-of-type(3),
+svg.femto-icon.animated path:nth-of-type(3) {
+  --animate-duration: 0.5s;
+  --animate-delay: 0s;
+  transform-origin: 1825.3px 293.1px;
+}
+
+svg.femto-logo.animated path:first-of-type,
+svg.femto-icon.animated path:first-of-type {
+  --animate-duration: 0.75s;
+  --animate-delay: 0.125s;
+  transform-origin: 2034.8px 200px;
+}
+
+svg.femto-logo.animated path:nth-of-type(2),
+svg.femto-icon.animated path:nth-of-type(2) {
+  --animate-duration: 0.5s;
+  --animate-delay: 0.375s;
+  transform-origin: 1855.2px 84.6px;
+}
+
+@keyframes sparkle {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  20% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+
+  45% {
+    transform: scale(1);
+  }
+
+  55% {
+    transform: scale(1.25);
+    opacity: 0.75;
+  }
+
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/**
+ * Theme toggle
+ */
+
 /* Theme toggle icon (Decision 16): a sun emoji while the page is light, a moon while it is dark
    (site.js and docs.js add "moon"). The glyph is transparent and its shadow is drawn in the
    element's text color, so the emoji shows as a one-color silhouette that follows the link's and
    the button's hover colors through --femto-color. The box is the oracle's SVG icon box (1.125rem
    in the header, 1.25rem on /docs/color-schemes, vertical-align: middle), and the glyph is drawn
-   out of flow over it, so nothing around the icon moves. */
+   out of flow over it, so nothing around the icon moves. It replaces the oracle's animated
+   toggles.dev SVG, and that SVG's rules with it. */
 .icon-theme-toggle {
   display: inline-block;
   position: relative;
@@ -34,4 +538,25 @@
   width: 1.25rem;
   height: 1.25rem;
   margin-right: calc(var(--femto-spacing) * 0.5);
+}
+
+/**
+ * Chapter: the category label in a docs page's hgroup, above its title
+ */
+.chapter {
+  color: var(--femto-chapter-color);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.0625em;
+  text-transform: uppercase;
+}
+
+/**
+ * Card component: the card around a live example
+ */
+article.component {
+  outline-color: var(--femto-card-component-outline-color);
+  outline-style: solid;
+  outline-width: var(--femto-card-component-outline-width);
+  background-color: transparent;
 }

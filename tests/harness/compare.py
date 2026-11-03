@@ -1,5 +1,7 @@
 """One comparison cell: load side A's document, wait for it, check the environment, collect; the same
-for side B in a fresh iframe; diff in the page; screenshot both sides (never gating)."""
+for side B in a fresh iframe; diff in the page; screenshot both sides (never gating). In the styles
+mode the collect also reads the tokens, and each side replays its interactive states after its
+collect (harness/styles.py)."""
 import io
 import re
 import time
@@ -26,7 +28,7 @@ def site_origin(url):
 
 def new_result(cap):
     return {"total": 0, "unregisteredTotal": 0, "unregistered": [], "registered": {}, "samples": {}, "counts": {},
-            "_cap": cap}
+            "inheritedTotal": 0, "inherited": {}, "_cap": cap}
 
 
 def merge(total, part):
@@ -39,6 +41,10 @@ def merge(total, part):
         total["unregistered"].extend(part.get("unregistered", [])[:room])
     for k, n in part.get("registered", {}).items():
         total["registered"][k] = total["registered"].get(k, 0) + n
+    # records folded into a registered parent's record (differ.js inheritedFrom)
+    total["inheritedTotal"] += part.get("inheritedTotal", 0)
+    for k, n in part.get("inherited", {}).items():
+        total["inherited"][k] = total["inherited"].get(k, 0) + n
     for k, s in part.get("samples", {}).items():
         cur = total["samples"].setdefault(k, [])
         cur.extend(s[: max(0, 2 - len(cur))])
@@ -186,10 +192,14 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
         out["errors"].append(f"rig: {e}")
         return _finish(out, res, t0, "error")
 
+    styles = getattr(opts, "styles", None)
     conf = sess.js("configure", {"entries": registry.for_cell(cell), "masks": opts.masks,
                                  "maxRecords": opts.max_records, "pseudos": sess.pseudos,
                                  "blobUuid": bool(getattr(opts, "blob_uuid", True)),
-                                 "breadth": registry.limits()})
+                                 "minified": bool(getattr(opts, "minified", True)),
+                                 "breadth": registry.limits(),
+                                 **(styles.configure_args() if styles else {})})
+    targets = styles.states.for_cell(cell) if styles and styles.states else []
     out["errors"] += conf.get("errors", [])
     opts.value_rules = conf.get("valueRules")
     storage = matrix.storage_for(theme, opts.conf)
@@ -247,6 +257,8 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
                 "content_type": ld.get("contentType"),
                 "freeze": {k: col.get(k) for k in ("freezeBefore", "freezeTouched", "freezeAfter")},
             }
+            if col.get("tokens"):
+                out["sides"][side]["tokens"] = col["tokens"]
             same_origin_loads(out, side, tgt, col.get("requests"))
             # An animation that starts while the styles are read means a value may have been read
             # mid-transition: the cell cannot be trusted. One that animates only longhands a mask
@@ -268,6 +280,9 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
                     # A sibling list too long for the LCS table was paired by position: every pair is
                     # still compared, but the records may name neighbours (reported, not an error).
                     out["align_fallbacks"] = d["alignFallbacks"]
+            if targets:
+                from .styles import replay
+                replay(sess, side, cell, targets, registry, out, res, merge)
             if opts.shots:
                 sess.ajs("prepShot")
                 pngs[side] = sess.frame_png()

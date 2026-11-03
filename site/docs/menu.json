@@ -1,5 +1,5 @@
 {
-  "about": "The docs sections in the oracle's menu order (PLAN.md File tree; ids from docs/research/02 §1). Each section's content is site/docs/sections/<id>.html. title: the section's heading (its h1); label: its menu link (HTML); description: the oracle's head description. Used only until Phase 3 (build.mjs header comment, step 3): route (the old route path), routeTitle (that route's <title> before \" • femto\" when it is not the title), toc: false (the route's <main> has no has-table-of-contents class), styles (the route's stylesheets after main.css and docs.css, in the oracle's order), and variants (the version picker's color routes, each with its own head values, stylesheets and section file site/docs/sections/<id>/<color>.html).",
+  "about": "The docs sections in the oracle's menu order (PLAN.md File tree; ids from docs/research/02 §1). Each section's content is site/docs/sections/<id>.html. title: the section's heading (its h1); label: its menu link (HTML); description: the oracle's head description. Used only until Phase 3 (build.mjs header comment, step 3): route (the old route path), routeTitle (that route's <title> before \" • femto\" when it is not the title), toc: false (the route's <main> has no has-table-of-contents class), styles (the route's stylesheets after the docs stylesheets: femto's colors on /docs/colors and the version picker routes, then a femto theme on each color route), and variants (the version picker's color routes, each with its own head values, stylesheets and section file site/docs/sections/<id>/<color>.html).",
   "categories": [
     {
       "title": "Getting started",
@@ -19,7 +19,7 @@
           "description": "Easily select the ideal Pico CSS version variant to match your project's needs.",
           "route": "/docs/version-picker",
           "styles": [
-            "/assets/legacy/color-picker.css"
+            "/vendor/femto/dist/femto.colors.min.css"
           ],
           "variants": [
             {
@@ -27,8 +27,8 @@
               "routeTitle": "Minimal Amber theme",
               "description": "CSS code to customize femto's primary color to Amber with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/amber.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/amber.css"
               ]
             },
             {
@@ -36,8 +36,8 @@
               "routeTitle": "Minimal Blue theme",
               "description": "CSS code to customize femto's primary color to Blue with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/blue.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/blue.css"
               ]
             },
             {
@@ -45,8 +45,8 @@
               "routeTitle": "Minimal Cyan theme",
               "description": "CSS code to customize femto's primary color to Cyan with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/cyan.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/cyan.css"
               ]
             },
             {
@@ -54,8 +54,8 @@
               "routeTitle": "Minimal Fuchsia theme",
               "description": "CSS code to customize femto's primary color to Fuchsia with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/fuchsia.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/fuchsia.css"
               ]
             },
             {
@@ -63,8 +63,8 @@
               "routeTitle": "Minimal Green theme",
               "description": "CSS code to customize femto's primary color to Green with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/green.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/green.css"
               ]
             },
             {
@@ -72,8 +72,8 @@
               "routeTitle": "Minimal Grey theme",
               "description": "CSS code to customize femto's primary color to Grey with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/grey.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/grey.css"
               ]
             },
             {
@@ -81,8 +81,8 @@
               "routeTitle": "Minimal Indigo theme",
               "description": "CSS code to customize femto's primary color to Indigo with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/indigo.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/indigo.css"
               ]
             },
             {
@@ -90,8 +90,8 @@
               "routeTitle": "Minimal Jade theme",
               "description": "CSS code to customize femto's primary color to Jade with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/jade.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/jade.css"
               ]
             },
             {
@@ -99,8 +99,8 @@
               "routeTitle": "Minimal Lime theme",
               "description": "CSS code to customize femto's primary color to Lime with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/lime.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/lime.css"
               ]
             },
             {
@@ -108,8 +108,8 @@
               "routeTitle": "Minimal Orange theme",
               "description": "CSS code to customize femto's primary color to Orange with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/orange.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/orange.css"
               ]
             },
             {
@@ -117,8 +117,8 @@
               "routeTitle": "Minimal Pink theme",
               "description": "CSS code to customize femto's primary color to Pink with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/pink.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/pink.css"
               ]
             },
             {
@@ -126,8 +126,8 @@
               "routeTitle": "Minimal Pumpkin theme",
               "description": "CSS code to customize femto's primary color to Pumpkin with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/pumpkin.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/pumpkin.css"
               ]
             },
             {
@@ -135,8 +135,8 @@
               "routeTitle": "Minimal Purple theme",
               "description": "CSS code to customize femto's primary color to Purple with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/purple.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/purple.css"
               ]
             },
             {
@@ -144,8 +144,8 @@
               "routeTitle": "Minimal Red theme",
               "description": "CSS code to customize femto's primary color to Red with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/red.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/red.css"
               ]
             },
             {
@@ -153,8 +153,8 @@
               "routeTitle": "Minimal Sand theme",
               "description": "CSS code to customize femto's primary color to Sand with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/sand.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/sand.css"
               ]
             },
             {
@@ -162,8 +162,8 @@
               "routeTitle": "Minimal Slate theme",
               "description": "CSS code to customize femto's primary color to Slate with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/slate.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/slate.css"
               ]
             },
             {
@@ -171,8 +171,8 @@
               "routeTitle": "Minimal Violet theme",
               "description": "CSS code to customize femto's primary color to Violet with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/violet.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/violet.css"
               ]
             },
             {
@@ -180,8 +180,8 @@
               "routeTitle": "Minimal Yellow theme",
               "description": "CSS code to customize femto's primary color to Yellow with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/yellow.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/yellow.css"
               ]
             },
             {
@@ -189,8 +189,8 @@
               "routeTitle": "Minimal Zinc theme",
               "description": "CSS code to customize femto's primary color to Zinc with CSS variables.",
               "styles": [
-                "/assets/legacy/color-picker.css",
-                "/assets/legacy/custom-themes/zinc.css"
+                "/vendor/femto/dist/femto.colors.min.css",
+                "/vendor/femto/css/themes/zinc.css"
               ]
             }
           ]
@@ -221,10 +221,7 @@
           "title": "CSS variables",
           "label": "CSS Variables",
           "description": "Customize femto's design system with over 130 CSS variables to create a unique look and feel.",
-          "route": "/docs/css-variables",
-          "styles": [
-            "/assets/legacy/pacifico.css"
-          ]
+          "route": "/docs/css-variables"
         },
         {
           "id": "colors",
@@ -233,7 +230,7 @@
           "description": "femto comes with 380 manually crafted colors to help you personalize your brand design system.",
           "route": "/docs/colors",
           "styles": [
-            "/assets/legacy/color-utilities.css"
+            "/vendor/femto/dist/femto.colors.min.css"
           ]
         }
       ]

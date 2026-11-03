@@ -10,7 +10,7 @@
 //   attr-value that names the file, the template also gains or loses the tokens of class="pico", and
 //   the Sass sample is written as Prism's scss tokens, flattened as the build flattens them.
 // - A theme swatch (article.color-picker > header a) switches the color in place, as the oracle's
-//   client-side route change did: it loads the color's custom-themes stylesheet, then renders the
+//   client-side route change did: it loads the color's femto theme stylesheet, then renders the
 //   color into the page (every swatch's aria-label, the check icon and aria-current on the current
 //   swatch, the example's heading and sentence, the code samples, the links to the page itself,
 //   aria-current="page" on the header's and footer's links to the color's path, which Link.jsx set
@@ -257,10 +257,10 @@ function picker(article) {
     }
   }
 
-  // The theme stylesheet: custom-themes/<color>.css after color-picker.css, none for azure.
-  const pickerSheet = document.querySelector("link[rel=stylesheet][href$='/color-picker.css']");
-  const themes = `${pickerSheet?.getAttribute("href").replace(/color-picker\.css$/, "")}custom-themes/`;
-  let sheet = document.querySelector("link[rel=stylesheet][href*='/custom-themes/']");
+  // The theme stylesheet: femto's css/themes/<color>.css after femto.colors.min.css, none for azure.
+  const pickerSheet = document.querySelector("link[rel=stylesheet][href$='/femto.colors.min.css']");
+  const themes = `${pickerSheet?.getAttribute("href").replace(/dist\/femto\.colors\.min\.css$/, "")}css/themes/`;
+  let sheet = document.querySelector("link[rel=stylesheet][href*='/css/themes/']");
   let swaps = 0;
   let target = color; // the color the newest swap renders
 

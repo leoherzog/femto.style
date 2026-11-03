@@ -8,6 +8,7 @@ import signal
 import subprocess
 import sys
 import time
+from pathlib import Path
 from types import SimpleNamespace
 
 from . import matrix
@@ -30,11 +31,15 @@ MODES_HELP = """modes:
   registry  validate tests/divergences/ and list the entries.
   oracle    build, serve and capture the oracle (tests/harness/oracle.py main; its own options).
   static    the static checks (tests/static_checks.py main; its own options).
-  styles    Phase 2 (not implemented yet): one document, two stylesheet lists, femto's native mode.
+  styles    the Phase 2 gate, femto's native mode on this site: --a (default static-multipage, the
+            tag built by the harness) against --b (default dist), everything pages compares plus
+            femto's tokens (surface, resolution, raw text) and interactive states replayed with
+            real input (tests/harness/states.json, or --states FILE). Fast axes; --full runs the
+            PLAN.md matrix. The same target on both sides is a self comparison.
   behavior  scripted checks of every widget (tests/behavior/; harness/behavior.py) against one target:
             --target oracle, dist, dist:<path> or a base URL; --groups, --checks, --browsers, --list.
 
-Add --plan to self, pages or fast to print the planned cells per browser without starting a
+Add --plan to self, pages, fast or styles to print the planned cells per browser without starting a
 server or a browser.
 """
 
@@ -67,6 +72,12 @@ def add_common(p):
     p.add_argument("--blob-uuid-placeholder", dest="blob_uuid_placeholder", action="store_true",
                    help="the default since 2026-10-30; still accepted so older commands run")
     p.set_defaults(blob_uuid_placeholder=True)
+    p.add_argument("--exact-minified", dest="minified", action="store_false",
+                   help="compare the oracle minifier's spellings exactly (by default a token's raw text compares "
+                        "without leading zeros or the space after a comma, outline-width only under an outline-style "
+                        "other than none, and 0px as 0%% in background positions: the owner's decision of 2026-11-02, "
+                        "tests/README.md Diff rule)")
+    p.set_defaults(minified=True)
 
 
 def add_sides(p, required):
@@ -108,7 +119,15 @@ def parse(argv):
     p.add_argument("--run-id")
 
     sub.add_parser("registry", help="validate the divergence registry")
-    sub.add_parser("styles", help="Phase 2: not implemented yet")
+    p = sub.add_parser("styles", help="the Phase 2 gate: tokens and interactive states on top of pages")
+    add_common(p)
+    p.add_argument("--a", default="static-multipage", help="side A: a named target or a base URL (default static-multipage)")
+    p.add_argument("--b", default="dist", help="side B: a named target or a base URL (default dist)")
+    p.add_argument("--ready-a", help="readiness hook for side A (oracle, static, none; default: the target's)")
+    p.add_argument("--ready-b", help="readiness hook for side B")
+    p.add_argument("--full", action="store_true", help="the PLAN.md matrix instead of the fast axes")
+    p.add_argument("--states", help="state targets file (default tests/harness/states.json)")
+    p.add_argument("--no-states", action="store_true", help="compare tokens but replay no interactive states")
     from .behavior import add_parser as add_behavior_parser
     add_behavior_parser(sub)
     return ap.parse_args(argv)
@@ -147,15 +166,45 @@ def make_opts(args, mode, full):
     run_id = getattr(args, "run_id", None) or f"{time.strftime('%Y%m%d-%H%M%S')}-{mode}-{os.getpid()}"
     return SimpleNamespace(run_id=run_id, workers=workers, shots=not getattr(args, "no_shots", False),
                            max_records=getattr(args, "max_records", 300), masks=load_masks(), conf=matrix.load_config(),
-                           blob_uuid=bool(getattr(args, "blob_uuid_placeholder", True)))
+                           blob_uuid=bool(getattr(args, "blob_uuid_placeholder", True)),
+                           minified=bool(getattr(args, "minified", True)),
+                           styles=getattr(args, "styles_mode", None))
+
+
+def styles_describe(st):
+    """result.json's record of the styles mode's settings (None in the other modes)."""
+    if st is None:
+        return None
+    from . import styles
+    return {"token_prefix": styles.TOKEN_PREFIX, "probe_properties": styles.PROBE_PROPS, "anchors": styles.ANCHORS,
+            "states": st.states.describe() if st.states else None}
+
+
+def styles_mode(args, caps):
+    """The styles mode's settings (harness/styles.py): token configuration and the states file."""
+    from . import styles
+    states = None
+    if getattr(args, "no_states", False):
+        caps.append("--no-states: no interactive state is replayed (tokens and everything pages compares still are)")
+    else:
+        states = styles.States(Path(args.states).resolve() if args.states else styles.STATES)
+        if args.states:
+            caps.append(f"--states {args.states}: state targets from that file instead of tests/harness/states.json")
+    return SimpleNamespace(states=states, configure_args=styles.configure_args)
 
 
 def plan(args, mode, caps):
-    """(cells, sides, comparison, full) for self, pages and fast. Starts nothing."""
+    """(cells, sides, comparison, full) for self, pages, fast and styles. Starts nothing."""
     conf = matrix.load_config()
     comparison = "self" if mode == "self" or (mode == "fast" and getattr(args, "self", False)) else "pages"
     full = bool(getattr(args, "full", False))
-    if comparison == "self":
+    if mode == "styles":
+        # The same target on both sides is the mode's self check: no registry entry but skipped checks applies.
+        comparison = "self" if args.a == args.b else "styles"
+        sides = {"a": Side(args.a, args.ready_a), "b": Side(args.b, args.ready_b)}
+        for s in sides.values():
+            caps.extend(s.caps())
+    elif comparison == "self":
         if mode == "fast" and (args.a or args.b):
             raise SystemExit("fast takes --self or --a and --b, not both")
         sides = {"a": Side("oracle"), "b": Side("oracle")}
@@ -207,6 +256,9 @@ def plan(args, mode, caps):
     if not getattr(args, "blob_uuid_placeholder", True):
         caps.append("--exact-blob-urls: blob: URLs compare exactly, so every /docs/colors cell reports its "
                     "Download link's href")
+    if not getattr(args, "minified", True):
+        caps.append("--exact-minified: the oracle minifier's spellings compare exactly, so a styles comparison "
+                    "against a femto build reports them")
     return cells, sides, comparison, full
 
 
@@ -251,9 +303,14 @@ def run_compare(args, mode):
     from .runner import Pool, chunks
     from .targets import start
     caps = []
-    from pathlib import Path
     try:
         cells, sides, comparison, full = plan(args, mode, caps)
+        if mode == "styles":
+            from .styles import StatesError
+            try:
+                args.styles_mode = styles_mode(args, caps)
+            except StatesError as e:
+                raise TargetError(f"states file: {e}") from None
         if args.plan:
             return print_plan(cells, caps, sides, comparison, full)
         for s in sides.values():
@@ -343,6 +400,7 @@ def run_compare(args, mode):
            "sides": {k: s.describe() for k, s in sides.items()}, "masks": opts.masks,
            "server_chunks": {"cells_per_server_life": size, "chunks": [len(p) for p in parts]},
            "value_rules": getattr(opts, "value_rules", None),
+           "styles": styles_describe(opts.styles),
            "planned": {b: {k: v for k, v in d.items()} for b, d in matrix.counts(cells).items()}}
     results.sort(key=lambda r: (r["browser"], r["route"], r["width"], r["scheme"]))
     result = build_result(run, results, registry, pool_errors, rigs, caps)
@@ -400,9 +458,6 @@ def main(argv=None):
     args = parse(argv)
     if args.mode == "registry":
         return run_registry()
-    if args.mode == "styles":
-        print("styles: not implemented yet (Phase 2 adds it; see tests/README.md, Modes)", file=sys.stderr)
-        return 2
     if args.mode == "behavior":
         from .behavior import run_behavior
         return run_behavior(args)

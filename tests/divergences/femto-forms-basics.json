@@ -1,0 +1,19 @@
+[
+  {
+    "id": "femto-fieldset-min-width-auto",
+    "kind": "style",
+    "selector": "fieldset",
+    "pseudo": "",
+    "property": "/^min-(width|inline-size)$/",
+    "a": "min-content",
+    "b": "/^(0px|auto)$/",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Browsers give <fieldset> min-width: min-content, and 2.1.1 kept it, so a fieldset in a narrow column or container grew past it to fit its widest content: a date or time field, a long word, a <pre> or a table. Every 100%-wide field inside stretched with it, and a wide one made the page scroll sideways. femto sets min-width: auto on fieldset, which sizes it like a div: no minimum in normal flow (computed 0px) and its content minimum as a flex or grid item (computed auto). Wide content now overflows the fieldset as it would a div, and scrolls inside .overflow-auto. Where the content fits, nothing moves; only the computed min-width and min-inline-size change.",
+    "notes": "Seeded from femto's tests/divergences/forms-basics.json at 7bcd5758 (fieldset-min-width-auto; femto category natural-fix, module forms/basics). Site: every fieldset, on the routes that have one (forms, checkboxes, radios, switch, group, color schemes, the version picker and its color routes); femto lists the pages that have one, so the scope is the selector."
+  }
+]

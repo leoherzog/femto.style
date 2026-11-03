@@ -13,6 +13,15 @@ def _short(v, n=80):
 
 def fmt_rec(r):
     k = r["kind"]
+    if r.get("state"):
+        # A record found under a replayed interactive state (the styles mode): the same kinds, tagged.
+        return f"[{r['state']}] " + fmt_rec({x: v for x, v in r.items() if x != "state"})
+    if k == "token":
+        return f"token {r['token']} via {r['prop']} at {r['label']}: {_short(r['a'])} -> {_short(r['b'])}  @ {r['path']}"
+    if k == "token-raw":
+        return f"token-raw {r['token']} at {r['label']}: {_short(r['a'])} -> {_short(r['b'])}  @ {r['path']}"
+    if k in ("surface-missing", "surface-added"):
+        return f"{k} {r['token']}: declared on side {'A' if k == 'surface-missing' else 'B'} only"
     if k == "style":
         ps = r.get("pseudo") or ""
         return f"style {r['label']}{ps} {r['prop']}: {_short(r['a'])} -> {_short(r['b'])}  @ {r['path']}"
@@ -44,6 +53,7 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
     """Aggregate cell records into the run result."""
     unreg_cells, errors, skipped = [], [], collections.OrderedDict()
     registered = collections.Counter()
+    inherited = collections.Counter()  # records folded into a registered parent's record, by entry
     entry_cells = {}  # entry id -> [cells hit, most records in one cell, that cell]
     per_group = collections.OrderedDict()
     pixels = []
@@ -79,6 +89,7 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
             for i in ids:
                 registry.hits[i] = registry.hits.get(i, 0) + 1
         registered.update(res.get("registered", {}))
+        inherited.update(res.get("inherited", {}))
         for k, n in (res.get("registered") or {}).items():
             st = entry_cells.setdefault(k, [0, 0, None])
             st[0] += 1
@@ -120,6 +131,15 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
     kinds = collections.Counter()
     for c in cells:
         kinds.update((c.get("result") or {}).get("counts") or {})
+    # The styles mode: state replays per side, and the token names, anchors and probe groups per side.
+    styles = None
+    if any("states_a" in c or ((c.get("sides") or {}).get("a") or {}).get("tokens") for c in cells):
+        tok = [((c.get("sides") or {}).get(s) or {}).get("tokens") for c in cells for s in ("a", "b")]
+        tok = [t for t in tok if t]
+        styles = {"state_replays": {s: sum(c.get(f"states_{s}") or 0 for c in cells) for s in ("a", "b")},
+                  "cells_with_states": sum(1 for c in cells if c.get("states_a")),
+                  "token_documents": len(tok), "token_names_max": max((t["names"] for t in tok), default=0),
+                  "token_anchors": sum(t["anchors"] for t in tok), "token_ms": round(sum(t.get("ms") or 0 for t in tok))}
     return {
         **run,
         "finished": time.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -135,6 +155,9 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
             "unregistered": unregistered_total,
             "unregistered_cells": len(unreg_cells),
             "registered": sum(registered.values()),
+            # differ.js inheritedFrom: records of an inherited longhand that repeat a registered
+            # parent's record on its descendants, counted apart (tests/README.md, Divergence registry)
+            "inherited": sum((c.get("result") or {}).get("inheritedTotal", 0) for c in cells),
             "harness_errors": len(errors),
             "unregistered_skipped_checks": len(unregistered_skips),
             "pixel_diff_cells": len(pixels),
@@ -146,6 +169,7 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
             # (differ.js collectHead; tests/README.md, Collection)
             "head_repeat_documents": {s: sum(1 for c in cells if ((c.get("sides") or {}).get(s) or {}).get("head_repeats"))
                                       for s in ("a", "b")},
+            "styles": styles,
         },
         "cross_origin_loads": cross_loads,
         # loads from https://femto.style by a same_origin side: the live site, never failing, always listed
@@ -159,6 +183,7 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
         "harness_errors": errors,
         "skipped_checks": list(skipped.values()),
         "registered_by_entry": dict(registered),
+        "inherited_by_entry": dict(inherited),
         "registered_spread": {k: {"cells": v[0], "max_in_one_cell": v[1], "max_cell": v[2],
                                   "broad": v[1] >= BROAD_PER_CELL} for k, v in entry_cells.items()},
         "registered_samples": samples,
@@ -181,9 +206,19 @@ def summary(result, limit=40) -> str:
              "(" + ", ".join(f"{b} {n}" for b, n in t["cells_by_browser"].items()) + f"), {t['cells_run']} run, "
              f"{t['cells_skipped']} skipped, {t['elements_compared']} elements compared")
     L.append(f"differences {t['differences']}: unregistered {t['unregistered']} in {t['unregistered_cells']} cells, "
-             f"registered {t['registered']}" + (f"; by kind {t['differences_by_kind']}" if t["differences_by_kind"] else ""))
+             f"registered {t['registered']}" + (f", inherited from registered parents {t['inherited']}" if t.get("inherited") else "")
+             + (f"; by kind {t['differences_by_kind']}" if t["differences_by_kind"] else ""))
     if result.get("comparison") == "self":
         L.append("self comparison: only skipped-check entries apply, so every difference counts (criterion 1)")
+    st = t.get("styles")
+    if st:
+        L.append(f"styles: tokens in {st['token_documents']} documents (up to {st['token_names_max']} names, "
+                 f"{st['token_anchors']} anchors, {st['token_ms'] / 1000:.0f}s); interactive states replayed "
+                 f"{st['state_replays']['a']} times on side A and {st['state_replays']['b']} on side B in "
+                 f"{st['cells_with_states']} cells")
+    if result.get("comparison") == "styles":
+        L.append("styles comparison: only registry entries whose where.comparisons names styles apply (and skipped "
+                 "checks); the pages mode's entries do not (tests/README.md, Divergence registry)")
     if t.get("align_fallbacks"):
         L.append(f"alignment: {t['align_fallbacks']} sibling lists too long for the LCS table were paired by position")
     hr = t.get("head_repeat_documents") or {}
@@ -246,6 +281,8 @@ def summary(result, limit=40) -> str:
     for k, n in sorted(result["registered_by_entry"].items()):
         sp = spread.get(k) or {}
         line = f"  {k}: {n}"
+        if (result.get("inherited_by_entry") or {}).get(k):
+            line += f" (+{result['inherited_by_entry'][k]} inherited by descendants)"
         if sp:
             line += f" in {sp['cells']} cells, at most {sp['max_in_one_cell']} in one ({sp['max_cell']})"
             if sp.get("broad"):

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "femto-tokens-light-dark-raw-text",
+    "kind": "token-raw",
+    "token": "/^--femto-(accordion-active-summary-color|accordion-border-color|accordion-close-summary-color|accordion-open-summary-color|background-color|blockquote-border-color|blockquote-footer-color|box-shadow|card-background-color|card-border-color|card-box-shadow|card-sectioning-background-color|code-background-color|code-kbd-background-color|code-kbd-color|color|contrast|contrast-background|contrast-border|contrast-focus|contrast-hover|contrast-hover-background|contrast-hover-border|contrast-hover-underline|contrast-inverse|contrast-underline|del-color|dropdown-background-color|dropdown-border-color|dropdown-box-shadow|dropdown-color|dropdown-hover-background-color|form-element-active-background-color|form-element-background-color|form-element-border-color|form-element-color|form-element-invalid-active-border-color|form-element-invalid-border-color|form-element-invalid-focus-color|form-element-placeholder-color|form-element-selected-background-color|form-element-valid-active-border-color|form-element-valid-border-color|form-element-valid-focus-color|group-box-shadow-focus-with-button|group-box-shadow-focus-with-input|h1-color|h2-color|h3-color|h4-color|h5-color|h6-color|ins-color|mark-background-color|mark-color|modal-overlay-background-color|muted-border-color|muted-color|primary|primary-focus|primary-hover|primary-hover-background|primary-hover-border|primary-hover-underline|primary-underline|progress-background-color|range-active-border-color|range-border-color|range-thumb-border-color|secondary|secondary-focus|secondary-hover|secondary-hover-background|secondary-hover-border|secondary-hover-underline|secondary-underline|switch-background-color|table-border-color|text-selection-color|tooltip-background-color|tooltip-color)$/",
+    "a": "*",
+    "b": "/light-dark\\(/",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Color tokens are declared once as light-dark(light, dark) in tokens/schemes.css. getPropertyValue() returns the unresolved light-dark(...) text, alone or inside a composite value such as a box-shadow, where 2.1.1 returned the per-scheme literal. 85 tokens carry it: the 57 written with light-dark(), the tokens defined from them with var() (for example --femto-primary-hover-underline, --femto-card-box-shadow and the two --femto-group-box-shadow-focus-with-* tokens in tokens/base.css), and the generic --femto-background-color, --femto-color, --femto-border-color, --femto-box-shadow and --femto-underline that later modules set from them on elements. What the tokens resolve to is compared separately (kind token) and matches, except tokens-group-island-focus-ring.",
+    "notes": "Seeded from femto's tests/divergences/tokens.json at 7bcd5758 (tokens-light-dark-raw-text; femto category new-token, module tokens/schemes). Site: narrowed, as femto narrowed its own list to the names its runs reported, to the 81 of femto's 85 names whose raw text differs on the site (p2-registry-base-1, every route, all four legs, Chrome and Firefox): --femto-border-color, --femto-code-color, --femto-form-element-focus-color and --femto-underline show no token-raw record here. With all 85 the entry named 85 of the 163 token names on the 404 page (52%), past the in-page 50% limit."
+  },
+  {
+    "id": "femto-tokens-group-island-focus-ring",
+    "kind": "token",
+    "selector": "[data-theme]:not(:root), [data-theme]:not(:root) *",
+    "token": "/^--femto-group-box-shadow-focus-with-(button|input)$/",
+    "property": "box-shadow",
+    "a": "/^rgba?\\([^)]*\\) 0px 0px 0px [0-9.]+px$/",
+    "b": "/^rgba?\\([^)]*\\) 0px 0px 0px [0-9.]+px$/",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "2.1.1 builds the two group focus-ring tokens on :root, :host from var(--femto-primary-focus) and var(--femto-form-element-border-color), so the value is fixed in the root's scheme and a nested data-theme island, or an element carrying data-theme itself, inherits the page's ring color. With light-dark() the token keeps the pair and resolves per element, so inside an island whose scheme differs from the page the ring takes the island's color. Only the box-shadow probe resolves these tokens.",
+    "notes": "Seeded from femto's tests/divergences/tokens.json at 7bcd5758 (tokens-group-island-focus-ring; femto category natural-fix, module tokens/base). Site: the anchors are the dark code islands (div.code and footer.code with data-theme=dark) on the docs pages and the thead with its own data-theme on /docs/table."
+  },
+  {
+    "id": "femto-tokens-new-names",
+    "kind": "surface-added",
+    "token": "/^--femto-primary-inverse-filter$/",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "--femto-primary-inverse-filter replaces a compile-time @if in _styles.scss, which picked the loading-spinner filter on filled buttons by comparing the theme's primary-inverse to white: brightness(0) invert(1) for the 14 white-inverse themes, brightness(0) invert(0) for amber, grey, lime, pumpkin, sand and yellow. tokens/base.css declares it on :root, :host, where 2.1.1's literal applied (every root and shadow host, whatever its scheme), and theme files override it there; the computed filter is unchanged.",
+    "notes": "Seeded from femto's tests/divergences/tokens.json at 7bcd5758 (tokens-new-names; femto category new-token, module tokens/base). Site: declared on every page."
+  },
+  {
+    "id": "femto-tokens-light-dark-raw-text-card-component-outline",
+    "kind": "token-raw",
+    "token": "--femto-card-component-outline-color",
+    "a": "*",
+    "b": "/light-dark\\(/",
+    "where": {
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "Same cause as femto-tokens-light-dark-raw-text, on a token of the site's own: site/assets/css/common.css sets --femto-card-component-outline-color: var(--femto-card-background-color) in the dark scheme (as the oracle's commons did), and femto declares --femto-card-background-color once as light-dark(light, dark), so getPropertyValue() returns the substituted light-dark() pair where 2.1.1's per-scheme literal gave #181c25. The resolved color is the same.",
+    "notes": "A site consequence of femto's tokens-light-dark-raw-text (femto tests/divergences/tokens.json at 7bcd5758, femto category new-token), kept as its own entry so the main entry stays within the in-page share. Seen on every route in the dark and theme-dark legs (p2-registry-base-1)."
+  }
+]

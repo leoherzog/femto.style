@@ -4,7 +4,7 @@
 // server watching it never sees it vanish.
 //
 // 1. Copy. Every file under site/ except partials/, docs/ (menu.json and the section files) and the
-//    docs.html template, and dotfiles. During Phase 1 that includes assets/legacy/ (03 §2).
+//    docs.html template, and dotfiles: vendor/femto/ included, whose stylesheets every page links.
 // 2. Include. A line `<!-- include partials/<file> -->` is replaced by the partial, indented to the
 //    marker (so partials hold no <pre> or <textarea>); partials may include partials. The placeholders
 //    are {{version}} (femto's, from vendor/femto/SOURCE) and, on docs pages, {{title}} and
