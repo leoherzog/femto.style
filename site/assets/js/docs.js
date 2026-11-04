@@ -4,9 +4,10 @@
 // in Phase 1 adds no attribute the oracle lacks (no aria-expanded; PLAN.md Conversion rules):
 // - the side menu, #documentation-menu (DocumentationMenu.jsx): the current route's category open,
 //   aria-current="true" on its summary and aria-current="page" on its link (the Version picker link
-//   on a color route); the nav's --max-height (innerHeight minus its top, on load and resize); the
-//   mobile off-canvas (is-open-on-mobile), opened by the breadcrumb's Documentation link and closed
-//   by its Close link and by any of its links (scroll lock is the CSS's :has()). Like the oracle's,
+//   on a color route); the nav's --max-height (innerHeight minus its top, when the module runs, on
+//   the window's load and on resize); the mobile off-canvas (is-open-on-mobile), opened by the
+//   breadcrumb's Documentation link and closed by its Close link and by any of its links (scroll
+//   lock is the CSS's :has()). Like the oracle's,
 //   it has no Escape handler (01 §2); Phase 3's mobile menu adds Escape and focus (criterion 7);
 // - the breadcrumb, nav[aria-label=breadcrumb] (Breadcrumb.jsx): is-sticky while its top is -1 px
 //   or less, that is while it is stuck to the top of the viewport (its CSS sticks it at top: -1px);
@@ -79,6 +80,9 @@ function sideMenu() {
     else nav.style.removeProperty("--max-height");
   };
   fit();
+  // Safari can run this module before the page's stylesheets apply, so the nav's top is not yet
+  // its own (tests/README.md, Phase 2, Safari): measure again once the page has loaded.
+  if (document.readyState !== "complete") addEventListener("load", fit, { once: true });
   addEventListener("resize", fit);
 
   // The off-canvas menu below lg.

@@ -62,10 +62,10 @@ if [ "$only" = styles ]; then
   # serves dist/ as it finds it, so the site is built first.
   run npm run build || exit 1
   appearance false
-  run uv run tests/run.py styles --full --browsers safari --run-id p2-styles-safari-light-2
+  run uv run tests/run.py styles --full --browsers safari --run-id p2-styles-safari-light-3
   appearance true
-  run uv run tests/run.py styles --full --browsers safari --run-id p2-styles-safari-dark-2
-  ids="p2-styles-safari-light-2 p2-styles-safari-dark-2"
+  run uv run tests/run.py styles --full --browsers safari --run-id p2-styles-safari-dark-3
+  ids="p2-styles-safari-light-3 p2-styles-safari-dark-3"
 else
   # Light: the spike (Safari column of docs/research/05-spike.md), rig's input checks, and the six
   # light /docs/css-variables cells (the other 53 routes passed locked in owner-self-safari-light).

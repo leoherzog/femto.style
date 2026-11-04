@@ -1,0 +1,556 @@
+[
+  {
+    "id": "p2-safari-docs-menu-max-height",
+    "kind": "attribute",
+    "selector": "#documentation-menu > nav",
+    "property": "style",
+    "a": "/^--max-height: [0-9.]+px;$/",
+    "b": "/^--max-height: [0-9.]+px;$/",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "browser-limit",
+    "reason": "Safari can run docs.js before the page's stylesheets apply, so the tag static-multipage's docs.js, which measures the nav's top only when the module runs (and on resize), sometimes measures it in a layout where the nav sits several hundred pixels lower: at each width one of two values, on either side, in 1 to 4% of the docs cells of a run (p2-styles-safari-light-2 and -dark-2, 2026-11-03: 662.1875px or 60.78125px at 1600, 688.75px or 140.015625px at 1300). Chrome and Firefox wait for the stylesheets and never do. dist's docs.js measures again on the window's load since that run, but side A is the frozen tag, so its value still varies in Safari.",
+    "notes": "tests/README.md, Phase 2, Safari. The behavior check side-menu-max-height holds the formula itself in Chrome and Firefox; the styles gate in those browsers has no such entry."
+  },
+  {
+    "id": "p2-safari-docs-menu-max-height-geometry",
+    "kind": "style",
+    "selector": "#documentation-menu > nav",
+    "pseudo": "",
+    "property": "/^(max-height|max-block-size|height|block-size|transform-origin|perspective-origin)$/",
+    "a": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "b": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "widths": [
+        {
+          "min": 1024
+        }
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "browser-limit",
+    "reason": "p2-safari-docs-menu-max-height's consequence from 1024px, where the nav is sticky and its max-height is var(--max-height): its max-height and logical alias, so its height, and its origins, which are half its box.",
+    "notes": "Under 1024px the nav is not sticky and only the attribute differs."
+  },
+  {
+    "id": "p2-safari-docs-toc-current-attribute",
+    "kind": "attribute",
+    "selector": "#table-of-contents a",
+    "property": "aria-current",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/button"
+      ],
+      "widths": [
+        {
+          "min": 1024
+        }
+      ],
+      "states": [
+        "hover",
+        "focus",
+        "focus-visible",
+        "active"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "browser-limit",
+    "reason": "p2-safari-docs-menu-max-height's consequence on /docs/button, the one route whose states replay the docs menu's summaries and links (states.json, docs-menu-summary and docs-menu-links, from 1024px): when side A's nav measured itself a few dozen pixels tall, reaching a menu link scrolls the page, and the table of contents marks another section current (aria-current=\"page\" on the Form buttons link on one side, the Disabled link on the other; p2-styles-safari-light-2, /docs/button at 1600px).",
+    "notes": "Only under replayed states: the document as loaded is not scrolled."
+  },
+  {
+    "id": "p2-safari-docs-toc-current-style",
+    "kind": "style",
+    "selector": "#table-of-contents a",
+    "pseudo": "",
+    "property": "/^(color|-webkit-text-fill-color|-webkit-text-stroke-color|caret-color|column-rule-color|outline-color|text-decoration-color|text-emphasis-color|border-(top|right|bottom|left|block-start|block-end|inline-start|inline-end)-color|font-weight)$/",
+    "a": "*",
+    "b": "*",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/button"
+      ],
+      "widths": [
+        {
+          "min": 1024
+        }
+      ],
+      "states": [
+        "hover",
+        "focus",
+        "focus-visible",
+        "active"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "browser-limit",
+    "reason": "p2-safari-docs-toc-current-attribute's consequence: the current link of the table of contents is primary and bold (600) with a primary inline-start border, the others secondary at 400.",
+    "notes": "The colors and weight docs.css gives #table-of-contents a[aria-current] and takes from the others; their currentColor longhands follow color."
+  },
+  {
+    "id": "p2-safari-autofill-button",
+    "kind": "style",
+    "selector": "input[autocomplete]",
+    "pseudo": "",
+    "property": "/^(width|inline-size|transform-origin|perspective-origin)$/",
+    "a": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "b": "/^[0-9.]+px( [0-9.]+px)?$/",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "states": [
+        "focus"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "browser-limit",
+    "reason": "Safari shows its AutoFill button in a focused field whose autocomplete names AutoFill data (username, email, given-name on these pages), at its own discretion: in a run it shows on one side's field and not the other's, on either side. The field is then exactly 27px wider or narrower (277px against 250px on /docs/version-picker/jade at 375px), and its origins half that (p2-styles-safari-light-2 and -dark-2: 34 records in 17 cells, the Login, Email and First name fields of /docs/color-schemes, /docs/version-picker/jade, /docs/forms/input and /docs/forms).",
+    "notes": "No WebDriver capability turns AutoFill off, and its setting is the owner's Safari's. Chrome and Firefox add no such button."
+  },
+  {
+    "id": "p2-safari-colors-grid-tracks-800",
+    "kind": "style",
+    "selector": "article > main",
+    "pseudo": "",
+    "property": "grid-template-columns",
+    "a": "55.609375px 55.609375px 55.609375px 55.609375px 55.609375px",
+    "b": "55.59375px 55.59375px 55.609375px 55.59375px 55.609375px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        800
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 55.609375px 55.609375px 55.609375px 55.609375px 55.609375px in 2.1.1 and 55.59375px 55.59375px 55.609375px 55.59375px 55.609375px in femto at 800px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 55.609375px against 55.59375px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A layout consequence (tests/README.md, Divergence registry): one exact route, a geometry longhand only."
+  },
+  {
+    "id": "p2-safari-colors-swatch-800-width",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "width",
+    "a": "55.609375px",
+    "b": "55.59375px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        800
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 55.609375px 55.609375px 55.609375px 55.609375px 55.609375px in 2.1.1 and 55.59375px 55.59375px 55.609375px 55.59375px 55.609375px in femto at 800px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 55.609375px against 55.59375px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for width at 800px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-800-inline-size",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "inline-size",
+    "a": "55.609375px",
+    "b": "55.59375px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        800
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 55.609375px 55.609375px 55.609375px 55.609375px 55.609375px in 2.1.1 and 55.59375px 55.59375px 55.609375px 55.59375px 55.609375px in femto at 800px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 55.609375px against 55.59375px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for inline-size at 800px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-800-height",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "height",
+    "a": "55.609375px",
+    "b": "55.59375px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        800
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 55.609375px 55.609375px 55.609375px 55.609375px 55.609375px in 2.1.1 and 55.59375px 55.59375px 55.609375px 55.59375px 55.609375px in femto at 800px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 55.609375px against 55.59375px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for height at 800px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-800-block-size",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "block-size",
+    "a": "55.609375px",
+    "b": "55.59375px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        800
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 55.609375px 55.609375px 55.609375px 55.609375px 55.609375px in 2.1.1 and 55.59375px 55.59375px 55.609375px 55.59375px 55.609375px in femto at 800px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 55.609375px against 55.59375px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for block-size at 800px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-800-transform-origin",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "transform-origin",
+    "a": "27.804688px 27.804688px",
+    "b": "27.796875px 27.796875px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        800
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 55.609375px 55.609375px 55.609375px 55.609375px 55.609375px in 2.1.1 and 55.59375px 55.59375px 55.609375px 55.59375px 55.609375px in femto at 800px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 55.609375px against 55.59375px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for transform-origin at 800px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-800-perspective-origin",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "perspective-origin",
+    "a": "27.804688px 27.804688px",
+    "b": "27.796875px 27.796875px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        800
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 55.609375px 55.609375px 55.609375px 55.609375px 55.609375px in 2.1.1 and 55.59375px 55.59375px 55.609375px 55.59375px 55.609375px in femto at 800px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 55.609375px against 55.59375px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for perspective-origin at 800px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-grid-tracks-1100",
+    "kind": "style",
+    "selector": "article > main",
+    "pseudo": "",
+    "property": "grid-template-columns",
+    "a": "53.203125px 53.203125px 53.203125px 53.203125px 53.203125px",
+    "b": "53.1875px 53.203125px 53.203125px 53.203125px 53.203125px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        1100
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 53.203125px 53.203125px 53.203125px 53.203125px 53.203125px in 2.1.1 and 53.1875px 53.203125px 53.203125px 53.203125px 53.203125px in femto at 1100px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 53.203125px against 53.1875px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A layout consequence (tests/README.md, Divergence registry): one exact route, a geometry longhand only."
+  },
+  {
+    "id": "p2-safari-colors-swatch-1100-width",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "width",
+    "a": "53.203125px",
+    "b": "53.1875px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        1100
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 53.203125px 53.203125px 53.203125px 53.203125px 53.203125px in 2.1.1 and 53.1875px 53.203125px 53.203125px 53.203125px 53.203125px in femto at 1100px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 53.203125px against 53.1875px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for width at 1100px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-1100-inline-size",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "inline-size",
+    "a": "53.203125px",
+    "b": "53.1875px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        1100
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 53.203125px 53.203125px 53.203125px 53.203125px 53.203125px in 2.1.1 and 53.1875px 53.203125px 53.203125px 53.203125px 53.203125px in femto at 1100px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 53.203125px against 53.1875px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for inline-size at 1100px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-1100-height",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "height",
+    "a": "53.203125px",
+    "b": "53.1875px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        1100
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 53.203125px 53.203125px 53.203125px 53.203125px 53.203125px in 2.1.1 and 53.1875px 53.203125px 53.203125px 53.203125px 53.203125px in femto at 1100px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 53.203125px against 53.1875px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for height at 1100px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-1100-block-size",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "block-size",
+    "a": "53.203125px",
+    "b": "53.1875px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        1100
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 53.203125px 53.203125px 53.203125px 53.203125px 53.203125px in 2.1.1 and 53.1875px 53.203125px 53.203125px 53.203125px 53.203125px in femto at 1100px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 53.203125px against 53.1875px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for block-size at 1100px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-1100-transform-origin",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "transform-origin",
+    "a": "26.601563px 26.601563px",
+    "b": "26.59375px 26.59375px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        1100
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 53.203125px 53.203125px 53.203125px 53.203125px 53.203125px in 2.1.1 and 53.1875px 53.203125px 53.203125px 53.203125px 53.203125px in femto at 1100px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 53.203125px against 53.1875px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for transform-origin at 1100px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  },
+  {
+    "id": "p2-safari-colors-swatch-1100-perspective-origin",
+    "kind": "style",
+    "selector": "button.secondary[class*=\"femto-background-\"]",
+    "pseudo": "",
+    "property": "perspective-origin",
+    "a": "26.601563px 26.601563px",
+    "b": "26.59375px 26.59375px",
+    "where": {
+      "browsers": [
+        "safari"
+      ],
+      "routes": [
+        "/docs/colors"
+      ],
+      "widths": [
+        1100
+      ],
+      "schemes": [
+        "light",
+        "dark"
+      ],
+      "comparisons": [
+        "styles"
+      ]
+    },
+    "category": "femto-divergence",
+    "reason": "femto lays out the swatch grids of /docs/colors 1/64px (WebKit's layout unit) narrower in Safari, in the OS scheme's legs only: each grid's five tracks are 53.203125px 53.203125px 53.203125px 53.203125px 53.203125px in 2.1.1 and 53.1875px 53.203125px 53.203125px 53.203125px 53.203125px in femto at 1100px (p2-styles-safari-light and -dark, the same in -2), so the swatch buttons of the narrower tracks are 53.203125px against 53.1875px. Invisible, and absent in Chrome and Firefox.",
+    "notes": "A pinned entry (tests/README.md, Divergence registry), for perspective-origin at 1100px only: the swatches are 29.3% of the page's compared elements, all of one tree path."
+  }
+]

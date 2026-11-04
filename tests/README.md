@@ -2438,7 +2438,35 @@ all Safari's:
   - on `/docs/color-schemes` and `/docs/version-picker/jade`;
   - also the `Email` field on `/docs/forms/input` and a field on `/docs/forms`.
 - **`/docs/colors`' grid tracks** (item 4): the same 1,898 and 650 records at 800 and 1100 px as in
-  the first runs.
+  the first runs. They are the 20 swatch grids, plus the grid of the swatch whose states replay,
+  recorded again under each of its 6 replays. The value pairs are one per property and width.
+
+**What the owner chose** (2026-11-03): fix `docs.js` and register the rest.
+- `docs.js` measures the nav again on the window's `load` (when the module runs before it), so
+  `dist/` no longer depends on when Safari applies the stylesheets. Side A is the frozen tag, so its
+  value still varies.
+- `p2-safari.json` holds 19 entries, which bring the registry to 96 entries in 25 files. Every one
+  is for Safari and styles runs only:
+  - side A's `--max-height` and the nav's geometry from 1024 px (`browser-limit`);
+  - its consequence on `/docs/button`'s table of contents under replayed states: the current link's
+    `aria-current`, colors and weight (`browser-limit`);
+  - the AutoFill button's width on a focused `input[autocomplete]` (`browser-limit`);
+  - `/docs/colors`' grid tracks at 800 and 1100 px in the OS scheme's legs: one layout-consequence
+    entry per width for each grid's `grid-template-columns`, and 12 pinned entries for the swatches'
+    six geometry longhands (`femto-divergence`). They are pinned because the swatches are 29.3% of
+    the page.
+- Replayed offline against the four Safari runs, the entries match every kept record of
+  `p2-styles-safari-light-2` and `-dark-2`. Only the two `/docs/colors` cells kept fewer records
+  than they had (300 of 1,898 and of 650), and the rest are repeats of the same pairs. Safari itself
+  has not run them yet: that is the owner's next `tests/owner-safari.sh styles`, now as
+  `p2-styles-safari-light-3` and `-dark-3`.
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| — | `registry`; `npm run lint` | — | valid (96 entries in 25 files); exit 0 | — | — |
+| `p2-sfix2-behavior-dist` | `behavior --target dist`, after the `docs.js` change | 166 checks (Chrome and Firefox) | **PASS: 166/166**, `side-menu-max-height` included | 0 | 346 s |
+| `p2-sfix2-styles-full-cf` | `styles --full --browsers chrome,firefox`, the same `dist/` | 1,488 (970,944 elements) | **PASS: 0 unregistered**; 2,258,364 registered and 804,336 inherited, as before; 0 reloads, 0 cross-origin loads | 0 | 543 s |
+| — | `static_checks.py --phase 2` | — | 3, 4, 5, 6, 11 and 12 PASS; 8, 9 and 14 FAIL, later phases' criteria, as at the gate | — | — |
 
 ### Known Phase 1 deviations
 
@@ -2481,10 +2509,10 @@ about 70 minutes. `dark` runs only the dark self pass, as `p0-self-safari-dark-m
 minutes. `spike` runs only the spike, into `results/p0-spike-safari-2.txt`, and leaves the
 appearance as it is: about a minute. `styles` is Phase 2's gate (criterion 2) in Safari: it builds
 `dist/`, which the harness serves as it finds it, then runs `styles --full --browsers safari` in
-Light as `p2-styles-safari-light-2` and in Dark as `p2-styles-safari-dark-2`. Each run compares 420
+Light as `p2-styles-safari-light-3` and in Dark as `p2-styles-safari-dark-3`. Each run compares 420
 of Safari's 744 cells, the OS scheme's leg and both theme legs, and the two together cover all 744:
-about 65 minutes (the first runs, `p2-styles-safari-light` and `-dark` without the `-2`, took 1,936 s
-and 1,922 s; Phase 2 below). Each step is one command in the script under `caffeinate -d -i`, so one can also be run
+about 65 minutes. The earlier pairs, kept as Phase 2's record, took 1,936 s and 1,922 s
+(`p2-styles-safari-light` and `-dark`) and 1,935 s and 1,910 s (`-2`). Each step is one command in the script under `caffeinate -d -i`, so one can also be run
 by hand. At the end the script prints how often each self or styles run's `log.txt` says
 `OS scheme light` or `OS scheme dark`: the light run must say light and the dark run dark, and the
 dark run's skipped checks are `media:light`. Measured on an unlocked screen: a full dark pass
