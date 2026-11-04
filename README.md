@@ -1,6 +1,6 @@
 # femto Documentation
 
-[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`.
+[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`. Nothing from npm ships: `dist/` is static files that any web server can host, and Node and npm are only needed to build, preview, check and deploy it.
 
 The site is being converted from the Remix site it replaces, and [PLAN.md](PLAN.md) is the plan, with its research in `docs/research/`. The pages already use femto 3's stylesheets but still carry the old site's text, which Phase 4 of the plan rewrites for femto 3.
 
