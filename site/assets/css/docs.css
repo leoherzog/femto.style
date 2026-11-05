@@ -230,10 +230,9 @@ main > [aria-label=breadcrumb] ul li:last-child {
   }
 }
 
-main > [aria-label=breadcrumb] svg {
-  width: auto;
-  height: 1.125rem;
+main > [aria-label=breadcrumb] .icon {
   margin-right: var(--femto-nav-link-spacing-horizontal);
+  font-size: 1.125rem;
   transform: translateY(-0.0625rem);
 }
 
@@ -371,10 +370,9 @@ main > aside#documentation-menu header button:focus-visible {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
-main > aside#documentation-menu header button svg {
+main > aside#documentation-menu header button .icon {
   display: block;
-  width: auto;
-  height: 1.125rem;
+  font-size: 1.125rem;
 }
 
 main > aside#documentation-menu header button:hover {
@@ -528,10 +526,9 @@ main > [role=document] article form > *:last-child:not(footer, .grid) {
   margin-bottom: 0;
 }
 
-main > [role=document] .edit-on-github svg {
-  width: auto;
-  height: 1rem;
+main > [role=document] .edit-on-github .icon {
   margin-right: calc(var(--femto-spacing) * 0.25);
+  font-size: 1rem;
   transform: translateY(-0.0625rem);
 }
 
@@ -576,12 +573,8 @@ main > [role=document] .edit-on-github svg {
   margin-bottom: var(--femto-spacing);
 }
 
-[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button svg {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
+[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button .icon {
   margin-right: 0.5em;
-  transform: translateY(-0.125em);
 }
 
 @media (min-width: 576px) {
@@ -713,7 +706,9 @@ article.color-picker > header {
   border-top-left-radius: var(--femto-border-radius);
 }
 
+/* Each swatch is a size container, whose width the grid sets, for its check's size */
 article.color-picker > header a {
+  container-type: inline-size;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -721,10 +716,10 @@ article.color-picker > header a {
   border-radius: 50%;
 }
 
-article.color-picker > header a svg {
-  width: 50%;
-  max-width: 1.5rem;
-  height: auto;
+/* The picked swatch's check (Decision 17): half the swatch's width, at most 1.5rem, as the SVG it
+   replaced was */
+article.color-picker > header a .icon {
+  font-size: min(1.5rem, 50cqi);
   opacity: 0.875;
 }
 
@@ -914,8 +909,9 @@ dialog.color > article header {
   transition: color var(--femto-transition), background-color var(--femto-transition);
 }
 
-/* The close button: the header's own close icon (an inline SVG) in its text color, without femto's
-   background icon, and a focus ring on keyboard focus only, as the link it replaced had */
+/* The close button: the header's own close icon (Decision 17's character) in its text color,
+   without femto's background icon, and a focus ring on keyboard focus only, as the link it replaced
+   had */
 dialog.color > article header button.close {
   z-index: 1;
   position: relative;
@@ -929,6 +925,12 @@ dialog.color > article header button.close {
   color: inherit;
   font-weight: inherit;
   line-height: initial;
+}
+
+/* Its icon at about the size of the 24px SVG it replaced (20px at the root's base size), which
+   overflowed femto's 1rem button as this does */
+dialog.color > article header button.close .icon {
+  font-size: 1.25rem;
 }
 
 dialog.color > article header button.close:focus-visible {

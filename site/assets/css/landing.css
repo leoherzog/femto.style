@@ -189,10 +189,9 @@ body > main.homepage > .hero .hook .grid.ctas {
   }
 }
 
-body > main.homepage > .hero .hook .grid.ctas a[role=button] svg {
-  width: auto;
-  height: 1rem;
+body > main.homepage > .hero .hook .grid.ctas a[role=button] .icon {
   margin-left: calc(var(--femto-spacing) * 0.25);
+  font-size: 1rem;
 }
 
 /* Demo */
@@ -463,6 +462,16 @@ body > main.homepage > .features > .grid article > svg {
   color: var(--femto-features-icon-color);
 }
 
+/* The features' character icons (Decision 17), in the box and color of the SVG icons they replaced,
+   femto's own mark beside them; the two emoji take the color as their silhouette's */
+body > main.homepage > .features > .grid article > .icon {
+  --femto-emoji-color: var(--femto-features-icon-color);
+  display: block;
+  margin-bottom: calc(var(--femto-spacing) * 0.75);
+  color: var(--femto-features-icon-color);
+  font-size: 1.125rem;
+}
+
 body > main.homepage > .features > .grid article > svg.femto-icon path {
   fill: currentColor;
 }
@@ -483,10 +492,9 @@ body > main.homepage > .features > .grid article p:last-child {
   margin-bottom: 0;
 }
 
-body > main.homepage > .features > .grid article p:last-child a svg {
-  width: auto;
-  height: 1rem;
+body > main.homepage > .features > .grid article p:last-child a .icon {
   margin-left: calc(var(--femto-spacing) * 0.25);
+  font-size: 1rem;
 }
 
 /* Comparison */
@@ -689,33 +697,14 @@ h6 {
  * Components
  */
 
-/* Arrow right icon */
-a .icon-arrow-right {
-  --icon-right-toggle-duration: 0.2s;
+/* Arrow right icon (Decision 17): the arrow moves right on its link's hover, as the oracle's
+   animated SVG arrow did (its head moved 5 of its 24 units) */
+a .icon-arrow-right::before {
+  transition: transform 0.2s ease-in-out;
 }
 
-a .icon-arrow-right g.head,
-a .icon-arrow-right path.line {
-  transition-duration: var(--icon-right-toggle-duration);
-  transition-property: transform;
-  transition-timing-function: ease-in-out;
-}
-
-a .icon-arrow-right g.head {
-  transform: translate(0);
-}
-
-a .icon-arrow-right path.line {
-  transform: translate(0) scaleX(0);
-  transform-origin: 14px;
-}
-
-a:hover .icon-arrow-right g.head {
-  transform: translate(5px);
-}
-
-a:hover .icon-arrow-right path.line {
-  transform: translate(5px) scaleX(1);
+a:hover .icon-arrow-right::before {
+  transform: translateX(0.2em);
 }
 
 /* Mark */

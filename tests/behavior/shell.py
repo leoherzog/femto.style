@@ -270,7 +270,7 @@ def header_landing(page):
 
 COPY_STATE = """
 const a = arguments[0];
-return {tooltip: a.getAttribute("data-tooltip"), check: !!a.querySelector("svg.check"), clipboard: !!a.querySelector("svg.clipboard"),
+return {tooltip: a.getAttribute("data-tooltip"), check: !!a.querySelector(".icon-check"), clipboard: !!a.querySelector(".icon-copy"),
         focused: document.activeElement === a, copied: window.__bhCopied};
 """
 
@@ -280,7 +280,7 @@ COPY_TIMELINE = """
 const a = arguments[0];
 window.__bhCopy = [];
 const t = () => Math.round(performance.now());
-const state = () => [a.getAttribute("data-tooltip"), a.querySelector("svg.check") ? "check" : a.querySelector("svg.clipboard") ? "clipboard" : "none"];
+const state = () => [a.getAttribute("data-tooltip"), a.querySelector(".icon-check") ? "check" : a.querySelector(".icon-copy") ? "clipboard" : "none"];
 let last = JSON.stringify(state());
 new MutationObserver(() => { const s = state(), j = JSON.stringify(s); if (j !== last) { __bhCopy.push([t(), ...s]); last = j; } })
   .observe(a, {attributes: true, childList: true, subtree: true});
@@ -292,10 +292,10 @@ a.addEventListener("click", () => __bhCopy.push([t(), "click"]), true);
 def copy_button(page):
     """Each code block's copy control of the route's content (`.copy-to-clipboard`: a button from
     Phase 4, the oracle's link; data-tooltip "Copy to clipboard", icon
-    `svg.clipboard`): a click copies exactly that block's code text (its `pre code` textContent; the
+    `.icon-copy`): a click copies exactly that block's code text (its `pre code` textContent; the
     copy is recorded in the page, the machine's clipboard is never touched) and leaves the URL as it
     was. Timed in the page: within 100 ms of the click the tooltip reads "Copied" with the animated
-    `svg.check` icon, and 1 s later (900 to 1500 ms) "Copy to clipboard" with `svg.clipboard` again,
+    `.icon-check` icon, and 1 s later (900 to 1500 ms) "Copy to clipboard" with `.icon-copy` again,
     with no other step; the control then does not hold focus (a pointer click blurs it). A second
     block's control copies its own code."""
     page.js(COPY_SPY)
@@ -316,7 +316,7 @@ def copy_button(page):
         page.eq(f"link {n}: copied the block's code", s["copied"][0]["text"], code, via=s["copied"][0]["via"])
         page.url_kept(f"link {n}: URL unchanged", url)
         page.wait(f"link {n}: reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && "
-                  "!!arguments[0].querySelector('svg.clipboard') && window.__bhCopy.length >= 3", 2.5, args=(link,))
+                  "!!arguments[0].querySelector('.icon-copy') && window.__bhCopy.length >= 3", 2.5, args=(link,))
         tl = page.js("return window.__bhCopy")
         page.eq(f"link {n}: the steps", [x[1:] for x in tl], [["click"], ["Copied", "check"], ["Copy to clipboard", "clipboard"]],
                 timeline=tl)
@@ -329,7 +329,7 @@ def copy_button(page):
 def copy_button_repeat(page):
     """Repeated use of a copy control, as Code.jsx behaves (every click schedules its own 1 s revert,
     and the first one to fire reverts): two clicks 500 ms apart copy the block's code twice, and
-    "Copied" reverts to "Copy to clipboard" with `svg.clipboard` once, 1 s after the FIRST click (900
+    "Copied" reverts to "Copy to clipboard" with `.icon-copy` once, 1 s after the FIRST click (900
     to 1200 ms), with no other step; the control then does not hold focus."""
     page.js(COPY_SPY)
     link = page.find_all(".copy-to-clipboard")[0]
@@ -338,7 +338,7 @@ def copy_button_repeat(page):
     page.click(link)
     page.sleep(0.5)
     page.click(link)
-    page.wait("reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && !!arguments[0].querySelector('svg.clipboard')",
+    page.wait("reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && !!arguments[0].querySelector('.icon-copy')",
               3, args=(link,))
     page.sleep(0.8)   # a later, wrong revert or step would show by now
     tl = page.js("return window.__bhCopy")
@@ -1031,7 +1031,7 @@ def copy_keyboard(page):
     page.eq("Enter: the block's code", s["copied"][0]["text"], code)
     page.eq("Enter: the tooltip reads Copied", s["tooltip"], "Copied")
     page.eq("the status line says Copied", page.js(STATUS), "Copied")
-    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && !!arguments[0].querySelector('svg.clipboard')",
+    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && !!arguments[0].querySelector('.icon-copy')",
               2, args=(btn,))
     page.sleep(0.2)
     page.eq("keyboard focus stays on the button", page.js(COPY_INFO, btn)["focused"], True)

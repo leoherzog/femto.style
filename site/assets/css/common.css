@@ -366,11 +366,6 @@ body > footer .container section:first-of-type ul.resources li svg {
   height: 1rem;
 }
 
-body > footer .container section:first-of-type ul.resources li svg.icon-npm {
-  transform: scale(1.5);
-  transform-origin: left;
-}
-
 body > footer .container section:last-of-type {
   margin-block: calc(var(--femto-spacing) * 2);
   padding-top: calc(var(--femto-spacing) * 2);
@@ -565,14 +560,15 @@ svg.femto-icon.animated path:nth-of-type(2) {
 }
 
 /* The header's toggle: the glyph is the GitHub icon's size and sits where it does. The GitHub mark
-   fills 496 of its 512-unit viewBox's height, and each glyph's silhouette is about its font size
-   (sun 0.99, moon 1.01, in Chrome and Firefox); the box is nudged up as the header's SVGs are */
+   (Simple Icons', Decision 17) fills 23.4 of its 24-unit viewBox's height, and each glyph's
+   silhouette is about its font size (sun 0.99, moon 1.01, in Chrome and Firefox); the box is nudged
+   up as the header's SVGs are */
 body > header .container nav .icon-theme-toggle {
   transform: translateY(-0.0625rem);
 }
 
 body > header .container nav .icon-theme-toggle::before {
-  font-size: calc(1.125rem * 496 / 512);
+  font-size: calc(1.125rem * 23.4 / 24);
 }
 
 /* The Color schemes section: the switcher button's icon, before its label */
@@ -580,6 +576,125 @@ body > header .container nav .icon-theme-toggle::before {
   width: 1.25rem;
   height: 1.25rem;
   margin-right: calc(var(--femto-spacing) * 0.5);
+}
+
+/**
+ * Icons (Decision 17)
+ */
+
+/* Every icon but the brand marks and femto's own logo is a character: an empty
+   <span class="icon icon-<name>" aria-hidden="true">, whose ::before draws it, centered in a box
+   1em wide and one 1em line tall. A context sizes an icon with font-size, as it sized the SVG it
+   replaced with height. The character sits on its line's baseline, as text does; centered in a box
+   whose bottom was the baseline, as a first draft drew it, it sat about 0.2em high. The text
+   characters have no emoji form, so every platform draws them with its own text fonts, in the
+   element's color. The ::before is an inline-block so that a transform applies to it. */
+.icon {
+  display: inline-block;
+  width: 1em;
+  line-height: 1;
+  text-align: center;
+}
+
+.icon::before {
+  display: inline-block;
+}
+
+/* The text characters: check U+2713, close U+2715, copy U+29C9 (two joined squares), edit U+270E
+   (a pencil), menu U+2630, arrow right U+2192, plus and minus U+2295 and U+2296 (circled), expand
+   U+2922, brightness U+25D0 (a half-black circle) and code, "</>" in the code font */
+.icon-check::before {
+  font-weight: bold;
+  content: "\2713";
+  animation: icon-check 0.2s ease-out;
+}
+
+.icon-close::before {
+  content: "\2715";
+}
+
+.icon-copy::before {
+  content: "\29C9";
+}
+
+.icon-edit::before {
+  content: "\270E";
+}
+
+.icon-menu::before {
+  content: "\2630";
+}
+
+.icon-arrow-right::before {
+  content: "\2192";
+}
+
+.icon-plus::before {
+  content: "\2295";
+}
+
+.icon-minus::before {
+  content: "\2296";
+}
+
+.icon-expand::before {
+  content: "\2922";
+}
+
+.icon-brightness::before {
+  content: "\25D0";
+}
+
+.icon-code {
+  width: 1.75em;
+}
+
+.icon-code::before {
+  font-size: 0.75em;
+  font-family: "Fira Code", var(--femto-font-family-monospace);
+  white-space: nowrap;
+  content: "</>";
+}
+
+/* The menu and expand characters are small for their em, so they are drawn larger, without
+   changing the line */
+.icon-menu::before,
+.icon-expand::before {
+  transform: scale(1.25);
+}
+
+/* Two are emoji, drawn as the theme toggle is: the glyph transparent and its shadow a one-color
+   silhouette, in --femto-emoji-color where a context sets it, else in --femto-color, which femto
+   sets to a link's or a button's color in each state. The shadow is the span's, with that color
+   resolved there, and the ::before inherits it, so a context's color on the span leaves the glyph
+   transparent. An explicit color is the one that works in Chrome, Firefox and Safari: a shadow in
+   currentColor takes the transparent color, and Firefox draws no shadow for a glyph whose
+   -webkit-text-fill-color is transparent (checked in Chrome 158 and Firefox 160, and the
+   silhouettes seen in Safari, 2026-11-05) */
+.icon-adjustments,
+.icon-speedtest {
+  text-shadow: 0 0 0 var(--femto-emoji-color, var(--femto-color));
+}
+
+.icon-adjustments::before,
+.icon-speedtest::before {
+  color: transparent;
+}
+
+.icon-adjustments::before {
+  content: "\2699\FE0F";
+}
+
+.icon-speedtest::before {
+  content: "\26A1";
+}
+
+/* The check is drawn in each time it is added: a copy button's "Copied", a picked theme swatch */
+@keyframes icon-check {
+  from {
+    transform: scale(0.5);
+    opacity: 0;
+  }
 }
 
 /**

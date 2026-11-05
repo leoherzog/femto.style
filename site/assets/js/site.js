@@ -144,35 +144,18 @@ if (fixedHeader) {
 // reverts a "Copied" a still later click showed. A screen reader hears "Copied" too, which the
 // tooltip alone does not say: it is written into one visually hidden status region (p.visually-hidden
 // role="status", the last child of <body>, added once a page has a copy button) and cleared again at
-// the revert, so the next copy is announced again. The check icon is Check.jsx's, isAnimated and
-// strokeWidth 3, with the class "check", but without its path's id="check-icon": the docs page has
-// that id already, in the Theme picker's swatch, and every button showing "Copied" would add one
-// more (Decision 13). Its <style> selects the path through svg.check, the copy buttons' check alone.
-
-const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="check"><style>
-          svg.check > path {
-            stroke-dasharray: 22px;
-            stroke-dashoffset: 22px;
-            animation: check 0.2s ease-out forwards;
-          }
-
-          @keyframes check {
-            from {
-              stroke-dashoffset: 22px;
-            }
-            to {
-              stroke-dashoffset: 0;
-            }
-          }
-        </style><path d="M5 12l5 5l10 -10"></path></svg>`;
+// the revert, so the next copy is announced again. The icons are Decision 17's characters: the
+// clipboard is span.icon-copy, and the check, span.icon-check, is drawn in with common.css's
+// icon-check animation each time it is added.
 
 const COPIED_FOR = 1000;
 const copied = new WeakMap(); // button -> {icon, check} while it shows "Copied"
 
 function checkIcon() {
-  const template = document.createElement("template");
-  template.innerHTML = CHECK_ICON;
-  return template.content.firstElementChild;
+  const check = document.createElement("span");
+  check.className = "icon icon-check";
+  check.setAttribute("aria-hidden", "true");
+  return check;
 }
 
 let copyStatus = null; // the status region; it exists before its first text, so that text is announced
@@ -194,7 +177,7 @@ document.addEventListener("click", (event) => {
   const code = button.parentElement.querySelector("pre code");
   if (code) navigator.clipboard?.writeText(code.textContent).catch(() => {});
   if (!copied.has(button)) {
-    const icon = button.querySelector("svg.clipboard");
+    const icon = button.querySelector(".icon-copy");
     if (!icon) return;
     const check = checkIcon();
     icon.replaceWith(check);

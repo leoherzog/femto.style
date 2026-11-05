@@ -27,14 +27,14 @@
       <!-- [html-validate-disable-next unique-landmark -- femto styles a breadcrumb only through nav[aria-label="breadcrumb"], so every breadcrumb on the page shares that name: this one and the Nav section's examples] -->
       <nav aria-label="breadcrumb" data-docs-breadcrumb>
         <ul>
-          <li><button type="button" aria-controls="documentation-menu" data-menu-open><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-menu"><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path></svg>Documentation</button></li>
+          <li><button type="button" aria-controls="documentation-menu" data-menu-open><span class="icon icon-menu" aria-hidden="true"></span>Documentation</button></li>
           <li>Getting started</li>
         </ul>
       </nav>
       <aside id="documentation-menu" aria-label="Documentation menu" data-docs-menu>
         <header>
           <h2>Documentation</h2>
-          <button type="button" aria-label="Close" data-menu-close><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></button>
+          <button type="button" aria-label="Close" data-menu-close><span class="icon icon-close" aria-hidden="true"></span></button>
         </header>
         <nav class="is-sticky-above-lg" aria-label="Documentation"></nav>
       </aside>

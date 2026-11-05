@@ -208,14 +208,15 @@ function step({ family, shade }, key) {
 }
 
 // --- Color modal (ColorModal.jsx) -----------------------------------------------------------------
-// The markup is ColorModal.jsx's as React renders it: the close icon is Close.jsx, and each value is
-// Code.jsx's block (className "small", language html), its copy button carrying data-copy-link as
-// the docs' own do, so site.js's copy handler takes it. Prism's markup grammar finds no token in any
+// The markup is ColorModal.jsx's as React renders it, with Decision 17's character icons for its
+// close and copy icons (span.icon-close, span.icon-copy), and each value is Code.jsx's block
+// (className "small", language html), its copy button carrying data-copy-link as the docs' own do,
+// so site.js's copy handler takes it. Prism's markup grammar finds no token in any
 // of the five values, so each is one plain text run, which react-syntax-highlighter writes as
 // <span class="">.
 
-const CLOSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>';
-const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg>';
+const CLOSE_ICON = '<span class="icon icon-close" aria-hidden="true"></span>';
+const COPY_ICON = '<span class="icon icon-copy" aria-hidden="true"></span>';
 
 // The five rows: label, and the value shown for a color.
 const ROWS = [

@@ -60,10 +60,10 @@ code {
   box-shadow: inset 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
-.code > button.copy-to-clipboard > svg {
+/* The icon (Decision 17): the copy character, then the check */
+.code > button.copy-to-clipboard > .icon {
   display: block;
-  width: 1.125rem;
-  height: 1.125rem;
+  font-size: 1.125rem;
   pointer-events: none;
 }
 
@@ -71,7 +71,7 @@ code {
   color: var(--femto-contrast);
 }
 
-.code > button.copy-to-clipboard svg.check {
+.code > button.copy-to-clipboard .icon-check {
   color: var(--femto-code-copied);
 }
 
@@ -81,7 +81,7 @@ code {
 }
 
 /* No tooltip once the button shows its check mark */
-.code > button.copy-to-clipboard[data-tooltip]:has(svg.check)::after {
+.code > button.copy-to-clipboard[data-tooltip]:has(.icon-check)::after {
   display: none;
 }
 

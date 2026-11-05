@@ -1066,7 +1066,7 @@ checks over 48 routes are skipped
 | shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Once a paint entry exists (Chrome can record it a few hundred ms after load), seen from a preload script, `data-theme` appears while the head is parsed (no `<body>` yet), before the first paint, and the first animation frame sees it. **XFAIL on the oracle** at "set while the head is parsed": it sets the attribute during hydration (the flash; whether that still precedes the first paint is a race). Skipped in Safari (`preload`). |
 | shell | `header-fixed` | `/docs#modal` | Scrolled to the top first, `body > header` has `is-fixed-above-lg`; `is-fixed` exactly while `scrollY > 20` (off at 20, on at 21, off again at 20 and 0). |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled. |
-| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `svg.check` within 100 ms, back to "Copy to clipboard" with `svg.clipboard` 900 to 1500 ms later, no other step, focus not on the control after a pointer click. |
+| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `.icon-check` within 100 ms, back to "Copy to clipboard" with `.icon-copy` 900 to 1500 ms later (Decision 17; `svg.check` and `svg.clipboard` before it), no other step, focus not on the control after a pointer click. |
 | shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice; "Copied" reverts once, 900 to 1200 ms after the first click (Code.jsx: every click schedules its own revert), no other step, not focused. |
 | shell | `copy-keyboard` | `/docs#button`, `/examples` (one page) | Tab reaches the first copy button; Enter copies its block, the tooltip and the visually hidden `role=status` line read "Copied", 1 s later they revert with keyboard focus kept; Space copies again. The block's `<pre>` is a tab stop only when its code overflows (site.js, Code block focus): one that does not has no `tabindex`, `role` or `aria-label` and Tab moves past it to the next control after it (both routes' first blocks, in both browsers); one that overflows has `tabindex="0"`, `role="figure"` and `aria-label` "HTML code" (or its language's) and Tab moves to it. |
 | shell | `pre-scroll-keyboard` | `/docs` (375 × 812; one page) | Quick start's first code block that overflows is a figure in the tab order (`tabindex="0"`, `role="figure"`, `aria-label` "HTML code"), takes focus with Tab from its copy button, matches `:focus-visible` with an inset ring, and Right arrow scrolls it (each press held 0.1 s; the scroll waited for up to 2 s; the note gives the keydown events the `pre` saw). |
@@ -3275,6 +3275,39 @@ then this third gate run.
   CSS, and no other markup, CSS or script.
 - `npm ci` reports 4 vulnerabilities in dev dependencies: 3 moderate, from `minimatch` under
   eslint, and 1 high, `source-map-js` under `@eslint/css`. No criterion covers them.
+
+### Decision 17: character icons (2026-11-05)
+
+On branch `unicode-icon-swap`, the owner replaced the site's third-party icons (PLAN.md Decision
+17). The 207 Tabler and Feather SVGs in `site/` (147 copy buttons, 40 edit links and 20 others),
+and `site.js`'s check, became empty `<span class="icon icon-<name>" aria-hidden="true">` elements
+whose character `common.css` draws: text characters with no emoji form (✓ ✕ ⧉ ✎ ☰ → ⊕ ⊖ ⤢ ◐ and
+`</>`), and the homepage's ⚙️ and ⚡ as one-color silhouettes, as Decision 16's toggle is. The four
+Font Awesome brand marks (GitHub twice, npm, X) became Simple Icons' CC0 SVGs; jsDelivr's already was
+one, byte for byte. `site.js` makes the copy
+button's check as a span, `picker.js` clones the swatch's `.icon-check`, `colors.js` writes the color
+modal's two spans, and the `copy-button` checks look for `.icon-copy` and `.icon-check`. Each
+character sits on its line's baseline; centered in an SVG's box, as a first draft did, it sat about
+0.2em high. A first draft also drew copy and edit as 📋 and ✏️ silhouettes, which read as a block
+and a slash at 1rem; ⧉ and ✎ match the old outline icons. `/docs` dropped from 806,978 to 747,008
+bytes raw. No registry entry records it: parity with the oracle stopped binding at Phase 4.
+Coverage, checked in the fonts themselves: every character is in Android's merged symbol font
+(`NotoSansSymbols-Regular-Subsetted.ttf`, AOSP `external/noto-fonts`); on Windows, Cambria Math
+has ⧉, ⤢, ⊕ and ◐, and Segoe UI Symbol ⧉ and ✎ (zuga.net's tables); on macOS, Apple Symbols and
+STIX draw ⧉ and ⤢. iOS and Linux were not checked.
+
+| Run | Command | Result | Wall clock |
+|---|---|---|---|
+| Static checks | `uv run tests/static_checks.py` | **11 PASS, 0 FAIL**, 5 NOT-YET (browsers); 9 (html-validate 11.18.0) and 11 (lint, `container-type` and `cqi` at widely) included | 20 s |
+| Behavior | `uv run tests/run.py behavior --target dist --browsers chrome,firefox` (`20261105-182747-behavior-913`) | **PASS: 232/232** | 6 min |
+| Accessibility | `uv run tests/run.py a11y --target dist` (`20261105-183347-a11y-1639`) | **PASS: 0 serious or critical**; 1 moderate on `/docs` per cell (`landmark-unique`, as at Phase 4) | 40 s |
+| Before and after | element screenshots of every icon's context, the build of `5bdb790` against this one, in Chrome Beta 158 and Firefox 160, light and dark, and in Safari, light | Each icon in its old place, size and color; the arrow moves on hover; the copy button's box does not change when its check shows | — |
+
+**Not verified here.** In Safari, the screenshot after a click or a scroll came back black on both
+sides, so the copy button's check and the picked swatch's check were not seen there; the behavior
+suite and the owner's dark pass were not run in Safari. Other platforms draw these characters
+with their own fonts (Windows' Segoe UI Symbol, Android's Noto), which this Mac-only rig cannot
+show.
 
 ### Known Phase 1 deviations
 
