@@ -1,10 +1,10 @@
-"""Layout: /docs/grid's column demo (01 §2, small widgets: docs.grid.jsx)."""
+"""Layout: the Grid section's column demo (01 §2, small widgets: docs.grid.jsx)."""
 from behavior import TOKENS, check
 
 GROUP = "layout"
 
 GRID = """
-const art = document.querySelector('article[aria-label="Grid example"]');
+const art = S.querySelector('article[aria-label="Grid example"]');
 const code = art.querySelector("footer pre code");
 return {cells: [...art.querySelectorAll(":scope > .grid > div")].map(d => d.textContent), code: code.textContent, tokens: tokens(code)};
 """
@@ -32,7 +32,7 @@ def tokens_for(initial, n):
     return out + initial[end:]
 
 
-@check("grid-columns", "/docs/grid")
+@check("grid-columns", "/docs#grid")
 def grid_columns(page):
     """The grid example (`article[aria-label="Grid example"] > .grid`) starts with 4 columns
     (divs reading 1 to 4) and its code reads <div class="grid"> with one <div>N</div> line per
@@ -45,9 +45,9 @@ def grid_columns(page):
     n = 4
     for button, times, step, lo, hi in ((ADD, 7, 1, 1, 10), (REMOVE, 10, -1, 1, 10), (ADD, 3, 1, 1, 10)):
         for _ in range(times):
-            page.click(button)
+            page.click(page.find(button))
             n = max(lo, min(hi, n + step))
-            page.wait(f"{n} columns", "document.querySelectorAll('article[aria-label=\"Grid example\"] > .grid > div').length === arguments[0]",
+            page.wait(f"{n} columns", "S.querySelectorAll('article[aria-label=\"Grid example\"] > .grid > div').length === arguments[0]",
                       1, args=(n,))
             g = page.js(TOKENS + GRID)
             page.eq(f"{n} columns read 1 to {n}", g["cells"], [str(i) for i in range(1, n + 1)])

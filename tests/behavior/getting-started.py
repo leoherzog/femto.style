@@ -1,7 +1,13 @@
-"""Getting started: the version picker (/docs/version-picker and its 19 color routes; 01 §2, Version
-picker; picker.js in the static site) and the color-schemes page's own toggle (01 §2, small
-widgets)."""
-from behavior import SNAPSHOT, TOKENS, check
+"""Getting started: the version picker (01 §2, Version picker; picker.js in the static site) and the
+color-schemes section's own toggle (01 §2, small widgets).
+
+The picker's colors were routes, /docs/version-picker and /docs/version-picker/<color>, which its
+swatches pushed in place; on the one page they are /docs?theme=<color>#version-picker (Decision 8):
+a swatch swaps the theme's <link> and replaceStates ?theme= (no history entry; azure, the default,
+has none), and links to #version-picker are the browser's fragment navigation. The checks hold each
+layout to its own URLs and the rest (samples, swatches, the example form, focus, the logo) to the
+same rules."""
+from behavior import HEADING_LINE, SNAPSHOT, TOKENS, check
 
 GROUP = "getting-started"
 
@@ -21,6 +27,37 @@ CONDITIONAL = [
 ]
 SELECT = "#content select[name=configuration]"
 SWITCH = "#content input[name=conditional]"
+PICKER = "/docs#version-picker"   # azure; a color is /docs?theme=<color>#version-picker
+
+
+def picker_route(color):
+    return PICKER if color == "azure" else f"/docs?theme={color}#version-picker"
+
+
+def picker_url(color, hash_="#version-picker"):
+    """The one page's URL for the picker in `color`, with the hash the spy keeps."""
+    return f"/docs{'' if color == 'azure' else '?theme=' + color}{hash_}"
+
+
+# The theme stylesheets on the page: every <link> to femto's css/themes/ (the one page), or to the
+# oracle's custom-themes/ (a color route), with its color.
+THEME_LINKS = r"""
+return [...document.querySelectorAll("link[rel=stylesheet]")].map(l => l.getAttribute("href"))
+  .filter(h => /\/(css\/themes|custom-themes)\//.test(h)).map(h => h.replace(/^.*\//, "").replace(/\.css$/, ""));
+"""
+
+
+def swapped(page, color, label):
+    """Wait until a swap to `color` is done: on routes the route's URL (wait_navigated), on the one
+    page ?theme= in the URL (none for azure) and the page in that color's theme stylesheet only."""
+    if page.layout == "routes":
+        page.wait_navigated("/docs/version-picker" + ("" if color == "azure" else f"/{color}"), label=label)
+        return
+    search = "" if color == "azure" else f"?theme={color}"
+    page.wait(f"{label}: the URL's query is {search or 'empty'}", "location.pathname === '/docs' && location.search === arguments[0]", 3,
+              args=(search,), url=page.url())
+    page.wait(f"{label}: the page is in {color} only", f"JSON.stringify((() => {{ {THEME_LINKS} }})()) === arguments[0]", 3,
+              args=('[]' if color == "azure" else f'["{color}"]',))
 
 
 def file_name(base, cond, color="azure"):
@@ -58,16 +95,16 @@ def expected_codes(base, cond, color="azure"):
 
 # The four code samples in page order: the theme example's footer, then the three Usage sections.
 CODES = """
-const footer = document.querySelector("#content article.color-picker > footer pre code");
-const usage = [...document.querySelectorAll("#content section")].filter(s => /^(Usage from CDN|Usage with Sass|Starter HTML template)/.test((s.querySelector("h2") || {}).textContent || ""))
+const footer = S.querySelector("#content article.color-picker > footer pre code");
+const usage = [...S.querySelectorAll("#content section")].filter(s => /^(Usage from CDN|Usage with Sass|Starter HTML template)/.test((s.querySelector("h2") || {}).textContent || ""))
   .map(s => s.querySelector("pre code"));
 const [cdn, sass, template] = usage;
 return {footer, cdn, sass, template};
 """
 
 PICKER_STATE = """
-const smalls = [...document.querySelectorAll("#content section small")].filter(s => !s.closest("article, footer, .edit-on-github"));
-return {select: document.querySelector(arguments[0]).value, conditional: document.querySelector(arguments[1]).checked,
+const smalls = [...S.querySelectorAll("#content section small")].filter(s => !s.closest("article, footer, .edit-on-github"));
+return {select: S.querySelector(arguments[0]).value, conditional: S.querySelector(arguments[1]).checked,
         base: (smalls[0] || {}).textContent, cond: (smalls[1] || {}).textContent};
 """
 
@@ -118,24 +155,24 @@ def choose(page, base=None, cond=None):
     import time
     from selenium.webdriver.support.ui import Select
     if base is not None:
-        el = page.el(SELECT)
+        el = page.find(SELECT)
         page.js("arguments[0].scrollIntoView({block: 'center', behavior: 'instant'})", el)
         Select(el).select_by_value(str(base))
-    if cond is not None and page.js(f"return document.querySelector('{SWITCH}').checked") != bool(cond):
-        want = f"document.querySelector('{SWITCH}').checked === {'true' if cond else 'false'}"
-        page.click(SWITCH)
+    if cond is not None and page.js(f"return S.querySelector('{SWITCH}').checked") != bool(cond):
+        want = f"S.querySelector('{SWITCH}').checked === {'true' if cond else 'false'}"
+        page.click(page.find(SWITCH))
         deadline = time.time() + 1
         while not page.js(f"return {want}") and time.time() < deadline:
             time.sleep(0.05)
         if not page.js(f"return {want}"):
             page.note(f"the switch's click was lost (still {'off' if cond else 'on'} after 1 s); clicked it again")
-            page.click(SWITCH)
+            page.click(page.find(SWITCH))
         page.wait(f"the switch turns {'on' if cond else 'off'}", want, 1)
 
 
-@check("picker-configuration", "/docs/version-picker")
+@check("picker-configuration", PICKER)
 def picker_configuration(page):
-    """The version picker's configuration (on /docs/version-picker, azure): the select (`name=
+    """The version picker's configuration (azure): the select (`name=
     configuration`, values 0 to 2) and the "Conditional Styling" switch (`name=conditional`)
     regenerate the four code samples (the theme example's footer link, Usage from CDN, Usage with
     Sass, the starter HTML template; textContent exactly as the oracle writes them: pico.min.css,
@@ -185,7 +222,7 @@ def template_tokens(initial, file_to, cond):
     return out
 
 
-@check("picker-code-highlight", "/docs/version-picker")
+@check("picker-code-highlight", PICKER)
 def picker_code_highlight(page):
     """The regenerated samples stay highlighted the way the page highlights them on load (each
     child of `pre code` as [class, text]): the footer and CDN links keep their load-time tokens with
@@ -206,7 +243,7 @@ def picker_code_highlight(page):
         page.eq(f"base {base} cond {cond}: template tokens", got["template"], template_tokens(initial["template"], f, cond))
 
 
-# What a color swap must leave exactly as the color's own page has it on load: the theme example
+# What a color swap must leave exactly as a fresh load of the color has it: the theme example
 # (swatches, hgroup, form, footer code) and the three Usage samples, as tree snapshots, plus the
 # title, the primary color, the example form's control values (the oracle remounts the example) and
 # every link's aria-current (header, footer, side menu, swatches; the table of contents' follows the
@@ -214,8 +251,8 @@ def picker_code_highlight(page):
 # name the page's own path and do nothing (preventDefault), so those two hrefs are left out of the
 # tree snapshots.
 PICKER_SNAPSHOT = SNAPSHOT + CODES.replace("return {footer, cdn, sass, template};", "") + """
-const article = document.querySelector("#content article.color-picker");
-const selfLinks = new Set([...document.querySelectorAll("#content a.copy-to-clipboard, #content form a")]);
+const article = S.querySelector("#content article.color-picker");
+const selfLinks = new Set([...S.querySelectorAll("#content a.copy-to-clipboard, #content form a")]);
 const clean = (el, s) => {
   if (!Array.isArray(s)) return s;
   const [tag, attrs, kids] = s;
@@ -232,12 +269,13 @@ return {article: tree(article), cdn: tree(cdn), sass: tree(sass), template: tree
         current: [...document.querySelectorAll("a[aria-current]")].filter(a => !a.closest("#table-of-contents"))
           .map(a => [region(a), a.getAttribute("href"), a.getAttribute("aria-current")]),
         title: document.title, primary: getComputedStyle(document.documentElement).getPropertyValue("--femto-primary").trim(),
+        themes: (() => { """ + THEME_LINKS + """ })(),
         url: location.pathname + location.search + location.hash, history: history.length, y: Math.round(scrollY)};
 """
 
 
 def swatch(color):
-    return f"#content article.color-picker > header a[href='/docs/version-picker{'' if color == 'azure' else '/' + color}']"
+    return f"#content article.color-picker > header a.femto-background-{color}"
 
 
 def picker_snapshot(page):
@@ -245,11 +283,12 @@ def picker_snapshot(page):
 
 
 def expect_like_loaded(page, color, label, config=None):
-    """Compare the page now with a fresh load of the color's own route (loaded in a second tab),
-    set there to the same configuration first when `config` = (base, conditional) is given."""
+    """Compare the page now with a fresh load of the color (its route, or the one page at
+    ?theme=<color>#version-picker, loaded in a second tab), set there to the same configuration
+    first when `config` = (base, conditional) is given."""
     now = picker_snapshot(page)
     here = page.driver.current_window_handle
-    route = "/docs/version-picker" + ("" if color == "azure" else f"/{color}")
+    route = picker_route(color)
     page.new_tab(route)
     if config:
         choose(page, *config)
@@ -257,52 +296,76 @@ def expect_like_loaded(page, color, label, config=None):
     fresh = picker_snapshot(page)
     page.driver.close()
     page.switch(here)
-    for k in ("article", "cdn", "sass", "template", "form", "current", "title", "primary"):
-        page.eq(f"{label}: {k} as on {route}'s own page", now[k], fresh[k])
+    for k in ("article", "cdn", "sass", "template", "form", "current", "title", "primary", "themes"):
+        page.eq(f"{label}: {k} as on a fresh load of {page.address(route)}", now[k], fresh[k])
     return now
 
 
-@check("picker-swatch", "/docs/version-picker")
+@check("picker-swatch", PICKER)
 def picker_swatch(page):
     """A theme color swatch (`article.color-picker > header a`) switches the theme in place: with
-    "abc" typed in the example's Login field and its Privacy switch turned off, scrolled 200 px down,
-    a click on pumpkin's swatch makes the URL /docs/version-picker/pumpkin with one new history
-    entry, keeps the scroll position, and leaves the theme example (swatches with the check icon and
+    "abc" typed in the example's Login field and its Privacy switch turned off, scrolled down (200 px
+    on routes, the swatches 300 px below the viewport's top on the one page), a click on pumpkin's
+    swatch keeps the scroll position and leaves the theme example (swatches with the check icon and
     aria-current on pumpkin, every swatch's aria-label "Pumpkin", the hgroup, the form, the footer
     code), the Usage samples, the example form's values (reset: Login empty, the switch on), every
-    link's aria-current outside the table of contents (the footer's "Version picker" link loses it),
-    the title and --femto-primary exactly as /docs/version-picker/pumpkin has them on load (tree
-    snapshots; the do-nothing links' href aside). The configuration survives a swap: with base 1 and
-    conditional on, jade's swatch gives pico.classless.conditional.jade.min.css and the select and
-    switch keep their state. Back returns to /docs/version-picker/pumpkin's state, and azure's swatch
-    to /docs/version-picker, as that route has it on load (its footer link current again)."""
+    link's aria-current outside the table of contents, the title, --femto-primary and the theme
+    stylesheets exactly as a fresh load of pumpkin has them (tree snapshots; the do-nothing links'
+    href aside). On routes the URL becomes /docs/version-picker/pumpkin with one new history entry
+    (the footer's "Version picker" link loses aria-current); on the one page it becomes
+    /docs?theme=pumpkin#version-picker with no new entry (replaceState, Decision 8), and pumpkin's is
+    the page's one theme stylesheet. The configuration survives a swap: with base 1 and conditional
+    on, jade's swatch gives pico.classless.conditional.jade.min.css and the select and switch keep
+    their state. On routes back returns to /docs/version-picker/pumpkin's state; on the one page a
+    reload keeps jade (the URL carries it). Azure's swatch then gives the picker as a fresh load of
+    azure has it (on the one page with no ?theme= and no theme stylesheet)."""
     example = "#content article.color-picker > form"
-    page.scroll_to(200)
-    page.click(f"{example} input[name=login]")
+    if page.layout == "routes":
+        y = 200
+    else:
+        y = page.js("return Math.round(S.querySelector('article.color-picker').getBoundingClientRect().top + scrollY - 300)")
+    page.scroll_to(y)
+    page.click(page.find(f"{example} input[name=login]"))
     page.key("abc")
-    page.click(f"{example} input[name=switch]")
-    page.wait("the example form holds what was typed", "(() => { const f = document.querySelector(arguments[0]);"
+    page.click(page.find(f"{example} input[name=switch]"))
+    page.wait("the example form holds what was typed", "(() => { const f = S.querySelector(arguments[0]);"
               " return f.elements.login.value === 'abc' && !f.elements.switch.checked; })()", 1, args=(example,))
-    page.scroll_to(200)
+    page.scroll_to(y)
     before = picker_snapshot(page)
     page.click(swatch("pumpkin"), scroll=False)
-    page.wait_navigated("/docs/version-picker/pumpkin")
+    swapped(page, "pumpkin", "pumpkin")
     now = expect_like_loaded(page, "pumpkin", "pumpkin")
     page.expect("the swap changed the theme example", now["article"] != before["article"] and now["primary"] != before["primary"])
-    page.eq("one new history entry", now["history"], before["history"] + 1)
+    if page.layout == "routes":
+        page.eq("one new history entry", now["history"], before["history"] + 1)
+    else:
+        page.eq("the URL is pumpkin's", now["url"], "/docs?theme=pumpkin#version-picker")
+        page.eq("no new history entry (replaceState)", now["history"], before["history"])
     page.eq("the scroll position is kept", now["y"], before["y"])
     choose(page, 1, 1)
     expect_state(page, 1, 1, "pumpkin", label="pumpkin, base 1 cond 1: ")
     page.click(swatch("jade"))
-    page.wait_navigated("/docs/version-picker/jade")
+    swapped(page, "jade", "jade")
     expect_state(page, 1, 1, "jade", label="jade after the swap: ")
-    page.driver.back()
-    page.wait_navigated("/docs/version-picker/pumpkin", label="back to pumpkin")
-    settle(page, "back")
-    expect_state(page, 1, 1, "pumpkin", label="back: ")
+    if page.layout == "routes":
+        page.driver.back()
+        page.wait_navigated("/docs/version-picker/pumpkin", label="back to pumpkin")
+        settle(page, "back")
+        expect_state(page, 1, 1, "pumpkin", label="back: ")
+    else:
+        url = page.url()
+        page.js("window.__bhMarker = 'before the reload'; setTimeout(() => location.reload(), 0); return true;")
+        page.wait("the page reloaded", "window.__bhMarker === undefined && document.readyState === 'complete'", 15)
+        page.wait_ready()
+        page.eq("reload: the URL keeps ?theme=jade", page.url(), url)
+        page.eq("reload: jade is the page's theme stylesheet", page.js(THEME_LINKS), ["jade"])
     choose(page, 0, 0)
-    page.click(swatch("azure"))
-    page.wait_navigated("/docs/version-picker")
+    # Back where the swaps started: on the one page the side nav's current link follows the scroll
+    # position, and the swatch's own scroll into view (from the select, below) can leave the
+    # picker's heading under the line, in Quick start.
+    page.scroll_to(y)
+    page.click(swatch("azure"), scroll=False)
+    swapped(page, "azure", "azure")
     expect_like_loaded(page, "azure", "azure")
 
 
@@ -318,16 +381,16 @@ return logo.getAttribute("class");
 """
 
 
-@check("picker-logo", "/docs/version-picker")
+@check("picker-logo", PICKER)
 def picker_logo(page):
     """The header logo animates for 1 s after each route change (HeaderContext.jsx, Logo.jsx), and
-    the picker's swatches change the route in place: the logo's class is "femto-logo" on load; after
-    a click on pumpkin's swatch it becomes "femto-logo animated" (within 2 s of the click, once the
-    color's stylesheet has loaded) and "femto-logo" again 900 to 1500 ms later, with no other
-    step."""
+    the picker's swatches change the route (on the one page, the theme and its ?theme=) in place:
+    the logo's class is "femto-logo" on load; after a click on pumpkin's swatch it becomes
+    "femto-logo animated" (within 2 s of the click, once the color's stylesheet has loaded) and
+    "femto-logo" again 900 to 1500 ms later, with no other step."""
     page.eq("the logo is not animated on load", page.js(LOGO_WATCH), "femto-logo")
     page.click(swatch("pumpkin"))
-    page.wait_navigated("/docs/version-picker/pumpkin")
+    swapped(page, "pumpkin", "pumpkin")
     page.wait("the logo animates and stops", "window.__bhLogo.filter(e => e[1] !== 'click').length >= 2", 3,
               got=page.js("return window.__bhLogo"))
     page.sleep(0.6)
@@ -338,24 +401,25 @@ def picker_logo(page):
     page.expect("animated for 1 s", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
 
 
-@check("picker-swatch-focus", "/docs/version-picker",
+@check("picker-swatch-focus", PICKER,
        oracle_bug={"fails": "focus stays on pumpkin's swatch",
                    "reason": "the oracle remounts the theme example on a color change, which removes the focused swatch "
                              "and drops focus to <body> (Tab then starts over at the first swatch); picker.js swaps the "
                              "color in place, so focus stays (PLAN.md, oracle-bug)"})
 def picker_swatch_focus(page):
-    """Keyboard use of the swatches: with pumpkin's swatch focused, Enter makes the URL
-    /docs/version-picker/pumpkin and focus stays on that swatch; Tab then moves focus to the next
-    swatch, orange's, and Enter on it makes the URL /docs/version-picker/orange with focus on it."""
+    """Keyboard use of the swatches: with pumpkin's swatch focused, Enter swaps to pumpkin (the
+    route /docs/version-picker/pumpkin, or ?theme=pumpkin on the one page) and focus stays on that
+    swatch; Tab then moves focus to the next swatch, orange's, and Enter on it swaps to orange with
+    focus on it."""
     page.focus(swatch("pumpkin"))
     page.key("ENTER")
-    page.wait_navigated("/docs/version-picker/pumpkin")
+    swapped(page, "pumpkin", "pumpkin")
     focused = "document.activeElement === document.querySelector(arguments[0])"
     page.wait("focus stays on pumpkin's swatch", focused, 1, args=(swatch("pumpkin"),))
     page.key("TAB")
     page.wait("Tab moves focus to orange's swatch", focused, 1, args=(swatch("orange"),))
     page.key("ENTER")
-    page.wait_navigated("/docs/version-picker/orange")
+    swapped(page, "orange", "orange")
     page.wait("focus stays on orange's swatch", focused, 1, args=(swatch("orange"),))
 
 
@@ -369,21 +433,62 @@ def expect_top(page, label):
     page.expect(f"{label}: no page load", page.js(f"return {NO_RELOAD}"))
 
 
-@check("picker-links", "/docs/version-picker")
+@check("picker-links", PICKER)
 def picker_links(page):
-    """The other links to the picker's routes render in place, as Remix's Link did, so the
-    configuration (base 2 here) survives them: scrolled 600 px down, the table of contents' first
-    link ("Theme", whose href is the page itself) scrolls to the top with no page load, the URL and
-    the history length unchanged. After jade's swatch, scrolled to the bottom, the footer's "Version
-    picker" link makes the URL /docs/version-picker with one new history entry, scrolls to the top
-    with no page load, and leaves the page as /docs/version-picker has it on load (theme example,
-    samples, form values, every link's aria-current outside the table of contents, title,
-    --femto-primary; the fresh load set to the same configuration). After pumpkin's swatch, scrolled
-    600 px down, the side menu's "Version picker" link does the same; back from there returns to pumpkin and forward to
-    /docs/version-picker, with no page load."""
+    """The other links to the picker keep its configuration (base 2 here). On routes they render
+    in place, as Remix's Link did: scrolled 600 px down, the table of contents' first link ("Theme",
+    whose href is the page itself) scrolls to the top with no page load, the URL and the history
+    length unchanged. After jade's swatch, scrolled to the bottom, the footer's "Version picker" link
+    makes the URL /docs/version-picker with one new history entry, scrolls to the top with no page
+    load, and leaves the page as /docs/version-picker has it on load (theme example, samples, form
+    values, every link's aria-current outside the table of contents, title, --femto-primary; the
+    fresh load set to the same configuration). After pumpkin's swatch, scrolled 600 px down, the side
+    menu's "Version picker" link does the same; back from there returns to pumpkin and forward to
+    /docs/version-picker, with no page load. On the one page they are fragment links in the same
+    document: after pumpkin's swatch, scrolled 600 px below the picker's heading, the side menu's
+    link (#version-picker) puts the heading on the scroll-padding line with ?theme=pumpkin kept; the
+    footer's "Version picker" link (/docs#version-picker), from azure scrolled to the bottom, does the
+    same with no query; from jade it does the same with ?theme=jade kept (docs.js turns that link
+    into a fragment navigation, since the browser's own would load /docs without the query), and
+    back from there returns, in the same document with ?theme=jade and jade's stylesheet kept, to the
+    bottom (or, as Chrome may restore it, to the entry's section heading). Each with no page load,
+    base 2 kept, and a new history entry only when the URL changed."""
     choose(page, 2, None)
     expect_state(page, 2, 0, label="base 2: ")
     page.js("window.__bhSameDocument = true")
+    if page.layout == "one-page":
+        top = page.js("return Math.round(document.getElementById('version-picker').getBoundingClientRect().top + scrollY)")
+        footer = "body > footer a[href='/docs#version-picker']"
+        for color, link, name in (("pumpkin", "#documentation-menu a[href='#version-picker']", "side menu"),
+                                  ("azure", footer, "footer"), ("jade", footer, "footer from jade")):
+            page.click(swatch(color))
+            swapped(page, color, color)
+            page.scroll_to(page.js("return document.documentElement.scrollHeight - innerHeight") if link == footer else top + 600)
+            settle(page, f"{name} link: scrolled")
+            url, n = page.url(), page.js("return history.length")
+            page.click(link, scroll=False)
+            page.wait(f"{name} link: the URL is the picker's", "location.pathname + location.search + location.hash === arguments[0]",
+                      3, args=(picker_url(color),))
+            page.wait(f"{name} link: the heading is on the scroll-padding line",
+                      f"Math.abs(({HEADING_LINE})('version-picker')) <= 2", 3)
+            settle(page, f"{name} link")
+            page.expect(f"{name} link: no page load", page.js(f"return {NO_RELOAD}"))
+            page.eq(f"{name} link: a new history entry only for a new URL", page.js("return history.length"),
+                    n + (url != picker_url(color)), url_before=url)
+            expect_state(page, 2, 0, color, label=f"{name} link: ")
+            if color == "jade":
+                page.driver.back()
+                page.wait("back: the URL leaves #version-picker, ?theme=jade kept",
+                          "location.search === '?theme=jade' && location.hash !== '#version-picker'", 3, url_before=url)
+                settle(page, "back")
+                page.expect("back: no page load", page.js(f"return {NO_RELOAD}"))
+                page.eq("back: no new history entry", page.js("return history.length"), n + (url != picker_url(color)))
+                page.eq("back: jade is the one theme stylesheet", page.js(THEME_LINKS), ["jade"])
+                page.expect("back: at the bottom again, or the entry's section heading on its line", page.js(
+                    "return Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight - 1"
+                    f" || Math.abs(({HEADING_LINE})(location.hash.slice(1))) <= 2"),
+                            y=page.js("return scrollY"), url=page.url())
+        return
     page.scroll_to(600)
     n = page.js("return history.length")
     page.click("#table-of-contents a[href='/docs/version-picker']")
@@ -430,9 +535,9 @@ return {text: b.textContent.trim(), moon: !!b.querySelector(".theme-toggle.moon"
 HEADER_TOGGLE = "body > header nav ul.icons a[aria-label$='dark mode']"
 
 
-@check("color-schemes-toggle", "/docs/color-schemes")
+@check("color-schemes-toggle", "/docs#color-schemes")
 def color_schemes_toggle(page):
-    """/docs/color-schemes' own switcher (`#theme-switcher button`, icon `.icon-theme-toggle.
+    """The Color schemes section's own switcher (`#theme-switcher button`, icon `.icon-theme-toggle.
     theme-toggle`: the oracle's SVG, the site's emoji of Decision 16) reads "Turn on dark mode" on a
     light OS; a click sets data-theme="dark", stores '"dark"', and both it ("Turn off dark mode",
     icon with `moon`) and the header toggle relabel; a second click returns to light. The header
@@ -455,4 +560,4 @@ def color_schemes_toggle(page):
     expect_switcher("light", "Turn on dark mode")
     page.click(HEADER_TOGGLE)
     expect_switcher("dark", "Turn off dark mode")
-    page.eq("the URL is unchanged", page.url(), url)
+    page.url_kept("the URL is unchanged", url)

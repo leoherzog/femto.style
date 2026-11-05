@@ -1,72 +1,58 @@
 <hgroup>
   <p class="chapter">Forms</p>
-  <h1>Textarea</h1>
+  <h1 id="textarea">Textarea</h1>
   <p>The native <code class="language-html">&lt;textarea&gt;</code> is styled like the input for consistency.</p>
 </hgroup>
-<aside id="table-of-contents">
-  <nav class="is-sticky-above-lg ">
-    <details open>
-      <summary>Content</summary>
-      <ul>
-        <li><a class="secondary" data-discover="true" href="/docs/forms/textarea">Syntax</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/forms/textarea#disabled">Disabled</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/forms/textarea#readonly">Readonly</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/forms/textarea#validation-states">Validation states</a></li>
-      </ul>
-    </details>
-  </nav>
-</aside>
-<div id="content" role="document">
-  <section>
-    <article aria-label="Textarea example" class="component">
-      <textarea name="bio" placeholder="Write a professional short bio..." aria-label="Professional short bio"></textarea>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/textarea"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea
+<section>
+  <article aria-label="Textarea example" class="component">
+    <textarea name="bio" placeholder="Write a professional short bio..." aria-label="Professional short bio"></textarea>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea
   name="bio"
   placeholder="Write a professional short bio..."
   aria-label="Professional short bio"
 &gt;
 &lt;/textarea&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Disabled textarea<a href="#disabled" id="disabled" class="secondary" tabindex="-1">#</a></h2>
-    <article aria-label="Disabled example" class="component">
-      <textarea name="disabled" aria-label="Disabled textarea" disabled>Disabled</textarea>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/textarea"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea name="disabled" disabled&gt;
+  </article>
+</section>
+<section>
+  <h2>Disabled textarea</h2>
+  <article aria-label="Disabled example" class="component">
+    <textarea name="disabled" aria-label="Disabled textarea" disabled>Disabled</textarea>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea name="disabled" disabled&gt;
   Disabled
 &lt;/textarea&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Read-only textarea<a href="#readonly" id="readonly" class="secondary" tabindex="-1">#</a></h2>
-    <article aria-label="Disabled example" class="component">
-      <textarea name="read-only" aria-label="Read-only textarea" readonly>Read-only</textarea>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/textarea"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea name="read-only" readonly&gt;
+  </article>
+</section>
+<section>
+  <h2>Read-only textarea</h2>
+  <article aria-label="Disabled example" class="component">
+    <textarea name="read-only" aria-label="Read-only textarea" readonly>Read-only</textarea>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea name="read-only" readonly&gt;
   Read-only
 &lt;/textarea&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Validation states<a href="#validation-states" id="validation-states" class="secondary" tabindex="-1">#</a></h2>
-    <p>Validation states are provided with <code>aria-invalid</code>.</p>
-    <article aria-label="Validation states example" class="component">
-      <textarea name="valid" placeholder="Valid" aria-invalid="false">Valid</textarea>
-      <textarea name="invalid" placeholder="Invalid" aria-invalid="true">Invalid</textarea>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/textarea"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea name="valid" aria-invalid="false"&gt;
+  </article>
+</section>
+<section>
+  <h2>Validation states</h2>
+  <p>Validation states are provided with <code>aria-invalid</code>.</p>
+  <article aria-label="Validation states example" class="component">
+    <textarea name="valid" placeholder="Valid" aria-invalid="false">Valid</textarea>
+    <textarea name="invalid" placeholder="Invalid" aria-invalid="true">Invalid</textarea>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea name="valid" aria-invalid="false"&gt;
   Valid
 &lt;/textarea&gt;
 
 &lt;textarea name="invalid" aria-invalid="true"&gt;
   Invalid
 &lt;/textarea&gt; </code></pre></footer>
-    </article>
-    <p>Helper texts, defined with <code class="language-html">&lt;small&gt;</code> below the textarea, inherit the validation state color.</p>
-    <article aria-label="Validation states example" class="component">
-      <textarea name="valid" placeholder="Valid" aria-invalid="false" aria-describedby="valid-helper">Valid</textarea>
-      <small id="valid-helper">Looks good!</small>
-      <textarea name="invalid" placeholder="Invalid" aria-invalid="true" aria-describedby="invalid-helper">Invalid</textarea>
-      <small id="invalid-helper">Please provide a valid value!</small>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/forms/textarea"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea
+  </article>
+  <p>Helper texts, defined with <code class="language-html">&lt;small&gt;</code> below the textarea, inherit the validation state color.</p>
+  <article aria-label="Validation states example" class="component">
+    <textarea name="valid" placeholder="Valid" aria-invalid="false" aria-describedby="textarea-valid-helper">Valid</textarea>
+    <small id="textarea-valid-helper">Looks good!</small>
+    <textarea name="invalid" placeholder="Invalid" aria-invalid="true" aria-describedby="textarea-invalid-helper">Invalid</textarea>
+    <small id="textarea-invalid-helper">Please provide a valid value!</small>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;textarea
   name="valid"
   aria-invalid="false"
   aria-describedby="valid-helper"
@@ -85,9 +71,8 @@
 &lt;small id="invalid-helper"&gt;
   Please provide a valid value!
 &lt;/small&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section class="edit-on-github">
-    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.forms.textarea.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
-  </section>
-</div>
+  </article>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.forms.textarea.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

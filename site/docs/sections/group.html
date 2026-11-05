@@ -1,91 +1,77 @@
 <hgroup>
   <p class="chapter">Components</p>
-  <h1>Group</h1>
+  <h1 id="group">Group</h1>
   <p>Stack forms elements and buttons horizontally with <code>role="group"</code> and <code>role="search"</code>.</p>
 </hgroup>
-<aside id="table-of-contents">
-  <nav class="is-sticky-above-lg ">
-    <details open>
-      <summary>Content</summary>
-      <ul>
-        <li><a class="secondary" data-discover="true" href="/docs/group">Forms</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/group#search">Search</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/group#buttons">Buttons</a></li>
-      </ul>
-    </details>
-  </nav>
-</aside>
-<div id="content" role="document">
-  <section>
-    <p><code>role="group"</code> is used to stack children horizontally.</p>
-    <p>When used with the <code class="language-html">&lt;form&gt;</code> tag, the group is <code>width: 100%;</code>.</p>
-    <p>Unlike <code>.grid</code> (see <a data-discover="true" href="/docs/grid">Grid</a>), columns are not collapsed on mobile devices.</p>
-    <article class="component" aria-label="Form group example">
-      <form>
-        <fieldset role="group"><input type="email" placeholder="Enter your email" autocomplete="email" name="email"><input type="submit" value="Subscribe"></fieldset>
-      </form>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/group"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
+<section>
+  <p><code>role="group"</code> is used to stack children horizontally.</p>
+  <p>When used with the <code class="language-html">&lt;form&gt;</code> tag, the group is <code>width: 100%;</code>.</p>
+  <p>Unlike <code>.grid</code> (see <a data-discover="true" href="/docs#grid">Grid</a>), columns are not collapsed on mobile devices.</p>
+  <article class="component" aria-label="Form group example">
+    <form>
+      <fieldset role="group"><input type="email" placeholder="Enter your email" autocomplete="email" name="email"><input type="submit" value="Subscribe"></fieldset>
+    </form>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
   &lt;fieldset role="group"&gt;
     &lt;input name="email" type="email" placeholder="Enter your email" autocomplete="email" /&gt;
     &lt;input type="submit" value="Subscribe" /&gt;
   &lt;/fieldset&gt;
 &lt;/form&gt;</code></pre></footer>
-    </article>
-    <p>This component is mainly designed for form elements and buttons. It brings a <code>:focus</code> style to the group depending on whether the focused child is an <code class="language-html">&lt;input&gt;</code> or a <code class="language-html">&lt;button&gt;</code>.</p>
-    <p>The group <code>:focus</code> style relies on the <code>:has()</code> CSS selector. When <code>:has()</code> is not supported the children have their regular <code>:focus</code> style.</p>
-    <article class="component" aria-label="Form group example">
-      <form>
-        <fieldset role="group"><input type="email" placeholder="Email" autocomplete="email" name="email"><input type="password" placeholder="Password" autocomplete="current-password" name="password"><input type="submit" value="Log in"></fieldset>
-      </form>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/group"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
+  </article>
+  <p>This component is mainly designed for form elements and buttons. It brings a <code>:focus</code> style to the group depending on whether the focused child is an <code class="language-html">&lt;input&gt;</code> or a <code class="language-html">&lt;button&gt;</code>.</p>
+  <p>The group <code>:focus</code> style relies on the <code>:has()</code> CSS selector. When <code>:has()</code> is not supported the children have their regular <code>:focus</code> style.</p>
+  <article class="component" aria-label="Form group example">
+    <form>
+      <fieldset role="group"><input type="email" placeholder="Email" autocomplete="email" name="email"><input type="password" placeholder="Password" autocomplete="current-password" name="password"><input type="submit" value="Log in"></fieldset>
+    </form>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form&gt;
   &lt;fieldset role="group"&gt;
     &lt;input name="email" type="email" placeholder="Email" autocomplete="email" /&gt;
     &lt;input name="password" type="password" placeholder="Password" /&gt;
     &lt;input type="submit" value="Log in" /&gt;
   &lt;/fieldset&gt;
 &lt;/form&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Search<a href="#search" id="search" class="secondary" tabindex="-1">#</a></h2>
-    <p><code>role="search"</code> also stacks children horizontally and brings a special style, consistent with <code class="language-html">&lt;input type="search"&gt;</code> (see <a data-discover="true" href="/docs/forms/input#search">Search input</a>).</p>
-    <article class="component" aria-label="Searcgh group example">
-      <form role="search"><input type="search" placeholder="Search" name="search"><input type="submit" value="Search"></form>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/group"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form role="search"&gt;
+  </article>
+</section>
+<section>
+  <h2>Search</h2>
+  <p><code>role="search"</code> also stacks children horizontally and brings a special style, consistent with <code class="language-html">&lt;input type="search"&gt;</code> (see <a data-discover="true" href="/docs#input">Search input</a>).</p>
+  <article class="component" aria-label="Searcgh group example">
+    <form role="search"><input type="search" placeholder="Search" name="search"><input type="submit" value="Search"></form>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;form role="search"&gt;
   &lt;input name="search" type="search" placeholder="Search" /&gt;
   &lt;input type="submit" value="Search" /&gt;
 &lt;/form&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Buttons<a href="#buttons" id="buttons" class="secondary" tabindex="-1">#</a></h2>
-    <p><code>role="group"</code> is also useful for grouping a series of buttons.</p>
-    <article class="component" aria-label="Group example">
-      <div role="group"><button>Button</button><button>Button</button><button>Button</button></div>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/group"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
+  </article>
+</section>
+<section>
+  <h2>Buttons</h2>
+  <p><code>role="group"</code> is also useful for grouping a series of buttons.</p>
+  <article class="component" aria-label="Group example">
+    <div role="group"><button>Button</button><button>Button</button><button>Button</button></div>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
   &lt;button&gt;Button&lt;/button&gt;
   &lt;button&gt;Button&lt;/button&gt;
   &lt;button&gt;Button&lt;/button&gt;
 &lt;/div&gt;</code></pre></footer>
-    </article>
-    <article class="component" aria-label="Group example">
-      <div role="group"><button aria-current="true">Active</button><button>Button</button><button>Button</button></div>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/group"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
+  </article>
+  <article class="component" aria-label="Group example">
+    <div role="group"><button aria-current="true">Active</button><button>Button</button><button>Button</button></div>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
   &lt;button aria-current="true"&gt;Active&lt;/button&gt;
   &lt;button&gt;Button&lt;/button&gt;
   &lt;button&gt;Button&lt;/button&gt;
 &lt;/div&gt;</code></pre></footer>
-    </article>
-    <article class="component" aria-label="Group example">
-      <div role="group"><button>Button</button><button class="secondary">Button</button><button class="contrast">Button</button></div>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/group"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
+  </article>
+  <article class="component" aria-label="Group example">
+    <div role="group"><button>Button</button><button class="secondary">Button</button><button class="contrast">Button</button></div>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
   &lt;button&gt;Button&lt;/button&gt;
   &lt;button class="secondary"&gt;Button&lt;/button&gt;
   &lt;button class="contrast"&gt;Button&lt;/button&gt;
 &lt;/div&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section class="edit-on-github">
-    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.group.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
-  </section>
-</div>
+  </article>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.group.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

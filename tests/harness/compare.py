@@ -1,7 +1,8 @@
 """One comparison cell: load side A's document, wait for it, check the environment, collect; the same
 for side B in a fresh iframe; diff in the page; screenshot both sides (never gating). In the styles
 mode the collect also reads the tokens, and each side replays its interactive states after its
-collect (harness/styles.py)."""
+collect (harness/styles.py). In the sections mode (harness/sections.py) the two sides load different
+URLs (the cell's url_b: /docs#<id>) and compare different roots (root_b: the section around the id)."""
 import io
 import re
 import time
@@ -215,10 +216,13 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
             tags[side] = sess.proxy.new_tag(side)
             sess.proxy.owners[tags[side]] = (out, side, tgt)
             sess.proxy.use(side, tags[side])
+            # A section cell loads side B's one page at its section (url_b) and compares that
+            # section (root_b); every other side loads the route and compares its own root.
+            root = cell.get(f"root_{side}") or tgt.root
             for attempt in range(2):
                 # Safari gets a URL no other load had (proxy.py, harness-load); the proxy forwards
                 # and logs the route without it, and the cell records the route.
-                url = cell["route"]
+                url = cell.get(f"url_{side}") or cell["route"]
                 if sess.browser == "safari":
                     url = with_load_param(url, f"{tags[side]}.{attempt}")
                 ld = sess.ajs("load", url, cell["width"], FRAME_HEIGHT, {"storage": storage})
@@ -248,7 +252,7 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
                 return _finish(out, res, t0, "error")
             chk = sess.js("check", cell["width"], {"media": media, "theme": theme})
             out["errors"] += [f"{side} {e}" for e in chk.get("errors", [])]
-            col = sess.ajs("collect", side, tgt.root)
+            col = sess.ajs("collect", side, root)
             out["errors"] += [f"{side} collect: {e}" for e in col.get("errors", [])]
             log = sess.proxy.take_log()
             bad = [r for r in log if r["status"] >= 400 or r.get("error")]
@@ -290,7 +294,7 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
                 from .styles import replay
                 replay(sess, side, cell, targets, registry, out, res, merge)
             if opts.shots:
-                sess.ajs("prepShot")
+                sess.ajs("prepShot", root)
                 pngs[side] = sess.frame_png()
                 sess.js("unmask")
             # Remove the document before the proxy switches sides: nothing it still requests may
@@ -304,7 +308,14 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
             csp_loads(out, side, sides[side], sess.proxy.take_reports(tag))
 
     a, b = out["sides"]["a"], out["sides"]["b"]
-    if (a["status"], a["path"]) != (b["status"], b["path"]):
+    # A section cell's sides answer different paths: side A its route, side B the one page (path_b,
+    # with ?theme=<color> on a color route); each must be the one asked for, with the same status.
+    want_b = cell.get("path_b")
+    if want_b is None:
+        differ = (a["status"], a["path"]) != (b["status"], b["path"])
+    else:
+        differ = a["status"] != b["status"] or a["path"] != cell["route"] or b["path"] != want_b
+    if differ:
         rec = {"kind": "status", "path": cell["route"], "label": cell["route"],
                "a": f"{a['status']} {a['path']}", "b": f"{b['status']} {b['path']}"}
         _add_python_record(res, rec, registry.match_python(rec, cell))

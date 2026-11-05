@@ -1,0 +1,2 @@
+/* The fixture's theme variant: /sections/picker/jade.html links it, and docs.html writes it for ?theme=jade. */
+.intro .swatch { background: rgb(0, 168, 107); }

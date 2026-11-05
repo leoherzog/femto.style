@@ -1,69 +1,56 @@
 <hgroup>
   <p class="chapter">Content</p>
-  <h1>Table</h1>
+  <h1 id="table">Table</h1>
   <p>Clean and minimal styles for <code class="language-html">&lt;table&gt;</code>, providing consistent&nbsp;spacings and a minimal unbordered&nbsp;look.</p>
 </hgroup>
-<aside id="table-of-contents">
-  <nav class="is-sticky-above-lg ">
-    <details open>
-      <summary>Content</summary>
-      <ul>
-        <li><a class="secondary" data-discover="true" href="/docs/table">Syntax</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/table#color-schemes">Color schemes</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/table#striped">Striped</a></li>
-      </ul>
-    </details>
-  </nav>
-</aside>
-<div id="content" role="document">
-  <section>
-    <div class="overflow-auto">
-      <table>
-        <thead>
-          <tr>
-            <th scope="col">Planet</th>
-            <th scope="col">Diam. (km)</th>
-            <th scope="col">Dist. to Sun (AU)</th>
-            <th scope="col">Grav. (m/s²)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">Mercury</th>
-            <td>4,880</td>
-            <td>0.39</td>
-            <td>3.7</td>
-          </tr>
-          <tr>
-            <th scope="row">Venus</th>
-            <td>12,104</td>
-            <td>0.72</td>
-            <td>8.9</td>
-          </tr>
-          <tr>
-            <th scope="row">Earth</th>
-            <td>12,742</td>
-            <td>1.00</td>
-            <td>9.8</td>
-          </tr>
-          <tr>
-            <th scope="row">Mars</th>
-            <td>6,779</td>
-            <td>1.52</td>
-            <td>3.7</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <th scope="row">Average</th>
-            <td>9,126</td>
-            <td>0.91</td>
-            <td>6.5</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/table"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;table&gt;
+<section>
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Planet</th>
+          <th scope="col">Diam. (km)</th>
+          <th scope="col">Dist. to Sun (AU)</th>
+          <th scope="col">Grav. (m/s²)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Mercury</th>
+          <td>4,880</td>
+          <td>0.39</td>
+          <td>3.7</td>
+        </tr>
+        <tr>
+          <th scope="row">Venus</th>
+          <td>12,104</td>
+          <td>0.72</td>
+          <td>8.9</td>
+        </tr>
+        <tr>
+          <th scope="row">Earth</th>
+          <td>12,742</td>
+          <td>1.00</td>
+          <td>9.8</td>
+        </tr>
+        <tr>
+          <th scope="row">Mars</th>
+          <td>6,779</td>
+          <td>1.52</td>
+          <td>3.7</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row">Average</th>
+          <td>9,126</td>
+          <td>0.91</td>
+          <td>6.5</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;table&gt;
   &lt;thead&gt;
     &lt;tr&gt;
       &lt;th scope="col"&gt;Planet&lt;/th&gt;
@@ -107,119 +94,118 @@
     &lt;/tr&gt;
   &lt;/tfoot&gt;
 &lt;/table&gt;</code></pre></div>
-  </section>
-  <section>
-    <h2>Color schemes<a href="#color-schemes" id="color-schemes" class="secondary" tabindex="-1">#</a></h2>
-    <p><code>data-theme="light"</code> or <code>data-theme="dark"</code> can be used at any level: <code class="language-html">&lt;table&gt;</code>, <code class="language-html">&lt;thead&gt;</code>, <code class="language-html">&lt;tbody&gt;</code>, <code class="language-html">&lt;tfoot&gt;</code>, <code class="language-html">&lt;tr&gt;</code>, <code class="language-html">&lt;th&gt;</code>, <code class="language-html">&lt;td&gt;</code>.</p>
-    <p>&nbsp;</p>
-    <div class="overflow-auto">
-      <table>
-        <thead data-theme="dark">
-          <tr>
-            <th scope="col">Planet</th>
-            <th scope="col">Diam. (km)</th>
-            <th scope="col">Dist. to Sun (AU)</th>
-            <th scope="col">Grav. (m/s²)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">Mercury</th>
-            <td>4,880</td>
-            <td>0.39</td>
-            <td>3.7</td>
-          </tr>
-          <tr>
-            <th scope="row">Venus</th>
-            <td>12,104</td>
-            <td>0.72</td>
-            <td>8.9</td>
-          </tr>
-          <tr>
-            <th scope="row">Earth</th>
-            <td>12,742</td>
-            <td>1.00</td>
-            <td>9.8</td>
-          </tr>
-          <tr>
-            <th scope="row">Mars</th>
-            <td>6,779</td>
-            <td>1.52</td>
-            <td>3.7</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <th scope="row">Average</th>
-            <td>9,126</td>
-            <td>0.91</td>
-            <td>6.5</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/table"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;table&gt;
+</section>
+<section data-inverse-thead>
+  <h2>Color schemes</h2>
+  <p><code>data-theme="light"</code> or <code>data-theme="dark"</code> can be used at any level: <code class="language-html">&lt;table&gt;</code>, <code class="language-html">&lt;thead&gt;</code>, <code class="language-html">&lt;tbody&gt;</code>, <code class="language-html">&lt;tfoot&gt;</code>, <code class="language-html">&lt;tr&gt;</code>, <code class="language-html">&lt;th&gt;</code>, <code class="language-html">&lt;td&gt;</code>.</p>
+  <p>&nbsp;</p>
+  <div class="overflow-auto">
+    <table>
+      <thead data-theme="dark">
+        <tr>
+          <th scope="col">Planet</th>
+          <th scope="col">Diam. (km)</th>
+          <th scope="col">Dist. to Sun (AU)</th>
+          <th scope="col">Grav. (m/s²)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Mercury</th>
+          <td>4,880</td>
+          <td>0.39</td>
+          <td>3.7</td>
+        </tr>
+        <tr>
+          <th scope="row">Venus</th>
+          <td>12,104</td>
+          <td>0.72</td>
+          <td>8.9</td>
+        </tr>
+        <tr>
+          <th scope="row">Earth</th>
+          <td>12,742</td>
+          <td>1.00</td>
+          <td>9.8</td>
+        </tr>
+        <tr>
+          <th scope="row">Mars</th>
+          <td>6,779</td>
+          <td>1.52</td>
+          <td>3.7</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row">Average</th>
+          <td>9,126</td>
+          <td>0.91</td>
+          <td>6.5</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;table&gt;
   &lt;thead data-theme="dark"&gt;
     ...
   &lt;/thead&gt;
   &lt;tbody&gt;...&lt;/tbody&gt;
   &lt;tfoot&gt;...&lt;/tfoot&gt;
 &lt;/table&gt;</code></pre></div>
-  </section>
-  <section>
-    <h2>Striped table<a href="#striped" id="striped" class="secondary" tabindex="-1">#</a></h2>
-    <p><code>.striped</code> enable striped rows (not available in the <a data-discover="true" href="/docs">class‑less&nbsp;version</a>).</p>
-    <div class="overflow-auto">
-      <table class="striped">
-        <thead>
-          <tr>
-            <th scope="col">Planet</th>
-            <th scope="col">Diam. (km)</th>
-            <th scope="col">Dist. to Sun (AU)</th>
-            <th scope="col">Grav. (m/s²)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">Mercury</th>
-            <td>4,880</td>
-            <td>0.39</td>
-            <td>3.7</td>
-          </tr>
-          <tr>
-            <th scope="row">Venus</th>
-            <td>12,104</td>
-            <td>0.72</td>
-            <td>8.9</td>
-          </tr>
-          <tr>
-            <th scope="row">Earth</th>
-            <td>12,742</td>
-            <td>1.00</td>
-            <td>9.8</td>
-          </tr>
-          <tr>
-            <th scope="row">Mars</th>
-            <td>6,779</td>
-            <td>1.52</td>
-            <td>3.7</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <th scope="row">Average</th>
-            <td>9,126</td>
-            <td>0.91</td>
-            <td>6.5</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/table"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;table class="striped"&gt;
+</section>
+<section>
+  <h2>Striped table</h2>
+  <p><code>.striped</code> enable striped rows (not available in the <a data-discover="true" href="/docs">class‑less&nbsp;version</a>).</p>
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th scope="col">Planet</th>
+          <th scope="col">Diam. (km)</th>
+          <th scope="col">Dist. to Sun (AU)</th>
+          <th scope="col">Grav. (m/s²)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Mercury</th>
+          <td>4,880</td>
+          <td>0.39</td>
+          <td>3.7</td>
+        </tr>
+        <tr>
+          <th scope="row">Venus</th>
+          <td>12,104</td>
+          <td>0.72</td>
+          <td>8.9</td>
+        </tr>
+        <tr>
+          <th scope="row">Earth</th>
+          <td>12,742</td>
+          <td>1.00</td>
+          <td>9.8</td>
+        </tr>
+        <tr>
+          <th scope="row">Mars</th>
+          <td>6,779</td>
+          <td>1.52</td>
+          <td>3.7</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th scope="row">Average</th>
+          <td>9,126</td>
+          <td>0.91</td>
+          <td>6.5</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;table class="striped"&gt;
   ...
 &lt;/table&gt;</code></pre></div>
-  </section>
-  <section class="edit-on-github">
-    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.table.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
-  </section>
-</div>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.table.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

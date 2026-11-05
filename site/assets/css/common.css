@@ -241,7 +241,9 @@ html {
 }
 
 /* Header, main and footer. The oracle's rows were auto auto 1fr auto, with the maintenance banner
-   first, which the site drops (Decision 5): main takes the free space again, not the footer */
+   first, which the site drops (Decision 5): main takes the free space again, not the footer. The
+   min-height is what the oracle's server HTML gave <body> as style="min-height:100vh", until
+   site.js sets innerHeight in px */
 html body {
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -505,8 +507,8 @@ svg.femto-icon.animated path:nth-of-type(2) {
    (site.js and docs.js add "moon"). The glyph is transparent and its shadow is drawn in the
    element's text color, so the emoji shows as a one-color silhouette that follows the link's and
    the button's hover colors through --femto-color. The box is the oracle's SVG icon box (1.125rem
-   in the header, 1.25rem on /docs/color-schemes, vertical-align: middle), and the glyph is drawn
-   out of flow over it, so nothing around the icon moves. It replaces the oracle's animated
+   in the header, 1.25rem in the Color schemes section, vertical-align: middle), and the glyph is
+   drawn out of flow over it, so nothing around the icon moves. It replaces the oracle's animated
    toggles.dev SVG, and that SVG's rules with it. */
 .icon-theme-toggle {
   display: inline-block;
@@ -533,7 +535,7 @@ svg.femto-icon.animated path:nth-of-type(2) {
   content: "\1F319";
 }
 
-/* /docs/color-schemes: the switcher button's icon, before its label */
+/* The Color schemes section: the switcher button's icon, before its label */
 #theme-switcher .icon-theme-toggle {
   width: 1.25rem;
   height: 1.25rem;

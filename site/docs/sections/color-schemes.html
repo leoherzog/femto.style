@@ -1,70 +1,56 @@
 <hgroup>
   <p class="chapter">Getting started</p>
-  <h1>Color schemes</h1>
+  <h1 id="color-schemes">Color schemes</h1>
   <p>femto comes with both Light and Dark color schemes, automatically enabled based on user preferences.</p>
 </hgroup>
-<aside id="table-of-contents">
-  <nav class="is-sticky-above-lg ">
-    <details open>
-      <summary>Content</summary>
-      <ul>
-        <li><a class="secondary" data-discover="true" href="/docs/color-schemes">Introduction</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/color-schemes#usage">Usage</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/color-schemes#example">Card example</a></li>
-      </ul>
-    </details>
-  </nav>
-</aside>
-<div id="content" role="document">
-  <section>
-    <p>The default color scheme is Light. The Dark scheme is automatically enabled if the user has dark mode enabled <code class="language-css">prefers-color-scheme: dark;</code>.</p>
-    <article aria-label="Theme switcher" id="theme-switcher">
-      <button class="contrast"><span class="icon-theme-toggle theme-toggle" aria-hidden="true"></span>Turn on dark mode</button>
-    </article>
-  </section>
-  <section>
-    <h2>Usage<a href="#usage" id="usage" class="secondary" tabindex="-1">#</a></h2>
-    <p>Color schemes can be defined for the entire document using <code class="language-html">&lt;html data-theme="light"&gt;</code> or for specific HTML elements, such as <code class="language-html">&lt;article data-theme="dark"&gt;</code>.</p>
-    <p>Color schemes at the HTML tag level work great for elements such as <code>a</code>, <code>button</code>, <code>table</code>, <code>input</code>, <code>textarea</code>, <code>select</code>, <code>article</code>, <code>dialog</code>, <code>progress</code>.</p>
-    <p>CSS variables specific to the color scheme are assigned to every HTML tag. However, we have not enforced specific background and color settings across all HTML tags to maintain transparent backgrounds and ensure colors are inherited from the parent tag.</p>
-    <p>For some other HTML tags, you might need to explicitly set <code>background-color</code> and <code>color</code>.</p>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/color-schemes"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">section {
+<section>
+  <p>The default color scheme is Light. The Dark scheme is automatically enabled if the user has dark mode enabled <code class="language-css">prefers-color-scheme: dark;</code>.</p>
+  <article aria-label="Theme switcher" id="theme-switcher">
+    <button class="contrast" data-scheme-switcher><span class="icon-theme-toggle theme-toggle" aria-hidden="true"></span>Turn on dark mode</button>
+  </article>
+</section>
+<section>
+  <h2>Usage</h2>
+  <p>Color schemes can be defined for the entire document using <code class="language-html">&lt;html data-theme="light"&gt;</code> or for specific HTML elements, such as <code class="language-html">&lt;article data-theme="dark"&gt;</code>.</p>
+  <p>Color schemes at the HTML tag level work great for elements such as <code>a</code>, <code>button</code>, <code>table</code>, <code>input</code>, <code>textarea</code>, <code>select</code>, <code>article</code>, <code>dialog</code>, <code>progress</code>.</p>
+  <p>CSS variables specific to the color scheme are assigned to every HTML tag. However, we have not enforced specific background and color settings across all HTML tags to maintain transparent backgrounds and ensure colors are inherited from the parent tag.</p>
+  <p>For some other HTML tags, you might need to explicitly set <code>background-color</code> and <code>color</code>.</p>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">section {
   background-color: var(--femto-background-color);
   color: var(--femto-color);
 }</code></pre></div>
-  </section>
-  <section>
-    <h2>Card example<a href="#example" id="example" class="secondary" tabindex="-1">#</a></h2>
-    <article data-theme="light" aria-label="Forced light theme example">
-      <h2>Light card</h2>
-      <form>
-        <fieldset class="grid">
-          <input type="text" placeholder="Login" aria-label="Login" autocomplete="username" name="login">
-          <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
-          <button type="submit">Login</button>
-        </fieldset>
-        <fieldset><label><input type="checkbox" role="switch" name="switch" checked> <!-- the oracle's React text separator, kept on purpose: without it Chrome shapes this label about 0.016 px narrower than the oracle at 1300 (Phase 1 parity); remove it only when parity with the oracle no longer binds -->Remember me</label></fieldset>
-      </form>
-      <footer class="code" data-theme="light"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/color-schemes"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;article data-theme="light"&gt;
+</section>
+<section>
+  <h2>Card example</h2>
+  <article data-theme="light" aria-label="Forced light theme example">
+    <h2>Light card</h2>
+    <form>
+      <fieldset class="grid">
+        <input type="text" placeholder="Login" aria-label="Login" autocomplete="username" name="login">
+        <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
+        <button type="submit">Login</button>
+      </fieldset>
+      <fieldset><label><input type="checkbox" role="switch" name="switch" checked> <!-- the oracle's React text separator, kept on purpose: without it Chrome shapes this label about 0.016 px narrower than the oracle at 1300 (Phase 1 parity); remove it only when parity with the oracle no longer binds -->Remember me</label></fieldset>
+    </form>
+    <footer class="code" data-theme="light"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;article data-theme="light"&gt;
   ...
 &lt;/article&gt;</code></pre></footer>
-    </article>
-    <article data-theme="dark" aria-label="Forced dark theme example">
-      <h2>Dark card</h2>
-      <form>
-        <fieldset class="grid">
-          <input type="text" placeholder="Login" aria-label="Login" autocomplete="username" name="login">
-          <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
-          <button type="submit">Login</button>
-        </fieldset>
-        <fieldset><label><input type="checkbox" role="switch" name="switch" checked> <!-- the oracle's React text separator, kept on purpose: without it Chrome shapes this label about 0.016 px narrower than the oracle at 1300 (Phase 1 parity); remove it only when parity with the oracle no longer binds -->Remember me</label></fieldset>
-      </form>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/color-schemes"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;article data-theme="dark"&gt;
+  </article>
+  <article data-theme="dark" aria-label="Forced dark theme example">
+    <h2>Dark card</h2>
+    <form>
+      <fieldset class="grid">
+        <input type="text" placeholder="Login" aria-label="Login" autocomplete="username" name="login">
+        <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
+        <button type="submit">Login</button>
+      </fieldset>
+      <fieldset><label><input type="checkbox" role="switch" name="switch" checked> <!-- the oracle's React text separator, kept on purpose: without it Chrome shapes this label about 0.016 px narrower than the oracle at 1300 (Phase 1 parity); remove it only when parity with the oracle no longer binds -->Remember me</label></fieldset>
+    </form>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;article data-theme="dark"&gt;
   ...
 &lt;/article&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section class="edit-on-github">
-    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.color-schemes.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
-  </section>
-</div>
+  </article>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.color-schemes.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

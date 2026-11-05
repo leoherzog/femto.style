@@ -1,6 +1,6 @@
-"""Content: /docs/typography's font-size table switch, /docs/table's inverse thead and /docs/link's
-example links (01 §2, small widgets: FontsizeTable.jsx, docs.table.jsx, docs.link.jsx)."""
-from behavior import SNAPSHOT, check
+"""Content: Typography's font-size table switch, Table's inverse thead and Link's example links
+(01 §2, small widgets: FontsizeTable.jsx, docs.table.jsx, docs.link.jsx)."""
+from behavior import SNAPSHOT, check, self_href
 
 GROUP = "content"
 
@@ -30,7 +30,7 @@ def rem_rows():
 
 
 TABLE = SNAPSHOT + """
-const t = document.querySelector("table#responsive-font-sizes"), sw = document.querySelector('input[name="toggle-font-size-in-rem"]');
+const t = S.querySelector("table#responsive-font-sizes"), sw = S.querySelector('input[name="toggle-font-size-in-rem"]');
 return {cells: [...t.querySelectorAll("tbody tr")].map(r => [...r.querySelectorAll("td")].map(td => {
           const s = td.querySelector(":scope > span[data-tooltip]");
           return [td.textContent, s ? s.getAttribute("data-tooltip") : null]; })),
@@ -40,7 +40,7 @@ return {cells: [...t.querySelectorAll("tbody tr")].map(r => [...r.querySelectorA
 SWITCH = 'input[name="toggle-font-size-in-rem"]'
 
 
-@check("font-size-units", "/docs/typography")
+@check("font-size-units", "/docs#typography")
 def font_size_units(page):
     """The responsive font-size table (`table#responsive-font-sizes`) shows px with a formula
     tooltip per cell (Base row 16px "100% * 16px" ... 21px; h1 row 32px "100% * 2rem * 16px" ...;
@@ -53,13 +53,13 @@ def font_size_units(page):
     page.eq("off on load", t0["checked"], False)
     page.eq("row heads", t0["heads"], ["Base"] + [f"<{n}>" for n, _, _ in ELEMENTS])
     page.eq("px values and formulas on load", t0["cells"], [[list(c) for c in r] for r in px_rows()])
-    page.click(SWITCH)
-    page.wait("rem values after checking", "document.querySelector('table#responsive-font-sizes tbody td').textContent === '100%'", 1)
+    page.click(page.find(SWITCH))
+    page.wait("rem values after checking", "S.querySelector('table#responsive-font-sizes tbody td').textContent === '100%'", 1)
     t1 = page.js(TABLE)
     page.eq("switch checked", t1["checked"], True)
     page.eq("percent and multipliers, no tooltips", t1["cells"], [[[c, None] for c in r] for r in rem_rows()])
-    page.click(SWITCH)
-    page.wait("px values after unchecking", "document.querySelector('table#responsive-font-sizes tbody td').textContent === '16px'", 1)
+    page.click(page.find(SWITCH))
+    page.wait("px values after unchecking", "S.querySelector('table#responsive-font-sizes tbody td').textContent === '16px'", 1)
     t2 = page.js(TABLE)
     page.eq("switch unchecked", t2["checked"], False)
     page.eq("the px table exactly as loaded", t2["tree"], t0["tree"])
@@ -77,7 +77,7 @@ RESTORE_SWITCH = """() => {
 RESTORED = "with the switch restored as checked, the table shows rem"
 
 
-@check("font-size-restored-switch", "/docs/typography", oracle_bug={
+@check("font-size-restored-switch", "/docs#typography", oracle_bug={
     "fails": RESTORED,
     "reason": "FontsizeTable.jsx starts from useState(false) and never reads the switch, and React 19's hydration "
               "leaves a restored checked state alone (Firefox restores form state on a reload), so the oracle "
@@ -94,8 +94,8 @@ def font_size_restored_switch(page):
     the px table exactly as first loaded (the same tree)."""
     t0 = page.js(TABLE)
     page.eq("off on load over the px table", [t0["checked"], t0["cells"]], [False, [[list(c) for c in r] for r in px_rows()]])
-    page.click(SWITCH)
-    page.wait("rem values after checking", "document.querySelector('table#responsive-font-sizes tbody td').textContent === '100%'", 1)
+    page.click(page.find(SWITCH))
+    page.wait("rem values after checking", "S.querySelector('table#responsive-font-sizes tbody td').textContent === '100%'", 1)
     page.js("window.__bhMarker = 'before the reload'; setTimeout(() => location.reload(), 0); return true;")
     page.wait("the page reloaded", "window.__bhMarker === undefined && document.readyState === 'complete'", 15)
     page.wait_ready()
@@ -111,15 +111,15 @@ def font_size_restored_switch(page):
         t1 = page.js(TABLE)
         page.eq("the switch arrives checked", t1["checked"], True)
     page.eq(RESTORED, t1["cells"], [[[c, None] for c in r] for r in rem_rows()])
-    page.click(SWITCH)
-    page.wait("px values after unchecking", "document.querySelector('table#responsive-font-sizes tbody td').textContent === '16px'", 1)
+    page.click(page.find(SWITCH))
+    page.wait("px values after unchecking", "S.querySelector('table#responsive-font-sizes tbody td').textContent === '16px'", 1)
     t2 = page.js(TABLE)
     page.eq("switch unchecked", t2["checked"], False)
     page.eq("the px table exactly as first loaded", t2["tree"], t0["tree"])
 
 
 THEAD = """
-const sec = [...document.querySelectorAll("#content section")].find(s => (s.querySelector("h2") || {}).textContent?.startsWith("Color schemes"));
+const sec = [...S.querySelectorAll("#content section")].find(s => (s.querySelector("h2") || {}).textContent?.startsWith("Color schemes"));
 const th = sec.querySelector("table thead"), code = sec.querySelector(":scope > .code pre code, :scope > div.code pre code");
 return {thead: th.getAttribute("data-theme"), code: code ? code.textContent : null, theme: document.documentElement.getAttribute("data-theme")};
 """
@@ -134,9 +134,9 @@ def expect_thead(page, inverse, label):
     page.eq(f"{label}: the sample reads data-theme=\"{inverse}\"", page.js(THEAD)["code"], code_for(inverse))
 
 
-@check("table-inverse-thead", "/docs/table")
+@check("table-inverse-thead", "/docs#table")
 def table_inverse_thead(page):
-    """In /docs/table's "Color schemes" section the example table's thead takes the inverse of the
+    """In Table's "Color schemes" section the example table's thead takes the inverse of the
     page's scheme, and the code sample under it says so: on a light OS thead data-theme="dark" and
     the sample reads <thead data-theme="dark">; after the header toggle makes the page dark, both
     say "light"; toggled back, "dark" again."""
@@ -148,9 +148,9 @@ def table_inverse_thead(page):
     expect_thead(page, "dark", "page made light")
 
 
-@check("table-inverse-thead-dark-os", "/docs/table", media="dark")
+@check("table-inverse-thead-dark-os", "/docs#table", media="dark")
 def table_inverse_thead_dark_os(page):
-    """On a dark OS with nothing stored, /docs/table's color-schemes example thead has
+    """On a dark OS with nothing stored, Table's color-schemes example thead has
     data-theme="light" and its sample reads <thead data-theme="light">."""
     expect_thead(page, "light", "dark OS")
 
@@ -159,7 +159,7 @@ def table_inverse_thead_dark_os(page):
 # but the copy links of the code footers. That is the three of "Links example" and the three of
 # "Active link example".
 LINKS = """
-return [...document.querySelectorAll("#content article.component a:not(.copy-to-clipboard)")].map(a =>
+return [...S.querySelectorAll("#content article.component a:not(.copy-to-clipboard)")].map(a =>
   [a, a.textContent, a.getAttribute("href"), a.closest("article").getAttribute("aria-label")]);
 """
 LINK_TEXTS = [["Links example", "Primary"], ["Links example", "Secondary"], ["Links example", "Contrast"],
@@ -181,17 +181,19 @@ return {marker: window.__bhMarker, url: location.pathname + location.search + lo
 """
 
 
-@check("link-examples", "/docs/link")
+@check("link-examples", "/docs#link")
 def link_examples(page):
-    """Every example link on /docs/link (Primary, Secondary and Contrast of "Links example", the
-    two Regular links and the Active link of "Active link example": 6 links, each
-    href="/docs/link") goes nowhere, by pointer and by keyboard. A real click on each, then Enter
+    """Every example link of Link (Primary, Secondary and Contrast of "Links example", the two
+    Regular links and the Active link of "Active link example": 6 links, each pointing at its own
+    place: href="/docs/link" on routes, /docs or /docs#link on the one page) goes nowhere, by
+    pointer and by keyboard. A real click on each, then Enter
     on each once focused, leaves the document (a marker set on window survives), the URL,
     history.length, the scroll position and the number of tabs as they were, and the click event
     is canceled (defaultPrevented)."""
     links = page.js(LINKS)
     page.eq("the six example links", [[a[3], a[1]] for a in links], LINK_TEXTS)
-    page.eq("every example link points at the route itself", [a[2] for a in links], ["/docs/link"] * 6)
+    page.eq("every example link points at the route itself", [self_href(page, a[0]) for a in links], [True] * 6,
+            hrefs=[a[2] for a in links])
     page.js(LINK_SPY)
     url, history, tabs = page.url(), page.js("return history.length"), len(page.driver.window_handles)
     done = 0
@@ -214,9 +216,10 @@ def link_examples(page):
             except Exception as e:   # the document went away: the link navigated
                 page.expect(label, False, error=f"{type(e).__name__}: {str(e).splitlines()[0][:200]}")
             opened = len(page.driver.window_handles)
-            page.expect(label, st["marker"] == "kept" and st["url"] == url and st["history"] == history
+            page.expect(label, st["marker"] == "kept" and st["history"] == history
                         and st["scroll"] == before and st["clicks"] == [True] and opened == tabs,
                         url_before=url, history_before=history, scroll_before=before, tabs_before=tabs, tabs=opened, **st)
+            page.url_kept(label, url)
             done += 1
     page.eq("every example link was clicked and activated with Enter", done, 12)
     page.note(f"{done} activations (6 clicks, 6 Enter presses), every click canceled, nothing navigated")

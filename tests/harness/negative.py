@@ -1,11 +1,13 @@
-"""`run.py selftest`: controls that prove the pages and styles modes detect what they must and tolerate
-what they may.
+"""`run.py selftest`: controls that prove the pages, styles and sections modes detect what they must and
+tolerate what they may.
 
 Each control runs `run.py pages --a fixture --b fixture:<control>` (the styles controls: `run.py
 styles`, with the fixture's state targets, tests/fixtures/states.json) in a subprocess exactly as a
 user would: side A is the selftest site in tests/fixtures/site/, side B the same site with one named
-change from tests/fixtures/controls.json, each served by its own harness server. The check then reads
-the run's result.json. Ported from femto's negative.py; the controls are new.
+change from tests/fixtures/controls.json, each served by its own harness server. The sections controls
+run `run.py sections` the same way, on the fixture's one-page docs site in miniature (fixtures/site/
+sections/). The check then reads the run's result.json. Ported from femto's negative.py; the controls
+are new.
 """
 import json
 import re
@@ -607,6 +609,7 @@ def build_cases(reg_dir):
          "list items that inherit it (and their markers); the first item's own value, and its marker's, stay "
          "unregistered", extra=("--registry", str(inh_dir)))
     styles_cases(case, zero, x, reg_dir)
+    sections_cases(case, reg_dir)
     return cases
 
 
@@ -1078,3 +1081,202 @@ def run_selftest(args):
     (d / "selftest.json").write_text(json.dumps(report, indent=1))
     print(f"{'PASS' if ok_all else 'FAIL'}: {sum(r['ok'] for r in report)}/{len(report)} controls; wrote {d}/selftest.json")
     return 0 if ok_all else 1
+
+
+# The sections fixture (tests/fixtures/site/sections/): three route pages, a color variant of the
+# third, and the one page that holds the three sections.
+SECTION_ROUTES = "/sections/alpha.html,/sections/beta.html,/sections/picker.html,/sections/picker/jade.html"
+ALPHA, BETA = "/sections/alpha.html", "/sections/beta.html"
+GEOMETRY = {"width", "height", "inline-size", "block-size", "top", "right", "bottom", "left", "inset-block-start",
+            "inset-block-end", "inset-inline-start", "inset-inline-end", "transform-origin", "perspective-origin",
+            "grid-template-rows", "grid-template-columns"}  # registry.py GEOMETRY
+
+
+def sections_cases(case, reg_dir):
+    """The sections mode's controls (tests/README.md, Selftest): each route page's [role=document]
+    against its section of the one page, the section found by its id, a color route on ?theme=, and
+    the merge-layout layout consequence (registry.py _section_geometry)."""
+    def x(i, kind, reason, **f):
+        return {"id": i, "kind": kind, **f, "category": "merge-layout", "reason": reason}
+
+    def reg_dir_of(name, entries):
+        d = reg_dir.parent / name
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "rig.json").write_text((DIVERGENCES / "rig.json").read_text())
+        (d / "sections.json").write_text(json.dumps(entries, indent=1))
+        return d
+
+    one = {"comparisons": ["one-page"]}
+    # What every section cell differs in by design (PLAN.md merge-layout): the root pair, a section
+    # against side A's div#content, and the section id on the h1 of the hgroup, which the route page
+    # held outside div#content and the sections mode grafts into side A's root (sections.GRAFTS).
+    base = [x("ok-section-root", "structure", "Positive control: the section wrapper, a section against the route's "
+              "div#content (the root pair).", selector="#content > section", a="div", b="section", where=one),
+            x("ok-section-h1-id", "attribute", "Positive control: the section id on the hgroup's h1.",
+              selector="#content > section > hgroup > h1[id]", property="id", a=None, b="*", where=one)]
+    base_dir = reg_dir_of("registry-sections", base)
+
+    def recs(r, route=None, width=None):
+        return [y for c in r["cells"] if (route is None or c["route"] == route) and (width is None or c["width"] == width)
+                for y in (c.get("result") or {}).get("unregistered", [])]
+
+    def by_cell(r):
+        return {(c["route"], c["width"]): c for c in r["cells"]}
+
+    def bare(r):
+        per = {(c["route"], c["width"]): sorted(((y["kind"], y.get("change"), y["a"], y["b"])
+                                                 for y in (c.get("result") or {}).get("unregistered", [])), key=str)
+               for c in r["cells"]}
+        ids = {"/sections/alpha.html": "alpha", "/sections/beta.html": "beta-two", "/sections/picker.html": "picker",
+               "/sections/picker/jade.html": "picker"}
+        bad = {k: v for k, v in per.items()
+               if v != sorted([("attribute", None, None, ids[k[0]]), ("structure", "tag", "div", "section")], key=str)}
+        urls = sorted({c.get("url_b") for c in r["cells"]})
+        ok = len(per) == 8 and not bad and not r["harness_errors"] and urls == [
+            "/sections/docs.html#alpha", "/sections/docs.html#beta-two", "/sections/docs.html#picker",
+            "/sections/docs.html?theme=jade#picker"]
+        return ok, (f"cells {len(per)}; cells whose records are not the root's tag and the h1's id: {bad}; side B URLs "
+                    f"{urls}")
+    case("sections-bare", "sections-unchanged", bare,
+         "sections mode, the one page as it is and no registry entry: every cell (4 routes, the color route on "
+         "?theme=jade, 375 and 1300) differs in exactly two records, the root pair (div#content against the section "
+         "around the id: one structure record) and the section id on the h1 of the hgroup, which side A's root takes "
+         "as a graft (one only-b attribute record; Alpha's grafted note dialog pairs and matches), and loads side B at "
+         "docs.html#<id>", routes=SECTION_ROUTES, widths="375,1300", mode="sections")
+
+    def same(r):
+        used = {k: v for k, v in r["registered_by_entry"].items() if v}
+        n = len(r["cells"])
+        return (not recs(r) and not r["harness_errors"] and used == {"ok-section-root": n, "ok-section-h1-id": n},
+                f"unregistered {[fmt(y) for y in recs(r)[:3]]}; registered {used} over {n} cells")
+    case("sections-same", "sections-unchanged", same,
+         "the same with two merge-layout entries for the root pair and the h1's id: zero unregistered records, the "
+         "color route included (its swatch takes the jade stylesheet on both sides), and no breadth or coverage error",
+         routes=SECTION_ROUTES, widths="375,1300", mode="sections", extra=("--registry", str(base_dir)))
+
+    def graft_changed(r):
+        got = sorted({(c["route"], y["kind"], y["a"], y["b"]) for c in r["cells"]
+                      for y in (c.get("result") or {}).get("unregistered", [])}, key=str)
+        cells = {(c["route"], c["width"]) for c in r["cells"] if (c.get("result") or {}).get("unregisteredTotal")}
+        per = {k: (c.get("result") or {}).get("unregisteredTotal") for k, c in by_cell(r).items()}
+        want = [(ALPHA, "text", "Alpha note", "Alpha notice"), (ALPHA, "text", "The first section.", "The first part.")]
+        return (cells == {(ALPHA, 375), (ALPHA, 1300)} and got == want and per[(ALPHA, 375)] == per[(ALPHA, 1300)] == 2
+                and not r["harness_errors"], f"cells with records {sorted(cells)}; records {got[:4]}; per cell {per}")
+    case("sections-graft-changed", "sections-graft-changed", graft_changed,
+         "the one page's Alpha hgroup description and its note dialog change text, the two parts of the route page "
+         "that sat outside div#content (side A's grafts, one before the content and one after): one text record "
+         "each in both Alpha cells, and nothing in the other sections' cells", routes=f"{ALPHA},{BETA}",
+         widths="375,1300", mode="sections", extra=("--registry", str(base_dir)))
+
+    def changed(r):
+        got = [(c["route"], y["kind"], y["a"], y["b"]) for c in r["cells"]
+               for y in (c.get("result") or {}).get("unregistered", [])]
+        want_cells = {(BETA, 375), (BETA, 1300)}
+        cells = {(c["route"], c["width"]) for c in r["cells"] if (c.get("result") or {}).get("unregisteredTotal")}
+        texts = {(g[2], g[3]) for g in got}
+        return (cells == want_cells and all(g[1] == "text" for g in got) and texts == {("Beta two", "Beta 2")},
+                f"cells with records {sorted(cells)}; records {got[:4]}")
+    case("sections-changed", "sections-changed", changed,
+         "one list item's text changes in the one page's Beta section: one text record in each Beta cell, on that "
+         "item, and nothing in the other sections' cells", routes=SECTION_ROUTES, widths="375,1300", mode="sections",
+         extra=("--registry", str(base_dir)))
+
+    def missing(r):
+        errs = r["harness_errors"]
+        beta = [e for e in errs if " /sections/beta.html " in e]
+        other = [e for e in errs if " /sections/beta.html " not in e]
+        named = all("#beta-two" in e and "not found" in e for e in beta)
+        return (len(beta) == 2 and named and not other and not recs(r),
+                f"harness errors on Beta {beta[:1]} ({len(beta)}); elsewhere {other[:2]}; unregistered {len(recs(r))}")
+    case("sections-missing", "sections-missing", missing,
+         "the one page's Beta heading loses its id: each Beta cell is a harness error (no section has the id "
+         "beta-two), and the other sections' cells pass", routes=SECTION_ROUTES, widths="375,1300", mode="sections",
+         extra=("--registry", str(base_dir)), expect_errors=("not found",))
+
+    def theme_ignored(r):
+        cells = {(c["route"], c["width"]) for c in r["cells"] if (c.get("result") or {}).get("unregisteredTotal")}
+        sw = [y for y in recs(r) if y["kind"] == "style" and y["label"].startswith("span.swatch")]
+        props = sorted({y["prop"] for y in recs(r)})
+        return (cells == {("/sections/picker/jade.html", 375), ("/sections/picker/jade.html", 1300)} and sw
+                and props == ["background-color"],
+                f"cells with records {sorted(cells)}; swatch records {len(sw)}; properties {props}")
+    case("sections-theme-ignored", "sections-theme-ignored", theme_ignored,
+         "the one page ignores ?theme=jade: the color route's cells differ in the swatch's background-color, and "
+         "the picker's own route and the other sections do not", routes=SECTION_ROUTES, widths="375,1300", mode="sections",
+         extra=("--registry", str(base_dir)))
+
+    # The layout consequence: one merge-layout entry for Alpha at 1300 px that names only geometry
+    # longhands, over the whole section ("*"), with the base entries.
+    geo_props = "/^(width|height|inline-size|block-size|transform-origin|perspective-origin|grid-template-columns)$/"
+
+    geo_dir = reg_dir_of("registry-sections-geometry", base + [
+        x("ok-alpha-1300", "style", "Positive control: the sizes the one page's third track gives Alpha's boxes at "
+          "1300 px.", selector="*", property=geo_props,
+          where={"comparisons": ["one-page"], "routes": [ALPHA], "widths": [1300]})])
+
+    def geometry(r):
+        cells = by_cell(r)
+        a13 = recs(r, ALPHA, 1300)
+        geo13 = [y for y in a13 if y["kind"] == "style" and y["prop"] in GEOMETRY]
+        kinds13 = sorted({y["kind"] for y in a13})
+        props13 = sorted({y["prop"] for y in a13 if y["kind"] == "style"})
+        reg13 = ((cells[(ALPHA, 1300)].get("result") or {}).get("registered") or {}).get("ok-alpha-1300", 0)
+        elsewhere = {k: ((c.get("result") or {}).get("registered") or {}).get("ok-alpha-1300", 0)
+                     for k, c in cells.items() if k != (ALPHA, 1300)}
+        geo_left = {k: sum(1 for y in recs(r, *k) if y["kind"] == "style" and y["prop"] in GEOMETRY)
+                    for k in ((ALPHA, 375), (BETA, 1300), (BETA, 375))}
+        bad = [e for e in r["harness_errors"] if "breadth: " in e or "coverage: " in e]
+        ok = (not geo13 and kinds13 == ["attribute", "structure", "style", "text"] and "color" in props13 and reg13 > 20
+              and not any(elsewhere.values()) and all(geo_left.values()) and not bad)
+        return ok, (f"Alpha 1300: geometry left unregistered {len(geo13)}, unregistered kinds {kinds13}, style "
+                    f"properties {props13[:6]}, registered by the consequence {reg13}; the consequence elsewhere "
+                    f"{elsewhere}; geometry records left at Alpha 375, Beta 1300 and Beta 375 {geo_left}; breadth or "
+                    f"coverage errors {bad[:1]}")
+    case("sections-geometry", "sections-geometry", geometry,
+         "a third grid track at 1300 px narrows every box of every section, and 375 px loses 16 px: a merge-layout "
+         "entry for Alpha at 1300 that names only geometry longhands over the whole section registers those sizes "
+         "there with no breadth or coverage error, while Alpha's color, text, attribute and added item stay "
+         "unregistered, and the same sizes at 375 px and in Beta's cells stay unregistered",
+         routes=f"{ALPHA},{BETA}", widths="375,1300", mode="sections", extra=("--registry", str(geo_dir)))
+
+    # Near misses: each breaks one condition of the allowance, so it is judged as any entry (a selector
+    # "*" over the whole section is too broad) and registers nothing.
+    evasions = [
+        x("evade-geo-any-property", "style", "Negative control: not only geometry.", selector="*", property="*",
+          where={"comparisons": ["one-page"], "routes": [ALPHA], "widths": [1300]}),
+        x("evade-geo-color", "style", "Negative control: color beside geometry.", selector="*",
+          property="/^(width|height|color)$/", where={"comparisons": ["one-page"], "routes": [ALPHA], "widths": [1300]}),
+        x("evade-geo-open-property", "style", "Negative control: an open property pattern.", selector="*",
+          property="/^(width|height|.*-size)$/", where={"comparisons": ["one-page"], "routes": [ALPHA], "widths": [1300]}),
+        x("evade-geo-pages", "style", "Negative control: no comparison named.", selector="*", property=geo_props,
+          where={"routes": [ALPHA], "widths": [1300]}),
+        x("evade-geo-range", "style", "Negative control: a width range.", selector="*", property=geo_props,
+          where={"comparisons": ["one-page"], "routes": [ALPHA], "widths": [{"min": 1200, "max": 1400}]}),
+        x("evade-geo-no-width", "style", "Negative control: every width.", selector="*", property=geo_props,
+          where={"comparisons": ["one-page"], "routes": [ALPHA]}),
+        x("evade-geo-three-widths", "style", "Negative control: three widths.", selector="*", property=geo_props,
+          where={"comparisons": ["one-page"], "routes": [ALPHA], "widths": [375, 1300, 1600]}),
+        x("evade-geo-two-routes", "style", "Negative control: two routes.", selector="*", property=geo_props,
+          where={"comparisons": ["one-page"], "routes": [ALPHA, BETA], "widths": [1300]}),
+        x("evade-geo-regex-route", "style", "Negative control: a route pattern.", selector="*", property=geo_props,
+          where={"comparisons": ["one-page"], "routes": ["/^\\/sections\\/alpha/"], "widths": [1300]}),
+        dict(x("evade-geo-category", "style", "Negative control: another category.", selector="*", property=geo_props,
+               where={"comparisons": ["one-page"], "routes": [ALPHA], "widths": [1300]}), category="oracle-bug"),
+    ]
+    evade_dir = reg_dir_of("registry-sections-geometry-evasion", base + evasions)
+
+    def evasion(r):
+        reg_errs = [e for e in r["harness_errors"] if e.startswith("registry: ")]
+        rejected = sorted(e["id"] for e in evasions if any(f"[{e['id']}]" in m for m in reg_errs))
+        used = sorted(k for k, v in r["registered_by_entry"].items() if v and k.startswith("evade-"))
+        geo13 = [y for y in recs(r, ALPHA, 1300) if y["kind"] == "style" and y["prop"] in GEOMETRY]
+        want = sorted(e["id"] for e in evasions)
+        return (rejected == want and not used and len(geo13) > 20,
+                f"rejected {len(rejected)} of {len(want)} (missing {sorted(set(want) - set(rejected))}); registered by "
+                f"an evasion {used}; geometry records left at Alpha 1300 {len(geo13)}")
+    case("sections-geometry-evasion", "sections-geometry", evasion,
+         "the same change with ten near misses of the layout consequence (any property, color beside geometry, an "
+         "open property pattern, no comparison, a width range, no width, three widths, two routes, a route pattern, "
+         "another category): each is a registry error (a selector * over the whole section is too broad), none "
+         "registers anything, and Alpha's sizes at 1300 px stay unregistered", routes=f"{ALPHA},{BETA}",
+         widths="375,1300", mode="sections", extra=("--registry", str(evade_dir)), registry_errors=True)

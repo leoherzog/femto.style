@@ -1,6 +1,7 @@
 """The behavior suite: scripted checks of every widget the static site rebuilds (docs/research/01
-§2), run by `uv run tests/run.py behavior` (tests/harness/behavior.py) against one target at a time:
-the oracle, the static site in dist/, or any base URL. tests/README.md, Behavior, lists every check.
+§2) and of the one docs page (criterion 7), run by `uv run tests/run.py behavior`
+(tests/harness/behavior.py) against one target at a time: the oracle, the static site in dist/, or
+any base URL. tests/README.md, Behavior, lists every check.
 
 Each group module (shell.py, getting-started.py, ...) sets GROUP and registers its checks with
 @check. A check is a function of one argument, the page (harness.behavior.Page), already loaded at
@@ -11,7 +12,12 @@ or a script's source, so the same check runs against the oracle and the static s
 
 Assertions are page.expect(label, ok, **detail), page.eq(label, actual, expected) and
 page.wait(label, js, timeout): the first one that fails ends the check, and its label is what the
-result names. oracle_bug={"fails": label, "reason": ...} marks a check whose assertion `label` is
+result names. Routes are written in the one page's URLs (/docs#modal, /docs, /docs?theme=jade#
+version-picker); on a target with one page per route each is loaded at its old route
+(harness.behavior, layouts), and the check's scripts find its content in S, the route's section on
+the one page or the whole document there. layouts=("one-page",) with layout_reason marks a check of
+what only the one page has; it is recorded as skipped, with that reason, on the other layout.
+oracle_bug={"fails": label, "reason": ...} marks a check whose assertion `label` is
 an oracle bug the conversion fixes (PLAN.md, Divergence categories, oracle-bug): against the oracle
 the check must fail at exactly that assertion (XFAIL); passing there (XPASS) or failing elsewhere
 fails the run.
@@ -20,9 +26,11 @@ import dataclasses
 import inspect
 import textwrap
 
-GROUPS = ("shell", "getting-started", "customization", "layout", "content", "forms", "components-a",
+GROUPS = ("shell", "one-page", "getting-started", "customization", "layout", "content", "forms", "components-a",
           "components-b", "landing")
 MEDIA = ("light", "dark")
+MOTION = ("no-preference", "reduce")
+LAYOUTS = ("one-page", "routes")
 
 
 @dataclasses.dataclass
@@ -39,10 +47,27 @@ class Check:
     oracle_bug: dict | None = None
     preload: str | None = None
     module: str = ""
+    layouts: tuple = LAYOUTS
+    layout_reason: str | None = None
+    motion: str = "no-preference"
+    javascript: bool = True
+    cold: bool = False
+    preload_optional: bool = False
+    delay: dict | None = None
 
     def describe(self):
         d = {"name": self.name, "group": self.group, "routes": list(self.routes),
              "viewport": [self.width, self.height], "media": self.media, "doc": self.doc}
+        if self.layouts != LAYOUTS:
+            d["layouts"], d["layout_reason"] = list(self.layouts), self.layout_reason
+        if self.motion != "no-preference":
+            d["motion"] = self.motion
+        if not self.javascript:
+            d["javascript"] = False
+        if self.cold:
+            d["cold"] = True
+        if self.delay:
+            d["delay"] = self.delay
         if self.storage:
             d["storage"] = self.storage
         if self.oracle_bug:
@@ -55,16 +80,32 @@ class Check:
 REGISTRY: list[Check] = []
 
 
-def check(name, routes, *, width=1300, height=900, media="light", storage=None, oracle_bug=None, preload=None):
-    """Register a check. routes: one path or several (the check runs once per route). width and
-    height: the document viewport (innerWidth, innerHeight). media: prefers-color-scheme. storage:
-    localStorage items (raw strings) set on the target's origin before the first load. preload: a
-    JavaScript function declaration run in every new document before the page's own scripts
-    (WebDriver BiDi script.addPreloadScript). oracle_bug: see the module docstring."""
+def check(name, routes, *, width=1300, height=900, media="light", storage=None, oracle_bug=None, preload=None,
+          layouts=LAYOUTS, layout_reason=None, motion="no-preference", javascript=True, cold=False,
+          preload_optional=False, delay=None):
+    """Register a check. routes: one URL or several, in the one page's URLs (the check runs once per
+    route). width and height: the document viewport (innerWidth, innerHeight). media:
+    prefers-color-scheme. motion: prefers-reduced-motion. storage: localStorage items (raw strings)
+    set on the target's origin before the first load. preload: a JavaScript function declaration
+    run in every new document before the page's own scripts (WebDriver BiDi
+    script.addPreloadScript); preload_optional: Safari, which has no BiDi, runs the check without it
+    (page.preloaded says which). javascript=False: the page's JavaScript is off (Chrome and Firefox;
+    skipped in Safari). cold: the browser's HTTP cache is emptied before the route loads. delay:
+    {path: seconds}, the target's responses for those exact paths held that long (WebDriver BiDi
+    network interception, as 05's serve.py slowed the theme file; Safari, which has no BiDi, loads
+    them at once and the check notes it). layouts and layout_reason: see the module docstring.
+    oracle_bug: see the module docstring."""
     if isinstance(routes, str):
         routes = (routes,)
     if media not in MEDIA:
         raise ValueError(f"{name}: media must be one of {MEDIA}")
+    if motion not in MOTION:
+        raise ValueError(f"{name}: motion must be one of {MOTION}")
+    layouts = tuple(layouts)
+    if not layouts or set(layouts) - set(LAYOUTS):
+        raise ValueError(f"{name}: layouts must be some of {LAYOUTS}")
+    if len(layouts) < len(LAYOUTS) and not layout_reason:
+        raise ValueError(f"{name}: a check that runs on one layout only says why (layout_reason)")
     if oracle_bug is not None and not (oracle_bug.get("fails") and oracle_bug.get("reason")):
         raise ValueError(f"{name}: oracle_bug needs 'fails' (an assertion label) and 'reason'")
 
@@ -78,7 +119,8 @@ def check(name, routes, *, width=1300, height=900, media="light", storage=None, 
         if not doc:
             raise ValueError(f"{name}: a check states what it asserts in its docstring")
         REGISTRY.append(Check(name, group, tuple(routes), fn, doc, width, height, media, storage,
-                              oracle_bug, preload, fn.__module__))
+                              oracle_bug, preload, fn.__module__, layouts, layout_reason, motion, javascript, cold,
+                              preload_optional, delay))
         return fn
     return deco
 
@@ -136,3 +178,32 @@ const snap = (n) => {
 TOKENS = r"""
 const tokens = (code) => [...code.childNodes].map(n => n.nodeType === 1 ? [n.className, n.textContent] : ["#text", n.data]);
 """
+
+# A function of a section id, run in the page: how far its heading's top is below the line a link to
+# #<id> puts it on, html's scroll-padding-top (0 there; negative above). A heading the page cannot
+# scroll up to that line, near the page's end, counts as on it.
+HEADING_LINE = r"""(id) => {
+  const h = document.getElementById(id), root = document.documentElement;
+  const line = parseFloat(getComputedStyle(root).scrollPaddingTop) || 0;
+  const off = h.getBoundingClientRect().top - line;
+  return off > 0 && Math.ceil(scrollY + innerHeight) >= root.scrollHeight - 1 ? 0 : off;
+}"""
+
+
+def nav_href(page, sid):
+    """The side menu's link to a section: #<id> on the one page, the old route's path on routes."""
+    if page.layout == "routes":
+        return page.address(f"/docs#{sid}") if sid != "quick-start" else "/docs"
+    return f"#{sid}"
+
+
+def self_href(page, link, section_only=False):
+    """Whether an example link points at its own route or section, as docs.*.jsx's Link to="#" did:
+    href="/docs/<route>" on routes (the page's own path), and on the one page the page itself, /docs,
+    or its section, /docs#<section> (only the section with `section_only`)."""
+    r = page.js("const a = arguments[0]; return {href: a.getAttribute('href'), path: new URL(a.href).pathname,"
+                " hash: new URL(a.href).hash, here: location.pathname}", link)
+    if page.layout == "one-page":
+        return r["path"] == "/docs" and r["hash"] in ((f"#{page.section}",) if section_only else ("", f"#{page.section}"))
+    return r["href"] == r["here"]
+

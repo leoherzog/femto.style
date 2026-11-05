@@ -10,13 +10,18 @@ Side A is <base A><path> and side B is <base B><path>. A side is one of:
   process group and stops with every child when the run ends. `dist:<path>` serves any built
   folder exactly as `dist` serves dist/ (the same wrangler, options, readiness and same-origin
   rule), so several agents can compare their own builds at once.
-* a command target with `build_tag`, such as `static-multipage`: the harness first builds that tag
+* a command target with `build_tag`, such as `static-multipage` or `static-femto`: the harness first builds that tag
   of this repository into the target's folder (harness.tagbuild: a temporary git worktree, node
   build.mjs --out), rebuilding when the folder's index.html or build.json is missing, the tag's
   commit or the prismjs version differs from the one build.json records, or the folder no longer
   matches its recorded tree hash (tagbuild.stale_reason), then serves the folder exactly as `dist`
   serves dist/.
 * a base URL (`http://127.0.0.1:8788`): a server someone else runs; nothing is started or stopped.
+
+A target may also name a `menu` (the sections mode reads side A's routes and their sections from it,
+harness.sections), a `one_page` (the one docs page the sections mode loads side B's sections from)
+and a `comparison` (what a pages or sections run is when the target is side A: static-femto makes it
+one-page, which decides the registry entries that apply).
 
 wrangler is always the repository's own: `npm exec --no -- wrangler`, checked first against the exact
 version package.json pins. FEMTO_WRANGLER=<path to a wrangler executable> replaces it (only for
@@ -116,6 +121,7 @@ class Side:
         self.spec = spec
         self.root = root or None
         self.share = None   # "a": serve this side from side A's server (self --one-server)
+        self.root_note = None  # the sections mode: side B's root is each cell's section, side A's takes grafts
         self.base = None
         self.control = None
         self.dir = None       # the folder a command target serves (dist, or dist:<path>)
@@ -158,7 +164,9 @@ class Side:
     def describe(self):
         d = {"spec": self.spec, "kind": self.kind, "base": self.base, "ready": self.ready}
         if self.root:
-            d["root"] = self.root
+            d["root"] = self.root + (f" ({self.root_note})" if self.root_note else "")
+        elif self.root_note:
+            d["root"] = self.root_note
         if self.control:
             d["control"] = self.control
         if self.dir is not None:

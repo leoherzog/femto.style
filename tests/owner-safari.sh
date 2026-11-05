@@ -1,14 +1,17 @@
 #!/bin/bash
 # The owner's Safari steps, for the owner to run at the Mac (tests/README.md, Owner's Safari steps):
-# Phase 0's remaining ones and Phase 2's styles gate. It switches macOS to Light, then to Dark, and
+# Phase 0's remaining ones, Phase 2's styles gate and Phase 3's gate. It switches macOS to Light, then to Dark, and
 # puts back the appearance it found, even when stopped with Ctrl-C. Quit Safari first, keep the
 # screen unlocked and leave the Mac alone until it prints "done": /docs/css-variables, rig's input
-# checks, the spike and the styles mode's state replays need the automation window in front.
+# checks, the spike, the styles mode's state replays and the behavior suite need the automation window
+# in front.
 #
 #   tests/owner-safari.sh         Phase 0's steps below (about 70 minutes)
 #   tests/owner-safari.sh dark    only Phase 0's dark self pass, under a new run id (about 26 minutes)
 #   tests/owner-safari.sh spike   only the spike, on whichever appearance is set (about 1 minute)
 #   tests/owner-safari.sh styles  Phase 2's styles gate in Light, then in Dark (about 65 minutes)
+#   tests/owner-safari.sh one-page  Phase 3's gate in Light, then in Dark: the behavior suite, the full
+#                                   section comparison and the whole-page comparisons (about 1 h 45 min)
 set -u
 cd "$(dirname "$0")/.." || exit 1
 
@@ -16,8 +19,8 @@ only=${1:-}
 case "$only" in
   "") dark_id=p0-self-safari-dark ;;
   dark) dark_id=p0-self-safari-dark-masked ;;
-  spike|styles) ;;
-  *) echo "usage: $0 [dark|spike|styles]"; exit 2 ;;
+  spike|styles|one-page) ;;
+  *) echo "usage: $0 [dark|spike|styles|one-page]"; exit 2 ;;
 esac
 
 if pgrep -xq Safari; then echo "Quit Safari (Cmd-Q) first."; exit 1; fi
@@ -66,6 +69,25 @@ if [ "$only" = styles ]; then
   appearance true
   run uv run tests/run.py styles --full --browsers safari --run-id p2-styles-safari-dark-3
   ids="p2-styles-safari-light-3 p2-styles-safari-dark-3"
+elif [ "$only" = one-page ]; then
+  # Phase 3's gate in Safari (PLAN.md Workflow, 3 One page; criteria 2 and 7), once per appearance:
+  # the behavior suite against dist (the checks whose media is the other scheme are skipped and run in
+  # the other pass), the section comparison of every old docs route of static-femto against its
+  # section of the one page over the full matrix (384 of Safari's 684 cells per pass: the OS scheme's
+  # leg and both theme legs), and the whole pages whose links into the docs changed. The harness
+  # serves dist/ as it finds it, so the site is built first; static-femto is the harness's own build.
+  run npm run build || exit 1
+  for scheme in light dark; do
+    if [ $scheme = light ]; then appearance false; else appearance true; fi
+    run uv run tests/run.py behavior --target dist --browsers safari --run-id "p3-behavior-safari-$scheme-1"
+    run uv run tests/run.py sections --full --browsers safari --run-id "p3-sections-safari-$scheme-1"
+    run uv run tests/run.py pages --a static-femto --b dist --full --browsers safari \
+      --routes /,/examples,/demo,/does-not-exist --run-id "p3-pages-safari-$scheme-1"
+  done
+  ids="p3-sections-safari-light-1 p3-pages-safari-light-1 p3-sections-safari-dark-1 p3-pages-safari-dark-1"
+  for id in p3-behavior-safari-light-1 p3-behavior-safari-dark-1; do
+    echo "$id: $(grep -o 'OS scheme [a-z]*' "tests/results/$id/log.txt" | sort | uniq -c | xargs)"
+  done
 else
   # Light: the spike (Safari column of docs/research/05-spike.md), rig's input checks, and the six
   # light /docs/css-variables cells (the other 53 routes passed locked in owner-self-safari-light).

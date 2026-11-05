@@ -1,20 +1,22 @@
-"""Components: /docs/modal's demo modal and its static examples, /docs/nav's example links and
-/docs/progress' random value (01 §2, ModalContext with docs.modal.jsx; small widgets: docs.nav.jsx,
-docs.progress.jsx), and /docs/tooltip's example link.
+"""Components: Modal's demo modal and its static examples, Nav's example links and Progress' random
+value (01 §2, ModalContext with docs.modal.jsx; small widgets: docs.nav.jsx, docs.progress.jsx), and
+Tooltip's example link.
 
-/docs/tooltip's example link (docs.tooltip.jsx: Link to="#" with no onClick) renders the route's own
+The Tooltip example's link (docs.tooltip.jsx: Link to="#" with no onClick) renders the route's own
 path, href="/docs/tooltip". In the oracle a click is a client-side navigation to the same URL: the
 document is kept and the router scrolls to the top. The static site keeps it a plain <a> (PLAN.md
-Conversion rules, Markup), so the same click loads the page again. The end state is the same (the
-same URL, no new history entry, the top of the page), and tooltip-link holds both sides to it, but
-the two are not the same behavior: the static click is a full load. Do not cancel the click to hide
-the load, which would also drop the scroll to the top."""
-from behavior import check
+Conversion rules, Markup), so on routes the same click loads the page again. The end state is the
+same (the same URL, no new history entry, the top of the page), and tooltip-link holds both sides to
+it, but the two are not the same behavior: the static click is a full load. Do not cancel the click
+to hide the load, which would also drop the scroll to the top. On the one page the link points at
+the section, /docs#tooltip, and a click is a fragment navigation in the same document to the
+section's heading."""
+from behavior import HEADING_LINE, check, self_href
 
 GROUP = "components-b"
 
 DIALOGS = """
-const ds = [...document.querySelectorAll("main dialog")];
+const ds = [...S.querySelectorAll("main dialog")];
 return {demo: ds.filter(d => !d.classList.contains("example")).map(d => d.open),
         examples: ds.filter(d => d.classList.contains("example")).map(d => d.open),
         classes: [...document.documentElement.classList].filter(c => c.startsWith("modal-is-")).sort().join(" "),
@@ -25,9 +27,9 @@ DEMO = "main dialog:not(.example)"
 
 def expect_demo(page, open_, label):
     if open_:
-        page.wait(f"{label}: the demo dialog is open", f"document.querySelector('{DEMO}').open", 1)
+        page.wait(f"{label}: the demo dialog is open", f"S.querySelector('{DEMO}').open", 1)
     else:
-        page.wait(f"{label}: the demo dialog is closed", f"!document.querySelector('{DEMO}').open && "
+        page.wait(f"{label}: the demo dialog is closed", f"!S.querySelector('{DEMO}').open && "
                   "![...document.documentElement.classList].some(c => c.startsWith('modal-is-'))", 1.5)
     s = page.js(DIALOGS)
     page.eq(f"{label}: one demo dialog", len(s["demo"]), 1)
@@ -35,9 +37,9 @@ def expect_demo(page, open_, label):
     return s
 
 
-@check("modal-demo", "/docs/modal")
+@check("modal-demo", "/docs#modal")
 def modal_demo(page):
-    """/docs/modal's demo: "Open modal" (`#modal-demo button`) opens the demo dialog (the `main
+    """Modal's demo: "Open modal" (`#modal-demo button`) opens the demo dialog (the `main
     dialog` without class example: "Confirm Your Membership"), its Cancel and Confirm buttons close
     it, a click on the dialog outside its article (the backdrop) closes it, and a click inside the
     article does not. The two always-open example dialogs (`dialog.example`) stay open throughout,
@@ -49,13 +51,13 @@ def modal_demo(page):
         page.click("#modal-demo button")
         expect_demo(page, True, f"before {how}")
         page.eq(f"before {how}: the demo is 'Confirm Your Membership'",
-                page.js(f"return document.querySelector('{DEMO}').querySelector('h2').textContent.replace('#', '').trim()"),
+                page.js(f"return S.querySelector('{DEMO}').querySelector('h2').textContent.replace('#', '').trim()"),
                 "Confirm Your Membership")
         if how == "backdrop":
-            page.click(f"{DEMO} > article > p")
+            page.click(page.find(f"{DEMO} > article > p"))
             page.sleep(0.6)
             expect_demo(page, True, "a click inside the article keeps it open")
-            pt = page.js(f"""const d = document.querySelector("{DEMO}"), a = d.querySelector(":scope > article").getBoundingClientRect();
+            pt = page.js(f"""const d = S.querySelector("{DEMO}"), a = d.querySelector(":scope > article").getBoundingClientRect();
               for (const [x, y] of [[8, innerHeight / 2], [innerWidth - 8, innerHeight / 2], [innerWidth / 2, 8], [innerWidth / 2, innerHeight - 8]]) {{
                 const inA = x >= a.left && x <= a.right && y >= a.top && y <= a.bottom;
                 if (!inA && document.elementFromPoint(x, y) === d) return [Math.round(x), Math.round(y)]; }}
@@ -63,13 +65,13 @@ def modal_demo(page):
             page.expect("a point on the dialog outside its article", pt is not None)
             page.click_at(*pt)
         else:
-            button = page.js(f"return [...document.querySelectorAll('{DEMO} footer button')].find(b => b.textContent.trim() === arguments[0])", how)
+            button = page.js(f"return [...S.querySelectorAll('{DEMO} footer button')].find(b => b.textContent.trim() === arguments[0])", how)
             page.click(button)
         expect_demo(page, False, f"{how} closes it")
-    page.eq("the URL is unchanged", page.url(), url)
+    page.url_kept("the URL is unchanged", url)
     for sel, text in (("dialog.example:nth-of-type(1) header button[aria-label=Close]", None),
                       ("dialog.example footer button", "Cancel"), ("dialog.example footer button", "Confirm")):
-        el = page.js("return [...document.querySelectorAll(arguments[0])].find(b => !arguments[1] || b.textContent.trim() === arguments[1])",
+        el = page.js("return [...S.querySelectorAll(arguments[0])].find(b => !arguments[1] || b.textContent.trim() === arguments[1])",
                      sel, text)
         page.expect(f"example button {text or 'Close'} exists", el is not None)
         page.click(el)
@@ -78,13 +80,13 @@ def modal_demo(page):
         page.eq(f"example {text or 'Close'}: the examples stay open", s["examples"], [True, True])
         page.eq(f"example {text or 'Close'}: the demo stays closed", s["demo"], [False])
         page.eq(f"example {text or 'Close'}: no modal class", s["classes"], "")
-        page.eq(f"example {text or 'Close'}: the URL stays", s["url"], url)
+        page.url_kept(f"example {text or 'Close'}: the URL stays", url)
 
 
 # Records every change of the example's progress value (and the code token that prints it) while
 # the check waits, with performance.now() times.
 PROGRESS = """
-const p = document.querySelector('article[aria-label="Progress example"] > progress');
+const p = S.querySelector('article[aria-label="Progress example"] > progress');
 const code = p.parentElement.querySelector("footer pre code");
 p.scrollIntoView({block: "center"});
 window.__bhProgress = [];
@@ -96,9 +98,9 @@ return __bhProgress[0];
 """
 
 
-@check("progress-value", "/docs/progress")
+@check("progress-value", "/docs#progress")
 def progress_value(page):
-    """/docs/progress' example (`article[aria-label="Progress example"] > progress`, kept on screen)
+    """Progress' example (`article[aria-label="Progress example"] > progress`, kept on screen)
     shows a random integer value from 5 to 94 with max="100", and its code sample reads
     <progress value="N" max="100" /> with the same N. Watched for 16 s, the value changes at least
     twice; every change is a whole number of 5 s periods after the previous one (within 400 ms),
@@ -120,14 +122,14 @@ def progress_value(page):
 
 # The example's place relative to the viewport: "below", "above" or "on" (any overlap).
 WHERE = """
-const r = document.querySelector('article[aria-label="Progress example"] > progress').getBoundingClientRect();
+const r = S.querySelector('article[aria-label="Progress example"] > progress').getBoundingClientRect();
 return r.top >= innerHeight ? "below" : r.bottom <= 0 ? "above" : "on";
 """
 
 # Records every change of the example's value (and the value its code sample prints) from now on,
 # with performance.now() times; returns the time it started.
 WATCH = """
-const p = document.querySelector('article[aria-label="Progress example"] > progress');
+const p = S.querySelector('article[aria-label="Progress example"] > progress');
 const code = p.parentElement.querySelector("footer pre code");
 window.__bhProgress = [];
 new MutationObserver(() => __bhProgress.push([Math.round(performance.now()), p.getAttribute("value"),
@@ -136,14 +138,14 @@ return Math.round(performance.now());
 """
 
 
-@check("progress-offscreen", "/docs/progress", height=300, oracle_bug={
+@check("progress-offscreen", "/docs#progress", height=300, oracle_bug={
     "fails": "no change for 10.5 s while the example is below the viewport",
     "reason": "the oracle's interval (docs.progress.jsx, setInterval in a useEffect) draws a new value "
               "every 5 s whether or not the example is on screen; PLAN.md Conversion rules: intervals "
               "run only while their element is on screen"})
 def progress_offscreen(page):
-    """/docs/progress at 1300 x 300, where the example's progress bar (`article[aria-label="Progress
-    example"] > progress`) starts below the viewport: its value does not change for 10.5 s while it
+    """Progress at 1300 x 300, scrolled to the top of the page, where the example's progress bar
+    (`article[aria-label="Progress example"] > progress`) is below the viewport: its value does not change for 10.5 s while it
     is below the viewport; scrolled on screen, it changes 5 s later and again 5 s after that (within
     400 ms; 10 s when a draw repeated the value, 1 in 90), each value a whole number from 5 to 94
     that the code sample prints too; scrolled to the page's end, where the bar is above the
@@ -156,7 +158,7 @@ def progress_offscreen(page):
     log = page.js("return window.__bhProgress")
     page.eq("no change for 10.5 s while the example is below the viewport", log, [])
 
-    on = page.js("""document.querySelector('article[aria-label="Progress example"] > progress')
+    on = page.js("""S.querySelector('article[aria-label="Progress example"] > progress')
                       .scrollIntoView({block: "center", behavior: "instant"});
                     return Math.round(performance.now());""")
     page.eq("scrolled, the example is on screen", page.js(WHERE), "on")
@@ -189,7 +191,7 @@ def progress_offscreen(page):
 # index of its nav.
 NAV_LINKS = """
 const navs = [];
-return [...document.querySelectorAll('main > nav[aria-label="overflow-with-focus"] a, #content article.component nav a')].map(a => {
+return [...S.querySelectorAll('main nav[aria-label="overflow-with-focus"] a, #content article.component nav a')].map(a => {
   const details = a.closest("details"), article = a.closest("article"), nav = a.closest("nav");
   if (!navs.includes(nav)) navs.push(nav);
   return [a, details && details.querySelector(":scope > summary"), a.textContent.trim() || a.getAttribute("aria-label"),
@@ -222,18 +224,19 @@ return Math.round(scrollY);
 """
 
 
-@check("nav-example-links", "/docs/nav")
+@check("nav-example-links", "/docs#nav")
 def nav_example_links(page):
-    """Every example link on /docs/nav (the 3 of the nav[aria-label=overflow-with-focus] first in
-    <main> and the 28 inside the examples' navs, dropdown items included: 31 links, each with
-    href="/docs/nav") goes nowhere. A real click on each (its dropdown opened first with a click on
-    the summary), and Enter on the first link of each nav outside a dropdown, leave the document (a
-    marker set on window survives), the URL, history.length and the scroll position as they were,
-    keep the dropdown open, and the click event is canceled (defaultPrevented)."""
+    """Every example link of Nav (the 3 of the nav[aria-label=overflow-with-focus] first in <main>,
+    on the one page last in the section, after the edit link, and the 28 inside the examples' navs,
+    dropdown items included: 31 links, each pointing at its own place: href="/docs/nav" on routes,
+    /docs or /docs#nav on the one page) goes nowhere. A real click on each (its dropdown opened
+    first with a click on the summary), and Enter on the first link of each nav outside a dropdown,
+    leave the document (a marker set on window survives), the URL, history.length and the scroll
+    position as they were, keep the dropdown open, and the click event is canceled
+    (defaultPrevented)."""
     links = page.js(NAV_LINKS)
     page.eq("31 example links", len(links), 31, labels=[f"{x[3]}: {x[2]}" for x in links])
-    page.expect("every example link points at the route itself",
-                all(page.js("return arguments[0].getAttribute('href')", x[0]) == "/docs/nav" for x in links))
+    page.expect("every example link points at the route itself", all(self_href(page, x[0]) for x in links))
     page.js(CLICK_SPY)
     url, history = page.url(), page.js("return history.length")
 
@@ -243,9 +246,10 @@ def nav_example_links(page):
             st = page.js(LINK_STATE, summary)
         except Exception as e:   # the document went away: the link navigated
             page.expect(label, False, error=f"{type(e).__name__}: {str(e).splitlines()[0][:200]}")
-        page.expect(label, st["marker"] == "kept" and st["url"] == url and st["history"] == history
+        page.expect(label, st["marker"] == "kept" and st["history"] == history
                     and st["scroll"] == before and st["clicks"] == [True] and st["open"] in (True, None),
                     url_before=url, history_before=history, scroll_before=before, **st)
+        page.url_kept(label, url)
 
     clicked, summary = 0, None
     for link, owner, text, example, _ in links:
@@ -282,24 +286,39 @@ def nav_example_links(page):
 TOOLTIP_LINK = 'article[aria-label="Tooltip example"] a[data-tooltip]'
 
 
-@check("tooltip-link", "/docs/tooltip", height=500)
+@check("tooltip-link", "/docs#tooltip", height=500)
 def tooltip_link(page):
-    """/docs/tooltip's example link (`article[aria-label="Tooltip example"] a[data-tooltip]`,
-    href="/docs/tooltip") goes to the route's own URL at the top of the page. With the page scrolled
-    so the link is in view (scrollY over 50), a real click ends, within 10 s, at /docs/tooltip with
-    no search or hash, history.length as it was and scrollY 0. Whether the document was kept (the
-    oracle's client-side navigation) or loaded again (the static site's plain link) is noted, not
-    asserted (this module's docstring)."""
-    link = page.el(TOOLTIP_LINK)
-    page.eq("the link points at the route itself", page.js("return arguments[0].getAttribute('href')", link), "/docs/tooltip")
+    """Tooltip's example link (`article[aria-label="Tooltip example"] a[data-tooltip]`) goes to its
+    own place. On routes it has href="/docs/tooltip": with the page scrolled so the link is in view
+    (scrollY over 50 past where the route starts), a real click ends, within 10 s, at /docs/tooltip
+    with no search or hash, history.length as it was and scrollY 0. Whether the document was kept
+    (the oracle's client-side navigation) or loaded again (the static site's plain link) is noted,
+    not asserted (this module's docstring). On the one page it points at /docs#tooltip, and the same
+    click is a fragment navigation in the same document (a marker set on window survives): it ends at
+    /docs#tooltip with no new history entry (the URL was already the section's, or the spy's
+    replaceState had made it another section's and the click pushes one) and Tooltip's heading on the
+    scroll-padding line (within 2 px; at the page's end where the page cannot scroll so far)."""
+    link = page.find(TOOLTIP_LINK)
+    page.expect("the link points at the route itself", self_href(page, link, section_only=True),
+                href=page.js("return arguments[0].getAttribute('href')", link))
+    start = 0 if page.layout == "routes" else page.js("return Math.round(scrollY)")
     # The link just below the fixed header, so the page is scrolled as far as the link allows.
     page.scroll_to(page.js("""const header = document.querySelector('body > header');
       return Math.round(arguments[0].getBoundingClientRect().top + scrollY
                         - Math.max(header ? header.getBoundingClientRect().bottom : 0, 0) - 24);""", link))
     before = page.js(INTO_VIEW, link)
-    page.expect("scrolled down before the click", before > 50, scroll=before)
+    page.expect("scrolled down before the click", before - start > 50, scroll=before, start=start)
     history = page.js("window.__bhMarker = 'kept'; return history.length")
+    url = page.url()
     page.click(link, scroll=False)
+    if page.layout == "one-page":
+        page.wait("at /docs#tooltip", "location.pathname + location.search + location.hash === '/docs#tooltip'", 3, url_before=url)
+        page.wait("Tooltip's heading is on the scroll-padding line", f"Math.abs(({HEADING_LINE})('tooltip')) <= 2", 3,
+                  offset=page.js(f"return ({HEADING_LINE})('tooltip')"))
+        page.eq("the same document", page.js("return window.__bhMarker || null"), "kept")
+        page.eq("a new history entry only for a new URL", page.js("return history.length"),
+                history + (url != "/docs#tooltip"), url_before=url)
+        return
     page.wait("at the top of /docs/tooltip again",
               "location.pathname === '/docs/tooltip' && document.readyState === 'complete' && Math.round(scrollY) === 0 && "
               "(!window.__remixRouter || window.__remixRouter.state.navigation.state === 'idle')", 10)

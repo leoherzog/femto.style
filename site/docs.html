@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+    <link rel="stylesheet" href="/vendor/femto/css/options/responsive-spacings.css">
+    <link rel="stylesheet" href="/vendor/femto/dist/femto.colors.min.css">
     <!-- include partials/head.html -->
-    <title>{{title}}</title>
-    <meta name="description" content="{{description}}">
+    <title>Documentation • femto</title>
+    <meta name="description" content="Link femto manually or via CDN for a dependency-free setup, or use NPM or Composer for advanced usage.">
+    <meta property="og:title" content="Documentation • femto">
+    <meta property="og:description" content="Link femto manually or via CDN for a dependency-free setup, or use NPM or Composer for advanced usage.">
     <link rel="canonical" href="https://femto.style/docs">
     <meta property="og:url" content="https://femto.style/docs">
     <!-- include partials/structured-data.html -->
-    <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
-    <link rel="stylesheet" href="/vendor/femto/css/options/responsive-spacings.css">
     <link rel="stylesheet" href="/assets/css/fonts.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/code.css">
@@ -17,26 +20,24 @@
     <script type="module" src="/assets/js/colors.js"></script>
     <script type="module" src="/assets/js/picker.js"></script>
   </head>
-  <body style="min-height:100vh">
+  <body>
     <a href="#content" class="skip-to-content contrast" role="button">Skip to content</a>
     <!-- include partials/docs-header.html -->
-    <main class="container has-table-of-contents page-index">
-      <nav aria-label="breadcrumb">
+    <main class="container" data-docs-spy>
+      <nav aria-label="breadcrumb" data-docs-breadcrumb>
         <ul>
-          <li><a class="secondary" data-discover="true" href="/docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-menu"><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path></svg>Documentation</a></li>
+          <li><a class="secondary" data-discover="true" data-menu-open href="/docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-menu"><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path></svg>Documentation</a></li>
           <li>Getting started</li>
         </ul>
       </nav>
-      <aside id="documentation-menu">
+      <aside id="documentation-menu" data-docs-menu>
         <header>
           <h2>Documentation</h2>
-          <a aria-label="Close" class="secondary" data-discover="true" href="/docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></a>
+          <a aria-label="Close" class="secondary" data-discover="true" data-menu-close href="/docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg></a>
         </header>
-        <nav class="is-sticky-above-lg">
-          <!-- docs:menu -->
-        </nav>
+        <nav class="is-sticky-above-lg"></nav>
       </aside>
-      <!-- docs:sections -->
+      <div id="content" role="document"></div>
     </main>
     <!-- include partials/footer.html -->
   </body>

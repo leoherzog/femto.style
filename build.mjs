@@ -1,37 +1,27 @@
-// npm run build [-- --out DIR] [-- --only id,id]: site/ into dist/ (PLAN.md Decision 3, docs/research/03 §2).
+// npm run build [-- --out DIR]: site/ into dist/ (PLAN.md Decision 3, docs/research/03 §2).
 // Node built-ins and prismjs only. The same input always gives byte-identical output: no timestamps,
 // sorted listings, and the output folder is synced (stale files removed, changed files written), so a
 // server watching it never sees it vanish.
 //
-// 1. Copy. Every file under site/ except partials/, docs/ (menu.json and the section files) and the
-//    docs.html template, and dotfiles: vendor/femto/ included, whose stylesheets every page links.
+// 1. Copy. Every file under site/ except partials/, docs/ (menu.json and the section files) and
+//    dotfiles: vendor/femto/ included, whose stylesheets every page links.
 // 2. Include. A line `<!-- include partials/<file> -->` is replaced by the partial, indented to the
 //    marker (so partials hold no <pre> or <textarea>); partials may include partials. The placeholders
-//    are {{version}} (femto's, from vendor/femto/SOURCE) and, on docs pages, {{title}} and
-//    {{description}} (from menu.json; elsewhere a page's own <title> and description).
+//    are {{version}} (femto's, from vendor/femto/SOURCE), {{title}} and {{description}} (a page's own
+//    <title> and description).
 //    Links in an included header or footer partial whose href is the page's own path (the oracle's
 //    rule: the path without its trailing slash, so "/" never matches) get aria-current="page", and
 //    the header's theme toggle (href="#" in the partial) links to the page itself, as the oracle's
 //    server HTML did (site.js sets it again on load, for the 404 page).
-// 3. Assemble the docs, per route (Phases 1 and 2). For every section in docs/menu.json, docs.html is
-//    the page: its <main> holds the per-route layout of the oracle (breadcrumb, the documentation menu,
-//    then the section file docs/sections/<id>.html at <!-- docs:sections -->), and it is written to the
-//    section's old route: /docs -> docs.html, /docs/forms/input -> docs/forms/input.html (never
-//    docs/index.html, Decision 11). Per route, the build sets what the oracle derived from the route:
-//    the <main> class (container, has-table-of-contents unless "toc": false, page-<route>), the
-//    breadcrumb's chapter (the category), the menu's close link, rel=canonical and og:url (the route's
-//    URL; the oracle's og:url is a bug), the title ("<routeTitle or title> • femto") and description,
-//    and the route's extra "styles" after the page's stylesheets. The menu at <!-- docs:menu --> lists
-//    every section of menu.json by category; the route's category is open and its link is current.
-//    Version picker colors: each of the 19 "variants" (/docs/version-picker/<color>) is its own route
-//    with its own section file, docs/sections/version-picker/<color>.html, converted from that route's
-//    oracle DOM like any other: the oracle renders the color into the content (heading, swatches, code,
-//    links to the route), so one file per route keeps every route's markup exact without JavaScript.
-//    Its menu, chapter and <main> class are the version picker's, as in the oracle. Phase 3 replaces
-//    this step with the one docs page and deletes the variant files.
-//    --only id,id assembles only those sections (and their variants), for a scratch --out folder: it is
-//    refused for dist/, which must always hold every page. The shared pages are always built. A route
-//    whose section file does not exist fails the build.
+// 3. Assemble the docs page (02 §6), written to docs.html and served at /docs (never docs/index.html,
+//    Decision 11). From docs/menu.json, the build fills docs.html's two empty elements: the side nav
+//    (nav.is-sticky-above-lg) gets one open <details> per category, with its summary and one link to
+//    #<id> per section (its label, else its title), and #content every docs/sections/<id>.html in
+//    menu order, each wrapped in a <section>. A missing file, or one that does not begin with its
+//    hgroup (the chapter, then <h1 id="<id>">), fails the build. It also writes the Colors section's
+//    palette download, assets/femto-color-palette.json: colors.js's PALETTE hex values by family and
+//    shade, as JSON.stringify(palette, null, 2), the JSON the oracle's DownloadColorPalette made on
+//    load as a blob: URL (01 §2, 03 §5).
 // 4. Highlight. Every <code class="language-X"> holds escaped source text only; Prism tokenizes it and
 //    the build writes react-syntax-highlighter 15.6's spans: Prism's token tree flattened so each text run
 //    is one span whose class list is the union of its ancestors' (class="" for plain text), and then
@@ -51,7 +41,6 @@ require("prismjs/components/prism-scss.js");
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const SITE = join(ROOT, "site");
-const ORIGIN = "https://femto.style";
 const GRAMMARS = { html: "markup", css: "css", scss: "scss", bash: "bash" };
 
 const fail = (message) => { throw new Error(`build: ${message}`); };
@@ -128,41 +117,34 @@ function render(html, page) {
 const ownPath = (url) => url.replace(/\/$/, "");
 const swap = (html, from, to, where) => html.split(from).length === 2 ? html.replace(from, () => to) : fail(`${where}: expected one ${from}`);
 
-// --- 3. The docs, per route.
-function docsPages(menu, only, version) {
-  const template = read("docs.html");
-  const pages = [];
-  const sections = menu.categories.flatMap((c) => c.sections.map((s) => ({ ...s, category: c.title })));
-  for (const id of only ?? []) if (!sections.some((s) => s.id === id)) fail(`--only: no section ${id} in docs/menu.json`);
-  for (const s of sections.filter((x) => !only || only.includes(x.id))) {
-    const routes = [{ ...s, file: `docs/sections/${s.id}.html` }].concat((s.variants ?? []).map((v) =>
-      ({ ...v, file: `docs/sections/${s.id}/${v.route.split("/").pop()}.html` })));
-    for (const r of routes) {
-      if (!existsSync(join(SITE, r.file))) fail(`${r.route}: no section file ${r.file}`);
-      const nav = menu.categories.map((c) => {
-        const open = c.title === s.category;
-        const links = c.sections.map((x) => `<li><a ${x.route === s.route ? 'aria-current="page" ' : ""}class="secondary" data-discover="true" href="${x.route}">${x.label}</a></li>`);
-        return `<details${open ? " open" : ""}><summary${open ? ' aria-current="true"' : ""}>${esc(c.title)}</summary><ul>\n            ${links.join("\n            ")}\n          </ul></details>`;
-      }).join("\n          ");
-      const page = s.route === "/docs" ? "index" : s.route.slice("/docs/".length).replace(/\//g, "-");
-      const main = ["container", s.toc !== false && "has-table-of-contents", `page-${page}`].filter(Boolean).join(" ");
-      const where = `docs.html for ${r.route}`;
-      let html = swap(template, '<main class="container has-table-of-contents page-index">', `<main class="${main}">`, where);
-      html = swap(html, "<li>Getting started</li>", `<li>${esc(s.category)}</li>`, where);
-      html = swap(html, '<a aria-label="Close" class="secondary" data-discover="true" href="/docs">',
-        `<a aria-label="Close" class="secondary" data-discover="true" href="${r.route}">`, where);
-      html = swap(html, '<link rel="canonical" href="https://femto.style/docs">', `<link rel="canonical" href="${ORIGIN}${r.route}">`, where);
-      html = swap(html, '<meta property="og:url" content="https://femto.style/docs">', `<meta property="og:url" content="${ORIGIN}${r.route}">`, where);
-      const links = html.slice(0, html.indexOf("</head>")).match(/\n[ \t]*<link rel="stylesheet"[^>]*>/g) ?? fail(`${where}: no stylesheet`);
-      const styles = (r.styles ?? []).map((href) => `\n    <link rel="stylesheet" href="${href}">`).join("");
-      html = swap(html, links.at(-1), links.at(-1) + styles, where);
-      html = swap(html, "<!-- docs:menu -->", nav, where);
-      html = swap(html, "<!-- docs:sections -->", read(r.file).trim(), where);
-      pages.push({ out: `${r.route.slice(1)}.html`, html, file: r.file, path: ownPath(r.route), version,
-        title: `${r.routeTitle ?? s.routeTitle ?? s.title} • femto`, description: r.description ?? s.description });
-    }
-  }
-  return pages;
+// --- 3. The docs page and its palette file.
+function docsPage(menu) {
+  const nav = menu.categories.map((c) => {
+    const links = c.sections.map((s) => `\n            <li><a class="secondary" data-discover="true" href="#${s.id}">${s.label ?? esc(s.title)}</a></li>`);
+    return `<details open><summary>${esc(c.title)}</summary><ul>${links.join("")}\n          </ul></details>`;
+  });
+  const sections = menu.categories.flatMap((c) => c.sections).map(({ id }) => {
+    const file = `docs/sections/${id}.html`;
+    if (!existsSync(join(SITE, file))) fail(`docs/menu.json: no section file ${file}`);
+    const text = read(file).trim();
+    const heading = new RegExp(`^<hgroup>\\n[ \\t]*<p class="chapter">[^<]*</p>\\n[ \\t]*<h1 id="${id}">`);
+    if (!heading.test(text)) fail(`${file}: must begin with <hgroup>, its chapter, then <h1 id="${id}">`);
+    return `<section>\n${text}\n</section>\n`;
+  });
+  let html = read("docs.html");
+  html = swap(html, '<nav class="is-sticky-above-lg"></nav>', `<nav class="is-sticky-above-lg">\n          ${nav.join("\n          ")}\n        </nav>`, "docs.html");
+  return swap(html, '<div id="content" role="document"></div>', `<div id="content" role="document">\n${sections.join("")}      </div>`, "docs.html");
+}
+function palette() {
+  const js = read("assets/js/colors.js");
+  const shades = JSON.parse(js.match(/^const SHADES = (\[[^\]]*\]);$/m)?.[1] ?? fail("assets/js/colors.js: no SHADES"));
+  const families = [...js.matchAll(/^ {2}(\w+): \["\d+",\n([^\]]*)\],$/gm)].map(([, family, list]) => {
+    const hexes = [...list.matchAll(/"([\da-f]{6}) /g)].map(([, hex]) => `#${hex}`);
+    if (hexes.length !== shades.length) fail(`assets/js/colors.js: PALETTE.${family} has ${hexes.length} colors, not ${shades.length}`);
+    return [family, Object.fromEntries(shades.map((shade, i) => [shade, hexes[i]]))];
+  });
+  if (!families.length) fail("assets/js/colors.js: no PALETTE families");
+  return JSON.stringify(Object.fromEntries(families), null, 2);
 }
 
 // --- 1. Copy, then 5. the sitemap, then write.
@@ -173,22 +155,22 @@ function walk(dir, base = dir) {
     return statSync(full).isDirectory() ? walk(full, base) : [relative(base, full).split("\\").join("/")];
   });
 }
-export function build({ only } = {}) {
+export function build() {
   const source = read("vendor/femto/SOURCE");
   const version = source.match(/^version: (\S+)$/m)?.[1] ?? fail("site/vendor/femto/SOURCE has no version");
   const files = new Map();
   const pages = [];
   for (const file of walk(SITE)) {
-    if (/^(partials|docs)\//.test(file) || file === "docs.html") continue;
+    if (/^(partials|docs)\//.test(file)) continue;
     if (!/^[^/]+\.html$/.test(file)) { files.set(file, readFileSync(join(SITE, file))); continue; }
-    const html = read(file);
+    const html = file === "docs.html" ? docsPage(JSON.parse(read("docs/menu.json"))) : read(file);
     const title = html.match(/<title>([^<{]*)<\/title>/)?.[1];
     const description = html.match(/<meta name="description" content="([^"{]*)">/)?.[1];
     const url = file === "index.html" ? "/" : `/${file.replace(/\.html$/, "")}`;
     pages.push({ out: file, html, file, path: file === "404.html" ? null : ownPath(url), version,
       title: title && unesc(title), description: description && unesc(description) });
   }
-  pages.push(...docsPages(JSON.parse(read("docs/menu.json")), only, version));
+  files.set("assets/femto-color-palette.json", Buffer.from(palette()));
   const locs = [];
   for (const page of pages) {
     const html = render(page.html, page);
@@ -218,12 +200,9 @@ function write(files, out) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const args = process.argv.slice(2);
-  const opt = (name) => { const i = args.indexOf(name); return i < 0 ? undefined : args[i + 1] ?? fail(`${name} needs a value`); };
-  const unknown = args.filter((a, i) => !["--out", "--only"].includes(a) && !["--out", "--only"].includes(args[i - 1]));
-  if (unknown.length) fail(`unknown arguments ${unknown.join(" ")} (use --out DIR, --only id,id)`);
-  const out = resolve(opt("--out") ?? join(ROOT, "dist"));
-  if (opt("--only") && out === join(ROOT, "dist")) fail("--only builds part of the site: give it a scratch --out folder, never dist/");
-  const files = build({ only: opt("--only")?.split(",").filter(Boolean) });
+  if (args.length && (args.length !== 2 || args[0] !== "--out")) fail(`unknown arguments ${args.join(" ")} (use --out DIR)`);
+  const out = resolve(args[1] ?? join(ROOT, "dist"));
+  const files = build();
   write(files, out);
   console.log(`build: ${files.size} files in ${relative(ROOT, out) || "."}`);
 }

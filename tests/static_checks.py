@@ -76,7 +76,15 @@ Interpretations, where PLAN's wording leaves a choice:
   --untracked (new files a gate has not committed yet), and the union is compared with the list.
 - 9: html-validate must be shown to run: `--version` answers the pinned version, and its JSON report
   parses, names only the files given, and (exit 1) holds an error. Empty or unparsable output is a
-  tool failure, never a pass.
+  tool failure, never a pass. From Phase 3 the config is `.htmlvalidate.mjs`, the only one
+  html-validate can find (no other `.htmlvalidate.*`, no flat `html-validate.config.*`, no
+  `.htmlvalidateignore`). It is loaded with Node and compared with the pinned html-validate's
+  html-validate:recommended: it must extend that preset, and every rule it turns off or changes
+  (severity or options), every element metadata change (each element of an object in `elements`,
+  any metadata file but html5), every other preset and any other key but `root` needs a reason: a
+  comment of at least REASON_WORDS words on the lines right above its key, or after it on the same
+  line. A rule that restates the preset is a note. An inline `html-validate-` directive in a dist
+  page needs a comment after `--` or `:`, html-validate's own syntax for one.
 - 12: also fails when git ignores a vendored file (it would never be committed), whatever the
   working tree holds.
 - 13: from Phase 4 (04 §3), on the docs page; the package-name part reads every dist page and
@@ -131,13 +139,22 @@ Interpretations, where PLAN's wording leaves a choice:
   displays (the picker's CDN <link> sample), which a static read cannot tell apart. Loads made at
   run time are the harness's: `pages --b dist` reads every dist document's Resource Timing entries
   and the proxy's CSP reports (workers, frames in closed shadow roots), and fails on a cross-origin
-  load whatever started it (targets.json same_origin). Render-blocking: a classic script (HTML's
-  JavaScript MIME types, or a language attribute) with a source and neither async nor defer, an
-  inline classic script outside <head>, a second one in it, a classic script that document.write()
-  writes (an inline one, or one with a source and neither async nor defer; any string that holds a
-  classic script once HTML is read from every string), and blocking="render" on any element (a
-  Decision 12 violation); scripts in <template> or <noscript> never run on load. The run-time loads and the layout-shift part (the behavior mode,
-  Phase 1) need a browser, so 15 stays NOT-YET here, like 1, 2, 7 and 10.
+  load whatever started it (targets.json same_origin). Render-blocking: the only render-blocking
+  scripts allowed are PLAN's two inline head scripts, the ?theme= script then the color-scheme script
+  (Decisions 8 and 14): a page's inline classic scripts in <head> are none, or exactly those two in
+  that order (before Phase 3, which adds ?theme=, the color-scheme script alone). head_script_role()
+  tells them apart by content: the ?theme= script hands the parser only <link rel=stylesheet>
+  elements into /vendor/femto/css/themes/, only through document.write() or writeln(); the
+  color-scheme script names femtoColorScheme in a string and hands the parser no HTML. A third
+  inline script in <head>, the pair reordered, one of them alone, the two merged into
+  one script (Firefox then paints before the theme's stylesheet) or any other inline script there
+  fails. So does a classic script (HTML's JavaScript MIME types, or a language attribute) with a
+  source and neither async nor defer, an inline classic script outside <head>, a classic script
+  that document.write() writes (an inline one, or one with a source and neither async nor defer; any
+  string that holds a classic script once HTML is read from every string), and blocking="render" on
+  any element (a Decision 12 violation); scripts in <template> or <noscript> never run on load. The
+  run-time loads and the layout-shift part (the behavior mode, Phase 1) need a browser, so 15 stays
+  NOT-YET here, like 1, 2, 7 and 10.
 """
 
 from __future__ import annotations
@@ -215,13 +232,14 @@ PHASE_TAGS = ((2, "static-multipage"), (3, "static-femto"))
 
 HARNESS = {  # tests/run.py modes (tests/harness/cli.py) that the criteria below need a browser for
     1: "uv run tests/run.py self --full (the oracle against itself in the PLAN.md matrix: Chrome, Firefox, then Safari serialized; the owner's dark Safari pass too)",
-    7: "uv run tests/run.py behavior (Chrome, Firefox and Safari; the mode is not implemented yet)",
-    10: "an axe-core pass in the harness (Chrome and Firefox, light and dark, 375 and 1300); tests/run.py has no such mode yet",
-    15: "uv run tests/run.py behavior (cold load of /docs#input in Chrome: layout shift < 0.01, Input's heading within 2 px of its scroll-padding line; the mode is not implemented yet)",
+    7: "uv run tests/run.py behavior --target dist (Chrome and Firefox; Safari through tests/owner-safari.sh one-page, the owner's light and dark passes)",
+    10: "uv run tests/run.py a11y --target dist (axe-core from node_modules on /, /examples, /demo, the 404 page, /docs and /docs?theme=jade; Chrome and Firefox, light and dark, 375 and 1300; a serious or critical violation fails)",
+    15: "uv run tests/run.py behavior --target dist --checks deep-link-cold (a cold load of /docs#input: layout shift < 0.01 in Chrome, Input's heading within 2 px of its scroll-padding line in Chrome and Firefox)",
 }
-HARNESS_15_LOADS = ("uv run tests/run.py pages --a oracle --b dist --full: every dist document's Resource Timing entries "
-                    "and the proxy's CSP reports (workers and frames the page cannot read included), where a cross-origin "
-                    "load fails the run whatever code or markup started it")
+HARNESS_15_LOADS = ("uv run tests/run.py sections --full and pages --a static-femto --b dist --full --routes "
+                    "/,/examples,/demo,/does-not-exist (Phase 3's gate; pages --a oracle --b dist --full before it): every "
+                    "dist document's Resource Timing entries and the proxy's CSP reports (workers and frames the page "
+                    "cannot read included), where a cross-origin load fails the run whatever code or markup started it")
 
 FORBIDDEN = [
     ("@layer", re.compile(r"@layer\b", re.I)),
@@ -775,7 +793,7 @@ def criterion_2(ctx: Context) -> Result:
     gates = {
         1: "uv run tests/run.py pages --a oracle --b dist --full (the static routes against the oracle; Chrome and Firefox)",
         2: "uv run tests/run.py styles --full --browsers chrome,firefox (dist against tag static-multipage: everything pages compares, plus femto's tokens and interactive states; tests/README.md, Tokens and states)",
-        3: "uv run tests/run.py pages --full (each section against its route's [role=document] at tag static-femto; then Safari, light and dark)",
+        3: "uv run tests/run.py sections --full --browsers chrome,firefox (each docs section of dist's one page against its old route's [role=document] at tag static-femto) and uv run tests/run.py pages --a static-femto --b dist --full --browsers chrome,firefox --routes /,/examples,/demo,/does-not-exist (the whole pages whose links into the docs changed); then Safari, light and dark, through tests/owner-safari.sh one-page",
     }
     current = gates.get(min(max(ctx.phase, 1), 3))
     r.not_yet(f"needs browsers; the gate for phase {ctx.phase} is: {current}")
@@ -1007,7 +1025,8 @@ PAGES_INHERENT = {
     "/index": (308, "/", "redirects an index page's name to its folder"),
     "/index.html": (308, "/", "redirects index.html to its folder"),
     "/docs/index": (308, "/docs/", "redirects an index page's name to its folder, which then redirects to /docs"),
-    "/docs/forms/input.html": (308, "/docs/forms/input", "redirects a page's .html name to its clean URL"),
+    # A page of every phase: from Phase 3 /docs/forms/input.html has no page, so it answers 404 (below).
+    "/examples.html": (308, "/examples", "redirects a page's .html name to its clean URL"),
 }
 
 
@@ -1032,7 +1051,8 @@ def criterion_6(ctx: Context) -> Result:
         gone |= {r["path"] for r in json.loads(routes_file.read_text(encoding="utf-8")).get("routes", [])
                  if r.get("kind") == "v1-page"}
     if ctx.phase >= 3:
-        gone |= old
+        # An old route's .html name too: with no page behind it Pages has nothing to redirect to.
+        gone |= old | {"/docs/forms/input.html"}
         ok_200 -= old
     else:
         ok_200 |= old
@@ -1224,6 +1244,144 @@ def example_container(node: Node) -> Node | None:
     return next((a for a in node.ancestors() if a.tag == "article" and "component" in a.classes()), None)
 
 
+HTMLVALIDATE_CONFIG = ".htmlvalidate.mjs"
+HTMLVALIDATE_PRESET = "html-validate:recommended"
+HTMLVALIDATE_FLAT = ("html-validate.config.mjs", "html-validate.config.cjs", "html-validate.config.js",
+                     "html-validate.config.mts", "html-validate.config.cts", "html-validate.config.ts")
+REASON_WORDS = 5
+HV_DIRECTIVE = re.compile(r"<!--\s*\[?html-validate-([\da-z-]+)(.*?)\]?\s*-->", re.S)
+# Loads the config and the installed html-validate's presets; prints them as JSON.
+HV_LOAD_JS = r"""
+const { createRequire } = require("node:module");
+const { pathToFileURL } = require("node:url");
+const [config, root] = process.argv.slice(1);
+const hv = createRequire(root + "/package.json")("html-validate");
+import(pathToFileURL(config).href).then((m) => {
+  const c = m.default ?? {};
+  const preset = (hv.configPresets ?? {})[process.argv[3]];
+  console.log(JSON.stringify({ config: c, preset: preset ?? null, version: hv.version ?? null }));
+}).catch((e) => { console.error(String(e && e.stack || e)); process.exit(3); });
+"""
+
+
+def hv_rule(value) -> tuple[int, object]:
+    """An html-validate rule setting as (severity 0 to 2, options or None)."""
+    sev, opts = (value[0], value[1] if len(value) > 1 else None) if isinstance(value, list) else (value, None)
+    sev = {"off": 0, "warn": 1, "error": 2}.get(sev, sev) if isinstance(sev, str) else sev
+    return sev, opts
+
+
+def js_code_and_comment(line: str) -> tuple[str, str]:
+    """A line of JavaScript split at a // comment outside quotes."""
+    quote = None
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if quote:
+            if ch == "\\":
+                i += 1
+            elif ch == quote:
+                quote = None
+        elif ch in "\"'`":
+            quote = ch
+        elif line.startswith("//", i):
+            return line[:i], line[i + 2:]
+        i += 1
+    return line, ""
+
+
+def reason_above(lines: list[str], key: str, value: bool = False) -> tuple[int | None, str]:
+    """The line where `key` (quoted or bare, followed by a colon; with value, a quoted string) is
+    set, and its reason: the comment after it on that line, or the comment lines right above it."""
+    pattern = re.compile(r"([\"'])" + re.escape(key) + r"\1" if value else
+                         r"(?:([\"'])" + re.escape(key) + r"\1|(?<![\w$.-])" + re.escape(key) + r"(?![\w$-]))\s*:")
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith(("//", "*", "/*")):
+            continue
+        code, trailing = js_code_and_comment(line)
+        if not pattern.search(code):
+            continue
+        if trailing.strip():
+            return i + 1, trailing.strip()
+        parts, j = [], i - 1
+        while j >= 0 and lines[j].strip().startswith(("//", "*", "/*")):
+            parts.insert(0, re.sub(r"^(//+|/\*+|\*+/?)", "", lines[j].strip()).removesuffix("*/").strip())
+            j -= 1
+        return i + 1, " ".join(p for p in parts if p)
+    return None, ""
+
+
+def htmlvalidate_reasons(ctx: Context, r: Result, pages: list[Path]):
+    """Criterion 9's config part: .htmlvalidate.mjs extends the recommended preset, and every
+    rule it turns off or changes carries a reason (docstring, 9)."""
+    root = ctx.root
+    for p in pages:
+        for m in HV_DIRECTIVE.finditer(p.read_text(encoding="utf-8", errors="replace")):
+            body = m.group(2)
+            comment = re.split(r"\s*(?:--|:)\s*", body, maxsplit=1)
+            if len(comment) < 2 or len(comment[1].split()) < REASON_WORDS:
+                r.fail(f"{rel(root, p)}: html-validate-{m.group(1)} directive without a reason (-- <reason>): {m.group(0)[:100]!r}")
+    if ctx.phase < 3:
+        r.note(f"{HTMLVALIDATE_CONFIG} and its reasons apply from Phase 3; phase is {ctx.phase} ({ctx.phase_why})")
+        return
+    config = root / HTMLVALIDATE_CONFIG
+    if not config.is_file():
+        r.fail(f"{HTMLVALIDATE_CONFIG} is missing (PLAN.md criterion 9, from Phase 3)")
+        return
+    others = sorted(p.name for p in root.glob(".htmlvalidate*") if p.name != HTMLVALIDATE_CONFIG)
+    others += [n for n in HTMLVALIDATE_FLAT if (root / n).exists()]
+    if others:
+        r.fail(f"html-validate config files besides {HTMLVALIDATE_CONFIG}: {', '.join(others)} (a flat config would replace it, "
+               f"an ignore file would skip pages)")
+    proc = subprocess.run(["node", "-e", HV_LOAD_JS, str(config), str(root), HTMLVALIDATE_PRESET], cwd=root,
+                          capture_output=True, text=True, timeout=120)
+    try:
+        loaded = json.loads(proc.stdout) if proc.returncode == 0 else None
+    except ValueError:
+        loaded = None
+    if not loaded or not isinstance(loaded.get("config"), dict) or not isinstance(loaded.get("preset"), dict):
+        r.fail(f"could not load {HTMLVALIDATE_CONFIG} and html-validate's {HTMLVALIDATE_PRESET} with Node "
+               f"(exit {proc.returncode}): {(proc.stderr or proc.stdout).strip()[-300:]}")
+        return
+    cfg, preset = loaded["config"], loaded["preset"].get("rules", {})
+    lines = config.read_text(encoding="utf-8").splitlines()
+    needs: list[tuple[str, str, bool]] = []  # (what, key or string in the source, is a string value)
+    extends = cfg.get("extends", [])
+    extends = [extends] if isinstance(extends, str) else extends if isinstance(extends, list) else []
+    if HTMLVALIDATE_PRESET not in extends:
+        r.fail(f"{HTMLVALIDATE_CONFIG} does not extend {HTMLVALIDATE_PRESET} (extends: {extends})")
+    needs += [(f"extends {e!r}", e, True) for e in extends if e != HTMLVALIDATE_PRESET]
+    for e in cfg.get("elements", []) or []:
+        if isinstance(e, dict):
+            needs += [(f"element metadata for <{k}>", k, False) for k in e]
+        elif e != "html5":
+            needs.append((f"element metadata {e!r}", str(e), True))
+    needs += [(f"top-level key {k!r}", k, False) for k in cfg if k not in ("root", "extends", "elements", "rules")]
+    restated = []
+    for rule, value in (cfg.get("rules") or {}).items():
+        mine, base = hv_rule(value), hv_rule(preset.get(rule, "off"))
+        if mine == base or (mine[0] == base[0] == 0):
+            restated.append(rule)
+        else:
+            how = "off" if mine[0] == 0 else f"changed from {preset.get(rule, 'off')!r}"
+            needs.append((f"rule {rule} ({how})", rule, False))
+    missing = []
+    for what, key, value in needs:
+        line, reason = reason_above(lines, key, value)
+        if line is None:
+            missing.append(f"{what}: {key!r} is not found in {HTMLVALIDATE_CONFIG}'s code")
+        elif len(re.findall(r"[A-Za-z0-9]+", reason)) < REASON_WORDS:
+            missing.append(f"{what}, line {line}: no reason (a comment of at least {REASON_WORDS} words right above it or after it)")
+    r.fails(f"{len(missing)} html-validate exception(s) in {HTMLVALIDATE_CONFIG} without a reason:", missing, "more")
+    if not missing:
+        r.ok(f"{HTMLVALIDATE_CONFIG} extends {HTMLVALIDATE_PRESET} (html-validate {loaded.get('version') or '?'}); "
+             f"{len(needs)} exception(s) turned off or changed, each with its reason: "
+             + ", ".join(what for what, _, _ in needs))
+    if restated:
+        r.note(f"{HTMLVALIDATE_CONFIG} restates the preset for: {', '.join(restated)}")
+
+
 def criterion_9(ctx: Context) -> Result:
     r = Result(9, "Valid HTML and ids")
     pages = ctx.dist_pages()
@@ -1277,6 +1435,7 @@ def criterion_9(ctx: Context) -> Result:
         if warnings:
             r.note(f"html-validate warnings: {warnings}")
     r.note("html-validate config: " + (", ".join(configs) if configs else "none in the repository, so html-validate's own defaults (html-validate:recommended)"))
+    htmlvalidate_reasons(ctx, r, pages)
 
     # Duplicate ids on each page; radio and details names across separate examples.
     dup_lines, name_lines = [], []
@@ -3238,6 +3397,36 @@ def manifest_urls(data) -> list[str]:
     return [i["src"] for i in items if isinstance(i, dict) and isinstance(i.get("src"), str)]
 
 
+# One <link rel=stylesheet> into femto's themes/, as the ?theme= script writes it. js_html_writes()
+# reads a template substitution (${theme}) as PLACEHOLDER, and its tokens add one after the literal.
+THEME_LINK = re.compile(r"""^\s*<link\s(?=[^>]*\brel\s*=\s*["']?stylesheet["'\s>])[^>]*\bhref\s*=\s*["']?/vendor/femto/css/"""
+                        r"""themes/[^>]*>[\s\ue000]*$""", re.I)
+HEAD_SCRIPTS = ("theme", "scheme")  # criterion 15: the ?theme= script, then the color-scheme script
+HEAD_SCRIPTS_BEFORE_3 = ("scheme",)  # before Phase 3 (no ?theme= yet): the one color-scheme script
+HEAD_SCRIPT_NAMES = {"theme": "the ?theme= script", "scheme": "the color-scheme script",
+                     "both": "one script that does both (the ?theme= document.write and femtoColorScheme)",
+                     "other": "another script"}
+
+
+def head_script_role(text: str) -> str:
+    """Which of criterion 15's two inline head scripts an inline classic script in <head> is (PLAN.md
+    Decisions 8 and 14): "theme", the ?theme= script, which hands the parser HTML, and only through
+    document.write() or writeln(), and only <link rel=stylesheet> elements into
+    /vendor/femto/css/themes/; "scheme", the color-scheme script, which names its storage key
+    femtoColorScheme in a string and hands the parser no HTML; "both" for one script that is both
+    (the single script of before the split, which lets Firefox paint before the theme's stylesheet);
+    "other" for anything else."""
+    toks = js_tokens(text)
+    writes = js_html_writes(text, toks)
+    theme = bool(writes) and all(sink in ("write", "writeln") and THEME_LINK.match(markup) for _, markup, sink in writes)
+    scheme = any(kind == "str" and v == "femtoColorScheme" for kind, _, _, v in toks)
+    if theme and scheme:
+        return "both"
+    if theme:
+        return "theme"
+    return "scheme" if scheme and not writes else "other"
+
+
 def criterion_15(ctx: Context) -> Result:
     r = Result(15, "Performance (static parts; run-time loads and layout shift are the harness's)")
     pages = ctx.dist_pages()
@@ -3248,6 +3437,10 @@ def criterion_15(ctx: Context) -> Result:
         return r
     root, dist = ctx.root, ctx.dist
     cross, femto_abs, blocking, heads, shown = [], 0, [], 0, []
+    # The inline head scripts a page may have: the two from Phase 3, which adds ?theme= (Decision 8).
+    expected = HEAD_SCRIPTS if ctx.phase >= 3 else HEAD_SCRIPTS_BEFORE_3
+    expected_text = ("two inline head scripts, the ?theme= script then the color-scheme script" if ctx.phase >= 3
+                     else "one inline head script, the color-scheme script (the ?theme= script is Phase 3's)")
     workers: list = []  # (where, line, what, url, base): scripts started in a worker, read strictly below
     JS_UNPARSED.clear()
     # Every piece of JavaScript of the site, first, so that a use of an HTML sink or a worker API the
@@ -3287,7 +3480,7 @@ def criterion_15(ctx: Context) -> Result:
         doc = ctx.page(p)
         where = rel(root, p)
         head = next(iter(doc.find_all("head")), None)
-        inline_head = 0
+        inline_head: list[tuple[int, str]] = []  # (line, head_script_role) of each inline classic script in <head>
         for n in doc.iter():
             if n.tag == "#document":
                 continue
@@ -3304,12 +3497,16 @@ def criterion_15(ctx: Context) -> Result:
                 if "async" not in n.attrs and "defer" not in n.attrs:
                     blocking.append(f"{where}:{n.line}: <script src={src!r}> without async or defer")
             elif head is not None and head in n.ancestors():
-                inline_head += 1
+                inline_head.append((n.line, head_script_role(n.text())))
             else:
                 blocking.append(f"{where}:{n.line}: an inline classic script outside <head>")
-        if inline_head > 1:
-            blocking.append(f"{where}: {inline_head} inline classic scripts in <head>, expected one (the inline head script)")
-        heads += inline_head == 1
+        # A page has no inline classic script in <head>, or exactly the two, in this order: a third
+        # one, a reordered pair, one of them alone, the two merged into one or any other script fails.
+        if inline_head and tuple(role for _, role in inline_head) != expected:
+            found = ", ".join(f"line {line}: {HEAD_SCRIPT_NAMES[role]}" for line, role in inline_head)
+            blocking.append(f"{where}: {len(inline_head)} inline classic script(s) in <head> ({found}), expected the "
+                            + expected_text)
+        heads += bool(inline_head) and tuple(role for _, role in inline_head) == expected
         for line, url, what in markup_urls(doc):
             so = same_origin(url)
             if so is False:
@@ -3370,9 +3567,10 @@ def criterion_15(ctx: Context) -> Result:
             r.note(f"  ... {len(shown) - MAX_LINES} more")
     if femto_abs:
         r.note(f"{femto_abs} resource URLs are absolute https://femto.style/ URLs (same origin once deployed, not under wrangler)")
-    r.fails(f"{len(blocking)} render-blocking script(s) besides the inline head script:", blocking, "more")
+    r.fails(f"{len(blocking)} render-blocking script(s) besides the {expected_text}:", blocking, "more")
     if not blocking:
-        r.ok(f"the only render-blocking script is the inline head script ({heads} of {len(pages)} pages have one)")
+        r.ok(("the only render-blocking scripts are the " if len(expected) > 1 else "the only render-blocking script is the ")
+             + f"{expected_text} ({heads} of {len(pages)} pages have " + ("them)" if len(expected) > 1 else "it)"))
 
     docs = dist / "docs.html"
     limits = budget(root / "PLAN.md")

@@ -9,8 +9,9 @@
  * differences (already matched against the divergence registry) go back to Python.
  *
  * Alignment: each element's path is its tag plus its index among its compared element siblings,
- * from html (with --root-a/--root-b only that element's subtree is compared, and its paths still
- * start at html: the root's own path, then down). head, meta, title, script, link, style,
+ * from html (with --root-a/--root-b, or the sections mode's root, the section around an id, only that
+ * element's subtree is compared, and its paths still start at html: the root's own path, then
+ * down; findRoot). head, meta, title, script, link, style,
  * template, base and noscript are skipped and never counted. Open shadow roots are a separate child
  * list (path step "#shadow"). Two sibling lists are aligned by a keyed longest common subsequence,
  * in three passes: whole-subtree signatures (tag, attributes, own text and children, masked parts
@@ -272,8 +273,10 @@
       a: valPat(e.a, e.kind === "token" ? "style" : e.kind),
       b: valPat(e.b, e.kind === "token" ? "style" : e.kind),
       // The allowances registry.py for_cell marks (breadthGuard, coverage): a pinned entry, a style
-      // entry that names one route, a surface entry whose token pattern writes its names out.
-      pinned: !!e.pinned, oneRoute: !!e.oneRoute, closed: !!e.closed,
+      // entry that names one route, a surface entry whose token pattern writes its names out, and a
+      // section comparison's layout consequence (layout: a merge-layout entry for one route and exact
+      // widths that names only geometry longhands; registry.py _section_geometry).
+      pinned: !!e.pinned, oneRoute: !!e.oneRoute, closed: !!e.closed, layout: !!e.layout,
     };
   }
   // The longhands whose computed value is what layout makes of the box: its used size, insets, the
@@ -294,11 +297,14 @@
     for (const e of compiled) {
       if (e.kind !== "style") continue;
       if (e.pinned) { out.add(e.id); continue; }
-      if (!e.oneRoute) continue;
-      const named = props.filter((p) => e.prop(p));
-      if (named.length && named.every((p) => GEOMETRY.has(p))) out.add(e.id);
+      if ((e.oneRoute || e.layout) && geometryOnly(e, props)) out.add(e.id);
     }
     return out;
+  }
+  // Whether a style entry names only geometry longhands on the cell's property list.
+  function geometryOnly(e, props) {
+    const named = props.filter((p) => e.prop(p));
+    return named.length > 0 && named.every((p) => GEOMETRY.has(p));
   }
   // The inherited longhands (CSS's "Inherited: yes", the vendor-prefixed ones Chrome and Firefox list
   // in getComputedStyle included). A record of one of these on an element whose parent pair has the
@@ -929,15 +935,19 @@
 
   // The compared elements under root, in tree order (an element, its open shadow root's children,
   // then its light children), with the masks applied; each node keeps its element (n.el) until the
-  // caller has read it.
-  function buildNodes(root, roots) {
+  // caller has read it. grafts ({before, after}: graftsOf) are the root's first and last children.
+  function buildNodes(root, roots, grafts) {
     const maskSets = maskDefs.map((m) => matchSet(roots, m.sel));
     const nodes = [];
     const maskCounts = {};
-    const visitList = (parent, container, shadow, inheritedNoText) => {
+    const visitList = (parent, container, shadow, inheritedNoText, g) => {
       const list = [];
       let k = 0;
-      for (let c = container.firstElementChild; c; c = c.nextElementSibling) {
+      const els = [];
+      if (g) els.push(...g.before);
+      for (let c = container.firstElementChild; c; c = c.nextElementSibling) els.push(c);
+      if (g) els.push(...g.after);
+      for (const c of els) {
         const t = c.localName;
         if (SKIP_TAGS.has(t) || HARNESS_TAGS.has(t)) continue;
         list.push(add(c, parent, k++, shadow, inheritedNoText));
@@ -958,7 +968,7 @@
       });
       if (!n.mc) {
         if (el.shadowRoot) n.skids = visitList(n.i, el.shadowRoot, true, n.mt);
-        n.kids = visitList(n.i, el, false, n.mt);
+        n.kids = visitList(n.i, el, false, n.mt, parent === null ? grafts : null);
       }
       return n.i;
     };
@@ -1017,12 +1027,54 @@
     });
   }
 
-  H.collect = async function (side, rootSel) {
+  // The alignment root: the document's <html>, the element a CSS selector names (--root-a,
+  // --root-b), the sections mode's side B root, {id, closest}: the element with that id, or its
+  // closest ancestor matching closest (document.getElementById(id).closest("section")), or its side
+  // A root, {sel, before, after}: the element sel names, with grafts (graftsOf). Returns [element or
+  // null, the root as records and errors name it].
+  function findRoot(spec) {
+    if (!spec) return [doc.documentElement, null];
+    if (typeof spec === "string") return [doc.querySelector(spec), spec];
+    if (spec.sel) return [doc.querySelector(spec.sel), spec.sel];
+    const what = (spec.closest ? spec.closest + " around " : "") + "#" + spec.id;
+    const el = doc.getElementById(spec.id);
+    if (!el) return [null, what + " (no element has the id " + spec.id + ")"];
+    const root = spec.closest ? el.closest(spec.closest) : el;
+    return [root, root ? what : what + " (the element with the id " + spec.id + " is in no " + spec.closest + ")"];
+  }
+
+  // The sections mode's grafts on side A ({sel, before, after}; harness/sections.py GRAFTS): the
+  // elements the selectors in before and after match, in that order, compared as the root's first
+  // and last children. They are the parts of an old route's section that sat outside its
+  // div#content (the hgroup, Modal's dialog, Nav's overflow-with-focus nav) and that the one page
+  // holds inside the section, so side A's root has the children side B's section has. A grafted
+  // element's tree path is its place under the root, as side B's is. A selector that matches an
+  // element inside the root, or one that holds it, is an error, never a graft.
+  function graftsOf(spec, root, errors) {
+    const out = { before: [], after: [] };
+    if (!spec || typeof spec !== "object" || !spec.sel) return out;
+    const seen = new Set();
+    for (const where of ["before", "after"]) {
+      for (const sel of spec[where] || []) {
+        let els;
+        try { els = doc.querySelectorAll(sel); } catch (e) { errors.push("graft " + sel + ": " + e.message); continue; }
+        for (const el of els) {
+          if (root.contains(el) || el.contains(root)) { errors.push("graft " + sel + " matches an element inside or around the root " + spec.sel); continue; }
+          if (seen.has(el)) continue;
+          seen.add(el);
+          out[where].push(el);
+        }
+      }
+    }
+    return out;
+  }
+
+  H.collect = async function (side, rootSpec) {
     const t0 = performance.now();
     const errors = [];
     const fr0 = H.freeze();
     PROPS = null;
-    const root = rootSel ? doc.querySelector(rootSel) : doc.documentElement;
+    const [root, rootSel] = findRoot(rootSpec);
     if (!root) {
       errors.push("root " + rootSel + " not found");
       store[side] = null;
@@ -1031,7 +1083,7 @@
     const roots = [doc, ...shadowRoots(doc)];
     // Selector sets, evaluated once per side: registry entries (masks: buildNodes).
     const entrySets = compiled.map((e) => e.sel ? matchSet(roots, e.sel) : null);
-    const { nodes, maskCounts } = buildNodes(root, roots);
+    const { nodes, maskCounts } = buildNodes(root, roots, graftsOf(rootSpec, root, errors));
     touchStyles(nodes);
     const fr1 = H.freeze();
     const settleMs = settleFileButtons(nodes);
@@ -1484,9 +1536,15 @@
   // an entry applies, not how much of a page it may cover. A pinned entry (registry.py _pinned) may
   // reach up to lim.pinned, on the repeats of one example (at most lim.shapes tree paths, sibling
   // indices dropped).
+  //
+  // A section comparison's layout consequence (e.layout, geometry longhands only) is exempt from both
+  // limits: it registers the sizes the one page's content column gives every box of one section at
+  // the widths it names (contract 5: the four routes without a table of contents, at 1300 px), so it
+  // reaches the whole section by design, and nothing but geometry; registry.py judges its scope.
   function breadthGuard(A, B, errors) {
     const lim = cfg.breadth || {};
     const off = new Set();
+    const free = new Set(compiled.filter((e) => e.layout && e.kind === "style" && geometryOnly(e, A.props)).map((e) => e.k));
     const sides = [["A", A], ["B", B]];
     const total = (S, kind) => (kind === "head" ? (S.head ? S.head.size : 0) : TOKEN_KINDS.has(kind) ?
       (S.tokens ? S.tokens.names.length : 0) : S.nodes.length);
@@ -1494,6 +1552,7 @@
     const surface = (kind) => kind === "surface-missing" || kind === "surface-added";
     const shapes = (S, reach) => new Set(reach.map((i) => pathOf(S, S.nodes[i]).replace(/:\d+/g, ""))).size;
     for (const e of compiled) {
+      if (free.has(e.k)) continue;
       // A token entry may name at most lim.token of either side's token names: its value patterns
       // narrow it, and femto's light-dark() raw text spans about two in five of them. A surface entry
       // whose pattern writes its names out (closed) may name up to lim.closed.
@@ -1539,7 +1598,7 @@
       }
     };
     for (const kind of new Set(compiled.map((e) => e.kind))) {
-      const members = () => compiled.filter((e) => e.kind === kind && !off.has(e.k));
+      const members = () => compiled.filter((e) => e.kind === kind && !off.has(e.k) && !free.has(e.k));
       if (surface(kind)) {
         unionCheck(kind, members().filter((e) => !e.closed), lim.tokenUnion, " with an open token pattern");
         unionCheck(kind, members(), lim.closed, "");
@@ -1617,22 +1676,28 @@
   // ---------------------------------------------------------------------------------------
   // Screenshots: scroll to the top, cover the masked boxes (pixels: true) of the live side
   // ---------------------------------------------------------------------------------------
-  H.prepShot = async function () {
+  H.prepShot = async function (rootSpec) {
     const a = doc.activeElement;
     if (a && a !== doc.body && a.blur) a.blur();
     H.freeze();
-    const scrolled = win.scrollX !== 0 || win.scrollY !== 0;
+    // With an alignment root (a section comparison), the shot starts at the root's top, so both
+    // sides show the compared content; otherwise at the top of the page.
+    const root = rootSpec ? findRoot(rootSpec)[0] : null;
+    const top = root ? Math.max(0, Math.round(root.getBoundingClientRect().top + win.scrollY)) : 0;
+    const scrolled = win.scrollX !== 0 || win.scrollY !== top;
     // Overlay scrollbars fade in and out after scrolling; hide them for the shot only.
     const hide = doc.createElement("style");
     hide.id = "harness-shot";
     hide.textContent = "* { scrollbar-width: none !important; }";
     (doc.head || doc.documentElement).appendChild(hide);
-    // Firefox applies and paints scrolling asynchronously; scroll to the top until it stays there.
-    let settled = 0;
+    // Firefox applies and paints scrolling asynchronously; scroll until the position stays there
+    // (a page shorter than the root's top plus the viewport stops where it can).
+    let settled = 0, last = -1;
     for (let k = 0; k < 20 && settled < 2; k++) {
-      win.scrollTo({ left: 0, top: 0, behavior: "instant" });
+      win.scrollTo({ left: 0, top, behavior: "instant" });
       await frames(scrolled ? 2 : 1);
-      settled = win.scrollX === 0 && win.scrollY === 0 ? settled + 1 : 0;
+      settled = win.scrollX === 0 && win.scrollY === last ? settled + 1 : 0;
+      last = win.scrollY;
     }
     H.freeze();
     const roots = [doc, ...shadowRoots(doc)];

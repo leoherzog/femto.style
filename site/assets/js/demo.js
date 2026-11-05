@@ -2,11 +2,11 @@
 // its markup is absent.
 //
 // 1. The comparison's code samples on / (homepage/Comparison.jsx) take the page's color scheme:
-//    data-theme on `section.comparison div.code` is pageTheme(), on load and after every change.
+//    data-theme on `[data-comparison] div.code` is pageTheme(), on load and after every change.
 //
 // 2. The typing demo (homepage/Demo/*). The oracle drove it with TypeIt, which is GPL-3.0 or
 //    commercially licensed (PLAN.md Risks), so this is a small hand-written loop instead. It binds to
-//    the oracle's own markup, `.demo > article.component` with its form and `footer.code pre code`.
+//    `article[data-typing-demo]`, with its form and `footer.code pre code`.
 //    - The code sample is a list of characters, each with the token class it is typed in, plus line
 //      breaks, and a cursor among them. The steps type, move the cursor, delete and pause exactly as
 //      the oracle's LargeWidthCode.jsx and SmallWidthCode.jsx queue them (counts are in characters, a
@@ -23,7 +23,7 @@
 import { onThemeChange, pageTheme } from "./site.js";
 
 // --- 1. The comparison's code samples ----------------------------------------------------------
-const samples = document.querySelectorAll("main > section.comparison div.code[data-theme]");
+const samples = document.querySelectorAll("[data-comparison] div.code[data-theme]");
 if (samples.length) {
   const follow = (theme) => {
     for (const sample of samples) if (sample.getAttribute("data-theme") !== theme) sample.setAttribute("data-theme", theme);
@@ -33,7 +33,7 @@ if (samples.length) {
 }
 
 // --- 2. The typing demo ------------------------------------------------------------------------
-const article = document.querySelector(".demo > article.component");
+const article = document.querySelector("article[data-typing-demo]");
 const form = article?.querySelector("form");
 const code = article?.querySelector("footer.code pre code");
 

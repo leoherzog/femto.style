@@ -1,91 +1,76 @@
 <hgroup>
   <p class="chapter">Layout</p>
-  <h1>Container</h1>
+  <h1 id="container">Container</h1>
   <p>Use <code>.container</code> for a centered&nbsp;viewport or <code>.container-fluid</code> for a full-width&nbsp;layout.</p>
 </hgroup>
-<aside id="table-of-contents">
-  <nav class="is-sticky-above-lg ">
-    <details open>
-      <summary>Content</summary>
-      <ul>
-        <li><a class="secondary" data-discover="true" href="/docs/container">Breakpoints</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/container#fixed-width">Fixed width</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/container#fluid-width">Fluid width</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/container#semantic-containers">Semantic containers</a></li>
-      </ul>
-    </details>
-  </nav>
-</aside>
-<div id="content" role="document">
-  <section>
-    <p>Pico includes six default breakpoints. These breakpoints can be customized with <a data-discover="true" href="/docs">Sass</a>.</p>
-    <table class="striped">
-      <thead>
-        <tr>
-          <th>Device</th>
-          <th>Breakpoint</th>
-          <th>Viewport</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Extra small</td>
-          <td>&lt;576px</td>
-          <td>100%</td>
-        </tr>
-        <tr>
-          <td>Small</td>
-          <td>≥576px</td>
-          <td>510px</td>
-        </tr>
-        <tr>
-          <td>Medium</td>
-          <td>≥768px</td>
-          <td>700px</td>
-        </tr>
-        <tr>
-          <td>Large</td>
-          <td>≥1024px</td>
-          <td>950px</td>
-        </tr>
-        <tr>
-          <td>Extra large</td>
-          <td>≥1280px</td>
-          <td>1200px</td>
-        </tr>
-        <tr>
-          <td>Extra extra large</td>
-          <td>≥1536px</td>
-          <td>1450px</td>
-        </tr>
-      </tbody>
-    </table>
-    <p><code>.container</code> and <code>.container-fluid</code> are not available in the <a data-discover="true" href="/docs">class‑less&nbsp;version</a> (see <a data-discover="true" href="/docs/container#semantic-containers">Semantic containers</a> for an alternative).</p>
-  </section>
-  <section>
-    <h2>Fixed width<a href="#fixed-width" id="fixed-width" class="secondary" tabindex="-1">#</a></h2>
-    <p><code>.container</code> provides a centered container with a fixed width.</p>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/container"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;body&gt;
+<section>
+  <p>Pico includes six default breakpoints. These breakpoints can be customized with <a data-discover="true" href="/docs">Sass</a>.</p>
+  <table class="striped">
+    <thead>
+      <tr>
+        <th>Device</th>
+        <th>Breakpoint</th>
+        <th>Viewport</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Extra small</td>
+        <td>&lt;576px</td>
+        <td>100%</td>
+      </tr>
+      <tr>
+        <td>Small</td>
+        <td>≥576px</td>
+        <td>510px</td>
+      </tr>
+      <tr>
+        <td>Medium</td>
+        <td>≥768px</td>
+        <td>700px</td>
+      </tr>
+      <tr>
+        <td>Large</td>
+        <td>≥1024px</td>
+        <td>950px</td>
+      </tr>
+      <tr>
+        <td>Extra large</td>
+        <td>≥1280px</td>
+        <td>1200px</td>
+      </tr>
+      <tr>
+        <td>Extra extra large</td>
+        <td>≥1536px</td>
+        <td>1450px</td>
+      </tr>
+    </tbody>
+  </table>
+  <p><code>.container</code> and <code>.container-fluid</code> are not available in the <a data-discover="true" href="/docs">class‑less&nbsp;version</a> (see <a data-discover="true" href="/docs#container">Semantic containers</a> for an alternative).</p>
+</section>
+<section>
+  <h2>Fixed width</h2>
+  <p><code>.container</code> provides a centered container with a fixed width.</p>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;body&gt;
   &lt;main class="container"&gt;
     ...
   &lt;/main&gt;
 &lt;/body&gt;</code></pre></div>
-  </section>
-  <section>
-    <h2>Fluid width<a href="#fluid-width" id="fluid-width" class="secondary" tabindex="-1">#</a></h2>
-    <p><code>.container-fluid</code> provides a full-width container.</p>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/container"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;body&gt;
+</section>
+<section>
+  <h2>Fluid width</h2>
+  <p><code>.container-fluid</code> provides a full-width container.</p>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;body&gt;
   &lt;main class="container-fluid"&gt;
     ...
   &lt;/main&gt;
 &lt;/body&gt;</code></pre></div>
-  </section>
-  <section>
-    <h2>Semantic containers<a href="#semantic-containers" id="semantic-containers" class="secondary" tabindex="-1">#</a></h2>
-    <p>In the classless version, <code class="language-html">&lt;header&gt;</code>, <code class="language-html">&lt;main&gt;</code>, and <code class="language-html">&lt;footer&gt;</code> inside <code class="language-html">&lt;body&gt;</code> act as containers to define a centered or a fluid viewport.</p>
-    <p>See <a data-discover="true" href="/docs">Class-less version</a>.</p>
-  </section>
-  <section class="edit-on-github">
-    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.container.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
-  </section>
-</div>
+</section>
+<section>
+  <h2>Semantic containers</h2>
+  <p>In the classless version, <code class="language-html">&lt;header&gt;</code>, <code class="language-html">&lt;main&gt;</code>, and <code class="language-html">&lt;footer&gt;</code> inside <code class="language-html">&lt;body&gt;</code> act as containers to define a centered or a fluid viewport.</p>
+  <p>See <a data-discover="true" href="/docs">Class-less version</a>.</p>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.container.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

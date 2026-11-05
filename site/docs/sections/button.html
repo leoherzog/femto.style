@@ -1,83 +1,66 @@
 <hgroup>
   <p class="chapter">Content</p>
-  <h1>Button</h1>
+  <h1 id="button">Button</h1>
   <p>Buttons are using the native <code class="language-html">&lt;button&gt;</code> tag, without <code>.classes</code>. for the default&nbsp;style.</p>
 </hgroup>
-<aside id="table-of-contents">
-  <nav class="is-sticky-above-lg ">
-    <details open>
-      <summary>Content</summary>
-      <ul>
-        <li><a class="secondary" data-discover="true" href="/docs/button">Syntax</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/button#variants">Variants</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/button#form-buttons">Form buttons</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/button#disabled">Disabled</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/button#role-button">Role button</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/button#usage-with-group">Usage with group</a></li>
-      </ul>
-    </details>
-  </nav>
-</aside>
-<div id="content" role="document">
-  <section aria-label="Overview">
-    <article aria-label="Button example" class="component"><button>Button</button><footer class="code small" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button&gt;Button&lt;/button&gt;</code></pre></footer></article>
-  </section>
-  <section>
-    <h2>Variants<a href="#variants" id="variants" class="secondary" tabindex="-1">#</a></h2>
-    <p>Buttons come with <code>.secondary</code> and <code>.contrast</code> styles (not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
-    <article aria-label="Button colors example" class="component">
-      <div class="grid"><button class="secondary">Secondary</button><button class="contrast">Contrast</button></div>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button class="secondary"&gt;Secondary&lt;/button&gt;
+<section aria-label="Overview">
+  <article aria-label="Button example" class="component"><button>Button</button><footer class="code small" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button&gt;Button&lt;/button&gt;</code></pre></footer></article>
+</section>
+<section>
+  <h2>Variants</h2>
+  <p>Buttons come with <code>.secondary</code> and <code>.contrast</code> styles (not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
+  <article aria-label="Button colors example" class="component">
+    <div class="grid"><button class="secondary">Secondary</button><button class="contrast">Contrast</button></div>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button class="secondary"&gt;Secondary&lt;/button&gt;
 &lt;button class="contrast"&gt;Contrast&lt;/button&gt;
 </code></pre></footer>
-    </article>
-    <p>They also come with a classic outline style (not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
-    <article aria-label="Buttons outline example" class="component">
-      <div class="grid"><button class="outline">Primary</button><button class="outline secondary">Secondary</button><button class="outline contrast">Contrast</button></div>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button class="outline"&gt;Primary&lt;/button&gt;
+  </article>
+  <p>They also come with a classic outline style (not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
+  <article aria-label="Buttons outline example" class="component">
+    <div class="grid"><button class="outline">Primary</button><button class="outline secondary">Secondary</button><button class="outline contrast">Contrast</button></div>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button class="outline"&gt;Primary&lt;/button&gt;
 &lt;button class="outline secondary"&gt;Secondary&lt;/button&gt;
 &lt;button class="outline contrast"&gt;Contrast&lt;/button&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Form buttons<a href="#form-buttons" id="form-buttons" class="secondary" tabindex="-1">#</a></h2>
-    <p><code>type="submit"</code> and <code>type="button"</code> inputs are also displayed as buttons. All form buttons are <code>width: 100%;</code> by default, to match with the other form elements.</p>
-    <article aria-label="Input buttons example" class="component"><input type="submit"><input type="button" value="Input"><footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;input type="submit"&gt;
+  </article>
+</section>
+<section>
+  <h2>Form buttons</h2>
+  <p><code>type="submit"</code> and <code>type="button"</code> inputs are also displayed as buttons. All form buttons are <code>width: 100%;</code> by default, to match with the other form elements.</p>
+  <article aria-label="Input buttons example" class="component"><input type="submit"><input type="button" value="Input"><footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;input type="submit"&gt;
 &lt;input type="button" value="Input"&gt;</code></pre></footer></article>
-    <p>Reset inputs have the secondary style by default.</p>
-    <article aria-label="Reset input example" class="component"><input type="reset"><footer class="code small" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;input type="reset"&gt;</code></pre></footer></article>
-  </section>
-  <section>
-    <h2>Disabled<a href="#disabled" id="disabled" class="secondary" tabindex="-1">#</a></h2>
-    <p>Buttons come with a disabled style.</p>
-    <article aria-label="Disabled buttons example" class="component">
-      <div class="grid"><button disabled>Disabled</button><button class="secondary" disabled>Disabled</button><button class="contrast" disabled>Disabled</button></div>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button disabled&gt;Disabled&lt;/button&gt;
+  <p>Reset inputs have the secondary style by default.</p>
+  <article aria-label="Reset input example" class="component"><input type="reset"><footer class="code small" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;input type="reset"&gt;</code></pre></footer></article>
+</section>
+<section>
+  <h2>Disabled</h2>
+  <p>Buttons come with a disabled style.</p>
+  <article aria-label="Disabled buttons example" class="component">
+    <div class="grid"><button disabled>Disabled</button><button class="secondary" disabled>Disabled</button><button class="contrast" disabled>Disabled</button></div>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button disabled&gt;Disabled&lt;/button&gt;
 &lt;button class="secondary" disabled&gt;Disabled&lt;/button&gt;
 &lt;button class="contrast" disabled&gt;Disabled&lt;/button&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Role button<a href="#role-button" id="role-button" class="secondary" tabindex="-1">#</a></h2>
-    <p>Clickable elements with <code>role="button"</code> are rendered as buttons.</p>
-    <article aria-label="Role button example" class="component">
-      <div role="button" tabindex="0">Div as button</div>
-      <footer class="code small" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="button" tabindex="0"&gt;Div as a button&lt;/div&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>Usage with group<a href="#usage-with-group" id="usage-with-group" class="secondary" tabindex="-1">#</a></h2>
-    <p>You can use <code>role="group"</code> with buttons. See <a data-discover="true" href="/docs/group">Group</a>.</p>
-    <article class="component" aria-label="Group example">
-      <div role="group"><button>Button</button><button>Button</button><button>Button</button></div>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
+  </article>
+</section>
+<section>
+  <h2>Role button</h2>
+  <p>Clickable elements with <code>role="button"</code> are rendered as buttons.</p>
+  <article aria-label="Role button example" class="component">
+    <div role="button" tabindex="0">Div as button</div>
+    <footer class="code small" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="button" tabindex="0"&gt;Div as a button&lt;/div&gt;</code></pre></footer>
+  </article>
+</section>
+<section>
+  <h2>Usage with group</h2>
+  <p>You can use <code>role="group"</code> with buttons. See <a data-discover="true" href="/docs#group">Group</a>.</p>
+  <article class="component" aria-label="Group example">
+    <div role="group"><button>Button</button><button>Button</button><button>Button</button></div>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
   &lt;button&gt;Button&lt;/button&gt;
   &lt;button&gt;Button&lt;/button&gt;
   &lt;button&gt;Button&lt;/button&gt;
 &lt;/div&gt;</code></pre></footer>
-    </article>
-  </section>
-  <section class="edit-on-github">
-    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.button.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
-  </section>
-</div>
+  </article>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.button.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

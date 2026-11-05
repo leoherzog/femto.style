@@ -1,0 +1,30 @@
+{
+  "about": "The sections fixture's menu, in the shape of site/docs/menu.json at tag static-femto: each section's id and old route, and a variant route whose last segment is its theme color (tests/README.md, Selftest).",
+  "categories": [
+    {
+      "title": "Fixture",
+      "sections": [
+        {
+          "id": "alpha",
+          "title": "Alpha",
+          "route": "/sections/alpha.html"
+        },
+        {
+          "id": "beta-two",
+          "title": "Beta",
+          "route": "/sections/beta.html"
+        },
+        {
+          "id": "picker",
+          "title": "Picker",
+          "route": "/sections/picker.html",
+          "variants": [
+            {
+              "route": "/sections/picker/jade.html"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

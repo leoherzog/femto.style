@@ -28,11 +28,16 @@ uv run tests/run.py fast --a oracle --b dist:build/forms --routes /docs/forms   
 uv run tests/run.py pages --a oracle --b dist --full      # a parity gate (criterion 2)
 uv run tests/run.py styles --full                         # the Phase 2 gate: static-multipage against dist, tokens and states
 uv run tests/run.py styles --b dist:build/p2 --routes /docs/button   # an agent's own build, fast axes
+uv run tests/run.py sections --full                       # the Phase 3 gate: each section of the one page against its old route at static-femto
+uv run tests/run.py sections --b dist:build/p3 --routes /docs/button,/docs/version-picker/jade   # an agent's own build, fast axes
+uv run tests/run.py pages --a static-femto --b dist --full --routes /,/examples,/demo,/does-not-exist   # Phase 3's whole pages
+uv run tests/run.py a11y --target dist                    # criterion 10: axe-core on every page, Chrome and Firefox
 uv run tests/run.py registry                              # validate tests/divergences/
 uv run tests/run.py oracle                                # build, serve and capture the oracle
 uv run tests/run.py static                                # the static checks
 uv run tests/run.py behavior --target oracle              # the behavior suite (tests/behavior/), Chrome and Firefox
 uv run tests/run.py behavior --target dist --groups shell # one group against the static site
+uv run tests/run.py behavior --target dist --browsers safari   # Safari, serialized, on an unlocked screen (the owner's)
 ```
 
 Every comparison run writes `tests/results/<run-id>/result.json`, `summary.txt` and `log.txt`,
@@ -54,9 +59,9 @@ chromedriver and geckodriver into `~/.cache/selenium`; Safari uses `/usr/bin/saf
 | `oracle-routes.json` | oracle | the oracle's routes: path, kind, kept (Decision 5), title; the 20 static Pico v1 pages are listed as kind `v1-page` (old paths for criterion 6, never captured or compared) |
 | `static_checks.py` | static | the mechanical acceptance criteria (`run.py static` calls its `main(argv)`) |
 | `divergences/` | harness (schema, rig seed); phase agents add entries | divergence registry, `schema.json` |
-| `fixtures/` | harness | the selftest site (`site/`), its named controls (`controls.json`) and its state targets for the styles controls (`states.json`) |
+| `fixtures/` | harness | the selftest site (`site/`, with `site/sections/`, a one-page docs site in miniature for the sections controls), its named controls (`controls.json`) and its state targets for the styles controls (`states.json`) |
 | `harness/states.json` | harness | the styles mode's interactive state targets (Tokens and states) |
-| `behavior/` | behavior | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per route group (`shell.py`, `getting-started.py`, `customization.py`, `layout.py`, `content.py`, `forms.py`, `components-a.py`, `components-b.py`, `landing.py`); see Behavior |
+| `behavior/` | behavior | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per route group (`shell.py`, `getting-started.py`, `customization.py`, `layout.py`, `content.py`, `forms.py`, `components-a.py`, `components-b.py`, `landing.py`, `one-page.py`); see Behavior |
 | `harness/behavior.py` | behavior | the `behavior` mode: its subcommand, the page API checks drive, sessions, runner and report |
 | `oracle/`, `results/`, `builds/` | generated | gitignored; `builds/<tag>/` holds a tag's build (`harness/tagbuild.py`) |
 
@@ -67,12 +72,14 @@ proxy), `server.py` (the fixture server), `runner.py` (worker pool and session s
 mechanisms), `registry.py`, `report.py`, `negative.py` (selftest), `rig.py`, `locks.py` (femto's,
 unchanged), `paths.py`, `behavior.py` (the behavior mode; Behavior), `styles.py` (the styles mode's
 tokens and state replay; Tokens and states), `tagbuild.py` (a tag of this repository built for a
-target such as `static-multipage`).
+target such as `static-multipage` or `static-femto`), `sections.py` (the sections mode's route map and
+cells; Sections), `a11y.py` (the a11y mode; Accessibility).
 
 ## How one comparison works
 
 A **cell** is one comparison: browser × route × scheme leg × width. Side A's document is
-`<base A><route>` and side B's is `<base B><route>`.
+`<base A><route>` and side B's is `<base B><route>`, except in the sections mode, where side B's is
+the one docs page at the route's section (`<base B>/docs#<id>`; Sections).
 
 1. The run starts both sides' servers (for `self`, two separate oracle servers, so a server restart
    is covered too), and each browser session gets its own **proxy** on a free `127.0.0.1` port
@@ -172,7 +179,9 @@ An element's **tree path** names it in records: from `html`, each step is the el
 index among its parent's compared element children. With `--root-a`/`--root-b` only the root
 element's subtree is compared, and its paths still start at `html` (the root's own path in its
 document, then down), so a registry path pattern means the same in a section comparison as in a
-whole-page one.
+whole-page one. The sections mode's side B root is no selector: it is
+`document.getElementById(id).closest("section")` for the cell's section id, and a missing one is a
+harness error (`root section around #<id> (...) not found`).
 `head`, `meta`, `title`, `script`, `link`, `style`, `template`, `base` and `noscript` are skipped in
 the tree and never counted, so a different number of scripts or stylesheet links never shifts an
 index. An open shadow root's children are a separate list (path step `#shadow`). Paths read
@@ -383,14 +392,21 @@ that they are found without it, and that real changes written the same way are s
 
 ## Modes
 
-Common options for `self`, `pages`, `fast` and `styles`: `--browsers chrome,firefox,safari`, `--routes`,
+Common options for `self`, `pages`, `fast`, `styles` and `sections`: `--browsers chrome,firefox,safari`, `--routes`,
 `--widths`, `--schemes light,dark,theme-light,theme-dark` (those legs on every route instead of the
 matrix's legs), `--no-shots`, `--workers chrome=2,firefox=2`, `--max-records N`, `--run-id`,
 `--label`, `--registry DIR`, `--exact-blob-urls` and `--exact-minified` (see Diff rule), and `--plan`
 (print the planned cells per browser and exit, starting no server and no browser). `pages` and `fast` take `--a` and `--b` (a named target, `dist:<path>` or a base URL),
 `--ready-a`/`--ready-b` (`oracle`, `static`, `none`) and `--root-a`/`--root-b` (CSS selectors of the
-alignment roots, for Phase 3's section-against-route comparisons). Without `--routes` the routes
-are the oracle's kept routes from `tests/oracle-routes.json`.
+alignment roots). Without `--routes` the routes are the oracle's kept routes from
+`tests/oracle-routes.json` (the sections mode: side A's docs routes).
+
+The same target on both sides of `pages`, `fast` or `styles` (`--a static-femto --b static-femto`) is a
+self comparison: no registry entry but a skipped check applies, so every difference counts. Otherwise
+a run is the comparison its side A names in `targets.json` (`comparison`): `static-femto` makes a
+pages run a `one-page` comparison, and every other side A a `pages` one; the styles mode is `styles`
+and the sections mode `one-page`. The comparison decides the registry entries that apply (Divergence
+registry, Comparisons).
 
 | Mode | What it runs |
 |---|---|
@@ -403,17 +419,20 @@ are the oracle's kept routes from `tests/oracle-routes.json`.
 | `oracle` | `harness/oracle.py`'s `main(argv)`: build the oracle if missing or stale, serve it, capture every route into `tests/oracle/`. |
 | `static` | `tests/static_checks.py`'s `main(argv)`. |
 | `styles` | The Phase 2 gate (criterion 2), femto's native mode ported to this site: one document, two stylesheet lists. `--a` (default `static-multipage`, the tag's build: the frozen legacy CSS) against `--b` (default `dist`: vendored femto, the responsive-spacings option and the site CSS). Phase 2 changes no markup apart from the stylesheet links, so the two documents align element for element, and everything `pages` compares is compared (tree, attributes, text, computed styles, head, status, same-origin loads, with the same routes, legs, widths, masks, value rules, chunking, Safari handling and `--full` matrix), plus femto's tokens and interactive states (Tokens and states). `--states FILE` replaces `harness/states.json`, `--no-states` replays none (a `cap:` line). The same target on both sides (`--a static-multipage --b static-multipage`) is a self comparison: no registry entry but a skipped check applies, the mode's criterion-1 check. A styles comparison applies only the registry entries that name it (Divergence registry). Fast axes; `--full` runs the full matrix. |
-| `behavior` | Scripted checks of every widget in 01 §2 that Phase 1 rebuilds, against one target (`--target oracle`, `dist`, `dist:<path>` or a base URL), in headless Chrome and Firefox; see Behavior. Phase 3 adds the docs spy, `#hash` and history behavior and `?theme=` (criterion 7), growing from the spike's `test_spike.py`, and Safari. |
+| `sections` | The Phase 3 gate (criterion 2; Sections): each old docs route of `--a` (default `static-femto`) against its section of the one page of `--b` (default `dist`), side A's `[role=document]` (`--root-a`) against the `<section>` around the element with the section's id, loaded at `/docs#<id>` (a color route at `/docs?theme=<color>#version-picker`). Its routes and their sections come from side A's `menu.json` at the tag. A `one-page` comparison; everything else is the pages mode's (legs, widths, masks, value rules, chunking, Safari handling, same-origin rule, `--full` matrix). Fast axes; `--full` runs the full matrix. |
+| `behavior` | Scripted checks of every widget in 01 §2 that Phase 1 rebuilds, against one target (`--target oracle`, `dist`, `dist:<path>` or a base URL), in headless Chrome and Firefox, and in Safari with `--browsers safari` (serialized, the OS scheme only, on an unlocked screen: the owner's); see Behavior. Phase 3 adds the docs spy, `#hash` and history behavior and `?theme=` (criterion 7), growing from the spike's `test_spike.py`. |
+| `a11y` | Criterion 10 (Accessibility): axe-core from `node_modules/axe-core` run in every page of one target (`--target`, default `dist`): `/`, `/examples`, `/demo`, the 404 page, `/docs` and `/docs?theme=jade`, in headless Chrome and Firefox, light and dark, at 375 and 1300. A serious or critical violation fails the run; moderate and minor ones are listed. `--pages`, `--browsers`, `--schemes`, `--widths`, `--plan`. |
 
 Named targets (`harness/targets.json`):
 
 | Target | Side | Readiness |
 |---|---|---|
 | `oracle` | the Remix site at `remix-final`, built if needed and served by `oracle.serve()` | `oracle` |
-| `dist` | `npm exec --no -- wrangler pages dev dist` on free ports, with the wrangler pinned in `package.json` (`--no` never downloads one; before starting, the harness checks that `node_modules/wrangler` is the exact version `package.json` pins, else exit 2), its debug log and its own `--persist-to` state folder in the run's folder; needs `dist/index.html`; `same_origin` | `static` |
+| `dist` | its `one_page` is `/docs` (the sections mode's side B); `npm exec --no -- wrangler pages dev dist` on free ports, with the wrangler pinned in `package.json` (`--no` never downloads one; before starting, the harness checks that `node_modules/wrangler` is the exact version `package.json` pins, else exit 2), its debug log and its own `--persist-to` state folder in the run's folder; needs `dist/index.html`; `same_origin` | `static` |
 | `dist:<path>` | any built folder, served exactly as `dist` serves `dist/`: the same wrangler, options, readiness and same-origin rule; `<path>` is absolute or relative to the repository root, and needs `<path>/index.html`. Several agents can each compare their own build at once (`fast --a oracle --b dist:build/forms`), since every server has its own ports, log and state folder. The folder's pages are also reference documents for the registry's breadth rule, like `dist/`'s | `static` |
 | `static-multipage` | the static site at tag `static-multipage` (the Phase 1 commit), built by the harness into `tests/builds/static-multipage/dist` (gitignored) and served exactly as `dist` serves `dist/`; `same_origin`. The build (`harness/tagbuild.py`): a detached `git worktree add` of the tag's commit in a temporary folder, the repository's `node_modules` linked into it, `node build.mjs --out <folder>`, then `git worktree remove --force` and `git worktree prune`. `build.json` beside the folder records the tag, commit, Node version, the prismjs version the build highlighted with (`node_modules/prismjs/package.json`, 1.30.0), file count, a SHA-256 of the built tree (every file's path and content) and seconds (0.3 s on 2026-11-02: 187 files). A run rebuilds when the folder's `index.html` or `build.json` is missing, the tag's commit is not the recorded one, the repository's prismjs is another version, or the folder no longer hashes to the recorded tree (a file under it edited, added or removed); the server start checks all of it again; `tests/builds/static-multipage.lock` is held exclusively by a build and shared by every server of the folder, so two runs never build at once and none rebuilds under a running server. `result.json` records `sides.<a|b>.build` | `static` |
-| `fixture`, `fixture:<control>` | the selftest site, optionally changed by a control from `fixtures/controls.json`; `same_origin` | `static` |
+| `static-femto` | the static site at tag `static-femto` (the Phase 2 commit, 7587a7e: one page per oracle route, styled by vendored femto), built by `tagbuild.py` into `tests/builds/static-femto/dist` (gitignored) exactly as `static-multipage` is (the same worktree build, `build.json`, rebuild rules and `tests/builds/static-femto.lock`) and served exactly as `dist` serves `dist/`; `same_origin`. Side A of Phase 3's comparisons: the sections mode reads its routes from the tag's `site/docs/menu.json` (`menu`, read with `git show`), and its `comparison` is `one-page`. 0.3 s, 166 files on 2026-11-04 | `static` |
+| `fixture`, `fixture:<control>` | the selftest site, optionally changed by a control from `fixtures/controls.json`; `same_origin`; its `menu` and `one_page` are the sections fixture's (`fixtures/site/sections/menu.json`, `/sections/docs.html`) | `static` |
 | a base URL | a server someone else runs (`http://127.0.0.1:8788`); nothing is started or stopped | `static` unless `--ready-a`/`--ready-b` |
 
 Every named target a run uses is started once per side and stopped with all its children (the
@@ -521,6 +540,112 @@ That is 2,232 cells. On a light OS, Safari's 324 `dark` cells are the registered
 ones. Its `theme-light` cells run with light media on a light OS (a `media:dark` skip is recorded on
 each) and with dark media in the dark pass. The fast axes plan 248 cells per browser in Chrome and
 Firefox (54 routes × light and dark × 2 widths, plus 8 theme routes × 2 theme legs × 2 widths).
+
+### Sections
+
+The sections mode is Phase 3's gate (PLAN.md Workflow, 3 One page; criterion 2): the one docs page
+(Decision 2) holds every docs section, so each old route of the Phase 2 site is compared with its
+section rather than with a page of its own.
+
+```sh
+uv run tests/run.py sections --full --browsers chrome,firefox      # the gate, Chrome and Firefox
+uv run tests/run.py sections --b dist:/path/to/build --routes /docs/forms/input,/docs/version-picker/jade
+uv run tests/run.py sections --plan                                # the planned cells; starts nothing
+```
+
+- **Sides.** Side A is `--a` (default `static-femto`, the harness's build of the tag), side B `--b`
+  (default `dist`; `dist:<path>` or a base URL too). Side A's root is `[role=document]` (`--root-a`):
+  the old route's `div#content`, which held the route's content and its edit link, but not its
+  hgroup, breadcrumb, side menu or table of contents. Its **grafts** (`sections.py` `GRAFTS`,
+  `differ.js` `graftsOf`) add the parts of the section that sat in the old route's `main` and that
+  the one page holds inside the section: `main > hgroup` as the root's first child, and
+  `main > dialog` (Modal's demo dialog) and `main > nav[aria-label="overflow-with-focus"]` (Nav's) as
+  its last, the places the section files give them. So side A's root has the children side B's
+  section has, and the hgroup (each section's title and description), the dialog and the nav pair
+  with side B's and are compared in full. A grafted element's tree path is its place under the root
+  (`... > div:2 > hgroup:0`), as side B's is; a graft selector that matches inside or around the
+  root is a harness error. If the one page puts a grafted element elsewhere, it is an `only-a` and
+  an `only-b` record, never hidden. Side B's root is the element
+  `document.getElementById(id).closest("section")`: the build's `<section>` around the section,
+  whose hgroup holds the `h1` that carries the id. A cell whose side B has no such element is a
+  harness error, so a missing section never passes.
+- **Routes.** The route-to-section map is read from side A's `menu.json` at the tag
+  (`git show static-femto:site/docs/menu.json`; `targets.json` `menu`), never from the working tree,
+  whose `menu.json` loses its per-route fields in Phase 3: each section's `route` is a cell route
+  for its id, and each of its `variants` a route for the same id with the color its last path
+  segment names. So `/docs` is `quick-start`, `/docs/landmarks-section` is `landmarks`,
+  `/docs/forms/<x>` is `<x>`, `/docs/forms` is `forms`, `/docs/<x>` is `<x>`, and
+  `/docs/version-picker/<color>` is `version-picker` with that theme: 50 routes, the 31 sections and
+  the 19 color routes. Without `--routes` all of them run; a route that is not in the map is a setup
+  error (exit 2): compare a whole page with `pages --a static-femto` instead.
+- **Side B's URL.** `<one_page>#<id>` (`targets.json` `one_page`: `/docs`), so the browser's own
+  fragment navigation puts the section on screen as the route's content was, and
+  `/docs?theme=<color>#version-picker` for a color route, the same view (PLAN.md URL inventory). A
+  cell keeps side A's route as its `route` (the registry's `where.routes`, the reports, the theme
+  routes of `matrix.json`) and records `url_b`, `path_b` (the path and query side B must answer),
+  `section`, `section_theme` and `root_b` in `result.json`.
+- **What is compared.** Everything the pages mode compares inside the two roots: the tree, every
+  attribute, the elements' own text, every computed style and pseudo-element, plus the documents'
+  status and the same-origin rule. The head is not compared with roots (Known limits): Phase 3's
+  head is criterion 8's (`static_checks.py`). The status record holds side A to its route and side B
+  to `path_b`, with the same status. A side's cross-origin loads are its whole document's, the one
+  page's included. Screenshots start at each root's top; they never gate.
+- **What differs by design** (PLAN.md `merge-layout`; Divergence registry). The root pair is a section
+  against a div, one `structure` record (`tag`), whose attributes and styles are not compared and
+  whose children are. The hgroup pairs (a graft); its `h1` carries the section id on side B only (an
+  `attribute` record, `id`), and the hgroup's own box differs, since on the old route it was a grid
+  item of `main` (`grid-area: header`, `min-height: auto`, no bottom margin) and on the one page it
+  is a block in its section (`margin-bottom` 32 to 105 px by width, `min-height` `0px`, grid
+  placement `auto`); Modal's dialog and Nav's overflow nav likewise change box (and the dialog its
+  `data-modal` attributes, the nav its links' `href`). The subheadings' `#` anchors are on side A
+  only (`only-a`). The table of contents, breadcrumb and side nav are outside both roots.
+  Phase 3's contract 5 keeps the content column's width at every width, except on the four routes
+  that had no table of contents (`/docs/rtl`, `/docs/link`, `/docs/forms/range`, `/docs/loading`) at
+  1300 px and, as built (the core agent's deviation from contract 5, which said 1300 px only: the
+  oracle's table-of-contents routes kept `10.5rem 1fr 10.5rem` at 1600 px too), at 1600 px, where
+  every box of the section is narrower: a section layout consequence per route (Divergence
+  registry) registers those sizes. A space at a line end renders nothing (Collection), so a box that
+  wraps its text elsewhere can also give a `text` record there (`/docs/link` at 1300 px); that is a
+  text entry of its own (Known limits).
+- **Comparison.** A sections run is a `one-page` comparison: only the registry entries that name
+  `one-page` in `where.comparisons` apply (and skipped checks). The same target on both sides is a
+  self comparison.
+
+The whole pages whose links into the docs change are compared as pages, with the same comparison:
+`pages --a static-femto --b dist --full --routes /,/examples,/demo,/does-not-exist` (the 404 page is
+the kept route `/does-not-exist`, which answers 404 with `404.html` on both sides).
+
+Planned with the harness's planner on 2026-11-04 (`--plan`, no server or browser started):
+
+| Command | Browser | Cells | light | dark | theme-light | theme-dark | Per width |
+|---|---|---|---|---|---|---|---|
+| `sections` (fast) | Chrome, Firefox | 228 each, 456 | 100 | 100 | 14 | 14 | 114 at 375 and 1300 |
+| `sections --full` | Chrome, Firefox, Safari | 684 each, 2,052 | 300 | 300 | 42 | 42 | 114 |
+| `pages --a static-femto --b dist --full --routes /,/examples,/demo,/does-not-exist` | Chrome, Firefox, Safari | 60 each, 180 | 24 | 24 | 6 | 6 | 10 |
+
+The theme legs run on the seven docs routes among `matrix.json`'s theme routes. Each Safari pass
+runs 384 of its 684 section cells (the OS scheme's leg and both theme legs) and 36 of its 60 page
+cells; the other leg is the registered skip `media:<scheme>`, which the owner's other pass runs.
+
+Measured on the real one page (2026-11-04, Chrome Beta 158 and Firefox 160, a build of the working
+tree in the middle of Phase 3, no Phase 3 entries yet):
+
+| Run | Cells | Wall clock | Per cell | Harness errors |
+|---|---|---|---|---|
+| `sections` (fast), one session per browser (`p3-harness2-sections-fast-1`) | 456 | 224 s | 0.5 s mean | 0 |
+| `sections --full --browsers chrome,firefox`, two sessions per browser (`p3-harness2-sections-full-1`) | 1,368 | 354 s | 1.0 s mean, 2.5 s max | 0 |
+| `pages --a static-femto --b dist:<build> --routes /,/examples,/demo,/does-not-exist` (`p3-harness2-pages-1`) | 40 | 13 s once a slot is free | | 0 |
+
+Every cell found its section. The full pass takes about as long as Phase 1's full pages gate in
+Chrome and Firefox (332 s). The records were the kinds this section names: the root pair and the
+hgroup in every cell, the subheading anchors on every route that had them, geometry on the four
+routes without a table of contents at 1300 and 1600 px only, `href` attribute records for the links
+into the docs, `id` and `aria-describedby` records for renamed ids, and what the site had not yet
+finished (unscoped `main.page-<id>` rules, the picker's per-color content). With a trial registry of
+the shapes Phase 3 needs (the root pair, the hgroup, the anchors as one structure entry
+`:is(h2, h3, h4) > a.secondary[id][tabindex="-1"]`, and one section layout consequence for each of
+the four routes at 1300 and 1600 px), every such record was registered with no breadth or coverage
+error (`p3-harness2-sections-trialreg-1` and `-2`).
 
 ## Tokens and states
 
@@ -673,17 +798,21 @@ The Phase 2 gate (`p2-gate-styles-full-2`, side B `dist`) took 553 s: 7,536 stat
 The pages mode reads each document as loaded; the behavior mode drives the widgets. It holds the
 static site to every runtime behavior in `docs/research/01-site-inventory.md` §2 that Phase 1
 rebuilds, and the Phase 1 gate needs it to pass in Chrome and Firefox ("the behavior suite for every
-widget"). The table of contents' Scrollspy is rebuilt in `docs.js` (01 §2 names it there) and held by
-`toc-spy` until Phase 3's one-page spy replaces it (criterion 7 is Phase 3's); an earlier version of
-this section said it was left out, which was wrong (round 1 of the Phase 1 fixes, finding bh-1). The
+widget"). From Phase 3 it also holds the one docs page to criterion 7 (the `one-page` group: the
+spy, deep links, nav clicks, back, forward, reload, smooth scrolling only for nav clicks, `?theme=`)
+and to criterion 15's run-time check (`deep-link-cold`). The table of contents' Scrollspy, rebuilt in
+`docs.js` for Phases 1 and 2 and held there by `toc-spy`, and the side menu's per-route marking
+(`side-menu-current`) went with the per-route pages: the one page's spy replaces both, and the
+`one-page` group's checks replace theirs. The
 Logo animation is dropped by 01 §2 except where the static site still changes the route in place,
 the version picker's swatches and links, so `picker-logo` holds it there. Remix's navigation
 feedback is dropped. The version dropdown is a native `<details>` with no script, and the demo's
 maximize controls are dead code, so neither has a check.
 
 ```sh
-uv run tests/run.py behavior --target oracle                         # every check, Chrome and Firefox
-uv run tests/run.py behavior --target dist --groups shell,landing    # some groups against the static site
+uv run tests/run.py behavior --target oracle                         # every check, Chrome and Firefox (routes layout)
+uv run tests/run.py behavior --target dist --groups shell,landing    # some groups against the static site (one page)
+uv run tests/run.py behavior --target dist --groups one-page         # criterion 7's checks of the one docs page
 uv run tests/run.py behavior --target dist:/path/to/built --checks copy-button,grid-columns
 uv run tests/run.py behavior --target http://127.0.0.1:8788 --ready static   # a server someone else runs
 uv run tests/run.py behavior --list                                  # the checks and what each asserts; starts nothing
@@ -691,10 +820,44 @@ uv run tests/run.py behavior --list                                  # the check
 
 Options: `--target` (`oracle`, `dist`, `dist:<path>`, a base URL; the named targets of
 `harness/targets.json`, started and stopped by the run like every mode's), `--groups`, `--checks`
-(names), `--browsers chrome,firefox` (the default; Safari is Phase 3's and exits 2 for now),
-`--ready oracle|static|none` (the target's hook by default; `static` for a base URL), `--workers
+(names), `--browsers chrome,firefox` (the default; `safari` too, below),
+`--ready oracle|static|none` (the target's hook by default; `static` for a base URL), `--layout
+one-page|routes` (the target's by default, below), `--workers
 chrome=2,firefox=2` (sessions per browser, 1 by default), `--expect-oracle-bugs` (a base URL that
 serves the oracle), `--run-id`, `--label`, `--no-shots`, `--list`.
+
+**Layouts.** A target is `one-page` (the static site from Phase 3: a target whose `targets.json`
+entry names its `one_page`, `dist`; and a base URL) or `routes` (one page per old docs route: the
+oracle, `static-femto`, `static-multipage`, and a base URL with `--expect-oracle-bugs`); `--layout`
+overrides it. A check's routes are written in the one page's URLs: `/docs#<id>`, `/docs` (Quick
+start, the top) and `/docs?theme=<color>#version-picker`. On `routes` each is loaded at the old route
+that showed it, through `static-femto`'s `menu.json` read from the tag (the map the sections mode
+uses): `/docs#modal` at `/docs/modal`, `/docs` at `/docs`, `/docs#landmarks` at
+`/docs/landmarks-section`, `/docs?theme=jade#version-picker` at `/docs/version-picker/jade`. A route
+no old route showed (`/docs?theme=bogus`) is a setup error there, unless the check runs on the one
+page only. Every script a check runs in the page sees `S`, the element its route's content lives in:
+on the one page the section, `document.getElementById(<id>).closest("section")` (a check fails at
+once, at "the page has the #<id> section", if it is missing); on routes the whole document
+(`document.documentElement`, as the checks queried it before). So `S.querySelector(...)` finds the
+route's own example and never another section's (`page.find`, `page.find_all`). Selectors outside the
+content (the header, the side menu, the footer, `dialog.color`) stay document-wide. Where the two
+layouts behave differently by design, a check says both in its docstring and branches on
+`page.layout`: the picker's swatches push routes on one and `replaceState` `?theme=` on the other,
+a link to the Grid section loads `/docs/grid` or scrolls to `#grid`. A check of what only one layout
+has (the `one-page` group, and the shell group's `modal-two-dialogs`: Modal's demo and the color
+modal share a page only there) is registered with `layouts=("one-page",)` and a `layout_reason`, and on
+the other layout it is recorded as `SKIP` (`layout:routes`) with that reason in the summary, never
+silently dropped.
+
+On the one page the spy rewrites the URL's hash (`replaceState`, no history entry) whenever a check
+scrolls, even to bring an example into view. So "the URL is unchanged" (`page.url_kept`, given a
+`page.url()`, which carries `history.length` as it read the URL) means there: the same path and
+query, and a hash that is the same, a section's id or none (the spy's plain `/docs` at the top);
+elsewhere the exact URL; and on both, the same `history.length`. A `#close` or any other hash, and
+any new history entry, still fail. `page.load(route)` reaches a route
+that differs from the current URL only by its hash through `/favicon.svg` first, so it is a new
+document (a hash on the same page is a fragment navigation, which runs no preload and no page
+script).
 
 **How a check runs.** A check drives a top-level document directly: no host page, iframe or proxy,
 so the URL, history, focus, storage events between tabs and resizes are the browser's own. Each
@@ -721,7 +884,7 @@ or script source, so one check runs against the oracle and the static site alike
 modal's 400 ms, the copy link's 1 s, the progress' 5 s) are measured in the page with
 `performance.now()` and MutationObserver timelines, not across WebDriver round trips.
 
-Three mechanisms reach under the page, each for one check family and each without touching the
+Five mechanisms reach under the page, each for one check family and each without touching the
 page's markup or styles:
 - **Preload scripts** (BiDi `script.addPreloadScript`, removed after the check): a script that runs
   in every new document before the page's own, for the color-scheme flash.
@@ -731,16 +894,39 @@ page's markup or styles:
 - **Classic scrollbars**: headless browsers on macOS draw overlay scrollbars of width 0; the modal's
   scrollbar compensation needs one that takes space. Chrome adopts a `::-webkit-scrollbar` sheet in
   every new document before its scripts run, Firefox gets `ui.useOverlayScrollbars` 0 for the check.
+- **Held responses** (the check option `delay`, `Page.delay_responses`): a WebDriver BiDi
+  `network.addIntercept` on each exact URL, whose request Selenium continues only after the wait,
+  removed after the check; the load then goes over BiDi `browsingContext.navigate`, since
+  ChromeDriver runs no BiDi command while a classic `get` waits for the load. `theme-first-frame`
+  holds jade's file 300 ms, as 05's `serve.py` did: served at once, a theme `<link>` added by script
+  arrived before the first paint too, and the check could not tell it from `document.write`.
+- **The history and scroll recorder** (`one-page.py` `TRACK`): the page's own
+  `history.replaceState` is wrapped to record each call's time and URL (the spike's way of counting
+  them), and a MutationObserver and a scroll listener record the side nav's current links and every
+  scroll event with `html`'s computed `scroll-behavior`. Nothing the page does is changed.
+
+Five check options change the browser, not the page: `motion="reduce"` emulates
+`prefers-reduced-motion` (Chrome: CDP `Emulation.setEmulatedMedia`, with the color scheme; Firefox:
+the `ui.prefersReducedMotion` pref, cleared after); `javascript=False` turns the page's JavaScript
+off (Chrome: CDP `Emulation.setScriptExecutionDisabled` for the tab; Firefox: `javascript.enabled`,
+cleared after; WebDriver's own scripts still run, and the load waits for `readyState` complete
+instead of the readiness hook); `cold=True` empties the HTTP cache before the route loads (Chrome:
+CDP `Network.clearBrowserCache`; Firefox: `Services.cache2.clear()`); `delay={path: seconds}`
+holds those responses (above); `preload_optional=True` lets Safari run a check without its preload
+script (`page.preloaded` says which).
 
 **Expected failures.** A check may assert something the conversion fixes in the oracle (PLAN.md,
 `oracle-bug`): it names the assertion and the reason, `oracle_bug={"fails": ..., "reason": ...}`.
 Against `--target oracle` (or `--expect-oracle-bugs`) such a check must fail at exactly that
 assertion, which is reported as `XFAIL`; if it passes there (`XPASS`) or fails at another assertion,
-the run fails. Against any other target it is an ordinary check. Ten checks carry one (`--list`
+the run fails. Against any other target it is an ordinary check. Eleven checks carry one (`--list`
 shows each with the assertion it fails): `color-scheme-flash` (two routes), `theme-stored-invalid`,
-`picker-swatch-focus`, `color-modal-close-url`, `color-modal-focus`, `color-modal-tab`,
-`color-modal-focus-small`, `font-size-restored-switch`, `progress-offscreen` and `demo-offscreen`,
-so a full run against the oracle expects 11 `XFAIL` per browser. Two kinds of fix are among them.
+`mobile-menu-focus`, `picker-swatch-focus`, `color-modal-close-url`, `color-modal-focus`,
+`color-modal-tab`, `color-modal-focus-small`, `font-size-restored-switch`, `progress-offscreen` and
+`demo-offscreen`, so a full run against the oracle expects 12 `XFAIL` per browser, and 20 `SKIP`
+(the `one-page` group's 15 checks over 19 routes and `modal-two-dialogs`, `layout:routes`). `mobile-menu-focus` is Phase 3's:
+the oracle's off-canvas menu has no Escape and no focus handling (01 §2), which criterion 7 asks for.
+Two kinds of fix are among the others.
 The color-scheme flash, the invalid stored theme and the two off-screen intervals are what the
 conversion fixes by being written to PLAN.md's rules (Decision 14; Conversion rules, intervals on
 screen). The color modal's focus and Tab handling, the swatch focus and the restored font-size
@@ -752,6 +938,27 @@ masked: the parity masks and the `blob:` rule belong to the pages mode. These ex
 live in the checks, not in `tests/divergences/`, whose entries type pages-mode records; each
 carries the same PLAN category, `oracle-bug`, and its reason.
 
+**Safari** (`--browsers safari`, Phase 3) runs under femto's Safari rules, as every mode does (Rig
+notes, Safari): one session at a time machine-wide, holding the Safari lock for its life; never
+while the user's own Safari is open, and only on an unlocked screen (a locked one is a setup error,
+exit 2: real input never reaches a hidden page); visible, not headless, with one worker. Safari cannot
+emulate `prefers-color-scheme`, so a check whose `media` is not the OS scheme is not run: it is
+recorded as `skip` (`media:<scheme>`, in the summary's SKIPPED list), and the owner's pass in the
+other appearance runs it. For the same reason `spy-nav-click-reduced` (`motion:reduce`) is skipped
+there, and `nojs-deep-link` (`javascript:off`: WebDriver cannot turn JavaScript off in Safari, as in
+05). Safari has no WebDriver BiDi: the viewport is sized through the window (a size Safari's window
+cannot give fails the check), and a check that needs a preload script (`color-scheme-flash`,
+`modal-scrollbar-width`'s classic scrollbars, and `font-size-restored-switch` if Safari brings the
+switch back unchecked on a reload) errors there, except
+`theme-first-frame`, whose preload is optional (it reads paint timing in Safari) and whose held theme
+file is not held there (no BiDi interception: noted), and `modal-two-dialogs`, which keeps Safari's
+own scrollbar (an overlay one gives `0px`: noted). Its cache cannot be
+emptied, so `deep-link-cold` and `theme-first-frame` note that their load may be warm; Safari has no
+layout-shift entries, so `deep-link-cold` asserts the position only. Every other `one-page` check
+uses only real input, page scripts and the history API, as the spike's Safari run did. The harness's
+own proof is `--list` and argument parsing only; the Safari runs are the owner's
+(`tests/owner-safari.sh one-page`).
+
 **Output.** `tests/results/<run-id>/` (run id `YYYYMMDD-HHMMSS-behavior-<pid>` unless `--run-id`):
 `result.json` (the run, the target and its side, the sessions' versions, totals per browser, every
 check run with its status, the failing assertion's label, every assertion with its detail, notes,
@@ -759,89 +966,113 @@ duration and document loads), `summary.txt` (failures first with their detail, t
 failures with their reasons, then one line per check run) and `log.txt` (one line per check run as it
 finishes); `shots/<browser>__<check>__<route>.png`, the viewport of every failed, errored or XPASS
 check. Statuses: `PASS`, `XFAIL`, `FAIL`, `XPASS`, `ERROR` (an exception outside an assertion: a
-covered click target, a WebDriver error, after which the session is restarted). Exit status: 0 when
-every check run is `PASS` or `XFAIL`; 1 otherwise or after a harness error; 2 for a setup error
-(an unknown group, check, browser or target, a missing `dist/`).
+covered click target, a WebDriver error, after which the session is restarted), and in Safari `SKIP`
+(the other scheme's checks). Exit status: 0 when every check run is `PASS`, `XFAIL` or `SKIP`; 1
+otherwise or after a harness error; 2 for a setup error (an unknown group, check, browser or target, a
+missing `dist/`, the user's Safari open or the screen locked for a Safari run).
 
 **Writing a check.** In a group module, `GROUP = "<group>"`, then:
 
 ```python
-@check("name", ("/route", "/other"), width=375, height=812, media="dark", storage={"femtoColorScheme": '"dark"'})
+@check("name", ("/docs#modal", "/"), width=375, height=812, media="dark", storage={"femtoColorScheme": '"dark"'})
 def name(page):
     """What it asserts, in terms of DOM state, focus, URL and storage (shown by --list)."""
-    page.click("css selector")                       # or an element; page.click_at(x, y) for a point
-    page.wait("label", "js expression", 1)          # poll until truthy, at most 1 s
+    page.click(page.find("css selector"))            # S's first match; a string selector is document-wide
+    page.wait("label", "S.querySelector('...').open", 1)   # poll until truthy, at most 1 s
     page.eq("label", page.js("return ..."), expected)
+    page.url_kept("label", url_before)               # url_before = page.url(): no navigation, no new entry
 ```
 
 `page` also has `ajs` (async scripts), `expect`, `holds`, `key` (`ESCAPE`, `ENTER`, `ARROW_LEFT`,
 ...), `focus`, `scroll_to`, `resize`, `new_tab`/`switch` (a second tab of the same browser),
-`wait_navigated(path)` (a full load or a client-side route change, then the readiness hook),
-`with_classic_scrollbars()`, `note` and `url`. The first assertion that fails ends the check, and its
+`wait_navigated(path)` (a full load or a client-side route change, then the readiness hook; routes
+only), `load(route)`, `find_all`, `address(route)` (where a route loads on this target),
+`with_classic_scrollbars()`, `note` and `url`, and the route's `layout`, `section` and `theme`.
+`behavior.HEADING_LINE` (a section heading's offset from its scroll-padding line), `nav_href` and
+`self_href` are shared helpers. The first assertion that fails ends the check, and its
 label names the failure, so labels say what should hold.
 
 ### The checks
 
 Each check's docstring (`--list`) is its full statement; this is the summary. Viewport 1300 × 900,
-light OS and nothing stored unless the table says otherwise. 59 checks over 83 check-routes, 166
-runs in Chrome and Firefox (`--list` prints the count).
+light OS and nothing stored unless the table says otherwise. Routes are the one page's URLs (Layouts;
+on routes, `/docs#modal` is `/docs/modal`, and so on). 74 checks over 94 check-routes, 188 runs in
+Chrome and Firefox (`--list` prints the count): the 57 checks kept from Phase 2 (59 less `toc-spy`
+and `side-menu-current`) over 73 check-routes, `mobile-menu-focus`, `modal-two-dialogs`, and the
+`one-page` group's 15 checks over 19 routes. Against the oracle the `one-page` group and
+`modal-two-dialogs` are skipped (`layout:routes`).
 
 | Group | Check | Routes | Asserts |
 |---|---|---|---|
-| shell | `theme-toggle` | `/`, `/docs/typography` | No `data-theme` and nothing stored at first; the header toggle reads "Turn on dark mode" without `moon`. A click sets `data-theme="dark"`, stores `femtoColorScheme` `'"dark"'`, relabels "Turn off dark mode" with `moon`, URL unchanged; a second click gives `light` the same way. |
+| shell | `theme-toggle` | `/`, `/docs#typography` | No `data-theme` and nothing stored at first; the header toggle reads "Turn on dark mode" without `moon`. A click sets `data-theme="dark"`, stores `femtoColorScheme` `'"dark"'`, relabels "Turn off dark mode" with `moon`, URL unchanged; a second click gives `light` the same way. |
 | shell | `theme-toggle-dark-os` | `/docs` (dark OS) | The toggle follows the OS ("Turn off dark mode", `moon`) with no `data-theme`; a click stores `'"light"'`, the next `'"dark"'`. |
-| shell | `theme-toggle-keyboard` | `/`, `/docs/typography` | The toggle focused, Enter gives dark (data-theme, storage, label) and Enter again light, with no navigation and the document kept. |
-| shell | `theme-os-live` | `/`, `/docs/table` | With nothing stored, a live switch of `prefers-color-scheme` to dark and back relabels the toggle, turns the homepage comparison samples dark (`/`) or the inverse thead light (`/docs/table`) and back; no `data-theme` written, nothing stored. |
-| shell | `theme-stored-dark` | `/`, `/docs/button` (stored dark) | A stored choice wins over a light OS: `data-theme="dark"`, toggle "Turn off dark mode". |
-| shell | `theme-stored-light` | `/docs/button` (dark OS, stored light) | `data-theme="light"`, toggle "Turn on dark mode"; a click stores dark. |
-| shell | `theme-stored-invalid` | `/docs/table` (dark OS, stored `'"blue"'`) | A stored value other than light or dark is left in storage and ignored: no `data-theme` (held 0.5 s), the page follows the OS (toggle "Turn off dark mode", the inverse thead `light`); a click stores light. **XFAIL on the oracle** at "a stored value other than light or dark sets no data-theme": it writes any stored value into `data-theme`. |
-| shell | `theme-cross-tab` | `/docs/typography`, a tab on `/` | Toggling in tab A reaches tab B without a reload (dark, then light, B's toggle relabelled); removing the stored item in A removes `data-theme` in B. |
+| shell | `theme-toggle-keyboard` | `/`, `/docs#typography` | The toggle focused, Enter gives dark (data-theme, storage, label) and Enter again light, with no navigation and the document kept. |
+| shell | `theme-os-live` | `/`, `/docs#table` | With nothing stored, a live switch of `prefers-color-scheme` to dark and back relabels the toggle, turns the homepage comparison samples dark (`/`) or the inverse thead light (`/docs/table`) and back; no `data-theme` written, nothing stored. |
+| shell | `theme-stored-dark` | `/`, `/docs#button` (stored dark) | A stored choice wins over a light OS: `data-theme="dark"`, toggle "Turn off dark mode". |
+| shell | `theme-stored-light` | `/docs#button` (dark OS, stored light) | `data-theme="light"`, toggle "Turn on dark mode"; a click stores dark. |
+| shell | `theme-stored-invalid` | `/docs#table` (dark OS, stored `'"blue"'`) | A stored value other than light or dark is left in storage and ignored: no `data-theme` (held 0.5 s), the page follows the OS (toggle "Turn off dark mode", the inverse thead `light`); a click stores light. **XFAIL on the oracle** at "a stored value other than light or dark sets no data-theme": it writes any stored value into `data-theme`. |
+| shell | `theme-cross-tab` | `/docs#typography`, a tab on `/` | Toggling in tab A reaches tab B without a reload (dark, then light, B's toggle relabelled); removing the stored item in A removes `data-theme` in B. |
 | shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Once a paint entry exists (Chrome can record it a few hundred ms after load), seen from a preload script, `data-theme` appears while the head is parsed (no `<body>` yet), before the first paint, and the first animation frame sees it. **XFAIL on the oracle** at "set while the head is parsed": it sets the attribute during hydration (the flash; whether that still precedes the first paint is a race). |
-| shell | `header-fixed` | `/docs/modal` | `body > header` has `is-fixed-above-lg`; `is-fixed` exactly while `scrollY > 20` (off at 20, on at 21, off again at 20 and 0). |
+| shell | `header-fixed` | `/docs#modal` | Scrolled to the top first, `body > header` has `is-fixed-above-lg`; `is-fixed` exactly while `scrollY > 20` (off at 20, on at 21, off again at 20 and 0). |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled. |
-| shell | `copy-button` | `/docs`, `/docs/modal` | The first and last copy links each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `svg.check` within 100 ms, back to "Copy to clipboard" with `svg.clipboard` 900 to 1500 ms later, no other step, focus not on the link. |
-| shell | `copy-button-repeat` | `/docs/modal` | Two clicks 500 ms apart copy twice; "Copied" reverts once, 900 to 1200 ms after the first click (Code.jsx: every click schedules its own revert), no other step, not focused. |
-| shell | `modal-helper` | `/docs/modal` | Timed in the page: `modal-is-open modal-is-opening` within 100 ms of "Open modal", `modal-is-open` alone 350 to 700 ms later; Escape gives `modal-is-open modal-is-closing` within 100 ms and no class 350 to 700 ms later; Escape with nothing open does nothing. |
-| shell | `modal-scrollbar-width` | `/docs/modal` (classic scrollbars) | While open, `<html>`'s `--femto-scrollbar-width` is the scrollbar's width (15px) and the page behind keeps its left edge; gone once closed. |
-| shell | `side-menu-current` | `/docs`, `/docs/forms/input`, `/docs/version-picker/jade` | Only the route's category `details` is open, only its `summary` has `aria-current="true"`, and the only current link is the route's (the Version picker link on a color route). |
-| shell | `toc-spy` | 7 docs routes | Scrolled through the page in 40 steps, the one current table-of-contents link is the first section in view with the viewport shifted down by twice the header's height, the last link at the page's end, none when no section is in view (ghostui's rule); the current link changes. |
-| shell | `side-menu-max-height` | `/docs/grid` (375 × 812) | The menu nav's `--max-height` is `innerHeight` minus its top (within 0.5 px) on load and after resizes to 375 × 600, 1300 × 900 and, scrolled 500 px, 1300 × 700; each time `<body>`'s inline `min-height` is `innerHeight` px. |
-| shell | `mobile-menu` | `/docs/modal` (375 × 812) | The breadcrumb's "Documentation" link adds `is-open-on-mobile` to `aside#documentation-menu`, `<html>` stops scrolling, URL unchanged; the menu's close link reverses all three. |
-| shell | `mobile-menu-keyboard` | `/docs/modal` (375 × 812) | Enter on the focused "Documentation" link opens the menu, Enter on its focused close link closes it; no navigation either time. |
-| shell | `mobile-menu-link` | `/docs/modal` (375 × 812) | With the menu open, opening "Layout" and following "Grid" lands on `/docs/grid` with the menu closed; back returns to the same `/docs/modal` document (client-side history, or the back-forward cache) with its menu closed. |
-| shell | `breadcrumb-sticky` | `/docs/modal` (375 × 812) | Relative to the breadcrumb's own natural top t (the static site's sits about 37 px higher, with no banner): `is-sticky` within 1 s at 400 px and at ceil(t) + 2, gone at floor(t) - 1, floor(t) - 20 and the top. |
-| shell | `breadcrumb-chapter` | 7 docs routes (375 × 812) | The last item names the route's category; the first is the "Documentation" link to `/docs`. |
-| shell | `example-forms` | `/docs/forms`, `/docs/forms/input`, `/docs/group`, `/docs/color-schemes`, `/docs/version-picker` | Enter in every enabled text-like input and a click on every submit button of every content form: no navigation, no reload, every submit event canceled. |
-| getting-started | `picker-configuration` | `/docs/version-picker` | The select and the Conditional Styling switch regenerate the four samples (footer link, CDN, Sass, starter template; exact text) and the two descriptions, over six configurations. |
-| getting-started | `picker-code-highlight` | `/docs/version-picker` | The regenerated samples keep the load-time highlighting: links with only the file name's token changed, the template plus the `class="pico"` tokens, Sass as Prism's scss output. |
-| getting-started | `picker-swatch` | `/docs/version-picker` | Pumpkin's swatch: URL `/docs/version-picker/pumpkin`, one history entry, scroll kept, and the theme example, samples, reset form values, every `aria-current` outside the table of contents (header, footer, side menu, swatches), title and `--femto-primary` as that route has them on load (tree snapshots); the configuration survives a swap to jade; back and azure's swatch work. |
-| getting-started | `picker-logo` | `/docs/version-picker` | The header logo is `femto-logo` on load; pumpkin's swatch makes it `femto-logo animated` within 2 s and `femto-logo` again 900 to 1500 ms later, no other step. |
-| getting-started | `picker-swatch-focus` | `/docs/version-picker` | Enter on pumpkin's focused swatch swaps to pumpkin with focus kept on it; Tab reaches orange's, Enter swaps to orange with focus on it. **XFAIL on the oracle** at "focus stays on pumpkin's swatch" (its remount drops focus to `<body>`). |
-| getting-started | `picker-links` | `/docs/version-picker` | The table of contents' Theme link (the page itself), the footer's and the side menu's Version picker links, back and forward: each renders in place with no page load, the configuration (base 2) kept, the URL, history and page as that route has them on load. |
-| getting-started | `color-schemes-toggle` | `/docs/color-schemes` | The page's own switcher toggles the scheme and storage and relabels itself and the header toggle; the header toggle drives it too. |
-| customization | `color-modal-open` | `/docs/colors` | Red 500's button opens one `dialog.color` (header class, "Red 500", "Shōjōhi Red", glow, the six labelled values); Escape closes; Slate's family header opens slate 600. |
-| customization | `color-modal-arrows` | `/docs/colors` | Right and Left step shades, Down and Up step families, wrapping at both ends (red 50 to slate 950 and back). |
-| customization | `color-modal-close` | `/docs/colors` | The close link, a backdrop click and Escape close it (no open dialog, no modal class); a click inside the article does not. |
-| customization | `color-modal-close-url` | `/docs/colors` | The close link leaves the URL and history as they were. **XFAIL on the oracle** (`#close`). |
-| customization | `color-modal-focus` | `/docs/colors` | Enter on a focused shade button opens the modal with focus inside it; Escape returns focus to the button. **XFAIL on the oracle** (no focus management). |
-| customization | `color-modal-tab` | `/docs/colors` | Tab and Shift+Tab in the open modal keep focus inside the dialog and leave `scrollY` as it was; Escape returns focus to the button. **XFAIL on the oracle** at "Tab keeps focus inside the dialog". |
-| customization | `color-modal-arrows-small` | `/docs/colors` (375 × 480) | Where the open modal's article overflows, the arrow keys step colors without scrolling the article or the page. |
-| customization | `color-modal-focus-small` | `/docs/colors` (375 × 480) | Enter opens the modal with focus on its close link (`header a.close`), not the scrollable article; Escape returns focus to the button. **XFAIL on the oracle** at "focus moves to the close link". |
-| customization | `color-modal-resize` | `/docs/colors` | The open modal's article has `max-height: calc(<innerHeight>px - 2rem)` at 1300 × 900 and after resizes to 1300 × 600 and 1300 × 760. |
-| customization | `palette-download` | `/docs/colors` | The Download link's same-origin resource is the 20 × 19 palette, two-space JSON, with the SHA-256 of the oracle's download. |
-| layout | `grid-columns` | `/docs/grid` | Add and Remove column from 4 up to 10 and down to 1 (clamped both ways): the columns, the code text and its highlighted tokens follow every click. |
-| content | `font-size-units` | `/docs/typography` | The "Display in rem" switch turns the px table (values and formula tooltips) into percentages and multipliers without tooltips, and back to the exact load-time tree. |
-| content | `font-size-restored-switch` | `/docs/typography` | With the "Display in rem" switch restored as checked on a reload (Firefox; a preload script in Chrome), the table shows rem from load, and one click restores the exact px table. **XFAIL on the oracle** at "with the switch restored as checked, the table shows rem". |
-| content | `table-inverse-thead` | `/docs/table` | The color-schemes example's thead and its sample read `data-theme="dark"` on a light page and follow the header toggle. |
-| content | `table-inverse-thead-dark-os` | `/docs/table` (dark OS) | They read `light`. |
-| content | `link-examples` | `/docs/link` | The 6 example links go nowhere, clicked and with Enter: the document, URL, history, scroll position and tabs unchanged, every click canceled. |
-| forms | `checkbox-indeterminate` | `/docs/forms/checkboxes` | The example checkbox is indeterminate after load with no added attributes; a click checks it. |
-| components-a | `dropdown-items` | `/docs/dropdown` | The 45 example links (four items in each of the eleven link dropdowns, plus the nav example's "Services") go nowhere. Pointer: each dropdown is opened once from its summary and its items are clicked in turn. Keyboard: Enter on the summary, Tab to each item, Enter. After each click or Enter, the window marker, URL, history.length and scroll position are unchanged, the dropdown stays open and the click is defaultPrevented; after an Enter, focus stays on the item. |
-| components-b | `modal-demo` | `/docs/modal` | "Open modal" opens the demo dialog; Cancel, Confirm and the backdrop close it, a click inside does not; the two example dialogs stay open and their buttons do nothing. |
-| components-b | `progress-value` | `/docs/progress` | Watched 16 s on screen: an integer 5 to 94 with `max="100"`, the sample printing the same value, at least two changes, each a whole number of 5 s periods (± 400 ms) after the last. |
-| components-b | `progress-offscreen` | `/docs/progress` (1300 × 300) | No change for 10.5 s while the bar is below the viewport; on screen, changes 5 s and 10 s later; above the viewport, none for 10.5 s (intervals run only on screen). **XFAIL on the oracle** at "no change for 10.5 s while the example is below the viewport". |
-| components-b | `nav-example-links` | `/docs/nav` | The 31 example links (the `overflow-with-focus` nav's 3 and the examples' 28, dropdown items included) go nowhere, clicked and with Enter: document, URL, history and scroll kept, dropdowns open, every click canceled. |
-| components-b | `tooltip-link` | `/docs/tooltip` (1300 × 500) | The example link (`href="/docs/tooltip"`), clicked scrolled down, ends at `/docs/tooltip` at scrollY 0 with no new history entry. The oracle keeps the document (Remix's client-side navigation); the static site's plain link loads it again, which the check notes and does not assert (PLAN.md Conversion rules: plain `<a>` replaces Link). |
+| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy links (in `S`) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `svg.check` within 100 ms, back to "Copy to clipboard" with `svg.clipboard` 900 to 1500 ms later, no other step, focus not on the link. |
+| shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice; "Copied" reverts once, 900 to 1200 ms after the first click (Code.jsx: every click schedules its own revert), no other step, not focused. |
+| shell | `modal-helper` | `/docs#modal` | Timed in the page: `modal-is-open modal-is-opening` within 100 ms of "Open modal", `modal-is-open` alone 350 to 700 ms later; Escape gives `modal-is-open modal-is-closing` within 100 ms and no class 350 to 700 ms later; Escape with nothing open does nothing. |
+| shell | `modal-scrollbar-width` | `/docs#modal` (classic scrollbars) | While open, `<html>`'s `--femto-scrollbar-width` is the scrollbar's width (15px) and the page behind keeps its left edge; gone once closed. |
+| shell | `modal-two-dialogs` | `/docs#modal` (classic scrollbars; one page only) | PLAN.md Conversion rules, one modal helper per dialog (site.js `createModal`), read from a MutationObserver: "Open modal" opens Modal's demo alone, `modal-is-open` and the scrollbar's width on `<html>`. With it open, Enter on Colors' focused red 500 shade button opens the color modal and hides the demo at once: the first change, within 250 ms, is the color modal alone open with `modal-is-open modal-is-opening` and the same width, then `modal-is-open` 350 to 800 ms after Enter, nothing else (no `modal-is-closing`, never both open, `modal-is-open` whenever one is). Escape: `modal-is-closing modal-is-open` within 100 ms, then no dialog open (the static examples aside), no modal-is-* class and an empty `--femto-scrollbar-width` 350 to 800 ms after Escape, unchanged 0.6 s on. Each step is timed from the key, not from the step before: colors.js starts the 400 ms timer and then focuses the close link, which lays out the long page, so the observer sees `modal-is-opening` 65 to 106 ms after Enter and the gap between the two steps fell to 342 to 349 ms in Firefox (`p3f-review-behavior-1`, `p3f-review-m2d-1`, `p3f-head-m2d-3`), while `modal-is-open` itself comes 438 to 454 ms after Enter. Skipped on routes (`layout:routes`). |
+| shell | `side-menu-max-height` | `/docs#grid` (375 × 812) | The menu nav's `--max-height` is `innerHeight` minus its top (within 0.5 px) on load and after resizes to 375 × 600, 1300 × 900 and, scrolled 500 px, 1300 × 700; each time `<body>`'s inline `min-height` is `innerHeight` px. |
+| shell | `mobile-menu` | `/docs#modal` (375 × 812) | The breadcrumb's "Documentation" link adds `is-open-on-mobile` to `aside#documentation-menu`, `<html>` stops scrolling, URL unchanged; the menu's close link reverses all three. |
+| shell | `mobile-menu-keyboard` | `/docs#modal` (375 × 812) | Enter on the focused "Documentation" link opens the menu, Enter on its focused close link closes it; no navigation either time. |
+| shell | `mobile-menu-focus` | `/docs#modal` (375 × 812) | Criterion 7's Escape and focus: Enter on "Documentation" opens the menu with focus inside `aside#documentation-menu`; Escape closes it (scrolling back, URL kept) and returns focus to the Documentation link; opened by a click, focus is inside again, and Enter on the close link closes it with focus back on Documentation; Escape with it closed does nothing. **XFAIL on the oracle** at "opening moves focus into the menu" (no Escape, no focus handling, 01 §2). |
+| shell | `mobile-menu-link` | `/docs#modal` (375 × 812) | With the menu open ("Layout" opened if closed), following "Grid" closes the menu: on routes it lands on `/docs/grid`, and back returns to the same `/docs/modal` document (client-side history, or the back-forward cache); on the one page the URL becomes `/docs#grid` with one new entry and Grid's heading on its line, and back returns to `/docs#modal` in the same document; the menu closed both times. |
+| shell | `breadcrumb-sticky` | `/docs#modal` (375 × 812) | Scrolled to the top first; relative to the breadcrumb's own natural top t (the static site's sits about 37 px higher, with no banner): `is-sticky` within 1 s at 400 px and at ceil(t) + 2, gone at floor(t) - 1, floor(t) - 20 and the top. |
+| shell | `breadcrumb-chapter` | 7 docs routes (375 × 812) | Within 1 s of the load the last item names the route's category (on the one page the spy sets it for the deep link's section); the first is the "Documentation" link to `/docs` (on the one page, a link on `/docs`). |
+| one-page | `spy-deep-link` | `/docs#input` | The browser's fragment scroll puts Input's heading on the scroll-padding line (within 2 px); the nav's one current link is `#input` (`aria-current="true"`), Forms open with its summary alone current, the chapter Forms, the title "Input • femto", the URL kept. |
+| one-page | `spy-deep-link-small` | `/docs#input` (375 × 812) | The same under the sticky breadcrumb. |
+| one-page | `deep-link-cold` | `/docs#input` (cold cache) | Criterion 15: Input's heading on its line, and in Chrome the buffered `layout-shift` entries without recent input sum below 0.01, read 1 s after the page is ready (Firefox and Safari have no such entries: noted, position only). |
+| one-page | `nojs-deep-link` | `/docs#forms` (JavaScript off) | Forms' heading on its line, scrolled down, the title unchanged (no script ran). Chrome and Firefox; skipped in Safari. |
+| one-page | `spy-scroll` | `/docs` | Grid's heading 40 px past its line: the nav marks `#grid` and the title is "Grid • femto" at once, and one `replaceState` writes `/docs#grid` 180 ms or more after the jump, no new entry; at the top plain `/docs`, "Documentation • femto", `#quick-start`; at the bottom `/docs#tooltip`. |
+| one-page | `spy-fast-scroll` | `/docs` | 200 px every 16 ms, top to bottom, in the page: at most 3 `replaceState` calls, ending on `/docs#tooltip`. |
+| one-page | `spy-categories` | `/docs` | For each of the nav's 31 links, the section's heading on its line: its link alone current, its category's summary alone current and open, the chapter its category, the title its own; a closed Forms opens again when Input becomes current. |
+| one-page | `spy-chapter-small` | `/docs` (375 × 812) | The breadcrumb's chapter follows the spy: Customization, Layout, Content, Forms, Components, and Getting started at the top. |
+| one-page | `spy-nav-click` | `/docs#modal` | From 200 px into Modal, a real click on Container: `/docs#container`, one new entry, the heading on its line, the nav straight to `#container` (never a section in between), Layout current, the title; the scroll animated with `html` smooth during it, `auto` after. |
+| one-page | `spy-nav-click-reduced` | `/docs#modal` (reduced motion) | The same click under `prefers-reduced-motion: reduce` jumps: at most 2 scroll positions, never smooth. Skipped in Safari. |
+| one-page | `spy-back-forward` | `/docs#modal` | After that click, back: `/docs#modal` at the exact position or with Modal's heading on its line (Chrome), the nav `#modal`; forward: `/docs#container`; neither animated. |
+| one-page | `spy-reload` | `/docs#css-variables` | 900 px into the section, `location.reload()` keeps the URL and the exact position or the heading on its line, the nav `#css-variables`; WebDriver's refresh keeps the URL and the section. |
+| one-page | `theme-first-frame` | `/docs?theme=jade#grid` (cold cache, jade's file held 300 ms) | One theme stylesheet, jade's, in `<head>`, held (resource timing; not in Safari); `DOMContentLoaded` after it arrived (parser-inserted: it holds back the deferred scripts, a script-added `<link>` does not); `--femto-primary` not azure's. In Chrome and Firefox a first-contentful-paint entry within 3 s, the first contentful paint after the file arrived and the first animation frame already jade's; in Chrome also `renderBlockingStatus` `blocking`. Firefox holds its paint because the color-scheme head script, parser-blocking, comes after the `?theme=` one and waits for the stylesheet (Decisions 8 and 14): `p3f-head-tff-1` to `-3` paint at 492 to 498 ms, after the file's 355 to 359; with the two merged into one script, `p3f-head-neg-merged-1` paints at 181 ms, before it, and fails. Safari's paint asserted as Chrome's when it has the entries. |
+| one-page | `theme-kept` | `/docs?theme=jade#grid` | `?theme=jade` survives the spy (`#modal`) and nav clicks (`#forms`); Quick start ends on plain `/docs?theme=jade` with its heading on its line and the page's title; jade the one theme stylesheet throughout. |
+| one-page | `theme-unknown` | `?theme=bogus`, `azure`, `JADE`, `..%2Fthemes%2Fjade`, `jade.css` on `/docs` | No theme stylesheet, `--femto-primary` azure's; the query stays as given, through the spy too (`/docs?<query>#grid`). |
+| shell | `example-forms` | `/docs#forms`, `/docs#input`, `/docs#group`, `/docs#color-schemes`, `/docs#version-picker` | Enter in every enabled text-like input and a click on every submit button of every content form: no navigation, no reload, every submit event canceled. |
+| getting-started | `picker-configuration` | `/docs#version-picker` | The select and the Conditional Styling switch regenerate the four samples (footer link, CDN, Sass, starter template; exact text) and the two descriptions, over six configurations. |
+| getting-started | `picker-code-highlight` | `/docs#version-picker` | The regenerated samples keep the load-time highlighting: links with only the file name's token changed, the template plus the `class="pico"` tokens, Sass as Prism's scss output. |
+| getting-started | `picker-swatch` | `/docs#version-picker` | Pumpkin's swatch: scroll kept, and the theme example, samples, reset form values, every `aria-current` outside the table of contents (header, footer, side menu, swatches), title, `--femto-primary` and theme stylesheets as a fresh load of pumpkin has them (tree snapshots); on routes the URL `/docs/version-picker/pumpkin` with one history entry, on the one page `/docs?theme=pumpkin#version-picker` with none (criterion 7: the picker swaps the theme and updates `?theme=`); the configuration survives a swap to jade; back (routes) or a reload (one page, jade kept) and azure's swatch (no `?theme=`, no theme stylesheet) work. |
+| getting-started | `picker-logo` | `/docs#version-picker` | The header logo is `femto-logo` on load; pumpkin's swatch (a route change, or `?theme=` on the one page) makes it `femto-logo animated` within 2 s and `femto-logo` again 900 to 1500 ms later, no other step. |
+| getting-started | `picker-swatch-focus` | `/docs#version-picker` | Enter on pumpkin's focused swatch swaps to pumpkin with focus kept on it; Tab reaches orange's, Enter swaps to orange with focus on it. **XFAIL on the oracle** at "focus stays on pumpkin's swatch" (its remount drops focus to `<body>`). |
+| getting-started | `picker-links` | `/docs#version-picker` | The configuration (base 2) survives the other links to the picker, with no page load. On routes: the table of contents' Theme link (the page itself), the footer's and the side menu's Version picker links, back and forward each render in place, the URL, history and page as that route has them on load. On the one page they are fragment links: the side menu's `#version-picker` from pumpkin (`?theme=` kept), the footer's `/docs#version-picker` from azure, and the footer's from jade (`?theme=jade` kept: docs.js makes it the fragment navigation, where the browser would load `/docs`) put the heading on its line, a new entry only for a new URL; back from jade's returns in the same document, jade kept, to the bottom or the entry's section heading. |
+| getting-started | `color-schemes-toggle` | `/docs#color-schemes` | The page's own switcher toggles the scheme and storage and relabels itself and the header toggle; the header toggle drives it too. |
+| customization | `color-modal-open` | `/docs#colors` | Red 500's button opens one `dialog.color` (header class, "Red 500", "Shōjōhi Red", glow, the six labelled values); Escape closes; Slate's family header opens slate 600. |
+| customization | `color-modal-arrows` | `/docs#colors` | Right and Left step shades, Down and Up step families, wrapping at both ends (red 50 to slate 950 and back). |
+| customization | `color-modal-close` | `/docs#colors` | The close link, a backdrop click and Escape close it (no open dialog, no modal class); a click inside the article does not. |
+| customization | `color-modal-close-url` | `/docs#colors` | The close link leaves the URL and history as they were. **XFAIL on the oracle** (`#close`). |
+| customization | `color-modal-focus` | `/docs#colors` | Enter on a focused shade button opens the modal with focus inside it; Escape returns focus to the button. **XFAIL on the oracle** (no focus management). |
+| customization | `color-modal-tab` | `/docs#colors` | Tab and Shift+Tab in the open modal keep focus inside the dialog and leave `scrollY` as it was; Escape returns focus to the button. **XFAIL on the oracle** at "Tab keeps focus inside the dialog". |
+| customization | `color-modal-arrows-small` | `/docs#colors` (375 × 480) | Where the open modal's article overflows, the arrow keys step colors without scrolling the article or the page. |
+| customization | `color-modal-focus-small` | `/docs#colors` (375 × 480) | Enter opens the modal with focus on its close link (`header a.close`), not the scrollable article; Escape returns focus to the button. **XFAIL on the oracle** at "focus moves to the close link". |
+| customization | `color-modal-resize` | `/docs#colors` | The open modal's article has `max-height: calc(<innerHeight>px - 2rem)` at 1300 × 900 and after resizes to 1300 × 600 and 1300 × 760. |
+| customization | `palette-download` | `/docs#colors` | The Download link's same-origin resource is the 20 × 19 palette, two-space JSON, with the SHA-256 of the oracle's download. |
+| layout | `grid-columns` | `/docs#grid` | Add and Remove column from 4 up to 10 and down to 1 (clamped both ways): the columns, the code text and its highlighted tokens follow every click. |
+| content | `font-size-units` | `/docs#typography` | The "Display in rem" switch turns the px table (values and formula tooltips) into percentages and multipliers without tooltips, and back to the exact load-time tree. |
+| content | `font-size-restored-switch` | `/docs#typography` | With the "Display in rem" switch restored as checked on a reload (Firefox; a preload script in Chrome), the table shows rem from load, and one click restores the exact px table. **XFAIL on the oracle** at "with the switch restored as checked, the table shows rem". |
+| content | `table-inverse-thead` | `/docs#table` | The color-schemes example's thead and its sample read `data-theme="dark"` on a light page and follow the header toggle. |
+| content | `table-inverse-thead-dark-os` | `/docs#table` (dark OS) | They read `light`. |
+| content | `link-examples` | `/docs#link` | The 6 example links (each pointing at its own route, or on the one page at `/docs` or `/docs#link`) go nowhere, clicked and with Enter: the document, URL, history, scroll position and tabs unchanged, every click canceled. |
+| forms | `checkbox-indeterminate` | `/docs#checkboxes` | The example checkbox is indeterminate after load with no added attributes; a click checks it. |
+| components-a | `dropdown-items` | `/docs#dropdown` | The 45 example links (four items in each of the eleven link dropdowns, plus the nav example's "Services") go nowhere. Pointer: each dropdown is opened once from its summary and its items are clicked in turn. Keyboard: Enter on the summary, Tab to each item, Enter. After each click or Enter, the window marker, URL, history.length and scroll position are unchanged, the dropdown stays open and the click is defaultPrevented; after an Enter, focus stays on the item. |
+| components-b | `modal-demo` | `/docs#modal` | "Open modal" opens the demo dialog; Cancel, Confirm and the backdrop close it, a click inside does not; the two example dialogs stay open and their buttons do nothing. |
+| components-b | `progress-value` | `/docs#progress` | Watched 16 s on screen: an integer 5 to 94 with `max="100"`, the sample printing the same value, at least two changes, each a whole number of 5 s periods (± 400 ms) after the last. |
+| components-b | `progress-offscreen` | `/docs#progress` (1300 × 300) | No change for 10.5 s while the bar is below the viewport; on screen, changes 5 s and 10 s later; above the viewport, none for 10.5 s (intervals run only on screen). **XFAIL on the oracle** at "no change for 10.5 s while the example is below the viewport". |
+| components-b | `nav-example-links` | `/docs#nav` | The 31 example links (the `overflow-with-focus` nav's 3 and the examples' 28, dropdown items included) go nowhere, clicked and with Enter: document, URL, history and scroll kept, dropdowns open, every click canceled. |
+| components-b | `tooltip-link` | `/docs#tooltip` (1300 × 500) | On routes the example link (`href="/docs/tooltip"`), clicked scrolled down, ends at `/docs/tooltip` at scrollY 0 with no new history entry; on the one page it points at `/docs#tooltip`, and the click, in the same document, ends there with Tooltip's heading on its line and a new entry only for a new URL. The oracle keeps the document (Remix's client-side navigation); the static site's plain link loads it again, which the check notes and does not assert (PLAN.md Conversion rules: plain `<a>` replaces Link). |
 | landing | `demo-loop` | `/` | Up to 100 s: the form's phases are exactly the demo's 15 (email ... range-50) and then email and invalid again; each phase's markup shows in the code while the form is in it; the fields carry each phase's values; at least 50 typed characters. |
 | landing | `demo-variant` | `/` (1280 × 800) | The large code layout at 1280, the small one at 1279 and 375 and the large again at 1280, each within 3 s and each time started over at the first phase. |
 | landing | `demo-page` | `/demo` | The first four phases in order with their markup, the email typed letter by letter. |
@@ -850,8 +1081,35 @@ runs in Chrome and Firefox (`--list` prints the count).
 
 ### Proof
 
-Run on 2026-10-31 on the rig (Chrome Beta 158.0.8127.2, Firefox 160.0, Selenium 4.52.0), the
-oracle at `remix-final` (`tests/results/<run id>/`, gitignored):
+Phase 3 (2026-11-04, the rig as Phase 2: Chrome Beta 158.0.8127.18, Firefox 160.0, Selenium 4.52.0;
+the one page built from the working tree while the other Phase 3 agents were still changing it, into
+the behavior agent's scratch folder, `dist:<build>`; run ids under `tests/results/`):
+
+| Run id | Command | Runs | Result |
+|---|---|---|---|
+| `p3-behavior-oracle-1` | `behavior --target oracle` (routes layout) | 186 | **PASS: 124 PASS, 24 XFAIL** (12 per browser: the eleven oracle-bug checks, `color-scheme-flash` on two routes, each at its named assertion), **38 SKIP** (the `one-page` group, 19 per browser, `layout:routes`), 0 FAIL, 0 ERROR; 290 s |
+| `p3-behavior-dev-5` | `behavior --target dist:<build>` (18:23 build) | 186 | FAIL: 177 PASS, 9 FAIL. Check bugs, fixed since: `link-examples`, `dropdown-items` and `nav-example-links` wanted `/docs#<section>` where the site writes the page's own `/docs` for its do-nothing links (`self_href` takes both). Site bugs: `picker-swatch` (azure's swatch does nothing after a load with `?theme=`) and Firefox's `spy-nav-click` (below) |
+| `p3-behavior-dist-1`, `p3-behavior-dist-2` | `behavior --target dist:<build>` (18:44 and 18:55 builds), final checks | 186 each | FAIL: 184 PASS (92 per browser), 2 FAIL, both `picker-swatch` at "azure: the URL's query is empty", a site bug: picker.js sets the swap's `target` to the file's color (azure) before it shows the `?theme=` color, so after a load with `?theme=` azure's swatch does nothing. 351 s and 344 s |
+| `p3-behavior-navclick-1` to `-4` | `behavior --target dist:<build> --checks spy-nav-click` | 2 each | Chrome PASS 4 of 4; Firefox PASS 3 of 4 (and FAIL in 4 of 6 earlier runs while other agents' runs loaded the machine) at "the nav never shows a section in between": headless Firefox draws this page's smooth scroll at 80 to 160 ms a frame, its first frame came more than 150 ms after the click, and docs.js's lock (150 ms without a scroll event) let go first. A site robustness issue, not a check bug |
+| `p3-behavior-neg-nospy-1` | the `one-page` group against a copy of the build with the spy's `widgets("spy", spy)` call and the head script's `document.write` removed | 38 | FAIL as intended: 34 FAIL; the 4 PASS are `deep-link-cold` and `nojs-deep-link`, which hold the browser's own fragment scroll |
+| `p3-behavior-neg-smooth-1`, `-2` | four spy checks against a copy with `html { scroll-behavior: smooth }` added to docs.css | 8 and 4 | `spy-back-forward` FAILs in both browsers at "back is not animated", `spy-nav-click` in Chrome at "html scrolls instantly again", and `spy-deep-link` (both widths) in Chrome at "the load's jump to #input is not animated" (05's finding); `spy-nav-click-reduced` passes, since femto's own `prefers-reduced-motion: reduce` rule turns any smooth scrolling off |
+| `p3-fix-behavior-r1-tff-2` | `theme-first-frame` against the build, jade's file held 300 ms (fix round 1) | 2 | PASS. Chrome: held 318 ms, `blocking`, DOMContentLoaded 408 ms after the file's 351, first contentful paint 456, first frame jade's. Firefox: held 338 ms, DOMContentLoaded 427 ms after the file's 382; its first contentful paint at 155 ms, before the file (noted) |
+| `p3-fix-behavior-r1-neg-append-1`, `-2` | `theme-first-frame` against a copy whose head script adds the theme `<link>` with `createElement` and `document.head.append` | 2 each | FAIL as intended, all four at "DOMContentLoaded waits for the theme stylesheet (parser-inserted)"; Chrome's detail has `non-blocking`, an azure first frame and a paint before the file too. Without the hold (the review's `p3-review-behavior-r1-neg-append-1`, `-2`) this variant passed |
+| `p3-fix-behavior-r1-neg-1` | `picker-links` and `mobile-menu` against a copy whose docs.js pushes a history entry when the mobile menu opens and never rewrites a `/docs#<id>` link clicked on `/docs?theme=` | 4 | FAIL as intended: `mobile-menu` at "opening leaves the URL" (the same URL, `history.length` one more: `url_kept` before fix round 1 passed it), `picker-links` at "footer from jade link: the URL is the picker's" (the page reloaded at `/docs#version-picker`, the theme lost) |
+| `p3-fix-behavior-r1-oracle-1` | `behavior --target oracle` with fix round 1's checks | 186 | **PASS: 124 PASS, 24 XFAIL, 38 SKIP**, as `p3-behavior-oracle-1`; 662 s (waiting for slots) |
+| `p3-fix-behavior-r1-dist-1` | `behavior --target dist:<build>` (20:05 build) | 186 | FAIL: 184 PASS, 2 FAIL, both `picker-swatch` at "azure: current as on a fresh load": a check bug, fixed since. Azure's swatch was clicked with its own scroll into view, from the select below, which left the picker's heading under the line, so the spy rightly marked Quick start; the swatch is now clicked from the check's starting position (`p3-fix-behavior-r1-swatch-4`, `-5`: PASS, with `picker-links` and `theme-first-frame`; `p3-fix-behavior-r1-oracle-swatch-1`: PASS on the oracle) |
+| `p3-fix-behavior-r1-dist-2` | `behavior --target dist:<build>` (20:38 build, every fix round 1 change) | 186 | **PASS: 186 PASS** (93 per browser), 0 FAIL, 0 ERROR; 348 s |
+| `p3f-head-checks-1`, `p3f-head-tff-1` to `-3` | `theme-first-frame` (Firefox's paint now asserted) and the new `modal-two-dialogs` against a build with the two inline head scripts (the Phase 3 finish, 22:17 build) | 4 each | PASS 4 of 4 each time. `theme-first-frame`: jade's file held 310 to 327 ms; Chrome's first contentful paint at 468 to 476 ms, Firefox's at 492 to 498 ms, each after the file's responseEnd (352 to 365 ms), both first frames jade's. `modal-two-dialogs`: the color modal open and the demo closed in one step 67 to 86 ms after Enter, `modal-is-open` 360 to 367 ms later in `p3f-head-checks-1` (then timed from the step before, with a 350 ms floor: see `p3f-head-m2d-1` to `-7`); Escape's steps at 0 ms and 433 to 440 ms |
+| `p3f-head-neg-merged-1` | `theme-first-frame` against a copy whose `docs.html` has the two head scripts merged into one again (the color-scheme part first, as before the split) | 2 | FAIL as intended in Firefox at "the first contentful paint comes after the theme stylesheet arrived" (paint at 181 ms, the file's responseEnd at 357, azure's first frame); Chrome PASS (it holds the paint for the render-blocking stylesheet either way) |
+| `p3f-head-neg-nohide-1` | `modal-two-dialogs` against a copy whose site.js `createModal` no longer hides the dialog that holds `<html>`'s classes when another opens | 2 | FAIL as intended in both browsers at "the color modal is open with modal-is-open alone" (the demo stays open under it) |
+| `p3f-head-behavior-1` | `behavior --target dist:<build>` (the 22:17 build), every check | 188 | **PASS: 188 PASS** (94 per browser), 0 FAIL, 0 ERROR; 350 s |
+| `p3f-head-oracle-1` | `behavior --target oracle --checks modal-two-dialogs,theme-first-frame` (routes layout) | 4 | PASS: 4 SKIP (`layout:routes`), as a full oracle run's 20 per browser |
+| `p3f-head-m2d-1` to `-7` | `modal-two-dialogs` with each step timed from the key (`modal-is-open` 350 to 800 ms after Enter, no class 350 to 800 ms after Escape), against the 23:02 build. The review found it flaky in Firefox (`p3f-review-behavior-1`: 187 of 188; `p3f-review-m2d-1` to `-5`: FAIL 1 of 5) at "`modal-is-open` after 350 to 700 ms", then timed from the `modal-is-opening` step: colors.js starts the 400 ms timer and then focuses the close link, which lays out the long page, so the observer saw that step late and the gap was 343 and 349 ms | 2 each | PASS 14 of 14 (`-7` after the last docstring edit). After Enter: `modal-is-opening` at 67 to 77 ms in Chrome and 81 to 105 ms in Firefox, `modal-is-open` at 440 to 449 ms in both (`p3f-head-m2d-3`'s Firefox gap between the two was 342 ms, which the old floor would have failed); after Escape: `modal-is-closing` at 0 to 1 ms, no class at 433 to 485 ms |
+| `p3f-head-neg-fast-1` | `modal-two-dialogs` against a copy whose site.js has `MODAL_DURATION = 250` | 2 | FAIL as intended in both browsers at "the color modal over the demo: color, modal-is-open 350 to 800 ms after the key" (287 ms in Chrome, 304 ms in Firefox) |
+| `p3f-head-behavior-2` | `behavior --target dist:<build>` (the 23:02 build), every check, with the timing fix | 188 | **PASS: 188 PASS** (94 per browser), 0 FAIL, 0 ERROR; 347 s. `modal-two-dialogs`: `modal-is-open` 438 ms (Chrome) and 442 ms (Firefox) after Enter |
+
+Phase 1 runs, on 2026-10-31 on the rig (Chrome Beta 158.0.8127.2, Firefox 160.0, Selenium 4.52.0), the
+oracle at `remix-final` (`tests/results/<run id>/`, gitignored), with the Phase 1 checks:
 
 | Run id | Command | Runs | Result | Wall clock |
 |---|---|---|---|---|
@@ -904,9 +1162,80 @@ the file's header in round 1 of the Phase 1 fixes (it had shipped in `dist/`):
   exports are the `site` namespace (`site.pageTheme`, `site.switchTheme`, `site.onThemeChange`,
   `site.createModal`, `site.perFrame`). Keep no state shared between widgets (PLAN.md Conversion
   rules).
-- Each widget returns at once when its markup is absent, and binds to the oracle's markup (ids,
-  classes, `aria-` attributes, structure) without adding attributes. `widgets()` reports an exception
-  without stopping the regions after it.
+- Each widget returns at once when its markup is absent. From Phase 3 (PLAN.md Conversion rules) it
+  binds to a `data-` hook on its root element, written in the file that holds the markup (a section
+  file in `site/docs/sections/`, or `site/docs.html` for the base), and may narrow with selectors
+  under the hook (`[data-font-size-demo] input[type=checkbox]`). A hook is named after what it is,
+  never after an attribute femto's own CSS or JS uses (`data-theme`, `data-tooltip`,
+  `data-placement`). Every hook a comparison sees is registered as one `merge-layout` attribute
+  entry for `one-page` in `tests/divergences/p3-merge-layout.json`, shaped like
+  `p3-picker-data-version-picker`: `kind` `attribute`, a selector ending in the hook, `property` the
+  hook's name, `a` `null`, `b` its value, and the exact routes of the section comparison (a hook on
+  `/`, `/examples`, `/demo` or the 404 page takes those page routes instead, as
+  `p3-footer-docs-link-href-*` do). In Phases 1 and 2 widgets bound to the oracle's own markup (ids,
+  classes, `aria-` attributes, structure) without adding attributes, since any added attribute was a
+  parity difference with no category. `widgets()` reports an exception without stopping the regions
+  after it.
+- The hooks: the base's `main[data-docs-spy]`, `aside[data-docs-menu]` (its Close link
+  `data-menu-close`) and `nav[data-docs-breadcrumb]` (its Documentation link `data-menu-open`), in
+  `site/docs.html`, outside every compared root, so no entry; the
+  regions' `button[data-scheme-switcher]` (getting-started), `section[data-grid-example]` (layout),
+  `section[data-font-size-demo]`, `section[data-inverse-thead]` and `article[data-link-example]`
+  (content), `article[data-indeterminate-example]` (forms; on the example, since
+  `checkbox-indeterminate` holds the checkbox to its own two attributes),
+  `article[data-dropdown-example]` (components-a), `nav[data-nav-example]` and
+  `article[data-progress-example]` (components-b); and beside them site.js's `a[data-copy-link]`,
+  `data-modal`, `data-modal-open` and `data-modal-close`, colors.js's `data-color-modal` and
+  picker.js's `article[data-version-picker]`, `section[data-picker-configuration]` and
+  `section[data-picker-usage]` (`cdn`, `sass`, `template`).
+
+## Accessibility
+
+The a11y mode holds the site to criterion 10: axe-core finds no serious or critical violation on any
+page, in Chrome and Firefox, light and dark, at 375 and 1300.
+
+```sh
+uv run tests/run.py a11y --target dist                    # the criterion's 48 cells
+uv run tests/run.py a11y --target static-femto --pages /,/docs
+uv run tests/run.py a11y --plan
+```
+
+- **axe-core** is the repository's own: `node_modules/axe-core/axe.min.js` at the exact version
+  `package.json` pins (4.14.0), never downloaded; a missing or mispinned copy is a setup error (exit 2).
+- **Pages** (`--pages`): `/`, `/examples`, `/demo`, the 404 page (`/does-not-exist`), `/docs`, and
+  `/docs?theme=jade`, so a theme stylesheet's colors are checked too.
+- **Cells**: browser × page × scheme × width, 24 per browser. Each is loaded as a behavior check is
+  (`harness/behavior.py` `Page.reset`: a fresh headless tab, the viewport set exactly with WebDriver
+  BiDi to the width × 800, `prefers-color-scheme` emulated, storage emptied, the page loaded and the
+  static readiness hook run). Then axe's source runs in the document through Selenium and
+  `axe.run(document)` checks it whole. The script is injected, not loaded, so it makes no request.
+  Each browser's session holds one machine-wide harness slot (Concurrency and locks), one session
+  per browser unless `--workers` says more.
+- **Verdict.** A serious or critical violation fails the run; moderate and minor ones are listed and
+  do not. `result.json` keeps every cell's violations (rule, impact, help, each node's target selector,
+  HTML and failure summary) and lists the findings once per impact, rule, page and target with the
+  cells they were found in (`failing`, `listed`); `summary.txt` prints them in that order. Exit status
+  0 when nothing fails, 1 otherwise or after a harness error, 2 for a setup error.
+
+Found on 2026-11-04 against `static-femto` on `/` and `/docs` (`p3-harness-a11y-femto-1`, 16 cells,
+8 s; not expected to pass, Phase 3 fixes the site): FAIL on two serious rules, `color-contrast` (the
+doctype tokens of a code sample on `/docs`, in every cell) and `scrollable-region-focusable` (code
+blocks whose `pre` scrolls but takes no focus, on `/` and `/docs`, more of them at 375); listed,
+`landmark-unique` (moderate: two unnamed `nav` landmarks, and the docs menu `aside`).
+
+Criterion 10 is gated in Phase 4, not Phase 3 (PLAN.md Workflow; the owner, 2026-11-04). On the one
+page every serious or critical violation comes from the oracle's markup or femto's tokens, which
+parity keeps through Phase 3, and each also fires on `static-femto`'s per-route pages
+(`p3-harness2-a11y-femto-routes-1`). Phase 3's last run (`p3-review-behavior-3-a11y-1`, 48 cells,
+0 errors) fails on 314 targets in 5 rules, which are Phase 4's accessibility items:
+- `label` (critical): the Input section's `input[type=file]` has no label.
+- `select-name` (critical): the Version picker's `select[name=configuration]` has no accessible name.
+- `label-title-only` (serious): examples in Input and Textarea are named only by `title`.
+- `color-contrast` (serious): Prism's comment and doctype tokens (`--femto-code-comment`), the Colors
+  section's shade buttons on their own swatch color, and Group's `button[aria-current=true]` in dark.
+  The swatches and Group's button are femto's styles, so their fix may belong in femto.
+- `scrollable-region-focusable` (serious): `pre` code blocks and `div.overflow-auto` scroll but take
+  no focus.
 
 ## Divergence registry: `tests/divergences/`
 
@@ -924,7 +1253,7 @@ tests/run.py registry` validates them, and every run validates them again.
 | `token` | the token kinds (required): the token's name (`--femto-primary`) or a `/regex/` of names, never `*`. A `token` or `token-raw` entry may also take a `selector` (the anchor must match it, on side B, else side A) and a `path` (the anchor's tree path); a surface entry takes neither, nor `a` or `b`. `token-raw` and surface entries take no `property` |
 | `a`, `b` | side A's (the oracle's) and side B's values: exact (style values with the color tolerance), `*`, `/regex/`, or `null` for absent (an attribute or element missing on that side) |
 | `check` | `skipped-check` (required): `media:dark`, `media:light`, `pseudo:::backdrop`, ...; exact or `/regex/` |
-| `where` | optional filters, all of which must match the cell: `browsers`, `routes` (exact, or `/^regex/`), `schemes` (legs), `widths` (integers or `{"min", "max"}`), `comparisons` (`pages`, `styles`; `self` for skipped-check entries only), and `states` (element kinds only: `base`, the document as loaded, `hover`, `focus`, `focus-visible`, `active`; matched per record in the page, a record found under no state being `base`) |
+| `where` | optional filters, all of which must match the cell: `browsers`, `routes` (exact, or `/^regex/`), `schemes` (legs), `widths` (integers or `{"min", "max"}`), `comparisons` (`pages`, `styles`, `one-page`; `self` for skipped-check entries only), and `states` (element kinds only: `base`, the document as loaded, `hover`, `focus`, `focus-visible`, `active`; matched per record in the page, a record found under no state being `base`) |
 | `category` | PLAN.md's Divergence categories: `dropped-route`, `femto-divergence`, `merge-layout`, `id-rename`, `oracle-bug`, `highlight`, `asset-path`, `browser-limit` (skipped checks must use `browser-limit`), `owner-change` (a change the owner asked for: Decision 16) |
 | `reason` | non-empty: why the difference is intended (criterion 3) |
 | `notes` | optional |
@@ -948,7 +1277,14 @@ none of them may hide a difference between two builds of the static site. Token,
 surface entries apply only there, so they must name it (a registry error otherwise), and they take
 no `where.states` (tokens are read in the document as loaded). Every Phase 2 entry, the seeded
 `femto-divergence` ones included, therefore carries `"where": {"comparisons": ["styles"]}`. The
-summary of a styles run says so.
+summary of a styles run says so. A one-page comparison (Phase 3: the sections mode, and a pages run
+whose side A is `static-femto`) likewise applies only the entries whose `where.comparisons` names
+`one-page`, and skipped checks: neither Phase 1's entries (the oracle against the static site) nor
+Phase 2's (the frozen CSS against femto) explain the Phase 2 site against the one page. Every Phase 3
+entry carries `"where": {"comparisons": ["one-page"]}`, and a section cell's `where.routes` is side
+A's route (`/docs/forms/input`, `/docs/version-picker/jade`), whose records carry side B's tree paths
+(and `path_a`). The union and kind-budget limits count each comparison's entries apart: those that
+apply in pages runs, in styles runs and in one-page runs.
 
 Three rules keep the registry from hiding what it must not:
 
@@ -1064,12 +1400,31 @@ Three rules keep the registry from hiding what it must not:
   (`p2-fix-harness-r2-site-1`, 375, 600 and 1300 px, light and dark, Chrome and Firefox, with a
   copy of the registry that adds the two pinned swatch entries and merges the two shade entries
   into one closed set: no harness error on that route, nor on `/docs/colors` and the picker routes,
-  and the swatch and shade records all registered). The `registry-evasion`, `registry-route-scope`,
+  and the swatch and shade records all registered).
+  **A section layout consequence** (Phase 3; `registry.py` `_section_geometry`) is the one entry the
+  breadth limits do not judge by its reach. Phase 3's contract 5 keeps the content column's width,
+  except at 1300 px (and 1600 px as built; Sections) on the four routes that had no table of
+  contents, where every box of the section is narrower: geometry records on every element of
+  the section, which no entry under the 25% limit can register. A `merge-layout` style entry is one when its `where` names exactly `comparisons`
+  `["one-page"]`, one exact route, and one or two exact widths (integers, no range; `browsers` and
+  `schemes` may narrow it further, nothing else) and its `property` is an exact `GEOMETRY` longhand or
+  an anchored list of them (a closed set, `_closed_set`, of `width`, `height`, `inline-size`,
+  `block-size`, the eight insets, `transform-origin`, `perspective-origin`, `grid-template-rows`,
+  `grid-template-columns`); its selector, path, pseudo-element and values are free. It applies only in
+  section cells of its route and widths (not in a whole-page cell, not in any other comparison); it is
+  exempt from the per-document limit, statically and in every cell, and from the union and budget
+  limits, where its reach would take every other style entry of the cell out; its records cover
+  nothing; and the registry's section layout consequences together name at most 4 routes
+  (`GEOMETRY_ROUTES_MAX`, the four of contract 5; past it all of them are registry errors). It
+  registers sizes and positions and nothing else: a color, text, attribute or structure change in
+  the same cell stays unregistered, and so does the same size change at another width or route
+  (controls `sections-geometry` and `sections-geometry-evasion`). The `registry-evasion`, `registry-route-scope`,
   `registry-runtime`, `registry-missing-page` and `registry-root-path` controls prove these rules,
   and `registry-styles` the token and state fields and the comparisons rule, `registry-token-split`
   and `registry-surface-split` the token and surface union limits, `registry-surface-closed` the
   closed-set allowance, `registry-pinned` the pinned entry, `registry-consequence` and
-  `registry-consequence-unscoped` the layout consequence and `state-coverage` the state rule below
+  `registry-consequence-unscoped` the layout consequence, `sections-geometry` and
+`sections-geometry-evasion` the section layout consequence, and `state-coverage` the state rule below
   (Selftest). Under a replayed state
   the guard's choices for the cell stay in force, and the coverage rule applies to the state's
   subtree, counting only the registered records the state adds: one equal to a record of the
@@ -1101,7 +1456,8 @@ Seed: `rig.json` holds `safari-no-media-dark` (`browser-limit`), as femto's does
 oracle's `meta[property=og:url]` is `https://v2.picocss.com/` on 63 of its 64 routes, a `head`
 record once the static site fixes it); Phase 2 seeds `femto-divergence` from femto's
 `tests/divergences/` at the vendored commit (each naming `where.comparisons` `styles`); Phase 3 adds
-`merge-layout` and `id-rename`.
+`merge-layout`, `id-rename` and `asset-path` entries in `p3-*.json`, each naming `where.comparisons`
+`one-page`.
 `owner.json` holds the `owner-change` entries for PLAN Decision 16, the theme toggle's emoji icon
 (2026-11-01): the SVG-to-span tag change and the SVG's two parts.
 
@@ -1109,7 +1465,7 @@ record once the static site fixes it); Phase 2 seeds `femto-divergence` from fem
 
 `tests/results/<run-id>/` (run id `YYYYMMDD-HHMMSS-<mode>-<pid>` unless `--run-id`):
 
-- `result.json`: `run_id`, `mode`, `comparison` (`self`, `pages` or `styles`), `full`, `argv`, `git`,
+- `result.json`: `run_id`, `mode`, `comparison` (`self`, `pages`, `styles` or `one-page`), `full`, `argv`, `git`,
   `sides` (each side's target, base URL of the last chunk, readiness hook and root; a `dist` side's
   folder and wrangler; a `build_tag` side's `build.json`), `styles` (the styles mode: token prefix,
   probe properties, anchors, and the states file with its target and target-state counts),
@@ -1135,7 +1491,8 @@ record once the static site fixes it); Phase 2 seeds `femto-divergence` from fem
   and freeze counts, and the pixel result; in the styles mode per side `tokens` (names, anchors,
   probe groups, milliseconds), `states_a` and `states_b` (state replays), `state_targets` (each
   target's tree paths), `scroll_behavior_a` and `scroll_behavior_b` (`html`'s `scroll-behavior`
-  after the replay) and the `a_states` and `b_states` timings).
+  after the replay) and the `a_states` and `b_states` timings; in the sections mode `section`,
+  `section_theme`, `url_b`, `path_b` and `root_b`).
 - `summary.txt`: status line, both sides, the styles mode's tokens and state replays, unregistered
   differences first (5 records per cell, 40 cells; a record found under a state starts with it, as
   `[hover] style ...`), harness errors, cross-origin loads (failing, then loads from the deployed site, then
@@ -1213,7 +1570,7 @@ The same locks as femto's harness, in the same place and under the same names, s
 - Locks are `flock`s on files in `FEMTO_HARNESS_LOCK_DIR` (default `~/.cache/femto-harness/locks`);
   each holds the pid and label of its owner and is released when the process exits.
 - **Tag builds**: `tests/builds/<tag>.lock` (`harness/tagbuild.py`), held exclusively while a run
-  builds the tag (the `static-multipage` target) and shared by every server of its folder and every
+  builds the tag (the `static-multipage` and `static-femto` targets) and shared by every server of its folder and every
   freshness check, so two runs never build it at once and none rebuilds it under a running server.
 
 Servers do not take slots. Each `self` run starts two oracle servers (wrangler plus workerd, about
@@ -1397,7 +1754,8 @@ they still apply, plus this harness's own.
 ## Selftest: proving detection
 
 `uv run tests/run.py selftest [--browsers ...] [--cases ...]` runs these controls, each through the
-real CLI as `run.py pages --a fixture --b fixture:<control>` (the styles controls as `run.py styles`
+real CLI as `run.py pages --a fixture --b fixture:<control>` (the sections controls as `run.py
+sections`, below; the styles controls as `run.py styles`
 with `--states tests/fixtures/states.json`: the link `#link` hovered, pressed and reached by Tab,
 the form's text input focused, two header links hovered, the progress example's footer hovered,
 whose scope, the example's `article`, holds 21 elements, and on `/other.html` the link `#far`
@@ -1485,10 +1843,44 @@ collector does not read, uses `--femto-accent`):
 | `registry-consequence-unscoped` | the same, with the consequence naming no route: it covers what it registers, and the coverage rule fails the cell (`coverage:`) |
 | `scroll-smooth` | side B gets `html { scroll-behavior: smooth }`, one registered record; the replays of `#far` on `/other.html` scroll instantly on both sides (`differ.js` `armStates`), so the spy's count is the same and nothing is unregistered, and after the replay `html`'s `scroll-behavior` is each side's own again (`result.json` cells' `scroll_behavior_a` `auto`, `scroll_behavior_b` `smooth`). With the override switched off in a copy of the harness, Chrome's `focus()` scrolls smoothly from the top and every state of `#far` shows `data-positions` `2` against `38` (`p2-fix-harness-r2-mutant-noscroll-2`); Firefox 160 scrolls a `focus()` and a Tab instantly whatever the page's `scroll-behavior`, so there the control passes either way |
 
-A control whose run has a harness error fails, whatever its records.
+The sections controls run `run.py sections --a fixture --b fixture:<control>` on the fixture's
+one-page docs site in miniature (`fixtures/site/sections/`): three route pages
+(`/sections/alpha.html`, `/sections/beta.html`, `/sections/picker.html`, each an hgroup beside a
+`div#content[role=document]`, as the Phase 2 site's routes are), a color variant
+(`/sections/picker/jade.html`, which links `jade.css`), the one page `/sections/docs.html` (each
+section's hgroup, with the `h1` that carries its id, inside its `<section>`; a head script that
+writes `jade.css` for `?theme=jade`), and `menu.json` in the shape of `site/docs/menu.json` at
+`static-femto`, which `targets.json` names as the fixture's `menu`. Four routes, widths 375 and 1300,
+the light leg (Alpha and Beta only for the two geometry controls and `sections-graft-changed`). Alpha's
+route page also holds a `dialog.note` in its `main`, which the one page puts at the end of Alpha's
+section, so both of side A's grafts (the hgroup before the content, the dialog after it) are
+exercised; `sections.css` gives the hgroup the same box as a grid item and as a block. The registry of
+every control but `sections-bare` holds two `merge-layout` entries naming `one-page`: the root pair
+(`#content > section`, `div` against `section`) and the section id on the hgroup's `h1` (`attribute`
+`id`, `null` against `*`).
+
+| Control | Expectation |
+|---|---|
+| `sections-bare` | the one page as it is (`sections-unchanged`: a comment changes, so the run is no self comparison) and no entry: every cell has exactly two records, the root pair (`structure` `tag` `div` to `section`) and the grafted hgroup's `h1` id (`attribute`, absent to the section's id), Alpha's grafted dialog matching, and side B's URLs are `docs.html#alpha`, `#beta-two`, `#picker` and `docs.html?theme=jade#picker` |
+| `sections-same` | the same with the two entries: zero unregistered records in every cell, the color route included (its swatch takes `jade.css` on both sides), and no breadth or coverage error |
+| `sections-graft-changed` | the one page's Alpha hgroup description and its note dialog change text: in each Alpha cell exactly two `text` records, one on each graft, and nothing in Beta's cells |
+| `sections-changed` | one list item's text in the one page's Beta section: one `text` record in each Beta cell and nothing in the other sections' cells |
+| `sections-missing` | the Beta heading loses its id: each Beta cell is a harness error (`root section around #beta-two (no element has the id beta-two) not found`), and the other cells pass |
+| `sections-theme-ignored` | the one page's head script ignores `?theme=jade`: the color route's cells differ in the swatch's `background-color` and nothing else; the picker's own route does not |
+| `sections-geometry` | a third grid track at 1300 px narrows every section there, the content column loses 16 px at 375 px, and Alpha's lead paragraph changes color, title and an item's text and gains a ninth item, at every width; with a section layout consequence for Alpha at 1300 (`selector` `*`, seven geometry longhands): at Alpha 1300 no geometry record is left unregistered (60 registered) while the color, attribute, text and structure records are, with no breadth or coverage error; at Alpha 375 and in Beta's cells the consequence registers nothing and the geometry records stay unregistered |
+| `sections-geometry-evasion` | the same change with ten near misses of the consequence instead (any property; color beside geometry; an open property pattern; no comparison; a width range; no width; three widths; two routes; a route pattern; another category): each is a registry error (a `*` selector over a whole page is too broad), none registers anything, and Alpha's 60 geometry records at 1300 stay unregistered |
+
+A control whose run has a harness error fails, whatever its records (the expected `not found` errors
+of `sections-missing` and the registry errors of the controls that expect them aside).
 
 ## Known limits
 
+- A section layout consequence registers sizes and positions only. Where the narrower box wraps a
+  line elsewhere, a space that now ends a line renders nothing and its element's own text loses it
+  (Collection's whitespace rule), a `text` record the consequence does not cover: on the real one
+  page, `/docs/link` at 1300 px, the paragraph before the class-less version link, `' ... in the .'`
+  against `' ... in the.'` (`p3-harness2-sections-full-1`, Chrome and Firefox, light and dark). It
+  takes an ordinary `text` entry with an exact selector and that route and width.
 - One Safari pass compares only the OS scheme's media leg (registered `media:*` skip), so each
   Safari gate needs the owner's dark pass.
 - Interactive states (hover, focus, focus-visible, active) are compared only in the styles mode, and
@@ -1545,6 +1937,15 @@ A control whose run has a harness error fails, whatever its records.
   pages as written, before their scripts run, so a selector keyed to markup only a script adds (or
   to a state after an interaction) reaches about 0% of them there; the in-page guard judges it on
   the live documents of every cell (Divergence registry).
+- The sections mode compares each section with its old route's `[role=document]` only: the head,
+  the breadcrumb, the side nav and the table of contents are outside the roots (criteria 7 to 9 and
+  the whole-page comparisons hold the rest of the page). A section is read where the browser's own
+  fragment navigation puts it (`/docs#<id>`); what the page does as the reader scrolls (the spy, the
+  `#hash`, `document.title`) is the behavior mode's.
+- The registry's breadth rule judges a section entry on the reference documents by route: side A's
+  route pages (the oracle's captures and `static-femto`'s pages, whole), and for `/docs` the one
+  page's `docs.html` whole. The section a cell compares is judged by the in-page guard, on the live
+  roots of every cell (Divergence registry).
 - Whitespace counts where it renders a box of nonzero inline size (Collection), so a space that
   falls at a line's end or a wrap point in one width is not compared in that width, and whitespace
   inside a `display: none` subtree (Firefox's closed `<details>` content) is never compared. Where
@@ -2468,6 +2869,82 @@ all Safari's:
 | `p2-sfix2-styles-full-cf` | `styles --full --browsers chrome,firefox`, the same `dist/` | 1,488 (970,944 elements) | **PASS: 0 unregistered**; 2,258,364 registered and 804,336 inherited, as before; 0 reloads, 0 cross-origin loads | 0 | 543 s |
 | — | `static_checks.py --phase 2` | — | 3, 4, 5, 6, 11 and 12 PASS; 8, 9 and 14 FAIL, later phases' criteria, as at the gate | — | — |
 
+### Phase 3: one page (2026-11-04)
+
+PLAN's Phase 3: the 31 docs routes and the 19 version-picker color routes become one page,
+`dist/docs.html`, with no `dist/docs/` folder; every old route answers 404. `build.mjs` assembles it
+from `menu.json` (id, title, description and label) and the section files (each an `hgroup` whose
+`h1` carries the id, then its content and edit link), with the generated side nav and no per-route
+scaffolding. `docs.js` starts from the spike: the `#hash`, `aria-current`, the title and the open
+category follow the section being read, and Decision 10's class carries smooth scrolling only for nav
+clicks. `?theme=<color>` takes the theme `<link>` from the first of two inline head scripts (owner
+decision 13). The TOC and the subheading anchors are gone, Decision 13's renames make every id
+unique, every link into the docs is `/docs#<id>`, the palette download is a static JSON file the
+build writes, the modal helper is one per dialog, and widgets attach through `data-` hooks.
+`.htmlvalidate.mjs` holds criterion 9's config. Its gate: each section's subtree against its route's
+`[role=document]` at `static-femto` with zero unregistered differences, criteria 5 to 9 and 15 in
+Chrome and Firefox, then the owner's Safari pass. Criterion 10 moved to Phase 4 (owner decision 12).
+Rig as in Phase 2, plus axe-core 4.14.0.
+
+**How it ran.** One workflow (`wf_a2f6cb0d-bda`, 29 agents, about 4 h 30 min):
+1. The harness agent built the `sections` and `a11y` modes while the core agent built the one page.
+2. Sections, widgets, CSS, shell, behavior and a harness proof ran in parallel.
+3. html-validate, then the registry and triage, then a fix round.
+4. Three reviewers (parity, site and behavior) ran three rounds: 24, 15 and 14 findings.
+   The third round's findings were left to the lead.
+
+A follow-up workflow (`wf_5f4d42b5-c2f`, 5 agents, about 1 h 5 min) then did three things:
+- moved every docs-page widget onto `data-` hooks, the picker's included, with one exact entry per
+  hook;
+- split the head script, with criterion 15's static check and a Firefox first-paint assertion to
+  match;
+- added the `modal-two-dialogs` behavior check.
+
+Its reviewer found a flaky timing bound in that check, the picker's lookups by heading text and four
+stale comments, and the owners fixed all three. Last, the lead:
+- put back the three explained separators (Known Phase 1 deviations);
+- hooked the header toggle (`data-scheme-toggle`), the logo (`data-site-logo`), the typing demo
+  (`data-typing-demo`) and the comparison (`data-comparison`), with four `pages` entries;
+- amended PLAN.md for owner decisions 12 and 13.
+
+**Against PLAN's letter, and the lead's calls.**
+- The tag `static-femto` names `7587a7e`, the head of `dev` when Phase 3 began, not `f2f2351` ("Move
+  Styles To femto 3"). The later commits are Phase 2's Safari follow-ups (the docs menu's measure on
+  `load`) and the README, so the gate measures only Phase 3's change.
+- The content column keeps the oracle's width at every width; from 1280 px the third track stays
+  empty. So the four routes that had no table of contents (rtl, link, forms/range, loading) are
+  narrower at 1300 and 1600 px. Each is one section layout consequence (`p3-geometry-*`, geometry
+  longhands at those two widths), and nothing else in those cells. Widening the content is a Phase 4
+  layout choice.
+- The explained React separators stay through Phase 3. Without them Chrome shapes two labels
+  0.016 px narrower, which no category covers.
+- The example-form submit guard still uses `closest("main")`. It is a rule for every form on the
+  site, not a widget's markup.
+- The docs shell's hooks (`main[data-docs-spy]`, `aside[data-docs-menu]`,
+  `nav[data-docs-breadcrumb]`, `header[data-fixed-header]`) sit outside every compared root, so they
+  have no entries. `div#content` and the side nav take no hook: `build.mjs` replaces those two tags
+  by their exact text.
+- Phase 4 accessibility items found here, beyond Accessibility's five rules:
+  - At 375 px, Tab can leave the open off-canvas menu for the page it covers.
+  - PLAN's `href="#"` controls that are really buttons are still links.
+
+**Registry.** 246 entries in 28 files. Phase 3 adds 150 in 3 files: `p3-merge-layout.json` 139,
+`p3-id-rename.json` 10 and `p3-asset-path.json` 1. By category: merge-layout 141, femto-divergence
+54, dropped-route 30, id-rename 10, browser-limit 6, asset-path 2, owner-change 2 and oracle-bug 1.
+`/docs` is 804,126 bytes raw, 53,224 gzipped and 34,151 with Brotli. The budget in PLAN.md Risks
+(Page size) is 900 KB, 60 KB and 40 KB.
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p3-gate-sections-full-1` | `sections --b dist --full --browsers chrome,firefox` (the section gate) | 1,368 (638,520 elements) | **PASS: 0 unregistered**; 48,460 registered | 0 | 348 s |
+| `p3-gate-pages-full-1` | `pages --a static-femto --b dist --routes /,/examples,/demo,/does-not-exist --full --browsers chrome,firefox` | 120 (25,920 elements) | **PASS: 0 unregistered**; 672 registered, all attributes (the links into the docs and the four hooks) | 0 | 23 s |
+| `p3-gate-behavior-1` | `behavior --target dist --browsers chrome,firefox` (criterion 7's checks, 15's layout shift) | 188 runs (74 checks) | **PASS: 188/188** | 0 | 346 s |
+| `p3-gate-selftest-1` | `selftest --browsers chrome,firefox` | 70 controls × 2 browsers | **70/70** | 0 | about 6 min |
+| — | `static_checks.py --phase 3`; `registry`; `npm run lint` | 15 criteria; 246 entries | **3, 4, 5, 6, 8, 9, 11 and 12 PASS**; 15's static part passes (its run-time parts are the runs above); 14 FAIL, Phase 4's criterion; 1, 2, 7, 10 and 13 NOT-YET; registry valid; lint exit 0 | — | — |
+
+The gate's Safari part is the owner's: `tests/owner-safari.sh one-page` (Owner's Safari steps, about
+1 h 45 min), on the Phase 3 commit.
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -2480,14 +2957,14 @@ rest, and the registered ones with a consequence a later phase owns.
 | Six footer links on `/docs` | The About column's five items and Class-less version point at `/docs` (PLAN.md Text: removed or pointed at `/docs`), so on `/docs` they carry `aria-current="page"` and a screen reader hears each as the current page (p1-shell-footer-dropped-links-current). Kept so the footer's columns and height stay the oracle's. | Phase 4's footer rewrite removes them |
 | woff fallbacks | The frozen `main.css` names 10 `.woff` fallbacks under `/assets/fonts/` beside the woff2 files; only woff2 ships (PLAN.md File tree), so those URLs answer 404. Every target browser takes the woff2. | Settled in Phase 2: `fonts.css` names woff2 only, and `assets/legacy/` is gone |
 | Pacifico on `/docs/css-variables` | The oracle loads Pacifico from Google Fonts; the static page links `/assets/legacy/pacifico.css` (menu.json `styles`), Google's stylesheet with its 5 `src` URLs pointed at the same woff2 files, byte-identical to the captured ones (`tests/oracle/capture/_fonts`), so the page loads only same-origin resources (criterion 15). The pages mode skips stylesheet links (head comparison), so this is the one stylesheet whose origin changed without a record. | Settled 2026-10-31, the owner keeps it: PLAN.md's File tree lists Pacifico 400, Phase 2's `fonts.css` took its `@font-face` rules (menu.json no longer links a stylesheet for it), and Phase 4 keeps the example |
-| React text separators | Two section files keep React's `<!-- -->` separator (`color-schemes.html`, `version-picker.html` and its 19 colors: 22 copies in `dist/`), for a sub-pixel label width (tests/convert/README.md). PLAN.md's Conversion rules strip them. | Phase 3 removes them with the per-route artifacts |
-| Per-route build scaffolding | In per-route mode `build.mjs` also swaps literal markup in `docs.html` per route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical, `og:url`), fills two slot comments (`<!-- docs:menu -->`, `<!-- docs:sections -->`) and adds route stylesheets; `menu.json` carries `route`, `label`, `routeTitle`, `toc`, `styles` and `variants` beyond the File tree's id, title, description. PLAN.md allows only the include markers and three placeholders. | Settled 2026-10-31, accepted as scaffolding for Phases 1 and 2 (PLAN.md File tree, Per-route scaffolding); Phase 3's one-page assembly removes them |
-| The palette download | 01 §2 and 03 §5 plan a static JSON file written by the build; Phase 1's `colors.js` makes an on-load `blob:` URL, for parity with the oracle's (normalized by the `blob:` value rule). No phase owns the switch. | Settled 2026-10-31: Phase 3 switches to the build's static JSON file (PLAN.md Workflow) and registers the URL as `asset-path` |
-| File tree extras | `site/partials/` holds `docs-header.html`, `logo.html`, `nav-icons.html` and `structured-data.html` beyond head, header and footer; the root holds `vendor.mjs` and `eslint.config.js`; `site/docs/sections/version-picker/<color>.html` are 19 per-route files. `.prettierrc` names a plugin no longer installed, `robots.txt` is absent, and `site/_headers` still caches `/build/*`. | Settled 2026-10-31: PLAN.md's File tree lists the extra partials, `vendor.mjs`, `eslint.config.js` and the color files; Phase 3 deletes the color files, Phase 5 the rest |
+| React text separators | Two section files keep React's `<!-- -->` separator (`color-schemes.html`, `version-picker.html` and its 19 colors: 22 copies in `dist/`), for a sub-pixel label width (tests/convert/README.md). PLAN.md's Conversion rules strip them. | Kept through Phase 3: removing them brought the sub-pixel width back in Chrome only (196 unregistered records in 46 of 1,368 cells, `p3-review-behavior-3-sections-full-1`: color-schemes' two "Remember me" labels at 1100 and 1300, 180.359 against 180.375 px, and "I agree to the" on the version picker and its 19 color routes at 1300, 299.859 against 299.875 px), which no category covers. `color-schemes.html` (two) and `version-picker.html` (one) carry the explained separator again, as at `static-femto` (`p3-registry-separator-probe-1` passes with them); `dist/docs.html` has three. Phase 4, where parity no longer binds, removes them |
+| Per-route build scaffolding | In per-route mode `build.mjs` also swaps literal markup in `docs.html` per route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical, `og:url`), fills two slot comments (`<!-- docs:menu -->`, `<!-- docs:sections -->`) and adds route stylesheets; `menu.json` carries `route`, `label`, `routeTitle`, `toc`, `styles` and `variants` beyond the File tree's id, title, description. PLAN.md allows only the include markers and three placeholders. | Settled 2026-10-31, accepted as scaffolding for Phases 1 and 2 (PLAN.md File tree, Per-route scaffolding). Settled in Phase 3: `build.mjs` has no slot comments or per-route swaps, and `menu.json` keeps only id, title, description and label |
+| The palette download | 01 §2 and 03 §5 plan a static JSON file written by the build; Phase 1's `colors.js` makes an on-load `blob:` URL, for parity with the oracle's (normalized by the `blob:` value rule). No phase owns the switch. | Settled 2026-10-31: Phase 3 switches to the build's static JSON file (PLAN.md Workflow) and registers the URL as `asset-path`. Done in Phase 3: `build.mjs` writes `assets/femto-color-palette.json`, the Download link points at it, registered as p3-colors-palette-download |
+| File tree extras | `site/partials/` holds `docs-header.html`, `logo.html`, `nav-icons.html` and `structured-data.html` beyond head, header and footer; the root holds `vendor.mjs` and `eslint.config.js`; `site/docs/sections/version-picker/<color>.html` are 19 per-route files. `.prettierrc` names a plugin no longer installed, `robots.txt` is absent, and `site/_headers` still caches `/build/*`. | Settled 2026-10-31: PLAN.md's File tree lists the extra partials, `vendor.mjs`, `eslint.config.js` and the color files; Phase 3 deletes the color files (done: `site/docs/sections/version-picker/` is gone), Phase 5 the rest |
 | Pages-inherent paths | `/404` answers 200 (the 404 page), and `/404.html`, `/index`, `/index.html`, `/docs/index` and a page's `.html` name redirect (Cloudflare Pages' pretty URLs). Criterion 6 says any other path answers 404; `static_checks.py` probes these and lists them as notes (`PAGES_INHERENT`). | Settled 2026-10-31: accepted in PLAN.md Risks (Cloudflare), and criterion 6 exempts them |
 | Early widget fixes | The color modal's focus and Tab handling, the swatch focus and the restored font-size switch (Behavior, Expected failures). | Settled 2026-10-31: confirmed (PLAN.md, Conversion rules, JavaScript) |
-| `<body style="min-height:100vh">` | The oracle's server HTML had it, so the static pages do (round 1 of the fixes, PH-7); site.js still sets innerHeight in px. html-validate's `no-inline-style` reports it on every page (criterion 9). | Phase 2 or 3: once the site CSS gives `<body>` its minimum height, drop the attribute |
-| Escape on the mobile menu | Not in Phase 1, as in the oracle (01 §2: no Escape); an earlier Phase 1 `docs.js` closed it on Escape, which round 1 of the fixes removed. | Phase 3 (criterion 7) |
+| `<body style="min-height:100vh">` | The oracle's server HTML had it, so the static pages do (round 1 of the fixes, PH-7); site.js still sets innerHeight in px. html-validate's `no-inline-style` reports it on every page (criterion 9). | Settled in Phase 3: no page's `<body>` carries the attribute, and dropping it changed nothing on the five pages (p3-validate-pages-body-1: 64 cells, 0 differences) |
+| Escape on the mobile menu | Not in Phase 1, as in the oracle (01 §2: no Escape); an earlier Phase 1 `docs.js` closed it on Escape, which round 1 of the fixes removed. | Settled in Phase 3: `docs.js` closes the menu on Escape and gives focus back, checked by `mobile-menu-focus` (p3-review-site-r2-behavior-1 and p3-review-behavior-2-behavior-1, Chrome and Firefox) |
 
 ### Owner's Safari steps
 
@@ -2500,6 +2977,7 @@ tests/owner-safari.sh
 tests/owner-safari.sh dark
 tests/owner-safari.sh spike
 tests/owner-safari.sh styles
+tests/owner-safari.sh one-page
 ```
 
 With no argument it runs the spike (into `results/p0-spike-safari.txt`, for
@@ -2512,7 +2990,18 @@ appearance as it is: about a minute. `styles` is Phase 2's gate (criterion 2) in
 Light as `p2-styles-safari-light-3` and in Dark as `p2-styles-safari-dark-3`. Each run compares 420
 of Safari's 744 cells, the OS scheme's leg and both theme legs, and the two together cover all 744:
 about 65 minutes. The earlier pairs, kept as Phase 2's record, took 1,936 s and 1,922 s
-(`p2-styles-safari-light` and `-dark`) and 1,935 s and 1,910 s (`-2`). Each step is one command in the script under `caffeinate -d -i`, so one can also be run
+(`p2-styles-safari-light` and `-dark`) and 1,935 s and 1,910 s (`-2`). `one-page` is Phase 3's gate in
+Safari (criteria 2 and 7): it builds `dist/`, then in Light and again in Dark runs the behavior suite
+(`behavior --target dist --browsers safari`, as `p3-behavior-safari-light-1` and `-dark-1`; each pass
+runs the checks of its OS scheme and skips the others), the full section comparison (`sections --full
+--browsers safari`, as `p3-sections-safari-light-1` and `-dark-1`: 384 of Safari's 684 cells per pass)
+and the whole pages (`pages --a static-femto --b dist --full --browsers safari --routes
+/,/examples,/demo,/does-not-exist`, as `p3-pages-safari-light-1` and `-dark-1`: 36 of 60 cells per
+pass). About 1 h 45 min: Phase 2's styles passes took about 4.6 s a cell with their state replays, so
+about 25 minutes of section cells per pass, plus about 19 minutes for the six `/docs/css-variables`
+cells (about 190 s each on an unlocked screen, below), a few minutes for the behavior suite and two
+for the pages; not measured yet. The behavior suite needs the automation window in front the whole
+time. Each step is one command in the script under `caffeinate -d -i`, so one can also be run
 by hand. At the end the script prints how often each self or styles run's `log.txt` says
 `OS scheme light` or `OS scheme dark`: the light run must say light and the dark run dark, and the
 dark run's skipped checks are `media:light`. Measured on an unlocked screen: a full dark pass
@@ -2592,3 +3081,13 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    that differ only in how clean-css wrote the oracle's values (`.25rem`, `outline:0`,
    `background:0 0`), which no PLAN category covered. The owner chose a value rule over a new
    category (Diff rule), so the site's CSS writes its own values normally (`0.125rem`).
+12. **Criterion 10 in Phase 3** (2026-11-04). axe-core's violations on `/docs` all come from the
+   oracle's markup or femto's tokens, which parity keeps through Phase 3. The owner moved criterion
+   10 to Phase 4's gate rather than fix them now (PLAN.md Workflow); Accessibility lists them.
+13. **The `?theme=` first paint in Firefox** (2026-11-04). With one inline head script, Firefox paints
+   femto's default color before the `document.write` theme `<link>` arrives: it holds its first
+   paint only for a stylesheet that a later parser-blocking script waits on (a Phase 3 probe in
+   headless Firefox 160, with the server holding `jade.css` 300 ms: a static inline script after the
+   theme script moves the first contentful paint from 80 to 277 ms (before the theme's responseEnd)
+   to 455 to 588 ms (after it); a script that `document.write` adds after the `<link>` does not). The owner chose two inline head scripts, the `?theme=` one first and the
+   color-scheme one second (PLAN.md Decisions 8 and 14, criterion 15).

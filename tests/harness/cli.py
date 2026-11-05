@@ -14,6 +14,7 @@ from types import SimpleNamespace
 from . import matrix
 from .paths import MASKS, REPO, RESULTS, STATIC_CHECKS
 from .registry import Registry
+from .sections import ROOT_A
 from .targets import Side, TargetError
 
 MODES_HELP = """modes:
@@ -23,8 +24,9 @@ MODES_HELP = """modes:
             Fast axes; --full runs the PLAN.md matrix (Chrome, Firefox, Safari; light, dark; six
             widths; data-theme legs on the theme routes; kept routes only).
   pages     side A against side B, document against document: --a and --b are named targets
-            (oracle, dist, fixture[:control]; tests/harness/targets.json) or base URLs.
-            Fast axes; --full runs the PLAN.md matrix.
+            (oracle, dist, static-femto, fixture[:control]; tests/harness/targets.json) or base URLs.
+            The same target on both sides is a self comparison; side A static-femto makes it a
+            one-page comparison (Phase 3). Fast axes; --full runs the PLAN.md matrix.
   fast      the agents' check: Chrome and Firefox at 375 and 1300, every leg the matrix gives a
             route. --self, or --a and --b.
   selftest  negative controls on the fixture site (tests/fixtures/) that prove detection.
@@ -36,11 +38,20 @@ MODES_HELP = """modes:
             femto's tokens (surface, resolution, raw text) and interactive states replayed with
             real input (tests/harness/states.json, or --states FILE). Fast axes; --full runs the
             PLAN.md matrix. The same target on both sides is a self comparison.
+  sections  the Phase 3 gate: each old docs route of --a (default static-femto, the tag built by the
+            harness) against its section of the one docs page of --b (default dist): side A's
+            [role=document] against the <section> around the element with the section's id, loaded
+            at /docs#<id> (a color route: /docs?theme=<color>#version-picker). The routes and their
+            sections come from side A's menu.json at the tag. Everything else is the pages mode's.
+            Fast axes; --full runs the PLAN.md matrix.
   behavior  scripted checks of every widget (tests/behavior/; harness/behavior.py) against one target:
             --target oracle, dist, dist:<path> or a base URL; --groups, --checks, --browsers, --list.
+  a11y      axe-core (node_modules/axe-core) in every page of one target (--target, default dist):
+            /, /examples, /demo, the 404 page, /docs and /docs?theme=jade, in Chrome and Firefox,
+            light and dark, at 375 and 1300 (criterion 10). A serious or critical violation fails.
 
-Add --plan to self, pages, fast or styles to print the planned cells per browser without starting a
-server or a browser.
+Add --plan to self, pages, fast, styles or sections to print the planned cells per browser without
+starting a server or a browser.
 """
 
 
@@ -128,8 +139,18 @@ def parse(argv):
     p.add_argument("--full", action="store_true", help="the PLAN.md matrix instead of the fast axes")
     p.add_argument("--states", help="state targets file (default tests/harness/states.json)")
     p.add_argument("--no-states", action="store_true", help="compare tokens but replay no interactive states")
+    p = sub.add_parser("sections", help="the Phase 3 gate: each old docs route against its section of the one page")
+    add_common(p)
+    p.add_argument("--a", default="static-femto", help="side A: a named target with a menu (default static-femto)")
+    p.add_argument("--b", default="dist", help="side B: a named target or a base URL serving the one page (default dist)")
+    p.add_argument("--ready-a", help="readiness hook for side A (oracle, static, none; default: the target's)")
+    p.add_argument("--ready-b", help="readiness hook for side B")
+    p.add_argument("--root-a", default=ROOT_A, help=f"CSS selector of side A's alignment root (default {ROOT_A})")
+    p.add_argument("--full", action="store_true", help="the PLAN.md matrix instead of the fast axes")
     from .behavior import add_parser as add_behavior_parser
     add_behavior_parser(sub)
+    from .a11y import add_parser as add_a11y_parser
+    add_a11y_parser(sub)
     return ap.parse_args(argv)
 
 
@@ -194,11 +215,28 @@ def styles_mode(args, caps):
 
 
 def plan(args, mode, caps):
-    """(cells, sides, comparison, full) for self, pages, fast and styles. Starts nothing."""
+    """(cells, sides, comparison, full) for self, pages, fast, styles and sections. Starts nothing."""
     conf = matrix.load_config()
     comparison = "self" if mode == "self" or (mode == "fast" and getattr(args, "self", False)) else "pages"
     full = bool(getattr(args, "full", False))
-    if mode == "styles":
+    section_map = None
+    if mode == "sections":
+        # The same target on both sides is the mode's self check; otherwise a one-page comparison:
+        # only the entries that name one-page apply (Divergence registry).
+        from . import sections
+        comparison = "self" if args.a == args.b else "one-page"
+        sides = {"a": Side(args.a, args.ready_a, args.root_a), "b": Side(args.b, args.ready_b)}
+        for s in sides.values():
+            caps.extend(s.caps())
+        section_map, where = sections.route_map(sides["a"])
+        page = sections.one_page(sides["b"])
+        sides["b"].root_note = f"the <{sections.SECTION}> around each cell's section id, on {page}"
+        sides["a"].root_note = sections.graft_note()
+        caps.append(f"sections: side A's root {args.root_a}, {sections.graft_note()} (tests/README.md, Sections)")
+        n_var = sum(1 for _, c in section_map.values() if c)
+        caps.append(f"sections: {len(section_map)} routes from side A's {where} ({len(section_map) - n_var} sections, "
+                    f"{n_var} theme variants); side B's sections from {page}#<id>")
+    elif mode == "styles":
         # The same target on both sides is the mode's self check: no registry entry but skipped checks applies.
         comparison = "self" if args.a == args.b else "styles"
         sides = {"a": Side(args.a, args.ready_a), "b": Side(args.b, args.ready_b)}
@@ -217,6 +255,9 @@ def plan(args, mode, caps):
         sides = {"a": Side(args.a, args.ready_a, args.root_a), "b": Side(args.b, args.ready_b, args.root_b)}
         for s in sides.values():
             caps.extend(s.caps())
+        # The same target on both sides is a self comparison, as in the styles mode; a side A that
+        # names a comparison (static-femto: one-page) decides which registry entries apply.
+        comparison = "self" if args.a == args.b else (sides["a"].conf.get("comparison") or "pages")
     browsers =csv(args.browsers) or (conf["browsers"] if full else conf["fast"]["browsers"])
     for b in browsers:
         if b not in ("chrome", "firefox", "safari"):
@@ -227,7 +268,13 @@ def plan(args, mode, caps):
         if leg not in matrix.LEGS:
             raise SystemExit(f"unknown scheme leg {leg}")
     theme_routes = conf["theme_routes"]
-    if args.routes:
+    if section_map is not None:
+        routes = csv(args.routes) or list(section_map)
+        unknown = [r for r in routes if r not in section_map]
+        if unknown:
+            raise SystemExit(f"not a docs route of side A's menu: {', '.join(unknown)} (compare a whole page with "
+                             f"pages --a {args.a})")
+    elif args.routes:
         routes = csv(args.routes)
     else:
         if any(s.kind == "fixture" for s in sides.values()):
@@ -242,6 +289,8 @@ def plan(args, mode, caps):
     cells = matrix.cells_for(browsers, routes, widths, theme_routes, legs)
     for c in cells:
         c["comparison"] = comparison
+        if section_map is not None:
+            c.update(sections.fields(*section_map[c["route"]], page, args.root_a))
     if not full:
         caps.append(f"fast axes (PLAN.md, Fast mode): browsers {', '.join(browsers)}; widths "
                     f"{', '.join(map(str, widths))}; --full runs the whole matrix")
@@ -367,7 +416,8 @@ def run_compare(args, mode):
                         else:
                             start(stack, s, log, run_dir)
                         log(f"side {name.upper()}: {s.spec} at {s.base} (ready: {s.ready}"
-                            + (f", root {s.root}" if s.root else "") + ")")
+                            + (f", root {s.root}" if s.root else "")
+                            + (f", root {s.root_note}" if s.root_note else "") + ")")
                 except Exception as e:
                     log(f"error: cannot start the sides: {type(e).__name__}: {e}")
                     if k == 1:
@@ -467,6 +517,9 @@ def main(argv=None):
     if args.mode == "selftest":
         from .negative import run_selftest
         return run_selftest(args)
+    if args.mode == "a11y":
+        from .a11y import run_a11y
+        return run_a11y(args)
     try:
         return run_compare(args, args.mode)
     finally:

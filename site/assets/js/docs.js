@@ -1,27 +1,42 @@
-// docs.js: every docs page (loaded from docs.html). docs/research/01 §2 and 03 §5.
+// docs.js: the one docs page, /docs (loaded from docs.html). docs/research/01 §2, 02 §4 and 03 §5.
 //
-// The base (above the regions) rebuilds the docs layout's behaviors on the oracle's own markup, and
-// in Phase 1 adds no attribute the oracle lacks (no aria-expanded; PLAN.md Conversion rules):
-// - the side menu, #documentation-menu (DocumentationMenu.jsx): the current route's category open,
-//   aria-current="true" on its summary and aria-current="page" on its link (the Version picker link
-//   on a color route); the nav's --max-height (innerHeight minus its top, when the module runs, on
-//   the window's load and on resize); the mobile off-canvas (is-open-on-mobile), opened by the
-//   breadcrumb's Documentation link and closed by its Close link and by any of its links (scroll
-//   lock is the CSS's :has()). Like the oracle's,
-//   it has no Escape handler (01 §2); Phase 3's mobile menu adds Escape and focus (criterion 7);
-// - the breadcrumb, nav[aria-label=breadcrumb] (Breadcrumb.jsx): is-sticky while its top is -1 px
-//   or less, that is while it is stuck to the top of the viewport (its CSS sticks it at top: -1px);
-// - the table of contents, #table-of-contents (TableOfContents.jsx, ghostui's Scrollspy): its n-th
-//   link is the n-th section of #content, and aria-current="page" marks the first section in view
-//   with the viewport shifted down by twice the header's height, or the last one at the page's end.
-// Each part does nothing when its markup is absent. Phase 3 replaces the table of contents with the
-// one-page spy and drives the menu from it.
+// The base (above the regions) rebuilds the docs layout's behaviors:
+// - the spy (02 §4, from docs/research/spike/docs.js): the section being read is the last whose top
+//   has passed a line just below the scroll padding (where a link to #<id> puts its heading), or at
+//   the very bottom of the page the last section once its top is on screen. On a change it moves
+//   aria-current="true" to its side-nav link and to its category's summary, opens that category's
+//   <details> if the reader closed it (the build writes them open, so nothing in the nav moves on
+//   load), scrolls the side nav (never the page) to show the link, and sets the breadcrumb's
+//   chapter to the category and document.title to "<section> • femto" (the page's own title for
+//   the first section). 200 ms after the last change it writes the section's #<id> into the URL
+//   with replaceState (no hash for the first section; the path and ?theme= stay), inside try:
+//   WebKit throws past 100 calls in 10 s.
+//   Links, deep links, back, forward and reload are the browser's own fragment navigation. A click
+//   on a link to a section marks it at once, locks the spy until the scroll reaches the section's
+//   heading (or 1 s passes without a scroll event, or 150 ms once the reader's wheel, touch or key
+//   takes over), and sets the class is-scrolling-to-link on <html> meanwhile, which docs.css gives
+//   scroll-behavior: smooth unless the reader prefers reduced motion (Decision 10). popstate only
+//   locks the spy, until 150 ms pass without a scroll event (except the popstate of a link's own
+//   fragment navigation, which keeps the link's lock). Nothing here pushes a history entry of its own. The one link it cancels is a
+//   link to /docs#<id> clicked on /docs?theme=<color>, whose #hash it then follows on this page;
+// - the side menu, aside[data-docs-menu]: its nav's --max-height (innerHeight minus its top, when
+//   the module runs, on the window's load and on resize), and the mobile off-canvas
+//   (is-open-on-mobile), opened by the breadcrumb's Documentation link and closed by its Close link,
+//   by any of its links and by Escape, with the opener's aria-expanded and focus moved into the menu
+//   and back (criterion 7; the oracle had no Escape and no aria-expanded, 01 §2). Its scroll lock is
+//   the CSS's :has();
+// - the breadcrumb, nav[data-docs-breadcrumb] (Breadcrumb.jsx): is-sticky while its top is -1 px or
+//   less, that is while it is stuck to the top of the viewport (its CSS sticks it at top: -1px).
+// The spy is main[data-docs-spy], the docs page's main: the sections in its [role=document], the
+// side menu's links and the breadcrumb's last item. Each part does nothing when its markup is absent.
 //
 // ROUTE-GROUP REGIONS. Below the base, each route group owns the text between its own two marker
 // lines, `// region:<group>` and `// endregion:<group>`, written as one widgets("<group>", ...) call
 // that declares nothing at the top level, adds no import (site.js's exports are the `site`
-// namespace) and keeps no state shared between widgets. tests/README.md (Behavior, Editing docs.js)
-// has the protocol Phase 1's agents used to edit their regions.
+// namespace) and keeps no state shared between widgets. Each widget finds its markup by a data-
+// attribute on its root in the section's file (PLAN.md Conversion rules: data- attributes from
+// Phase 3), narrowed by selectors under it; tests/README.md (Behavior, Editing docs.js) has the rule
+// and the protocol Phase 1's agents used to edit their regions.
 
 import * as site from "./site.js";
 
@@ -45,33 +60,203 @@ function widgets(group, init) {
   }
 }
 
-// The route as the oracle's NavigationContext reads it: the path without a trailing slash.
-const path = location.pathname.replace(/\/\s*$/, "");
+// --- The spy (02 §4) -----------------------------------------------------------------------------
+
+// The URL is written this long after the current section last changed, so fast scrolling through
+// many sections writes it once, well inside the browsers' history API rate limits.
+const URL_DELAY = 200;
+// Without scroll events for this long, a traversal's scroll is over.
+const SCROLL_IDLE = 150;
+// Without scroll events for this long, a link's scroll that has not reached its target never will
+// (the reader took over, or the layout moved). Its frames can be far apart: headless Firefox under
+// load drew the first 245 ms after the click and left a 194 ms gap in the middle.
+const SCROLL_STALL = 1000;
+// A section is current once its top is this far past the scroll padding: its heading's line.
+const LINE_SLACK = 8;
+
+function spy() {
+  const root = document.querySelector("main[data-docs-spy]");
+  if (!root) return;
+  const nav = root.querySelector("[data-docs-menu] > nav");
+  const sections = [...root.querySelectorAll(":scope > [role=document] > section")].flatMap((element) => {
+    const heading = element.querySelector(":scope > hgroup > h1[id]");
+    if (!heading) return [];
+    const link = nav?.querySelector(`a[href="#${CSS.escape(heading.id)}"]`) ?? null;
+    const details = link?.closest("details") ?? null;
+    return [{ element, id: heading.id, title: heading.textContent.trim(), link, details,
+      summary: details?.querySelector(":scope > summary") ?? null }];
+  });
+  if (!sections.length) return;
+  const page = document.documentElement;
+  const chapter = root.querySelector("[data-docs-breadcrumb] li:last-child");
+  const baseTitle = document.title;
+  const titleSuffix = " • femto";
+
+  let current = null;
+  let line = 0;
+  let urlTimer = 0;
+  let locked = false;
+  let lockTimer = 0;
+  let until = null; // the scrollY a link's scroll ends at, while it runs
+  let untilHash = ""; // and that link's #hash
+
+  const measure = () => {
+    line = (parseFloat(getComputedStyle(page).scrollPaddingTop) || 0) + LINE_SLACK;
+  };
+
+  function sectionInView() {
+    const atBottom = innerHeight + scrollY >= page.scrollHeight - 2;
+    const last = sections.at(-1);
+    if (atBottom && last.element.getBoundingClientRect().top < innerHeight) return last;
+    let found = sections[0];
+    for (const s of sections) {
+      if (s.element.getBoundingClientRect().top > line) break;
+      found = s;
+    }
+    return found;
+  }
+
+  // Scrolls the side nav, not the page, so the current link is visible in it.
+  function revealInNav(link) {
+    if (!nav || !link) return;
+    const top = link.getBoundingClientRect().top - nav.getBoundingClientRect().top + nav.scrollTop;
+    if (top < nav.scrollTop || top + link.offsetHeight > nav.scrollTop + nav.clientHeight) {
+      nav.scrollTop = top - nav.clientHeight / 3;
+    }
+  }
+
+  function show(next) {
+    if (next === current) return;
+    const previous = current;
+    current = next;
+    previous?.link?.removeAttribute("aria-current");
+    next.link?.setAttribute("aria-current", "true");
+    if (previous?.summary !== next.summary) {
+      previous?.summary?.removeAttribute("aria-current");
+      next.summary?.setAttribute("aria-current", "true");
+    }
+    if (next.details && !next.details.open) next.details.open = true;
+    revealInNav(next.link);
+    const category = next.summary?.textContent.trim();
+    if (chapter && category && chapter.textContent !== category) chapter.textContent = category;
+    document.title = next === sections[0] ? baseTitle : next.title + titleSuffix;
+  }
+
+  // Replaces the #hash with the current section's id once scrolling has settled on it.
+  function syncUrl() {
+    clearTimeout(urlTimer);
+    urlTimer = setTimeout(() => {
+      const hash = current === sections[0] ? "" : `#${current.id}`;
+      if (hash === location.hash) return;
+      try {
+        history.replaceState(history.state, "", location.pathname + location.search + hash);
+      } catch {
+        // WebKit's history limit (a SecurityError); the next settle writes it.
+      }
+    }, URL_DELAY);
+  }
+
+  const follow = site.perFrame(() => {
+    if (locked) return;
+    show(sectionInView());
+    syncUrl();
+  });
+
+  // Where the browser scrolls for a link to the section: its heading on the scroll padding, or as
+  // far as the page goes.
+  function destination(target) {
+    const heading = document.getElementById(target.id);
+    const top = heading.getBoundingClientRect().top - (parseFloat(getComputedStyle(page).scrollPaddingTop) || 0)
+      - (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0);
+    return Math.min(Math.max(scrollY + top, 0), page.scrollHeight - page.clientHeight);
+  }
+
+  const arrived = () => until !== null && Math.abs(scrollY - until) <= 1;
+
+  // Holds the spy still while the browser scrolls to a link's target or restores a position, so the
+  // nav does not flicker through every section in between, then picks up wherever the scroll ended.
+  // A link's scroll ends when it reaches `to`, its destination, whatever the gaps between its
+  // frames; a traversal's (no `to`) when SCROLL_IDLE passes without a scroll event.
+  function lock(to = null, hash = "") {
+    locked = true;
+    until = to;
+    untilHash = hash;
+    clearTimeout(urlTimer);
+    clearTimeout(lockTimer);
+    lockTimer = setTimeout(unlock, until === null || arrived() ? SCROLL_IDLE : SCROLL_STALL);
+  }
+
+  function unlock() {
+    locked = false;
+    until = null;
+    clearTimeout(lockTimer);
+    page.classList.remove("is-scrolling-to-link");
+    dropEmptyClass(page);
+    show(sectionInView());
+    syncUrl();
+  }
+
+  addEventListener("scroll", () => {
+    if (!locked) {
+      follow();
+      return;
+    }
+    if (arrived()) {
+      unlock();
+      return;
+    }
+    clearTimeout(lockTimer);
+    lockTimer = setTimeout(unlock, until === null ? SCROLL_IDLE : SCROLL_STALL);
+  }, { passive: true });
+  // The reader's own wheel, touch or key ends a link's scroll early: from then on it is over once
+  // the scroll goes idle.
+  for (const type of ["wheel", "touchstart", "keydown"]) {
+    addEventListener(type, () => {
+      until = null;
+    }, { passive: true });
+  }
+
+  // A click on a link to a section: the browser navigates and scrolls, smoothly because of the
+  // class; mark the target now and lock until the scroll ends. A link another handler canceled (a
+  // copy link, a picker swatch) is not followed. A link to /docs#<id> from /docs?theme=<color> would
+  // load the page again without its theme, so it becomes the fragment navigation it means, keeping
+  // the query (02 §5: the theme lasts as long as the URL carries it).
+  document.addEventListener("click", (event) => {
+    const link = event.target instanceof Element ? event.target.closest("a[href*='#']") : null;
+    if (!link || event.defaultPrevented || link.origin !== location.origin || link.pathname !== location.pathname) return;
+    const target = sections.find((s) => s.id === decodeURIComponent(link.hash.slice(1)));
+    if (!target) return;
+    const keepQuery = link.search !== location.search;
+    if (keepQuery) {
+      const plain = event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey && !link.target;
+      if (link.search || !plain) return;
+      event.preventDefault();
+    }
+    page.classList.add("is-scrolling-to-link");
+    show(target);
+    lock(destination(target), link.hash);
+    if (keepQuery) location.hash = link.hash;
+  });
+
+  // Back and forward: the browser restores the entry's position; the spy follows once it settles.
+  // The link's own fragment navigation fires popstate too, at the link's #hash: its lock stays.
+  addEventListener("popstate", () => {
+    if (until === null || location.hash !== untilHash) lock();
+  });
+  addEventListener("resize", () => {
+    measure();
+    follow();
+  });
+  measure();
+  show(sectionInView());
+}
 
 // --- Side menu (DocumentationMenu.jsx) -----------------------------------------------------------
 
 function sideMenu() {
-  const menu = document.getElementById("documentation-menu");
+  const menu = document.querySelector("aside[data-docs-menu]");
   const nav = menu?.querySelector(":scope > nav");
   if (!nav) return;
-
-  // The current route's category and link. The build writes the same state for each route; this
-  // keeps it right for whatever path served the page.
-  const colorRoute = path.includes("/docs/version-picker/");
-  for (const details of nav.querySelectorAll(":scope > details")) {
-    const summary = details.querySelector(":scope > summary");
-    const links = [...details.querySelectorAll("a")];
-    const current = links.some((link) => link.getAttribute("href") === path)
-      || (colorRoute && summary?.textContent.trim() === "Getting started");
-    if (current) {
-      details.open = true;
-      if (summary) setAttr(summary, "aria-current", "true");
-    }
-    for (const link of links) {
-      const href = link.getAttribute("href");
-      if (href === path || (colorRoute && href === "/docs/version-picker")) setAttr(link, "aria-current", "page");
-    }
-  }
 
   // --max-height: what is left of the viewport below the nav's top.
   const fit = () => {
@@ -85,18 +270,54 @@ function sideMenu() {
   if (document.readyState !== "complete") addEventListener("load", fit, { once: true });
   addEventListener("resize", fit);
 
-  // The off-canvas menu below lg.
-  const setOpen = (open) => {
+  // The off-canvas menu below lg (docs.css's max-width: 1023px), opened by the breadcrumb's
+  // Documentation link (data-menu-open) and closed by its Close link (data-menu-close), by any of
+  // its nav links and by Escape. The opener's aria-expanded follows it. Opening moves focus to the
+  // Close link; the Close link and Escape move it back to the opener, while a nav link leaves it to
+  // the browser's fragment navigation. Closed below lg, the panel is only moved off screen, so it is
+  // inert there to keep its links out of the tab order.
+  const opener = document.querySelector("[data-docs-breadcrumb] a[data-menu-open]");
+  const close = menu.querySelector(":scope > header a[data-menu-close]");
+  const offCanvas = matchMedia("(max-width: 1023px)");
+  let open = false;
+  const sync = () => {
+    menu.inert = offCanvas.matches && !open;
+  };
+  // The opener sits in the sticky breadcrumb, always on screen below lg, and Chrome would scroll the
+  // page to the breadcrumb's place in the flow to show it: focus it without scrolling.
+  const refocus = () => opener?.focus({ preventScroll: true });
+  const onKeydown = (event) => {
+    if (event.key !== "Escape") return;
+    setOpen(false);
+    refocus();
+  };
+  function setOpen(next) {
+    if (next === open) return;
+    open = next;
     menu.classList.toggle("is-open-on-mobile", open);
     dropEmptyClass(menu);
-  };
-  document.querySelector("main > nav[aria-label=breadcrumb] li:first-child > a")?.addEventListener("click", (event) => {
+    if (opener) setAttr(opener, "aria-expanded", String(open));
+    if (open) {
+      document.addEventListener("keydown", onKeydown);
+      sync();
+      close?.focus({ preventScroll: true });
+    } else {
+      document.removeEventListener("keydown", onKeydown);
+      // After the click that closes it has run its course: a nav link still navigates.
+      setTimeout(sync);
+    }
+  }
+  if (opener) setAttr(opener, "aria-expanded", "false");
+  sync();
+  offCanvas.addEventListener("change", sync);
+  opener?.addEventListener("click", (event) => {
     event.preventDefault();
     setOpen(true);
   });
-  menu.querySelector(":scope > header a[aria-label=Close]")?.addEventListener("click", (event) => {
+  close?.addEventListener("click", (event) => {
     event.preventDefault();
     setOpen(false);
+    refocus();
   });
   nav.addEventListener("click", (event) => {
     if (event.target instanceof Element && event.target.closest("a")) setOpen(false);
@@ -106,7 +327,7 @@ function sideMenu() {
 // --- Breadcrumb (Breadcrumb.jsx) -----------------------------------------------------------------
 
 function breadcrumb() {
-  const crumb = document.querySelector("main > nav[aria-label=breadcrumb]");
+  const crumb = document.querySelector("nav[data-docs-breadcrumb]");
   if (!crumb) return;
   // It is sticky at top: -1px, so stuck means a top of -1 px or less. A scroll and resize check
   // rather than an IntersectionObserver: a box that moves in sub-pixel steps can pass from not
@@ -121,48 +342,18 @@ function breadcrumb() {
   update();
 }
 
-// --- Table of contents (TableOfContents.jsx, ghostui Scrollspy) ----------------------------------
-
-function tableOfContents() {
-  const toc = document.getElementById("table-of-contents");
-  const content = document.querySelector("#content[role=document]");
-  if (!toc || !content) return;
-  const links = [...toc.querySelectorAll("a")];
-  const sections = [...content.querySelectorAll(":scope > section")].slice(0, links.length);
-  const header = document.querySelector("body > header");
-  const spy = () => {
-    const page = document.documentElement;
-    let current;
-    if (page.scrollTop + innerHeight >= page.scrollHeight) {
-      current = links.length - 1;
-    } else {
-      const offset = -2 * (header ? header.offsetHeight : 0);
-      current = sections.findIndex((section) => {
-        const { top, height } = section.getBoundingClientRect();
-        return top + offset < innerHeight && top + offset + height > 0;
-      });
-    }
-    links.forEach((link, index) => {
-      if (index === current) setAttr(link, "aria-current", "page");
-      else link.removeAttribute("aria-current");
-    });
-  };
-  addEventListener("scroll", site.perFrame(spy), { passive: true });
-  spy();
-}
-
+widgets("spy", spy);
 widgets("side menu", sideMenu);
 widgets("breadcrumb", breadcrumb);
-widgets("table of contents", tableOfContents);
 
 // region:getting-started
 widgets("getting-started", () => {
-  // /docs/color-schemes: the page's own theme switcher (docs.color-schemes.jsx), a button that
-  // switches the page's scheme as the header toggle does, its icon's class and its label following
-  // the scheme: "icon-theme-toggle theme-toggle" (" moon" added when dark; the emoji of Decision 16)
-  // and "Turn on dark mode" or "Turn off dark mode", the text after the icon. The version picker is
-  // picker.js's.
-  const button = document.querySelector("#content article#theme-switcher > button");
+  // The Color schemes section: its own theme switcher (docs.color-schemes.jsx),
+  // button[data-scheme-switcher], which switches the page's scheme as the header toggle does, its
+  // icon's class and its label following the scheme: "icon-theme-toggle theme-toggle" (" moon" added
+  // when dark; the emoji of Decision 16) and "Turn on dark mode" or "Turn off dark mode", the text
+  // after the icon. The version picker is picker.js's.
+  const button = document.querySelector("button[data-scheme-switcher]");
   const icon = button?.querySelector(":scope > .icon-theme-toggle");
   const label = button && [...button.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
   if (!icon || !label) return;
@@ -180,20 +371,18 @@ widgets("getting-started", () => {
 
 // region:layout
 widgets("layout", () => {
-  // Grid (docs.grid.jsx): "Add column" and "Remove column", the p.btn-group right before the
-  // example, set its columns between 1 and 10 (4 on load), and the code sample follows. The sample
-  // is rebuilt from its own load-time spans: the opening tag, one row per column (column 1's nine
-  // spans, "\n", "  ", <, div, >, the number, </, div, >, with the number changed), then the
-  // closing line, as the oracle re-highlights it.
-  // The count lives as long as the page: a same-route link (the TOC's "Syntax", href="/docs/grid")
-  // reloads it at 4, and back from another route restores it from the bfcache, where the oracle
-  // keeps it and resets it, respectively. That follows from plain <a> and the browser's own history
-  // (PLAN.md Conversion rules, Decision 2); Phase 3's fragment links on one page keep it.
-  const example = document.querySelector('#content article.component[aria-label="Grid example"]');
+  // Grid (docs.grid.jsx), section[data-grid-example]: "Add column" and "Remove column", its
+  // p.btn-group, set the columns of its example between 1 and 10 (4 on load), and the code sample
+  // follows. The sample is rebuilt from its own load-time spans: the opening tag, one row per
+  // column (column 1's nine spans, "\n", "  ", <, div, >, the number, </, div, >, with the number
+  // changed), then the closing line, as the oracle re-highlights it.
+  // The count lives as long as the page: links within it are fragment links, which keep it, and
+  // back from another page restores it from the bfcache.
+  const demo = document.querySelector("[data-grid-example]");
+  const example = demo?.querySelector(":scope > article.component");
   const grid = example?.querySelector(":scope > .grid");
   const code = example?.querySelector(":scope > footer.code > pre > code");
-  const group = example?.previousElementSibling;
-  const buttons = group?.matches("p.btn-group") ? group.querySelectorAll(":scope > button") : [];
+  const buttons = demo?.querySelectorAll(":scope > p.btn-group > button") ?? [];
   if (!grid || !code || buttons.length !== 2) return;
 
   const ROW = 9, NUMBER = 5, MIN = 1, MAX = 10;
@@ -244,12 +433,14 @@ widgets("layout", () => {
 
 // region:content
 widgets("content", () => {
-  // /docs/typography: the "Display in rem" switch of the responsive font-size table
-  // (FontsizeTable.jsx). Off, each cell shows its size in px, with the formula as a tooltip; on, the
-  // Base row shows the root size as a percentage and each element row its multiplier, with no
-  // tooltip. The formula is the cell's own data: "<root>% * 16px" or "<root>% * <size><unit> * 16px".
-  const fontSizes = document.querySelector("table#responsive-font-sizes");
-  const inRem = document.querySelector('input[type=checkbox][name="toggle-font-size-in-rem"]');
+  // The Typography section, section[data-font-size-demo]: the "Display in rem" switch of the
+  // responsive font-size table (FontsizeTable.jsx). Off, each cell shows its size in px, with the
+  // formula as a tooltip; on, the Base row shows the root size as a percentage and each element row
+  // its multiplier, with no tooltip. The formula is the cell's own data: "<root>% * 16px" or
+  // "<root>% * <size><unit> * 16px".
+  const fontSizeDemo = document.querySelector("[data-font-size-demo]");
+  const fontSizes = fontSizeDemo?.querySelector("table");
+  const inRem = fontSizeDemo?.querySelector("input[type=checkbox]");
   if (fontSizes && inRem) {
     const small = (text) => {
       const element = document.createElement("small");
@@ -280,12 +471,10 @@ widgets("content", () => {
     if (inRem.checked) show();
   }
 
-  // /docs/table, "Color schemes": the example table's thead takes the inverse of the page's scheme,
-  // and the sample right after the example names that value (docs.table.jsx, inversedTheme). It is
-  // the docs' only thead with a data-theme. Bound to the example's own markup, not to the
-  // subheading's id="color-schemes", which collides with the Color schemes section's id (01 §1);
-  // Phase 3 gives it a data- hook.
-  const thead = document.querySelector("div.overflow-auto > table > thead[data-theme]");
+  // The Table section, "Color schemes", section[data-inverse-thead]: the example table's thead takes
+  // the inverse of the page's scheme, and the sample right after the example names that value
+  // (docs.table.jsx, inversedTheme).
+  const thead = document.querySelector("[data-inverse-thead] div.overflow-auto > table > thead[data-theme]");
   if (thead) {
     const sample = thead.closest("div.overflow-auto").nextElementSibling;
     const code = sample?.matches("div.code") ? sample.querySelector(":scope > pre > code") : null;
@@ -300,67 +489,58 @@ widgets("content", () => {
     site.onThemeChange(show);
   }
 
-  // /docs/link: the example links are Link to="#" with an onClick that prevents the default
-  // (docs.link.jsx), so they show the route's own path and go nowhere (the link-examples check).
-  const examples = '#content article[aria-label="Links example"] > a, #content article[aria-label="Active link example"] > a';
-  for (const link of document.querySelectorAll(examples)) link.addEventListener("click", (event) => event.preventDefault());
+  // The Link section: the links of its two examples, article[data-link-example], are Link to="#"
+  // with an onClick that prevents the default (docs.link.jsx), so they show the page's own path and
+  // go nowhere (the link-examples check).
+  for (const link of document.querySelectorAll("[data-link-example] > a")) link.addEventListener("click", (event) => event.preventDefault());
 });
 // endregion:content
 
 // region:forms
 widgets("forms", () => {
-  // /docs/forms/checkboxes, "Indeterminate": the example's checkbox is indeterminate once the page
-  // has loaded. docs.forms.checkboxes.jsx sets the property from a ref after hydration, so the markup
-  // keeps no attribute for it and a click then checks the box as a native checkbox does.
-  const box = document.querySelector('#content article[aria-label="Indeterminate checkbox example"] input[type=checkbox][name=indeterminate]');
+  // The Checkboxes section, "Indeterminate": the checkbox of its example,
+  // article[data-indeterminate-example], is indeterminate once the page has loaded.
+  // docs.forms.checkboxes.jsx sets the property from a ref after hydration, so the checkbox keeps no
+  // attribute for it (the hook is on the example, not the checkbox) and a click then checks the box
+  // as a native checkbox does.
+  const box = document.querySelector("[data-indeterminate-example] input[type=checkbox]");
   if (box) box.indeterminate = true;
 });
 // endregion:forms
 
 // region:components-a
 widgets("components-a", () => {
-  // /docs/dropdown (docs.dropdown.jsx): the examples' menu items and the nav example's "Services"
-  // are its Item, a Link to="#" with an onClick that prevents the default, so they show the route's
-  // own path and go nowhere, clicked or activated with Enter (the dropdown-items check). Gated on
-  // "Dropdowns as buttons", an example only this route has: /docs/nav repeats the "Dropdowns
-  // inside nav" example, whose links the components-b region cancels, and /docs/forms/select's
-  // "Dropdowns as selects" has no link.
-  if (!document.querySelector('#content article.component[aria-label="Dropdowns as buttons"]')) return;
-  const items = '#content article.component[aria-label^="Dropdowns "] a:not(.copy-to-clipboard)';
-  for (const item of document.querySelectorAll(items)) item.addEventListener("click", (event) => event.preventDefault());
+  // The Dropdown section (docs.dropdown.jsx): the menu items of its examples with links,
+  // article[data-dropdown-example], and the nav example's "Services" are its Item, a Link to="#"
+  // with an onClick that prevents the default, so they show the page's own path and go nowhere,
+  // clicked or activated with Enter (the dropdown-items check). Only the Dropdown section's: the Nav
+  // section repeats the "Dropdowns inside nav" example, whose links the components-b region cancels,
+  // and the Select section's "Dropdowns as selects" has no link.
+  for (const item of document.querySelectorAll("[data-dropdown-example] a:not([data-copy-link])")) {
+    item.addEventListener("click", (event) => event.preventDefault());
+  }
 });
 // endregion:components-a
 
 // region:components-b
 widgets("components-b", () => {
-  // /docs/modal (docs.modal.jsx with ModalContext.jsx): the demo dialog, the <dialog> without class
-  // "example" right in <main>, opens from "Open modal" (#modal-demo) and closes from its Cancel and
-  // Confirm buttons, a click on its backdrop and Escape, through site.js's helper for this one
-  // dialog. The two dialog.example are always open, and their buttons do nothing.
-  const openModal = document.querySelector("#content article#modal-demo > button");
-  const demo = document.querySelector("main > dialog:not(.example)");
-  if (openModal && demo) {
-    const modal = site.createModal(demo);
-    openModal.addEventListener("click", () => modal.open());
-    for (const button of demo.querySelectorAll(":scope > article > footer > button")) {
-      button.addEventListener("click", () => modal.close());
-    }
-  }
+  // The Modal section's demo dialog is site.js's (data-modal). Its two dialog.example are always
+  // open, and their buttons do nothing.
 
-  // /docs/nav (docs.nav.jsx): the example links are Link to="#" with an onClick that prevents the
-  // default, so they show the route's own path and go nowhere: those of the examples' navs and of
-  // the nav[aria-label=overflow-with-focus] that the route puts first in <main>.
-  if (document.querySelector('main > nav[aria-label="overflow-with-focus"]')) {
-    const links = document.querySelectorAll('main > nav[aria-label="overflow-with-focus"] a, #content > section > article.component nav a');
-    for (const link of links) link.addEventListener("click", (event) => event.preventDefault());
-  }
+  // The Nav section (docs.nav.jsx): the example links are Link to="#" with an onClick that prevents
+  // the default, so they show the page's own path and go nowhere: those of the examples' navs and of
+  // the nav[aria-label=overflow-with-focus] that the section puts at its end, each a
+  // nav[data-nav-example].
+  for (const link of document.querySelectorAll("[data-nav-example] a")) link.addEventListener("click", (event) => event.preventDefault());
 
-  // /docs/progress (docs.progress.jsx): the example's value is a random whole number from 5 to 94,
-  // drawn again every 5 s, and its code sample prints it: the token right after value=" in
-  // <progress value="N" max="100" />. A value is drawn on load (the oracle's client render draws its
-  // own), and the interval runs only while the example is on screen (PLAN.md Conversion rules).
-  const progress = document.querySelector('#content article[aria-label="Progress example"] > progress');
-  const token = progress?.parentElement.querySelector(":scope > footer.code > pre > code > span.attr-value:not(.punctuation)");
+  // The Progress section (docs.progress.jsx), article[data-progress-example]: the example's value is
+  // a random whole number from 5 to 94, drawn again every 5 s, and its code sample prints it: the
+  // token right after value=" in <progress value="N" max="100" />. A value is drawn on load (the
+  // oracle's client render draws its own), and the interval runs only while the example is on
+  // screen (PLAN.md Conversion rules).
+  const example = document.querySelector("[data-progress-example]");
+  const progress = example?.querySelector(":scope > progress");
+  const token = example?.querySelector(":scope > footer.code > pre > code > span.attr-value:not(.punctuation)");
   if (progress && token) {
     const draw = () => {
       const value = String(Math.floor(Math.random() * 90) + 5);

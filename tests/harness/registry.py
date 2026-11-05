@@ -66,7 +66,7 @@ CATEGORIES = ("dropped-route", "femto-divergence", "merge-layout", "id-rename", 
 WHERE_KEYS = ("browsers", "routes", "schemes", "widths", "comparisons", "states")
 BROWSERS = ("chrome", "firefox", "safari")
 SCHEMES = ("light", "dark", "theme-light", "theme-dark")
-COMPARISONS = ("self", "pages", "styles")
+COMPARISONS = ("self", "pages", "styles", "one-page")
 # The states a record can be found in: base (the document as loaded) and the styles mode's replayed
 # interactive states (tests/README.md, Tokens and states).
 STATES = ("base", "hover", "focus", "focus-visible", "active")
@@ -146,12 +146,29 @@ CLOSED_SET_MAX = 1000
 # it registers that one value change and nothing else.
 PINNED_DOC_MAX = 0.4
 PINNED_SHAPES_MAX = 1
+# A section comparison's layout consequence (_section_geometry): a merge-layout style entry for one-page
+# runs only, one exact route and exact widths, that names only these longhands (differ.js GEOMETRY, the
+# same list): what layout makes of a box, its used size, insets, the origins resolved against it and
+# the grid's resolved tracks. PLAN.md's Phase 3 contract 5 keeps the content column's width at every
+# width but one: on the four routes that had no table of contents every box of the section is
+# narrower at 1300 px. Such an entry may reach the whole section (it is judged by its scope, not its
+# reach), and it registers geometry and nothing else, in section cells of its route and widths only.
+GEOMETRY = frozenset((
+    "width", "height", "inline-size", "block-size", "top", "right", "bottom", "left", "inset-block-start",
+    "inset-block-end", "inset-inline-start", "inset-inline-end", "transform-origin", "perspective-origin",
+    "grid-template-rows", "grid-template-columns"))
+# At most this many exact widths per entry (one is the contract's: 1300), and at most this many
+# routes for all of them together: the four routes without a table of contents (contract 5).
+GEOMETRY_WIDTHS_MAX = 2
+GEOMETRY_ROUTES_MAX = 4
 
 ORACLE_ROUTES = TESTS / "oracle-routes.json"
 CAPTURE = TESTS / "oracle" / "capture"
 DIST = REPO / "dist"
 FIXTURE_SITE = FIXTURES / "site"
-FIXTURE_ROUTES = ("/index.html", "/other.html")
+# The fixture's pages, its sections controls' one page and route pages (sections/) included.
+FIXTURE_ROUTES = ("/index.html", "/other.html", "/sections/docs.html", "/sections/alpha.html", "/sections/beta.html",
+                  "/sections/picker.html", "/sections/picker/jade.html")
 
 
 # \Z, not $: "/x/\n" is no regex in differ.js (isRe), so it must not be one here either.
@@ -266,6 +283,29 @@ def _pinned(e) -> bool:
     """A pinned entry (PINNED_DOC_MAX): one route (_one_route), one exact property and exact values
     on both sides, so it registers one value change and nothing else."""
     return _one_route(e) is not None and _plain(e.get("property")) and _plain(e.get("a")) and _plain(e.get("b"))
+
+
+def _section_geometry(e):
+    """The one exact route of a section comparison's layout consequence, or None: a merge-layout style
+    entry whose where names exactly comparisons ["one-page"], one exact route and at most
+    GEOMETRY_WIDTHS_MAX exact widths (integers; browsers and schemes may narrow it further, nothing
+    else), and whose property is a closed set (_closed_set: an exact name, or an anchored list of
+    alternatives) of GEOMETRY longhands only. It applies only in section cells (Registry._where_ok)."""
+    w = e.get("where") if isinstance(e.get("where"), dict) else None
+    if e.get("kind") != "style" or e.get("category") != "merge-layout" or not w:
+        return None
+    if w.get("comparisons") != ["one-page"] or set(w) - {"comparisons", "routes", "widths", "browsers", "schemes"}:
+        return None
+    rs, ws = w.get("routes"), w.get("widths")
+    if not isinstance(rs, list) or len(rs) != 1 or not _plain(rs[0]) or not rs[0].startswith("/"):
+        return None
+    if not isinstance(ws, list) or not 0 < len(ws) <= GEOMETRY_WIDTHS_MAX \
+            or not all(isinstance(x, int) and not isinstance(x, bool) for x in ws):
+        return None
+    names = _closed_set(e.get("property"))
+    if not names or not names <= GEOMETRY:
+        return None
+    return rs[0]
 
 
 def _closed_set(pat):
@@ -1713,8 +1753,9 @@ def _reference_docs(dist_dirs=()):
     oracle: each captured route's dom.html (1300 light), dom-dark.html and dom-375.html, the
       markup the oracle's own scripts make per scheme and viewport (tests/README.md, The oracle);
       serialized DOMs, read with explicit end tags. A complete site.
-    fixture: tests/fixtures/site/index.html and other.html, unchanged and under every control in
-      controls.json, since a selftest's side B is one of them; page sources, read with the HTML
+    fixture: tests/fixtures/site/index.html, other.html and the sections pages (FIXTURE_ROUTES),
+      unchanged and under every control in controls.json, since a selftest's side B is one of them;
+      page sources, read with the HTML
       standard's tree construction (_StaticBuilder). Never a site for site shares.
     dist: each route's built page in dist/ once it is built, and in every other built folder a run
       serves (dist:<path>): <route>.html, <route>/index.html, or 404.html for the 404 route; page
@@ -2006,6 +2047,7 @@ def _judge(entries, errs, known=None, dist_dirs=()):
     info, rejected = {}, set()
     unions = {}  # kind -> list of (id, where, reach, route-scoped)
     unjudged_by = {}  # id -> the routes it names that have no reference document
+    geometry = {}  # route -> the section layout consequences (_section_geometry) that name it
     unit = {"head": "head keys"}
     page = [(where, e) for where, e in entries if e.get("kind") in PAGE_KINDS]
     path_errors = b.judge_paths({e["path"] for _, e in page if _is_regex(e.get("path"))}) if page else {}
@@ -2087,6 +2129,7 @@ def _judge(entries, errs, known=None, dist_dirs=()):
             rejected.add(eid)
             continue
         site, doc = b.worst(reach)
+        geo = _section_geometry(e)
         cap = SITE_SHARE_MAX["head" if kind == "head" else "element"]
         info[eid] = {"scope": "routes" if route_scoped else "elements",
                      "routes": None if scope is None else sorted(scope),
@@ -2109,15 +2152,28 @@ def _judge(entries, errs, known=None, dist_dirs=()):
                                f"document, in {shapes} shapes of tree path: a pinned entry passes {_pct(DOC_SHARE_MAX)} "
                                "only on the repeats of one example (one tree path but for its sibling indices)")
                     break
-        elif doc and doc[0] > DOC_SHARE_MAX:
+        elif doc and doc[0] > DOC_SHARE_MAX and geo is None:
             why.append(f"{doc[2]} of the {doc[3]} {what} ({_pct(doc[0])}) of {doc[1]}, more than "
                        f"{_pct(DOC_SHARE_MAX)} of one document" + (" (a route scope narrows where an entry applies, not "
                                                                    "how much of a page it may cover)" if route_scoped else ""))
         if why:
             errs.append(f"{where}: too broad: it reaches " + ", and ".join(why) + hint)
             rejected.add(eid)
+        elif geo is not None:
+            # A layout consequence registers geometry only, in one route's section cells at its widths:
+            # it is judged by that scope, and takes no part in the union and budget limits, where its
+            # reach (the whole section) would take every other entry of its kind out.
+            info[eid]["layout_consequence"] = {"route": geo, "widths": e["where"]["widths"]}
+            geometry.setdefault(geo, []).append((eid, where))
         else:
             unions.setdefault(kind, []).append((eid, where, reach, route_scoped))
+    if len(geometry) > GEOMETRY_ROUTES_MAX:
+        ids = sorted(eid for grp in geometry.values() for eid, _ in grp)
+        errs.append(f"entries {', '.join(f'[{i}]' for i in ids)}: too broad: section layout consequences name "
+                    f"{len(geometry)} routes ({', '.join(sorted(geometry))}), more than the {GEOMETRY_ROUTES_MAX} the "
+                    "whole registry may name (PLAN.md Phase 3 contract 5: the routes without a table of contents; "
+                    "tests/README.md, Divergence registry)")
+        rejected.update(ids)
     for label, why in sorted(b.doc_errors.items()):
         errs.append(f"breadth: the reference document {label} cannot be read ({why}); every entry was judged without it")
     # The whole registry may name at most ROUTE_SCOPE_MAX routes without a reference document, so a
@@ -2134,7 +2190,7 @@ def _judge(entries, errs, known=None, dist_dirs=()):
     # where.comparisons, or naming pages) together, and those that apply in styles runs (naming
     # styles) together; an entry that names both counts in both.
     fams = {e.get("id"): _families(e) for _, e in entries}
-    for fam in ("pages", "styles"):
+    for fam in ("pages", "styles", "one-page"):
         sub = {k: [g for g in grp if fam in fams.get(g[0], ()) and g[0] not in rejected] for k, grp in unions.items()}
         _unions(sub, info, rejected, errs, unit)
         _kind_budget(b, sub, info, rejected, errs, unit)
@@ -2149,6 +2205,8 @@ def _families(e):
         out.add("pages")
     if comps and "styles" in comps:
         out.add("styles")
+    if comps and "one-page" in comps:
+        out.add("one-page")
     return out
 
 
@@ -2357,11 +2415,16 @@ class Registry:
     @staticmethod
     def _where_ok(e, cell) -> bool:
         w = e.get("where") or {}
-        # A styles comparison (Phase 2) applies only the entries that name it: the Phase 1 entries
-        # explain the oracle against the static site, and none of them may hide a difference between
-        # two builds of the static site. Skipped checks are the browsers' and apply everywhere.
-        if cell.get("comparison") == "styles" and e.get("kind") != "skipped-check" \
-                and "styles" not in (w.get("comparisons") or []):
+        # A styles comparison (Phase 2) and a one-page comparison (Phase 3) apply only the entries that
+        # name them: the Phase 1 entries explain the oracle against the static site, the Phase 2 ones
+        # the frozen CSS against femto, and none of them may hide a difference between two builds of
+        # the static site. Skipped checks are the browsers' and apply everywhere.
+        comp = cell.get("comparison")
+        if comp in ("styles", "one-page") and e.get("kind") != "skipped-check" \
+                and comp not in (w.get("comparisons") or []):
+            return False
+        # A section layout consequence applies in section cells only (sections mode: root_b).
+        if not cell.get("root_b") and _section_geometry(e) is not None:
             return False
         if "browsers" in w and cell["browser"] not in w["browsers"]:
             return False
@@ -2403,6 +2466,8 @@ class Registry:
                 d["pinned"] = True
             if _one_route(e) is not None:
                 d["oneRoute"] = True
+            if _section_geometry(e) is not None:
+                d["layout"] = True
             if e.get("kind") in ("surface-missing", "surface-added") and _closed_set(e.get("token")) is not None:
                 d["closed"] = True
             out.append(d)

@@ -1,10 +1,10 @@
-"""Customization: /docs/colors' color modal and palette download (01 §2, ColorModal and
+"""Customization: the Colors section's color modal and palette download (01 §2, ColorModal and
 docs.colors.jsx; colors.js in the static site)."""
 from behavior import check
 
 GROUP = "customization"
 
-ROUTE = "/docs/colors"
+ROUTE = "/docs#colors"
 FAMILIES = ["red", "pink", "fuchsia", "purple", "violet", "indigo", "blue", "azure", "cyan", "jade", "green",
             "lime", "yellow", "amber", "pumpkin", "orange", "sand", "grey", "zinc", "slate"]
 SHADES = ["50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650", "700",
@@ -172,14 +172,14 @@ def color_modal_close(page):
                    "reason": "the #close URL: the oracle's close link is <a href=\"#close\"> without preventDefault, so "
                              "closing pushes /docs/colors#close (PLAN.md, oracle-bug)"})
 def color_modal_close_url(page):
-    """Closing the color modal with its close link leaves the URL as it was (/docs/colors, no
-    #close) and adds no history entry."""
+    """Closing the color modal with its close link leaves the URL as it was (/docs/colors, or on the
+    one page /docs with the hash of the section being read: no #close) and adds no history entry."""
     url, n = page.url(), page.js("return history.length")
     page.click(shade_button("red", "500"))
     expect_color(page, "red", "500", "opened")
     page.click("dialog.color[open] header a.close")
     expect_closed(page, "close link")
-    page.eq("the close link leaves the URL as it was", page.url(), url)
+    page.url_kept("the close link leaves the URL as it was", url)
     page.eq("no history entry", page.js("return history.length"), n)
 
 

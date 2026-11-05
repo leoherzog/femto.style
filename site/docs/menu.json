@@ -1,5 +1,5 @@
 {
-  "about": "The docs sections in the oracle's menu order (PLAN.md File tree; ids from docs/research/02 §1). Each section's content is site/docs/sections/<id>.html. title: the section's heading (its h1); label: its menu link (HTML); description: the oracle's head description. Used only until Phase 3 (build.mjs header comment, step 3): route (the old route path), routeTitle (that route's <title> before \" • femto\" when it is not the title), toc: false (the route's <main> has no has-table-of-contents class), styles (the route's stylesheets after the docs stylesheets: femto's colors on /docs/colors and the version picker routes, then a femto theme on each color route), and variants (the version picker's color routes, each with its own head values, stylesheets and section file site/docs/sections/<id>/<color>.html).",
+  "about": "The docs sections in the oracle's menu order (PLAN.md File tree; ids from docs/research/02 §1). build.mjs assembles them into the one docs page, docs.html, and generates its side nav from this file: each category is a <details> in the nav, and each section a link to #<id> (build.mjs header comment, step 3). Per section: id, the section's id, which its file site/docs/sections/<id>.html puts on its hgroup's h1; title, that h1's text; description, the oracle's head description of its route; and label, its nav link as HTML, only where that is not the title.",
   "categories": [
     {
       "title": "Getting started",
@@ -7,209 +7,23 @@
         {
           "id": "quick-start",
           "title": "Quick start",
-          "label": "Quick start",
-          "description": "Link femto manually or via CDN for a dependency-free setup, or use NPM or Composer for advanced usage.",
-          "route": "/docs",
-          "routeTitle": "Documentation"
+          "description": "Link femto manually or via CDN for a dependency-free setup, or use NPM or Composer for advanced usage."
         },
         {
           "id": "version-picker",
           "title": "Version picker",
           "label": "Version picker <mark>New</mark>",
-          "description": "Easily select the ideal Pico CSS version variant to match your project's needs.",
-          "route": "/docs/version-picker",
-          "styles": [
-            "/vendor/femto/dist/femto.colors.min.css"
-          ],
-          "variants": [
-            {
-              "route": "/docs/version-picker/amber",
-              "routeTitle": "Minimal Amber theme",
-              "description": "CSS code to customize femto's primary color to Amber with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/amber.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/blue",
-              "routeTitle": "Minimal Blue theme",
-              "description": "CSS code to customize femto's primary color to Blue with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/blue.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/cyan",
-              "routeTitle": "Minimal Cyan theme",
-              "description": "CSS code to customize femto's primary color to Cyan with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/cyan.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/fuchsia",
-              "routeTitle": "Minimal Fuchsia theme",
-              "description": "CSS code to customize femto's primary color to Fuchsia with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/fuchsia.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/green",
-              "routeTitle": "Minimal Green theme",
-              "description": "CSS code to customize femto's primary color to Green with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/green.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/grey",
-              "routeTitle": "Minimal Grey theme",
-              "description": "CSS code to customize femto's primary color to Grey with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/grey.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/indigo",
-              "routeTitle": "Minimal Indigo theme",
-              "description": "CSS code to customize femto's primary color to Indigo with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/indigo.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/jade",
-              "routeTitle": "Minimal Jade theme",
-              "description": "CSS code to customize femto's primary color to Jade with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/jade.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/lime",
-              "routeTitle": "Minimal Lime theme",
-              "description": "CSS code to customize femto's primary color to Lime with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/lime.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/orange",
-              "routeTitle": "Minimal Orange theme",
-              "description": "CSS code to customize femto's primary color to Orange with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/orange.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/pink",
-              "routeTitle": "Minimal Pink theme",
-              "description": "CSS code to customize femto's primary color to Pink with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/pink.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/pumpkin",
-              "routeTitle": "Minimal Pumpkin theme",
-              "description": "CSS code to customize femto's primary color to Pumpkin with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/pumpkin.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/purple",
-              "routeTitle": "Minimal Purple theme",
-              "description": "CSS code to customize femto's primary color to Purple with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/purple.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/red",
-              "routeTitle": "Minimal Red theme",
-              "description": "CSS code to customize femto's primary color to Red with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/red.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/sand",
-              "routeTitle": "Minimal Sand theme",
-              "description": "CSS code to customize femto's primary color to Sand with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/sand.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/slate",
-              "routeTitle": "Minimal Slate theme",
-              "description": "CSS code to customize femto's primary color to Slate with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/slate.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/violet",
-              "routeTitle": "Minimal Violet theme",
-              "description": "CSS code to customize femto's primary color to Violet with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/violet.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/yellow",
-              "routeTitle": "Minimal Yellow theme",
-              "description": "CSS code to customize femto's primary color to Yellow with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/yellow.css"
-              ]
-            },
-            {
-              "route": "/docs/version-picker/zinc",
-              "routeTitle": "Minimal Zinc theme",
-              "description": "CSS code to customize femto's primary color to Zinc with CSS variables.",
-              "styles": [
-                "/vendor/femto/dist/femto.colors.min.css",
-                "/vendor/femto/css/themes/zinc.css"
-              ]
-            }
-          ]
+          "description": "Easily select the ideal Pico CSS version variant to match your project's needs."
         },
         {
           "id": "color-schemes",
           "title": "Color schemes",
-          "label": "Color schemes",
-          "description": "femto comes with both Light and Dark color schemes, automatically enabled based on user preferences.",
-          "route": "/docs/color-schemes"
+          "description": "femto comes with both Light and Dark color schemes, automatically enabled based on user preferences."
         },
         {
           "id": "rtl",
           "title": "RTL",
-          "label": "RTL",
-          "description": "Support for Right-To-Left text.",
-          "route": "/docs/rtl",
-          "routeTitle": "RTL (Right-To-Left)",
-          "toc": false
+          "description": "Support for Right-To-Left text."
         }
       ]
     },
@@ -220,18 +34,13 @@
           "id": "css-variables",
           "title": "CSS variables",
           "label": "CSS Variables",
-          "description": "Customize femto's design system with over 130 CSS variables to create a unique look and feel.",
-          "route": "/docs/css-variables"
+          "description": "Customize femto's design system with over 130 CSS variables to create a unique look and feel."
         },
         {
           "id": "colors",
           "title": "Colors",
           "label": "Colors <mark>New</mark>",
-          "description": "femto comes with 380 manually crafted colors to help you personalize your brand design system.",
-          "route": "/docs/colors",
-          "styles": [
-            "/vendor/femto/dist/femto.colors.min.css"
-          ]
+          "description": "femto comes with 380 manually crafted colors to help you personalize your brand design system."
         }
       ]
     },
@@ -241,30 +50,23 @@
         {
           "id": "container",
           "title": "Container",
-          "label": "Container",
-          "description": "Use .container for a centered viewport or .container-fluid for a full-width layout.",
-          "route": "/docs/container"
+          "description": "Use .container for a centered viewport or .container-fluid for a full-width layout."
         },
         {
           "id": "landmarks",
           "title": "Landmarks & section",
-          "label": "Landmarks &amp; section",
-          "description": "Structure your pages with semantic landmarks and sections for better accessibility and graceful spacings.",
-          "route": "/docs/landmarks-section"
+          "description": "Structure your pages with semantic landmarks and sections for better accessibility and graceful spacings."
         },
         {
           "id": "grid",
           "title": "Grid",
-          "label": "Grid",
-          "description": "Create minimal responsive layouts with .grid to enable auto-layout columns.",
-          "route": "/docs/grid"
+          "description": "Create minimal responsive layouts with .grid to enable auto-layout columns."
         },
         {
           "id": "overflow-auto",
           "title": "Overflow auto",
           "label": "Overflow auto <mark>New</mark>",
-          "description": ".overflow-auto enables automatic scrollbars to an element if its content extends beyond its limits.",
-          "route": "/docs/overflow-auto"
+          "description": ".overflow-auto enables automatic scrollbars to an element if its content extends beyond its limits."
         }
       ]
     },
@@ -274,31 +76,22 @@
         {
           "id": "typography",
           "title": "Typography",
-          "label": "Typography",
-          "description": "All typographic elements are responsive and scale gracefully across devices and viewports.",
-          "route": "/docs/typography"
+          "description": "All typographic elements are responsive and scale gracefully across devices and viewports."
         },
         {
           "id": "link",
           "title": "Link",
-          "label": "Link",
-          "description": "Link come with .secondary and .contrast styles.",
-          "route": "/docs/link",
-          "toc": false
+          "description": "Link come with .secondary and .contrast styles."
         },
         {
           "id": "button",
           "title": "Button",
-          "label": "Button",
-          "description": "Buttons are using the native <button> tag, without .classes for the default style.",
-          "route": "/docs/button"
+          "description": "Buttons are using the native <button> tag, without .classes for the default style."
         },
         {
           "id": "table",
           "title": "Table",
-          "label": "Table",
-          "description": "Clean and minimal styles for <table>, providing consistent spacings and a minimal unbordered look.",
-          "route": "/docs/table"
+          "description": "Clean and minimal styles for <table>, providing consistent spacings and a minimal unbordered look."
         }
       ]
     },
@@ -309,58 +102,42 @@
           "id": "forms",
           "title": "Forms overview",
           "label": "Overview",
-          "description": "All form elements are fully responsive with pure semantic HTML, enabling forms to scale gracefully across devices and viewports.",
-          "route": "/docs/forms"
+          "description": "All form elements are fully responsive with pure semantic HTML, enabling forms to scale gracefully across devices and viewports."
         },
         {
           "id": "input",
           "title": "Input",
-          "label": "Input",
-          "description": "All input types are consistently styled and come with validation states.",
-          "route": "/docs/forms/input"
+          "description": "All input types are consistently styled and come with validation states."
         },
         {
           "id": "textarea",
           "title": "Textarea",
-          "label": "Textarea",
-          "description": "The native <textarea> is styled like the input for consistency.",
-          "route": "/docs/forms/textarea"
+          "description": "The native <textarea> is styled like the input for consistency."
         },
         {
           "id": "select",
           "title": "Select",
-          "label": "Select",
-          "description": "The native <select> is styled like the input for consistency.",
-          "route": "/docs/forms/select"
+          "description": "The native <select> is styled like the input for consistency."
         },
         {
           "id": "checkboxes",
           "title": "Checkboxes",
-          "label": "Checkboxes",
-          "description": "The native <input type='checkbox'> with a custom and responsive style.",
-          "route": "/docs/forms/checkboxes"
+          "description": "The native <input type='checkbox'> with a custom and responsive style."
         },
         {
           "id": "radios",
           "title": "Radios",
-          "label": "Radios",
-          "description": "The native <input type='radio'> with a custom and responsive style.",
-          "route": "/docs/forms/radios"
+          "description": "The native <input type='radio'> with a custom and responsive style."
         },
         {
           "id": "switch",
           "title": "Switch",
-          "label": "Switch",
-          "description": "A switch component in pure CSS, using the checkbox syntax.",
-          "route": "/docs/forms/switch"
+          "description": "A switch component in pure CSS, using the checkbox syntax."
         },
         {
           "id": "range",
           "title": "Range",
-          "label": "Range",
-          "description": "Create a slider control with <input type='range'>.",
-          "route": "/docs/forms/range",
-          "toc": false
+          "description": "Create a slider control with <input type='range'>."
         }
       ]
     },
@@ -371,65 +148,48 @@
           "id": "accordion",
           "title": "Accordions",
           "label": "Accordion",
-          "description": "Toggle sections of content in pure HTML, without JavaScript, using minimal and semantic markup.",
-          "route": "/docs/accordion"
+          "description": "Toggle sections of content in pure HTML, without JavaScript, using minimal and semantic markup."
         },
         {
           "id": "card",
           "title": "Card",
-          "label": "Card",
-          "description": "Create flexible cards with a semantic markup that provides graceful spacings across various devices and viewports.",
-          "route": "/docs/card"
+          "description": "Create flexible cards with a semantic markup that provides graceful spacings across various devices and viewports."
         },
         {
           "id": "dropdown",
           "title": "Dropdown",
-          "label": "Dropdown",
-          "description": "Create dropdown menus and custom selects with minimal and semantic HTML, without JavaScript.",
-          "route": "/docs/dropdown"
+          "description": "Create dropdown menus and custom selects with minimal and semantic HTML, without JavaScript."
         },
         {
           "id": "group",
           "title": "Group",
           "label": "Group <mark>New</mark>",
-          "description": "Stack forms elements and buttons horizontally with role='group' and role='search'.",
-          "route": "/docs/group"
+          "description": "Stack forms elements and buttons horizontally with role='group' and role='search'."
         },
         {
           "id": "loading",
           "title": "Loading",
-          "label": "Loading",
-          "description": "Add a loading indicator with aria-busy='true'.",
-          "route": "/docs/loading",
-          "toc": false
+          "description": "Add a loading indicator with aria-busy='true'."
         },
         {
           "id": "modal",
           "title": "Modal",
-          "label": "Modal",
-          "description": "The classic modal component with graceful spacings across devices and viewports, using the semantic HTML tag <dialog>.",
-          "route": "/docs/modal"
+          "description": "The classic modal component with graceful spacings across devices and viewports, using the semantic HTML tag <dialog>."
         },
         {
           "id": "nav",
           "title": "Nav",
-          "label": "Nav",
-          "description": "The essential navbar component in pure semantic HTML.",
-          "route": "/docs/nav"
+          "description": "The essential navbar component in pure semantic HTML."
         },
         {
           "id": "progress",
           "title": "Progress",
-          "label": "Progress",
-          "description": "The progress bar element in pure HTML, without JavaScript.",
-          "route": "/docs/progress"
+          "description": "The progress bar element in pure HTML, without JavaScript."
         },
         {
           "id": "tooltip",
           "title": "Tooltip",
-          "label": "Tooltip",
-          "description": "Enable tooltips everywhere, without JavaScript.",
-          "route": "/docs/tooltip"
+          "description": "Enable tooltips everywhere, without JavaScript."
         }
       ]
     }

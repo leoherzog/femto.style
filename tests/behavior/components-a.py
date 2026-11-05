@@ -1,10 +1,10 @@
 """Components, first half (accordion, card, dropdown, group, loading; 01 §1). Their examples are
 native HTML: the accordions and dropdowns are <details>, the loading indicators are CSS, and the
-group forms' submits are site.js's (shell's example-forms covers /docs/group). The one widget is
-/docs/dropdown's menu items: docs.dropdown.jsx's Item is a Link to="#" with an onClick that prevents
-the default, so each renders the route's own path (href="/docs/dropdown") and goes nowhere, whether
-it is clicked or activated with Enter."""
-from behavior import check
+group forms' submits are site.js's (shell's example-forms covers Group). The one widget is the
+Dropdown section's menu items: docs.dropdown.jsx's Item is a Link to="#" with an onClick that
+prevents the default, so each renders the route's own path (href="/docs/dropdown"; on the one page
+the page's, /docs, or the section's, /docs#dropdown) and goes nowhere, whether it is clicked or activated with Enter."""
+from behavior import check, self_href
 
 GROUP = "components-a"
 
@@ -15,7 +15,7 @@ GROUP = "components-a"
 # apart by its index, never by comparing the WebElements that two script calls return.
 ITEMS = """
 const summaries = [];
-const items = [...document.querySelectorAll("#content article.component a:not(.copy-to-clipboard)")].map(a => {
+const items = [...S.querySelectorAll("#content article.component a:not(.copy-to-clipboard)")].map(a => {
   const details = a.closest("details");
   const summary = details ? details.querySelector(":scope > summary") : null;
   if (summary && !summaries.includes(summary)) summaries.push(summary);
@@ -73,10 +73,11 @@ def _state(page, label, summary, link):
         page.expect(label, False, error=f"{type(e).__name__}: {str(e).splitlines()[0][:200]}")
 
 
-@check("dropdown-items", "/docs/dropdown")
+@check("dropdown-items", "/docs#dropdown")
 def dropdown_items(page):
-    """Every example link on /docs/dropdown (the four menu items of each of the eleven link
-    dropdowns and the nav example's "Services", 45 links with href="/docs/dropdown") goes nowhere,
+    """Every example link of Dropdown (the four menu items of each of the eleven link dropdowns and
+    the nav example's "Services", 45 links pointing at their own place: href="/docs/dropdown" on
+    routes, /docs or /docs#dropdown on the one page) goes nowhere,
     with the pointer and with the keyboard. Pointer: each dropdown is opened once with a click on its
     summary, then each of its items is clicked in turn inside that open dropdown, and the dropdown is
     closed with its summary again. Keyboard: each dropdown's summary is focused and Enter opens it,
@@ -88,8 +89,7 @@ def dropdown_items(page):
     items, summaries, names = page.js(ITEMS)
     page.eq("45 example links", len(items), 45, labels=[f"{i[3]}: {i[2]}" for i in items])
     page.eq("eleven link dropdowns", len(summaries), 11, summaries=names)
-    page.expect("every example link points at the route itself",
-                all(page.js("return arguments[0].getAttribute('href')", i[0]) == "/docs/dropdown" for i in items))
+    page.expect("every example link points at the route itself", all(self_href(page, i[0]) for i in items))
     page.js(CLICK_SPY)
     url, history = page.url(), page.js("return history.length")
 
@@ -101,10 +101,11 @@ def dropdown_items(page):
 
     def nowhere(label, owner, link, before, keyboard):
         st = _state(page, label, summaries[owner] if owner >= 0 else None, link)
-        page.expect(label, st["marker"] == "kept" and st["url"] == url and st["history"] == history
+        page.expect(label, st["marker"] == "kept" and st["history"] == history
                     and st["scroll"] == before and st["clicks"] == [True] and st["open"] in (True, None)
                     and (st["focused"] or not keyboard),
                     url_before=url, history_before=history, scroll_before=before, **st)
+        page.url_kept(label, url)
 
     # Pointer: open each dropdown once and click its items in turn.
     current, opened, clicked = -1, 0, 0

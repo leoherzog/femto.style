@@ -1,53 +1,39 @@
 <hgroup>
   <p class="chapter">Customization</p>
-  <h1>CSS variables</h1>
+  <h1 id="css-variables">CSS variables</h1>
   <p>Customize femto's design system with over 130 CSS variables to create a unique look&nbsp;and&nbsp;feel.</p>
 </hgroup>
-<aside id="table-of-contents">
-  <nav class="is-sticky-above-lg ">
-    <details open>
-      <summary>Content</summary>
-      <ul>
-        <li><a class="secondary" data-discover="true" href="/docs/css-variables">Introduction</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/css-variables#example">Example</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/css-variables#css-variables-for-color-schemes">Color schemes</a></li>
-        <li><a class="secondary" data-discover="true" href="/docs/css-variables#all-css-variables">All CSS variables</a></li>
-      </ul>
-    </details>
-  </nav>
-</aside>
-<div id="content" role="document">
-  <section>
-    <p>femto includes many custom properties (variables) that allow easy access to frequently used values such as <code>font-family</code>, <code>font-size</code>,<code>border-radius</code>, <code>margin</code>, <code>padding</code>, and more.</p>
-    <p>All CSS variables are prefixed with <code>pico-</code> to avoid collisions with other CSS frameworks or your own vars. You can remove or customize this prefix by recompiling the CSS files with <a data-discover="true" href="/docs">SASS</a>.</p>
-    <p>You can define the CSS variables within the <code>:root</code> selector to apply the changes globally or overwrite the CSS variables on specific selectors to apply the changes locally.</p>
-  </section>
-  <section>
-    <h2>Example<a href="#example" id="example" class="secondary" tabindex="-1">#</a></h2>
-    <article aria-label="Button colors example" class="component" id="css-var-example">
-      <style>
-        #css-var-example h1,
-        #css-var-example p,
-        #css-var-example button {
-          --femto-border-radius: 2rem;
-          --femto-typography-spacing-vertical: 1.5rem;
-          --femto-form-element-spacing-vertical: 1rem;
-          --femto-form-element-spacing-horizontal: 1.5rem;
-        }
-        #css-var-example h1 {
-          --femto-font-family: Pacifico, cursive;
-          --femto-font-weight: 400;
-          --femto-typography-spacing-vertical: 0.5rem;
-        }
-        #css-var-example button {
-          --femto-font-weight: 700;
-          margin-bottom: 0;
-        }
-      </style>
-      <h1>Music fest mania</h1>
-      <p>Get ready to dance and sing your heart out at our Music Fest Mania. Join the crowd, jam to your favorite band, and discover new artists.</p>
-      <button>Let’s rock out!</button>
-      <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/css-variables"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;style&gt;
+<section>
+  <p>femto includes many custom properties (variables) that allow easy access to frequently used values such as <code>font-family</code>, <code>font-size</code>,<code>border-radius</code>, <code>margin</code>, <code>padding</code>, and more.</p>
+  <p>All CSS variables are prefixed with <code>pico-</code> to avoid collisions with other CSS frameworks or your own vars. You can remove or customize this prefix by recompiling the CSS files with <a data-discover="true" href="/docs">SASS</a>.</p>
+  <p>You can define the CSS variables within the <code>:root</code> selector to apply the changes globally or overwrite the CSS variables on specific selectors to apply the changes locally.</p>
+</section>
+<section>
+  <h2>Example</h2>
+  <article aria-label="Button colors example" class="component" id="css-var-example">
+    <style>
+      #css-var-example h1,
+      #css-var-example p,
+      #css-var-example button {
+        --femto-border-radius: 2rem;
+        --femto-typography-spacing-vertical: 1.5rem;
+        --femto-form-element-spacing-vertical: 1rem;
+        --femto-form-element-spacing-horizontal: 1.5rem;
+      }
+      #css-var-example h1 {
+        --femto-font-family: Pacifico, cursive;
+        --femto-font-weight: 400;
+        --femto-typography-spacing-vertical: 0.5rem;
+      }
+      #css-var-example button {
+        --femto-font-weight: 700;
+        margin-bottom: 0;
+      }
+    </style>
+    <h1>Music fest mania</h1>
+    <p>Get ready to dance and sing your heart out at our Music Fest Mania. Join the crowd, jam to your favorite band, and discover new artists.</p>
+    <button>Let’s rock out!</button>
+    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;style&gt;
   :root {
     --femto-border-radius: 2rem;
     --femto-typography-spacing-vertical: 1.5rem;
@@ -72,22 +58,22 @@
 &lt;/p&gt;
 &lt;button&gt;Let's rock out!&lt;/button&gt;
 </code></pre></footer>
-    </article>
-  </section>
-  <section>
-    <h2>CSS variables for color schemes<a href="#css-variables-for-color-schemes" id="css-variables-for-color-schemes" class="secondary" tabindex="-1">#</a></h2>
-    <p>To add or edit CSS variables for light mode only (the default mode), define them inside:</p>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/css-variables"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">/* Light color scheme (Default) */
+  </article>
+</section>
+<section>
+  <h2>CSS variables for color schemes</h2>
+  <p>To add or edit CSS variables for light mode only (the default mode), define them inside:</p>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">/* Light color scheme (Default) */
 /* Can be forced with data-theme="light" */
 [data-theme="light"],
 :root:not([data-theme="dark"]) {
  ...
 }</code></pre></div>
-    <p>To add or edit CSS variables for dark mode, you need to define them twice.</p>
-    <p>The first inclusion is in the <code>@media</code>query that checks if the user has dark mode enabled through their device settings with <code>prefers-color-scheme:
-            dark</code>. In this case, the dark mode styling is applied to the <code>:root</code> element if there is no explicit <code>data-theme</code> attribute set.</p>
-    <p>The second inclusion is when you force the dark mode with <code>data-theme="dark"</code>. This allows you to manually toggle between the light and dark themes regardless of the user’s device settings.</p>
-    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/css-variables"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">/* Dark color scheme (Auto) */
+  <p>To add or edit CSS variables for dark mode, you need to define them twice.</p>
+  <p>The first inclusion is in the <code>@media</code>query that checks if the user has dark mode enabled through their device settings with <code>prefers-color-scheme:
+          dark</code>. In this case, the dark mode styling is applied to the <code>:root</code> element if there is no explicit <code>data-theme</code> attribute set.</p>
+  <p>The second inclusion is when you force the dark mode with <code>data-theme="dark"</code>. This allows you to manually toggle between the light and dark themes regardless of the user’s device settings.</p>
+  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">/* Dark color scheme (Auto) */
 /* Automatically enabled if user has Dark mode enabled */
  @media only screen and (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
@@ -100,9 +86,9 @@
 [data-theme="dark"] {
   ...
 }</code></pre></div>
-    <details>
-      <summary role="button" class="secondary">Detailed example to override the primary color</summary>
-      <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/css-variables"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">/* Orange color for light color scheme (Default) */
+  <details>
+    <summary role="button" class="secondary">Detailed example to override the primary color</summary>
+    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">/* Orange color for light color scheme (Default) */
 /* Can be forced with data-theme="light" */
 [data-theme=light],
 :root:not([data-theme=dark]),
@@ -145,19 +131,19 @@
   --femto-primary-inverse: #fff;
 }
 </code></pre></div>
-    </details>
-  </section>
-  <section>
-    <h2>All CSS variables<a href="#all-css-variables" id="all-css-variables" class="secondary" tabindex="-1">#</a></h2>
-    <p>There are two categories of CSS variables:</p>
-    <ol>
-      <li><strong>Style variables</strong>, which do not depend on the color scheme,</li>
-      <li><strong>Color variables</strong>, which depend on the color scheme.</li>
-    </ol>
-    <p style="margin-bottom:2rem">Here is the list of all CSS variables used in femto:</p>
-    <details>
-      <summary role="button" class="secondary">Default styles CSS variables</summary>
-      <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/css-variables"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">:root,
+  </details>
+</section>
+<section>
+  <h2>All CSS variables</h2>
+  <p>There are two categories of CSS variables:</p>
+  <ol>
+    <li><strong>Style variables</strong>, which do not depend on the color scheme,</li>
+    <li><strong>Color variables</strong>, which depend on the color scheme.</li>
+  </ol>
+  <p style="margin-bottom:2rem">Here is the list of all CSS variables used in femto:</p>
+  <details>
+    <summary role="button" class="secondary">Default styles CSS variables</summary>
+    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">:root,
 :host {
   --femto-font-family-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --femto-font-family-sans-serif: system-ui, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, Helvetica, Arial, "Helvetica Neue", sans-serif, var(--femto-font-family-emoji);
@@ -377,10 +363,10 @@ details summary[role=button]:not(.outline)::after {
   filter: brightness(0) invert(1);
 }
 </code></pre></div>
-    </details>
-    <details>
-      <summary role="button" class="secondary">Default colors CSS variables</summary>
-      <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs/css-variables"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">[data-theme=light],
+  </details>
+  <details>
+    <summary role="button" class="secondary">Default colors CSS variables</summary>
+    <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">[data-theme=light],
 :root:not([data-theme=dark]),
 :host(:not([data-theme=dark])) {
   color-scheme: light;
@@ -774,9 +760,8 @@ progress,
   accent-color: var(--femto-primary);
 }
 </code></pre></div>
-    </details>
-  </section>
-  <section class="edit-on-github">
-    <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.css-variables.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
-  </section>
-</div>
+  </details>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.css-variables.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

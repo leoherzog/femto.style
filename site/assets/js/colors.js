@@ -1,18 +1,15 @@
-// colors.js: the Colors page, /docs/colors (loaded on every docs page; it does nothing where its
-// markup is absent). docs/research/01 §2 (docs.colors.jsx, ColorModal.jsx) and 03 §5.
+// colors.js: the Colors section of /docs (loaded from docs.html; it does nothing where its markup is
+// absent). docs/research/01 §2 (docs.colors.jsx, ColorModal.jsx) and 03 §5.
 //
-// It rebuilds the page's two behaviors on the oracle's own markup (PLAN.md Conversion rules, Phase 1:
-// no added attributes):
-// - the palette download: a[download="femto-color-palette.json"] gets, on load, the blob: URL of the
-//   palette as JSON.stringify(palette, null, 2), as the oracle's DownloadColorPalette does (its
-//   random UUID is normalized by the parity harness's blob: value rule);
-// - the color modal: a click on a shade button (.color-families .family main > button) or on a
-//   family's header (its main shade) opens dialog.color, appended to #content as the oracle renders
-//   it (ColorModal.jsx's exact markup) and removed again once closed. The arrow keys move through
-//   the 380 colors while it is shown: Right and Left the next and previous shade (across families,
-//   wrapping at both ends), Down and Up the next and previous family at the same shade. The close
-//   link, Escape and a click on the dialog outside its article close it, with ModalContext's classes
-//   and 400 ms animations from site.js's createModal.
+// It rebuilds the section's color modal, attached through data-color-modal (PLAN.md Conversion
+// rules: data- attributes from Phase 3). A click on a shade button (.family > main > button) or on a
+// family's header (its main shade) inside that element opens dialog.color, with ColorModal.jsx's
+// exact markup, appended to the Colors section (the oracle appended it to #content, its route's
+// content) and removed again once closed. The arrow keys move through the 380 colors while it is
+// shown: Right and Left the next and previous shade (across families, wrapping at both ends), Down
+// and Up the next and previous family at the same shade. The close link, Escape and a click on the
+// dialog outside its article close it, with ModalContext's classes and 400 ms animations from
+// site.js's createModal, the dialog's own helper.
 //
 // Two fixes over the oracle (PLAN.md oracle-bug, tests/behavior/customization.py):
 // - the close link cancels its navigation, so the URL keeps no #close;
@@ -28,6 +25,12 @@
 // Page Down, Home and End still scroll it from the close link: the keyboard's way to its lower rows.
 
 import { createModal } from "./site.js";
+
+// The palette download needs no script since Phase 3: its link points at the static file
+// /assets/femto-color-palette.json, which build.mjs writes from SHADES and PALETTE below (the JSON the
+// oracle's DownloadColorPalette made, in a blob: URL on load). build.mjs reads the two literals by
+// their shape, so keep it: SHADES one array ending `];`, and each family `  <name>: ["<main>",`,
+// then its colors, then `],`.
 
 // --- The palette (app/data/colors.json at remix-final) -------------------------------------------
 // family: [its main shade (colors.json's "main", the shade with the same hex), then each of SHADES'
@@ -192,22 +195,10 @@ function step({ family, shade }, key) {
   }
 }
 
-// --- Palette download (DownloadColorPalette in docs.colors.jsx) -----------------------------------
-
-const download = document.querySelector('a[download="femto-color-palette.json"]');
-if (download) {
-  const palette = {};
-  for (const family of FAMILIES) {
-    palette[family] = {};
-    for (const shade of SHADES) palette[family][shade] = color(family, shade).hex;
-  }
-  const json = JSON.stringify(palette, null, 2);
-  download.setAttribute("href", URL.createObjectURL(new Blob([json], { type: "application/json" })));
-}
-
 // --- Color modal (ColorModal.jsx) -----------------------------------------------------------------
 // The markup is ColorModal.jsx's as React renders it: the close icon is Close.jsx, and each value is
-// Code.jsx's block (className "small", copy link to the current path, language html). Prism's markup
+// Code.jsx's block (className "small", copy link to the current path, language html), its copy link
+// carrying data-copy-link as the docs' own do, so site.js's copy handler takes it. Prism's markup
 // grammar finds no token in any of the six values, so each is one plain text run, which
 // react-syntax-highlighter writes as <span class="">.
 
@@ -224,12 +215,12 @@ const ROWS = [
   ["CSS variable", (c) => `var(--femto-color-${c.family}-${c.shade})`],
 ];
 
-const families = document.querySelector("section.color-families");
+const families = document.querySelector("[data-color-modal]");
 if (families) {
-  const content = families.parentElement; // div#content, where ColorModal renders
+  const content = families.parentElement; // the Colors section
   const dialog = document.createElement("dialog");
   dialog.className = "color";
-  const copyLink = `<a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="${location.pathname}">${COPY_ICON}</a>`;
+  const copyLink = `<a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="${location.pathname}" data-copy-link>${COPY_ICON}</a>`;
   dialog.innerHTML = `<article><header><a href="#close" rel="prev" aria-label="Close" class="close">${CLOSE_ICON}</a>`
     + '<hgroup><h3 class="color-family"></h3><p class="color-shade"></p></hgroup></header><div class="grid">'
     + ROWS.map(([label]) => `<p>${label}</p><div class="code small" data-theme="dark">${copyLink}`

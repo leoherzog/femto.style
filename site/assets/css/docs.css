@@ -1,8 +1,8 @@
-/* The docs pages, after common.css and code.css: the docs tokens for each color scheme, the main
-   grid with its breadcrumb, side menu, header, table of contents and document, the rules of single
-   docs pages (main.page-<id>, until Phase 3), and the docs components: the menu's focus style, the
-   version picker card, the color families and color dialog of /docs/colors, inline example dialogs,
-   heading anchors and bordered images. */
+/* The docs page, after common.css and code.css: the docs tokens for each color scheme, the main
+   grid with its breadcrumb, side menu and document (every section, each with its header), smooth
+   scrolling for nav clicks, the rules of single sections (the oracle's main.page-<id> rules), and
+   the docs components: the menu's focus style, the version picker card, the color families and
+   color dialog of the Colors section, inline example dialogs, headings and bordered images. */
 
 /**
  * Docs color schemes
@@ -68,26 +68,15 @@ body > main > * {
   margin-bottom: 0;
 }
 
+/* Side nav and content. The content column keeps the width the oracle's routes gave it: from 1280px
+   the width of a route with a table of contents, whose column is now the empty third track (the
+   oracle's 10rem tracks from 1536px applied only to routes without one: its 10.5rem rule for a route
+   with one has the higher specificity) */
 @media (min-width: 1024px) {
   body > main {
-    grid-template-rows: auto 1fr;
     grid-template-columns: 11rem 1fr;
-    grid-template-areas: "menu header" "menu body";
+    grid-template-areas: "menu body";
     column-gap: 3rem;
-    row-gap: 3rem;
-  }
-
-  /* The oracle's fallback for browsers without `:has()`. Every target browser has it; kept until Phase 3 */
-  body > main.has-table-of-contents {
-    grid-template-rows: auto auto 1fr;
-    grid-template-columns: 11rem 1fr;
-    grid-template-areas: "menu header" "menu table-of-content" "menu body";
-  }
-
-  body > main:has(aside#table-of-contents) {
-    grid-template-rows: auto auto 1fr;
-    grid-template-columns: 11rem 1fr;
-    grid-template-areas: "menu header" "menu table-of-content" "menu body";
   }
 
   body > main > nav[aria-label=breadcrumb] {
@@ -111,15 +100,6 @@ body > main > * {
     grid-area: menu;
   }
 
-  body > main > hgroup {
-    grid-area: header;
-    margin-top: calc(var(--femto-block-spacing-vertical) / 2);
-  }
-
-  body > main > aside#table-of-contents {
-    grid-area: table-of-content;
-  }
-
   body > main > [role=document] {
     grid-area: body;
   }
@@ -127,69 +107,22 @@ body > main > * {
 
 @media (min-width: 1280px) {
   body > main {
-    grid-template-rows: auto 1fr;
-    grid-template-columns: 10.5rem 1fr;
-    grid-template-areas: "menu header" "menu body";
-    row-gap: 4rem;
-  }
-
-  /* The oracle's fallback for browsers without `:has()`. Every target browser has it; kept until Phase 3 */
-  body > main.has-table-of-contents {
-    grid-template-rows: auto 1fr;
     grid-template-columns: 10.5rem 1fr 10.5rem;
-    grid-template-areas: "menu header table-of-content" "menu body table-of-content";
-  }
-
-  body > main:has(aside#table-of-contents) {
-    grid-template-rows: auto 1fr;
-    grid-template-columns: 10.5rem 1fr 10.5rem;
-    grid-template-areas: "menu header table-of-content" "menu body table-of-content";
-  }
-
-  body > main > aside#documentation-menu {
-    grid-area: menu;
-  }
-
-  body > main > hgroup {
-    grid-area: header;
-  }
-
-  body > main > aside#table-of-contents {
-    grid-area: table-of-content;
-  }
-
-  body > main > [role=document] {
-    grid-area: body;
-  }
-}
-
-@media (min-width: 1536px) {
-  body > main {
-    grid-template-rows: auto 1fr;
-    grid-template-columns: 10rem 1fr 10rem;
-    grid-template-areas: "menu header table-of-content" "menu body table-of-content";
-    row-gap: 5rem;
-  }
-}
-
-/* Loading */
-body > main.is-loading > hgroup,
-body > main.is-loading > aside#table-of-contents,
-body > main.is-loading > [role=document] {
-  animation-duration: 1s;
-  animation-fill-mode: forwards;
-  animation-name: docs-loading;
-  opacity: 0.5;
-}
-
-@keyframes docs-loading {
-  from {
-    opacity: 1;
+    grid-template-areas: "menu body .";
   }
 }
 
 html {
   scroll-padding-top: calc(var(--femto-breadcrumb-height) + 1rem);
+}
+
+/* Smooth scrolling only for a nav click (Decision 10): docs.js sets the class while the click's
+   scroll runs. On html itself, Chrome would also animate the jump to a deep link's #hash on load and
+   every back and forward, from the top of the page */
+@media (prefers-reduced-motion: no-preference) {
+  html.is-scrolling-to-link {
+    scroll-behavior: smooth;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -486,70 +419,57 @@ main > aside#documentation-menu header a:hover {
 }
 
 /**
- * Docs: Header
+ * Docs: Header, each section's hgroup. Its margins keep the space the oracle's grid gave the header
+ * of a route: its top margin from lg, and the row gap below it
  */
-main > hgroup p.chapter {
+main > [role=document] > section > hgroup {
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 1024px) {
+  main > [role=document] > section > hgroup {
+    margin-top: calc(var(--femto-block-spacing-vertical) / 2);
+    margin-bottom: 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  main > [role=document] > section > hgroup {
+    margin-bottom: 4rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  main > [role=document] > section > hgroup {
+    margin-bottom: 5rem;
+  }
+}
+
+main > [role=document] > section > hgroup p.chapter {
   margin-bottom: calc(var(--femto-spacing) * 0.25);
 }
 
-main > hgroup h1 {
+main > [role=document] > section > hgroup h1 {
   margin-bottom: calc(var(--femto-spacing) * 0.5);
   font-family: "Figtree", var(--femto-font-family);
 }
 
 @media (min-width: 576px) {
-  main > hgroup h1 {
+  main > [role=document] > section > hgroup h1 {
     --femto-font-size: 2.5rem;
   }
 }
 
 /* The oracle's Sass nests this h1 in the h1 rule, so it matches no element; kept as compiled */
 @media (min-width: 1536px) {
-  main > hgroup h1 h1 {
+  main > [role=document] > section > hgroup h1 h1 {
     --femto-font-size: 3rem;
   }
 }
 
-main > hgroup p {
+main > [role=document] > section > hgroup p {
   /* eslint-disable-next-line css/use-baseline -- text-wrap: pretty is not Baseline; a browser without it wraps the text as usual, a progressive enhancement femto's feature tiers allow for text-wrap */
   text-wrap: pretty;
-}
-
-/**
- * Docs: Table of Contents
- */
-main > aside#table-of-contents details {
-  border-bottom: none;
-}
-
-main > aside#table-of-contents details summary {
-  pointer-events: none;
-}
-
-main > aside#table-of-contents details summary::after {
-  display: none;
-}
-
-@media (max-width: 1279px) {
-  /* Bring back underline for small devices */
-  main > aside#table-of-contents details ul li a:not(:hover) {
-    text-decoration: underline;
-    text-decoration-color: var(--femto-secondary-underline);
-  }
-
-  /* Override aria-current link styles for small devices */
-  main > aside#table-of-contents details ul li a[aria-current] {
-    border-color: transparent;
-    color: var(--femto-secondary);
-    font-weight: normal;
-    text-decoration-color: var(--femto-secondary-underline);
-  }
-
-  main > aside#table-of-contents details ul li a[aria-current]:hover {
-    border-color: var(--femto-secondary-underline);
-    color: var(--femto-secondary-hover);
-    text-decoration: underline;
-  }
 }
 
 /**
@@ -572,41 +492,47 @@ main > [role=document] .edit-on-github svg {
 }
 
 /**
- * Page: Card
+ * Sections: the oracle's main.page-<id> rules, each scoped to the section whose h1 has that id.
+ * The :where() keeps each selector's weight: [role=document] > section weighs what main.page-<id>
+ * did, so every rule wins and loses where it did on its route
+ */
+
+/**
+ * Section: Card
  */
 
 /* Remove responsive spacings to demo this component
    because it's not the default behavior anymore. */
-main.page-card article {
+[role=document] > section:where(:has(> hgroup > h1[id=card])) article {
   --femto-block-spacing-vertical: var(--femto-spacing);
   --femto-block-spacing-horizontal: var(--femto-spacing);
 }
 
 /**
- * Page: Color schemes
+ * Section: Color schemes
  */
-main.page-color-schemes article#theme-switcher button {
+[role=document] > section:where(:has(> hgroup > h1[id=color-schemes])) article#theme-switcher button {
   display: block;
   width: 100%;
   margin-inline: auto;
 }
 
 @media (min-width: 576px) {
-  main.page-color-schemes article#theme-switcher button {
+  [role=document] > section:where(:has(> hgroup > h1[id=color-schemes])) article#theme-switcher button {
     width: 50%;
     min-width: fit-content;
   }
 }
 
 /**
- * Page: Grid
+ * Section: Grid
  */
-main.page-grid .btn-group button {
+[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button {
   width: 100%;
   margin-bottom: var(--femto-spacing);
 }
 
-main.page-grid .btn-group button svg {
+[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button svg {
   display: inline-block;
   width: 1em;
   height: 1em;
@@ -615,16 +541,16 @@ main.page-grid .btn-group button svg {
 }
 
 @media (min-width: 576px) {
-  main.page-grid .btn-group button {
+  [role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button {
     width: auto;
   }
 
-  main.page-grid .btn-group button:not(:last-child) {
+  [role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button:not(:last-child) {
     margin-right: var(--femto-spacing);
   }
 }
 
-main.page-grid .grid > div {
+[role=document] > section:where(:has(> hgroup > h1[id=grid])) .grid > div {
   padding: calc(var(--femto-spacing) / 2) 0;
   border-radius: var(--femto-border-radius);
   background-color: var(--femto-code-background-color);
@@ -634,76 +560,76 @@ main.page-grid .grid > div {
 }
 
 /**
- * Page: Loading
+ * Section: Loading
  */
-main.page-loading .grid#buttons {
+[role=document] > section:where(:has(> hgroup > h1[id=loading])) .grid#buttons {
   margin-bottom: var(--femto-spacing);
 }
 
 /**
- * Page: Modal
+ * Section: Modal
  */
-main.page-modal article#modal-demo button {
+[role=document] > section:where(:has(> hgroup > h1[id=modal])) article#modal-demo button {
   display: block;
   width: 100%;
   margin-inline: auto;
 }
 
 @media (min-width: 576px) {
-  main.page-modal article#modal-demo button {
+  [role=document] > section:where(:has(> hgroup > h1[id=modal])) article#modal-demo button {
     width: 50%;
     min-width: fit-content;
   }
 }
 
 /**
- * Page: Nav
+ * Section: Nav
  */
-main.page-nav section#overflow article nav {
+[role=document] > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav {
   border: 1px dashed var(--femto-del-color);
 }
 
-main.page-nav section#overflow article nav:not(:last-child) {
+[role=document] > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav:not(:last-child) {
   border-bottom-color: transparent;
 }
 
-main.page-nav section#overflow article nav ul li a.focused {
+[role=document] > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav ul li a.focused {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
   color: var(--femto-primary-hover);
 }
 
 /**
- * Page: Typography
+ * Section: Typography
  */
-main.page-typography table#responsive-font-sizes {
+[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes {
   font-size: 16px;
 }
 
-main.page-typography table#responsive-font-sizes caption {
+[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes caption {
   display: none;
 }
 
 /* Seven columns: 100% / 7 */
-main.page-typography table#responsive-font-sizes th,
-main.page-typography table#responsive-font-sizes td {
+[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes th,
+[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes td {
   width: 14.2857142857%;
   padding: calc(var(--femto-spacing) / 2);
   white-space: nowrap;
 }
 
-main.page-typography table#responsive-font-sizes [data-tooltip] {
+[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip] {
   border-bottom-color: var(--femto-muted-color);
 }
 
-main.page-typography table#responsive-font-sizes [data-tooltip]::before,
-main.page-typography table#responsive-font-sizes [data-tooltip]::after {
+[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip]::before,
+[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip]::after {
   font-size: 12px;
 }
 
 /**
- * Page: Version Picker
+ * Section: Version Picker
  */
-main.page-version-picker select + small {
+[role=document] > section:where(:has(> hgroup > h1[id=version-picker])) select + small {
   /* eslint-disable-next-line css/no-important -- the oracle's !important (docs/pages/_version-picker.scss), kept for parity: Phase 2 changes no rule's weight */
   margin-bottom: calc(var(--femto-spacing) * 2) !important;
 }
@@ -720,7 +646,7 @@ main > aside > nav details > ul li a:not([role=button]):focus-visible:not([role]
 }
 
 /**
- * Card: color picker (/docs/version-picker)
+ * Card: color picker (the Version picker section)
  */
 article.color-picker > header {
   grid-gap: var(--femto-block-spacing-horizontal);
@@ -794,7 +720,7 @@ article.color-picker > footer {
 }
 
 /**
- * Color families (/docs/colors)
+ * Color families (the Colors section)
  */
 .color-families {
   grid-column-gap: 2rem;
@@ -848,7 +774,7 @@ article.color-picker > footer {
 }
 
 /**
- * Dialog: color (/docs/colors)
+ * Dialog: color (the Colors section)
  */
 dialog.color {
   --femto-font-size: 0.875rem;
@@ -947,47 +873,10 @@ dialog.example > article {
 }
 
 /**
- * Heading with anchor
+ * Headings (their # anchors are gone with the one page)
  */
 :is(h1, h2, h3, h4, h5, h6) {
   position: relative;
-}
-
-/* The oracle's transition has no comma between its two items, so browsers drop it; kept as
-   compiled */
-:is(h1, h2, h3, h4, h5, h6) > a[id] {
-  padding-left: calc(var(--femto-spacing) * 0.5);
-  font-weight: normal;
-  text-decoration: none;
-  opacity: 0;
-  transition: color var(--femto-transition) opacity var(--femto-transition);
-}
-
-@media (min-width: 1024px) {
-  :is(h1, h2, h3, h4, h5, h6) > a[id] {
-    position: absolute;
-    left: 0;
-    padding-right: calc(var(--femto-spacing) * 0.5);
-    transform: translateX(-100%);
-  }
-}
-
-:is(h1, h2, h3, h4, h5, h6) > a[id]:focus-visible {
-  box-shadow: none;
-  color: var(--femto-primary);
-  opacity: 1;
-}
-
-:is(h1, h2, h3, h4, h5, h6):hover > a[id] {
-  opacity: 0.25;
-}
-
-:is(h1, h2, h3, h4, h5, h6):hover > a[id]:hover {
-  opacity: 0.5;
-}
-
-:is(h1, h2, h3, h4, h5, h6):hover > a[id]:focus-visible {
-  opacity: 1;
 }
 
 /**

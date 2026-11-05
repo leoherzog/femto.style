@@ -219,6 +219,12 @@ def summary(result, limit=40) -> str:
     if result.get("comparison") == "styles":
         L.append("styles comparison: only registry entries whose where.comparisons names styles apply (and skipped "
                  "checks); the pages mode's entries do not (tests/README.md, Divergence registry)")
+    if result.get("comparison") == "one-page":
+        L.append("one-page comparison: only registry entries whose where.comparisons names one-page apply (and skipped "
+                 "checks); the pages and styles modes' entries do not (tests/README.md, Divergence registry)")
+    if result.get("mode") == "sections":
+        L.append("sections: each cell's route is side A's; side B loads the one page at the route's section (url_b) and "
+                 "compares the <section> around its id (tests/README.md, Sections)")
     if t.get("align_fallbacks"):
         L.append(f"alignment: {t['align_fallbacks']} sibling lists too long for the LCS table were paired by position")
     hr = t.get("head_repeat_documents") or {}

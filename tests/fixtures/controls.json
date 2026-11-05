@@ -608,6 +608,86 @@
      "new": "  --femto-shadow: 0 0 .3rem rgba(0,0,0,.25);"
     }
    ]
+  },
+  "sections-unchanged": {
+   "describe": "the one page as it is (a comment changes): side B is a fixture control, so the run is a one-page comparison and not a self comparison",
+   "edits": [
+    {
+     "file": "sections/docs.html",
+     "old": "<!-- control styles -->",
+     "new": "<!-- no control styles -->"
+    }
+   ]
+  },
+  "sections-changed": {
+   "describe": "the one page's Beta section: one list item's text changes (Beta two to Beta 2)",
+   "edits": [
+    {
+     "file": "sections/docs.html",
+     "old": "<li>Beta two</li>",
+     "new": "<li>Beta 2</li>"
+    }
+   ]
+  },
+  "sections-graft-changed": {
+   "describe": "the one page's Alpha section: its hgroup's description and its note dialog's text change (the parts side A's route held outside div#content, which the sections mode grafts into side A's root)",
+   "edits": [
+    {
+     "file": "sections/docs.html",
+     "old": "<p>The first section.</p>",
+     "new": "<p>The first part.</p>"
+    },
+    {
+     "file": "sections/docs.html",
+     "old": "<dialog class=\"note\"><p>Alpha note</p></dialog>",
+     "new": "<dialog class=\"note\"><p>Alpha notice</p></dialog>"
+    }
+   ]
+  },
+  "sections-missing": {
+   "describe": "the one page's Beta heading loses its id, so no section has the id beta-two",
+   "edits": [
+    {
+     "file": "sections/docs.html",
+     "old": "<h1 id=\"beta-two\">",
+     "new": "<h1>"
+    }
+   ]
+  },
+  "sections-theme-ignored": {
+   "describe": "the one page's head script no longer writes the jade stylesheet for ?theme=jade",
+   "edits": [
+    {
+     "file": "sections/docs.html",
+     "old": ".get(\"theme\") === \"jade\"",
+     "new": ".get(\"theme\") === \"none\""
+    }
+   ]
+  },
+  "sections-geometry": {
+   "describe": "the one page gets a third grid track at 1300 px (every section narrower there) and 16 px less content width at 375 px; Alpha's lead paragraph changes color, one item's text and the paragraph's title change, and a ninth item is added, at every width",
+   "edits": [
+    {
+     "file": "sections/docs.html",
+     "old": "<!-- control styles -->",
+     "new": "<style>\n  /* A third grid track at 1300 px only, as the one page keeps the table of contents' track (PLAN.md\n     Phase 3 contract 5): every section's boxes are narrower there. These rules come before sections.css, so\n     they name body to win. */\n  @media (width: 1300px) { body .docs { grid-template-columns: 160px minmax(0, 1fr) 160px; } }\n  /* At 375 px the content column loses 16 px: a geometry change at another width. */\n  @media (width: 375px) { body .docs > #content { padding-inline: 8px; } }\n  /* Alpha's lead paragraph changes color at every width. */\n  hgroup:has(#alpha) + .body .intro { color: rgb(200, 0, 0); }\n</style>"
+    },
+    {
+     "file": "sections/docs.html",
+     "old": "<li>Alpha one</li>",
+     "new": "<li>Alpha 1</li>"
+    },
+    {
+     "file": "sections/docs.html",
+     "old": "title=\"alpha intro\"",
+     "new": "title=\"alpha intro, changed\""
+    },
+    {
+     "file": "sections/docs.html",
+     "old": "<li>Alpha eight</li>",
+     "new": "<li>Alpha eight</li><li>Alpha nine</li>"
+    }
+   ]
   }
  }
 }
