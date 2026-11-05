@@ -22,7 +22,8 @@ life), never while the user's own Safari is open, and only on an unlocked screen
 reaches a hidden page. It is visible, not headless; it has no prefers-color-scheme emulation, so a
 check whose media is not the OS scheme is skipped (status skip, `media:<scheme>`) and runs in the
 owner's pass of the other appearance; it has no WebDriver BiDi, so the viewport is sized through the
-window and a check that needs a preload script errors there.
+window and a check that needs a preload script is skipped there (`preload`), as is one that says
+what else Safari's WebDriver cannot do (safari_skip: `safari`). Its Tab is Option+Tab (Page.tab).
 
 The target has one of two layouts (--layout; the target's by default). On `one-page` (the static
 site from Phase 3: targets.json one_page) the docs are the one page /docs, and a check's routes are
@@ -581,15 +582,38 @@ class Page:
         ab.pointer_action.move_to_location(int(x), int(y)).pointer_down().pointer_up()
         ab.perform()
 
-    def key(self, key, times=1):
+    def key(self, key, times=1, hold=0):
         """Real key presses sent to the focused element. key: a selenium Keys name ("ESCAPE",
-        "ENTER", "ARROW_RIGHT") or text."""
+        "ENTER", "ARROW_RIGHT") or text. hold: seconds each press stays down before its release (0:
+        released at once). "TAB" is self.tab()."""
         from selenium.webdriver.common.action_chains import ActionChains
         from selenium.webdriver.common.keys import Keys
+        if key == "TAB":
+            return self.tab(times=times)
         k = getattr(Keys, key, key)
         ac = ActionChains(self.driver, duration=0)
         for _ in range(times):
-            ac.send_keys(k)
+            if hold:
+                ac.key_down(k).pause(hold).key_up(k)
+            else:
+                ac.send_keys(k)
+        ac.perform()
+
+    def tab(self, shift=False, times=1):
+        """Real Tab presses (Shift+Tab with shift). Safari's are Option+Tab: under its default setting
+        ("Press Tab to highlight each item" off, which the harness never changes) plain Tab skips links
+        and buttons, and Option+Tab reaches them (p4-behavior-safari-light-1; harness.browsers' tab()
+        does the same)."""
+        from selenium.webdriver.common.action_chains import ActionChains
+        from selenium.webdriver.common.keys import Keys
+        mods = ([Keys.SHIFT] if shift else []) + ([Keys.ALT] if self.browser == "safari" else [])
+        ac = ActionChains(self.driver, duration=0)
+        for _ in range(times):
+            for m in mods:
+                ac.key_down(m)
+            ac.send_keys(Keys.TAB)
+            for m in reversed(mods):
+                ac.key_up(m)
         ac.perform()
 
     def focus(self, css):
@@ -806,6 +830,11 @@ def run_one(page, check, route, oracle_side, shots_dir):
     elif page.browser == "safari" and not check.javascript:
         skip = ("javascript:off", "WebDriver cannot turn JavaScript off in Safari (05: the JavaScript-off deep link "
                                   "runs in Chrome and Firefox)")
+    elif page.browser == "safari" and check.preload and not check.preload_optional:
+        skip = ("preload", "Safari has no WebDriver BiDi, so no preload script can run before the page's own "
+                           "(the check runs in Chrome and Firefox)")
+    elif page.browser == "safari" and check.safari_skip:
+        skip = ("safari", check.safari_skip)
     if skip:
         rec.update(status="skip", failed=None, skipped=skip[0], duration_s=0.0, assertions=[], notes=[skip[1]])
         return rec
@@ -988,8 +1017,9 @@ def summary_text(result):
     sk = [r for r in result["checks"] if r["status"] == "skip"]
     if sk:
         lines.append("")
-        lines.append(f"SKIPPED (a check of the other layout, or what Safari cannot emulate, which the owner's pass of "
-                     f"the other appearance runs): {len(sk)}")
+        lines.append(f"SKIPPED (a check of the other layout; in Safari, the other appearance's, which the owner's pass "
+                     f"of that appearance runs, or one that needs what Safari's WebDriver cannot do, which Chrome and "
+                     f"Firefox run): {len(sk)}")
         for r in sk:
             lines.append(f"  {r['browser']} {r['check']} {r['route']}: {r['skipped']}: {(r.get('notes') or [''])[0]}")
     xf = [r for r in result["checks"] if r["status"] == "xfail"]
@@ -1118,8 +1148,9 @@ def run_behavior(args):
     for b in browsers:
         rs = [r for r in results if r["browser"] == b]
         by_browser[b] = {s: sum(1 for r in rs if r["status"] == s) for s in STATUSES}
-    # A skip is Safari's other media leg, which the owner's pass of the other appearance runs.
-    ok = not errors and len(results) == len(jobs) and all(r["status"] in ("pass", "xfail", "skip") for r in results)
+    # A skip is the other layout's check or, in Safari, the other appearance's (the owner's pass of
+    # that appearance runs it) or one Safari's WebDriver cannot run (Chrome and Firefox run it).
+    ok =not errors and len(results) == len(jobs) and all(r["status"] in ("pass", "xfail", "skip") for r in results)
     result = {"run_id": run_id, "mode": "behavior", "status": "PASS" if ok else "FAIL", "argv": sys.argv[1:],
               "label": args.label, "target": args.target, "base": side.base, "ready": side.ready, "side": side.describe(),
               "layout": layout,

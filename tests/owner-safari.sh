@@ -79,9 +79,9 @@ elif [ "$only" = content ]; then
   run npm run build || exit 1
   for scheme in light dark; do
     if [ $scheme = light ]; then appearance false; else appearance true; fi
-    run uv run tests/run.py behavior --target dist --browsers safari --run-id "p4-behavior-safari-$scheme-1"
+    run uv run tests/run.py behavior --target dist --browsers safari --run-id "p4-behavior-safari-$scheme-2"
   done
-  ids="p4-behavior-safari-light-1 p4-behavior-safari-dark-1"
+  ids="p4-behavior-safari-light-2 p4-behavior-safari-dark-2"
 elif [ "$only" = one-page ]; then
   # Phase 3's gate in Safari (PLAN.md Workflow, 3 One page; criteria 2 and 7), once per appearance:
   # the behavior suite against dist (the checks whose media is the other scheme are skipped and run in
@@ -99,7 +99,7 @@ elif [ "$only" = one-page ]; then
   done
   ids="p3-sections-safari-light-1 p3-pages-safari-light-1 p3-sections-safari-dark-1 p3-pages-safari-dark-1"
   for id in p3-behavior-safari-light-1 p3-behavior-safari-dark-1; do
-    echo "$id: $(grep -o 'OS scheme [a-z]*' "tests/results/$id/log.txt" | sort | uniq -c | xargs)"
+    echo "$id: $(grep -oE 'OS scheme (light|dark)' "tests/results/$id/log.txt" | sort | uniq -c | xargs)"
   done
 else
   # Light: the spike (Safari column of docs/research/05-spike.md), rig's input checks, and the six
@@ -121,8 +121,9 @@ else
   [ -z "$only" ] && ids="p0-self-safari-light-cssvars $dark_id"
 fi
 
-# Each session should say "OS scheme light" in the light run and "OS scheme dark" in the dark one.
+# Each session should say "OS scheme light" in the light run and "OS scheme dark" in the dark one
+# (an error's "the OS scheme is ..." is not counted).
 for id in $ids; do
-  echo "$id: $(grep -o 'OS scheme [a-z]*' "tests/results/$id/log.txt" | sort | uniq -c | xargs)"
+  echo "$id: $(grep -oE 'OS scheme (light|dark)' "tests/results/$id/log.txt" | sort | uniq -c | xargs)"
 done
 echo "$(date +%T) done"

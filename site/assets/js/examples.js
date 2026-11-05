@@ -13,7 +13,9 @@
 //   submit event stops at its shadow root;
 // - dialogs: a click on an element whose aria-controls names a <dialog> opens it with showModal(),
 //   and a click on its rel="prev" or .close button, on a button in its footer, or on the dialog
-//   itself (its backdrop) closes it. Escape closes it with no script. The footer's buttons are
+//   itself (its backdrop) closes it. Escape closes it with no script. However it closes, focus goes
+//   back to the opener: Chrome and Firefox put it there themselves, but in Safari a click does not
+//   focus a button, so the dialog would give focus back to <body>. The footer's buttons are
 //   type="button", since femto makes every button[type=submit] full width.
 // It does nothing on a page without div[data-example].
 
@@ -56,7 +58,12 @@ for (const host of hosts) {
     const opener = target.closest("[aria-controls]");
     const dialog = opener ? shadow.getElementById(opener.getAttribute("aria-controls")) : null;
     if (dialog instanceof HTMLDialogElement) {
-      if (!dialog.open) dialog.showModal();
+      if (!dialog.open) {
+        dialog.showModal();
+        dialog.addEventListener("close", () => {
+          if (shadow.activeElement !== opener) opener.focus();
+        }, { once: true });
+      }
       return;
     }
     const open = target.closest("dialog[open]");

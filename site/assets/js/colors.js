@@ -284,11 +284,12 @@ if (families) {
   }
 
   // While the dialog is in the page. Keys held with Alt, Control or Meta keep their default action
-  // (the browser's own shortcuts); the arrows still step, as the oracle's did.
+  // (the browser's own shortcuts); the arrows still step, as the oracle's did. Tab with Alt is still
+  // Tab: Option+Tab is how Safari, by default, moves to links and buttons.
   function onKeydown(event) {
     const shortcut = event.altKey || event.ctrlKey || event.metaKey;
     if (event.key === "Tab") {
-      if (shortcut) return;
+      if (event.ctrlKey || event.metaKey) return;
       event.preventDefault();
       const at = stops.indexOf(document.activeElement);
       const next = at < 0 ? 0 : (at + (event.shiftKey ? stops.length - 1 : 1)) % stops.length;

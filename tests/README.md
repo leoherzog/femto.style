@@ -949,7 +949,8 @@ cleared after; WebDriver's own scripts still run, and the load waits for `readyS
 instead of the readiness hook); `cold=True` empties the HTTP cache before the route loads (Chrome:
 CDP `Network.clearBrowserCache`; Firefox: `Services.cache2.clear()`); `delay={path: seconds}`
 holds those responses (above); `preload_optional=True` lets Safari run a check without its preload
-script (`page.preloaded` says which).
+script (`page.preloaded` says which), where it would otherwise skip it; `safari_skip="<why>"` skips a
+check in Safari for another reason Safari's WebDriver cannot meet (Safari, below).
 
 **Expected failures.** A check may assert something the conversion fixes in the oracle (PLAN.md,
 `oracle-bug`): it names the assertion and the reason, `oracle_bug={"fails": ..., "reason": ...}`.
@@ -986,17 +987,23 @@ recorded as `skip` (`media:<scheme>`, in the summary's SKIPPED list), and the ow
 other appearance runs it. For the same reason `spy-nav-click-reduced` (`motion:reduce`) is skipped
 there, and `nojs-deep-link` (`javascript:off`: WebDriver cannot turn JavaScript off in Safari, as in
 05). Safari has no WebDriver BiDi: the viewport is sized through the window (a size Safari's window
-cannot give fails the check), and a check that needs a preload script (`color-scheme-flash`,
-`modal-scrollbar-width`'s classic scrollbars, and `font-size-restored-switch` if Safari brings the
-switch back unchecked on a reload) errors there, except
+cannot give fails the check), and a check that needs a preload script is skipped there (`preload`:
+`color-scheme-flash`, `examples-first-frame` and `examples-first-frame-cold`), except
 `theme-first-frame`, whose preload is optional (it reads paint timing in Safari) and whose held theme
 file is not held there (no BiDi interception: noted), and `modal-two-dialogs`, which keeps Safari's
-own scrollbar (an overlay one gives `0px`: noted). Its cache cannot be
+own scrollbar (an overlay one gives `0px`: noted). A check that needs something else Safari's WebDriver
+cannot do says so (`safari_skip`) and is skipped there too (`safari`): `theme-os-live` switches the OS
+scheme while the page is open, and `modal-scrollbar-width` forces a classic scrollbar, which the
+harness can do only with a preload script or Firefox's pref (it never changes macOS's settings).
+`font-size-restored-switch` ends in Safari once Safari has brought the switch back unchecked on the
+reload with the px table (the restored switch needs a preload script). Its cache cannot be
 emptied, so `deep-link-cold` and `theme-first-frame` note that their load may be warm; Safari has no
-layout-shift entries, so `deep-link-cold` asserts the position only. Every other `one-page` check
+layout-shift entries, so `deep-link-cold` asserts the position only. Safari's Tab, by default, skips
+links and buttons, so the harness presses Option+Tab there (`page.tab()`, and `page.key("TAB")`
+through it), as the styles mode does. Every other check
 uses only real input, page scripts and the history API, as the spike's Safari run did. The harness's
 own proof is `--list` and argument parsing only; the Safari runs are the owner's
-(`tests/owner-safari.sh one-page`).
+(`tests/owner-safari.sh one-page`, and `content` from Phase 4).
 
 **Output.** `tests/results/<run-id>/` (run id `YYYYMMDD-HHMMSS-behavior-<pid>` unless `--run-id`):
 `result.json` (the run, the target and its side, the sessions' versions, totals per browser, every
@@ -1051,20 +1058,20 @@ checks over 48 routes are skipped
 | shell | `theme-toggle-dark-os` | `/docs` (dark OS) | The toggle follows the OS ("Turn off dark mode", `moon`) with no `data-theme`; a click stores `'"light"'`, the next `'"dark"'`. |
 | shell | `theme-toggle-keyboard` | `/`, `/docs#typography` | The toggle focused, Enter gives dark (data-theme, storage, label) and Enter again light, with no navigation and the document kept. |
 | shell | `theme-toggle-button` | `/`, `/does-not-exist` (one page) | The toggle is a `<button type="button">` with no href; Tab from the GitHub link reaches it; Space gives dark and Enter light, no navigation. |
-| shell | `theme-os-live` | `/`, `/docs#table` | With nothing stored, a live switch of `prefers-color-scheme` to dark and back relabels the toggle, turns the homepage comparison samples dark (`/`) or the inverse thead light (`/docs/table`) and back; no `data-theme` written, nothing stored. |
+| shell | `theme-os-live` | `/`, `/docs#table` | With nothing stored, a live switch of `prefers-color-scheme` to dark and back relabels the toggle, turns the homepage comparison samples dark (`/`) or the inverse thead light (`/docs/table`) and back; no `data-theme` written, nothing stored. Skipped in Safari (`safari`). |
 | shell | `theme-stored-dark` | `/`, `/docs#button` (stored dark) | A stored choice wins over a light OS: `data-theme="dark"`, toggle "Turn off dark mode". |
 | shell | `theme-stored-light` | `/docs#button` (dark OS, stored light) | `data-theme="light"`, toggle "Turn on dark mode"; a click stores dark. |
 | shell | `theme-stored-invalid` | `/docs#table` (dark OS, stored `'"blue"'`) | A stored value other than light or dark is left in storage and ignored: no `data-theme` (held 0.5 s), the page follows the OS (toggle "Turn off dark mode", the inverse thead `light`); a click stores light. **XFAIL on the oracle** at "a stored value other than light or dark sets no data-theme": it writes any stored value into `data-theme`. |
 | shell | `theme-cross-tab` | `/docs#typography`, a tab on `/` | Toggling in tab A reaches tab B without a reload (dark, then light, B's toggle relabelled); removing the stored item in A removes `data-theme` in B. |
-| shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Once a paint entry exists (Chrome can record it a few hundred ms after load), seen from a preload script, `data-theme` appears while the head is parsed (no `<body>` yet), before the first paint, and the first animation frame sees it. **XFAIL on the oracle** at "set while the head is parsed": it sets the attribute during hydration (the flash; whether that still precedes the first paint is a race). |
+| shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Once a paint entry exists (Chrome can record it a few hundred ms after load), seen from a preload script, `data-theme` appears while the head is parsed (no `<body>` yet), before the first paint, and the first animation frame sees it. **XFAIL on the oracle** at "set while the head is parsed": it sets the attribute during hydration (the flash; whether that still precedes the first paint is a race). Skipped in Safari (`preload`). |
 | shell | `header-fixed` | `/docs#modal` | Scrolled to the top first, `body > header` has `is-fixed-above-lg`; `is-fixed` exactly while `scrollY > 20` (off at 20, on at 21, off again at 20 and 0). |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled. |
 | shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `svg.check` within 100 ms, back to "Copy to clipboard" with `svg.clipboard` 900 to 1500 ms later, no other step, focus not on the control after a pointer click. |
 | shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice; "Copied" reverts once, 900 to 1200 ms after the first click (Code.jsx: every click schedules its own revert), no other step, not focused. |
 | shell | `copy-keyboard` | `/docs#button`, `/examples` (one page) | Tab reaches the first copy button; Enter copies its block, the tooltip and the visually hidden `role=status` line read "Copied", 1 s later they revert with keyboard focus kept; Space copies again. The block's `<pre>` is a tab stop only when its code overflows (site.js, Code block focus): one that does not has no `tabindex`, `role` or `aria-label` and Tab moves past it to the next control after it (both routes' first blocks, in both browsers); one that overflows has `tabindex="0"`, `role="figure"` and `aria-label` "HTML code" (or its language's) and Tab moves to it. |
-| shell | `pre-scroll-keyboard` | `/docs` (375 × 812; one page) | Quick start's first code block that overflows is a figure in the tab order (`tabindex="0"`, `role="figure"`, `aria-label` "HTML code"), takes focus with Tab from its copy button, matches `:focus-visible` with an inset ring, and Right arrow scrolls it. |
+| shell | `pre-scroll-keyboard` | `/docs` (375 × 812; one page) | Quick start's first code block that overflows is a figure in the tab order (`tabindex="0"`, `role="figure"`, `aria-label` "HTML code"), takes focus with Tab from its copy button, matches `:focus-visible` with an inset ring, and Right arrow scrolls it (each press held 0.1 s; the scroll waited for up to 2 s; the note gives the keydown events the `pre` saw). |
 | shell | `modal-helper` | `/docs#modal` | Timed in the page: `modal-is-open modal-is-opening` within 100 ms of "Open modal", `modal-is-open` alone 350 to 700 ms later; Escape gives `modal-is-open modal-is-closing` within 100 ms and no class 350 to 700 ms later; Escape with nothing open does nothing. |
-| shell | `modal-scrollbar-width` | `/docs#modal` (classic scrollbars) | While open, `<html>`'s `--femto-scrollbar-width` is the scrollbar's width (15px) and the page behind keeps its left edge; gone once closed. |
+| shell | `modal-scrollbar-width` | `/docs#modal` (classic scrollbars) | While open, `<html>`'s `--femto-scrollbar-width` is the scrollbar's width (15px) and the page behind keeps its left edge; gone once closed. Skipped in Safari (`safari`). |
 | shell | `modal-two-dialogs` | `/docs#modal` (classic scrollbars; one page only) | PLAN.md Conversion rules, one modal helper per dialog (site.js `createModal`), read from a MutationObserver: "Open modal" opens Modal's demo alone, `modal-is-open` and the scrollbar's width on `<html>`. The demo is a true modal (`showModal()`, from Phase 4): it matches `:modal` with focus inside, and the page behind is inert (Colors' red 500 shade button cannot take focus; focus stays in the demo). A script's `click()` on that button (inert stops user input, not a script's events) opens the color modal through colors.js's own helper and hides the demo at once: the first change, within 250 ms, is the color modal alone open with `modal-is-open modal-is-opening` and the same width, then `modal-is-open` 350 to 800 ms after the click, nothing else (no `modal-is-closing`, never both open, `modal-is-open` whenever one is); then the demo is closed, not `:modal`, and focus is in the color modal. Escape: `modal-is-closing modal-is-open` within 100 ms, then no dialog open (the static examples aside), no modal-is-* class and an empty `--femto-scrollbar-width` 350 to 800 ms after Escape, unchanged 0.6 s on. Each step is timed from the click or the key, not from the step before: colors.js starts the 400 ms timer and then focuses its close button, which lays out the long page, so the observer sees `modal-is-opening` 65 to 106 ms after it and the gap between the two steps fell to 342 to 349 ms in Firefox (`p3f-review-behavior-1`, `p3f-review-m2d-1`, `p3f-head-m2d-3`), while `modal-is-open` itself comes 438 to 454 ms after Enter (447 to 450 ms after the click in `p4-fix-checks-2-behavior-dev-1`). Until Phase 4 the scenario was Enter on the focused shade button behind the open demo, which a true modal makes impossible. Skipped on routes (`layout:routes`). |
 | shell | `side-menu-max-height` | `/docs#grid` (375 × 812) | The menu nav's `--max-height` is `innerHeight` minus its top (within 0.5 px) on load and after resizes to 375 × 600, 1300 × 900 and, scrolled 500 px, 1300 × 700; each time `<body>`'s inline `min-height` is `innerHeight` px. |
 | shell | `mobile-menu` | `/docs#modal` (375 × 812) | The breadcrumb's "Documentation" control (a button from Phase 4) adds `is-open-on-mobile` to `aside#documentation-menu`, `<html>` stops scrolling, URL unchanged; the menu's Close reverses all three. |
@@ -1108,11 +1115,11 @@ checks over 48 routes are skipped
 | customization | `color-modal-arrows-small` | `/docs#colors` (375 × 480) | Where the open modal's article overflows, the arrow keys step colors without scrolling the article or the page. |
 | customization | `color-modal-focus-small` | `/docs#colors` (375 × 480) | Enter opens the modal with focus on its close control (`header .close`), not the scrollable article; Escape returns focus to the button. **XFAIL on the oracle** at "focus moves to the close link". |
 | customization | `color-modal-resize` | `/docs#colors` | The open modal's article has `max-height: calc(<innerHeight>px - 2rem)` at 1300 × 900 and after resizes to 1300 × 600 and 1300 × 760. |
-| customization | `color-modal-tab-cycle` | `/docs#colors` (one page) | In the open modal focus starts on the close button; Tab steps through the five copy buttons and wraps to it; Shift+Tab goes back to the last; Enter there copies `var(--femto-color-red-500)`; Escape returns focus to the shade button. |
+| customization | `color-modal-tab-cycle` | `/docs#colors` (one page) | In the open modal focus starts on the close button; Tab steps through the five copy buttons and wraps to it; Shift+Tab goes back to the last; Enter there copies `var(--femto-color-red-500)`; Escape returns focus to the shade button. In Safari each Tab is Option+Tab, which colors.js treats as Tab. |
 | customization | `palette-download` | `/docs#colors` | The Download link (text "Download the palette (JSON)"; on routes the oracle's "Download") points at a same-origin resource that holds the 20 × 19 palette as two-space JSON, with the SHA-256 of the oracle's download. |
 | layout | `grid-columns` | `/docs#grid` | Add and Remove column from 4 up to 10 and down to 1 (clamped both ways): the columns, the code text and its highlighted tokens follow every click. |
 | content | `font-size-units` | `/docs#typography` | The "Display in rem" switch turns the px table (values and formula tooltips) into percentages and multipliers without tooltips, and back to the exact load-time tree. |
-| content | `font-size-restored-switch` | `/docs#typography` | With the "Display in rem" switch restored as checked on a reload (Firefox; a preload script in Chrome), the table shows rem from load, and one click restores the exact px table. **XFAIL on the oracle** at "with the switch restored as checked, the table shows rem". |
+| content | `font-size-restored-switch` | `/docs#typography` | With the "Display in rem" switch restored as checked on a reload (Firefox; a preload script in Chrome; Safari, which brings it back unchecked, ends at the px table), the table shows rem from load, and one click restores the exact px table. **XFAIL on the oracle** at "with the switch restored as checked, the table shows rem". |
 | content | `table-inverse-thead` | `/docs#table` | The color-schemes example's thead and its sample read `data-theme="dark"` on a light page and follow the header toggle. |
 | content | `table-inverse-thead-dark-os` | `/docs#table` (dark OS) | They read `light`. |
 | content | `link-examples` | `/docs#link` | The 6 example links ("Links example": Primary, Secondary, Contrast; "Current link example": Regular link, Current link, Regular link, which the oracle on routes calls "Active link example" and "Active link"; each pointing at its own route, or on the one page at `/docs` or `/docs#link`) go nowhere, clicked and with Enter: the document, URL, history, scroll position and tabs unchanged, every click canceled. |
@@ -1136,11 +1143,11 @@ checks over 48 routes are skipped
 | examples | `examples-scheme` | `/examples` | The inner hosts follow `<html>`'s `data-theme`: none on load, dark and light again with the header toggle, their background with them. |
 | examples | `examples-forms` | `/examples` | Each mockup form submitted with a real click on its submit button (and the search with Enter): every submit canceled, document, URL and history kept. |
 | examples | `examples-links` | `/examples` | Every visible mockup link, clicked and with Enter, goes nowhere: canceled, document, URL and history kept. |
-| examples | `examples-dialog` | `/examples` | The confirmation dialog opens as a modal with focus inside; Escape, its close button, Cancel, Delete project and a backdrop click close it with focus back on the opener; a click on its text keeps it open. |
+| examples | `examples-dialog` | `/examples` | The confirmation dialog opens as a modal with focus inside; Escape, its close button, Cancel, Delete project and a backdrop click close it with focus back on the opener (examples.js puts it there: in Safari a click does not focus the button); a click on its text keeps it open. |
 | examples | `examples-dropdown` | `/examples` | The navigation bar's Account dropdown opens on its summary and closes on a click outside. |
 | examples | `examples-fit` | `/examples` (375 × 812) | At 375 × 812 the page does not scroll sideways and no mockup element leaves its frame (outside a scrolling `.overflow-auto`). |
-| examples | `examples-first-frame` | `/examples` (stored dark) | With a stored dark choice, the first frame that has the mockups already shows them dark with femto applied; no transition runs after load. |
-| examples | `examples-first-frame-cold` | `/examples` (cold cache) | With the cache emptied, the first frame that has the mockups already has femto applied in every root; no transition after load. |
+| examples | `examples-first-frame` | `/examples` (stored dark) | With a stored dark choice, the first frame that has the mockups already shows them dark with femto applied; no transition runs after load. Skipped in Safari (`preload`). |
+| examples | `examples-first-frame-cold` | `/examples` (cold cache) | With the cache emptied, the first frame that has the mockups already has femto applied in every root; no transition after load. Skipped in Safari (`preload`). |
 
 ### Proof
 
@@ -3174,6 +3181,47 @@ PLAN.md Risks (Page size) is 900 KB, 70 KB and 48 KB.
 The gate's Safari part is the owner's: `tests/owner-safari.sh content` (Owner's Safari steps), on
 the Phase 4 commit.
 
+**Safari.** The owner's first pass (2026-11-05, on `5b8c218`) failed: `p4-behavior-safari-light-1`
+had 90 PASS, 10 FAIL, 8 ERROR and 8 SKIP of 116 runs (396 s), and `p4-behavior-safari-dark-1` 4 PASS,
+1 FAIL and 111 SKIP (12 s). What failed, and what changed:
+- Six FAIL were the harness's Tab, which skips links and buttons in Safari: `theme-toggle-button` and
+  `copy-keyboard` on both routes, `picker-swatch-focus` and `dropdown-items`. The behavior mode now
+  presses Option+Tab there, as the styles mode does. That showed a site bug: colors.js left a Tab
+  with Alt held to the browser, so in Safari the color modal's Tab did not cycle. It now treats
+  Alt+Tab as Tab.
+- The eight ERROR were checks Safari's WebDriver cannot run: the preload scripts of
+  `color-scheme-flash` (two routes), `examples-first-frame` and `examples-first-frame-cold`,
+  `modal-scrollbar-width`'s classic scrollbar, `font-size-restored-switch`'s restored switch, and
+  `theme-os-live`'s live switch of the OS scheme (two routes). They are now skipped in Safari, with
+  the reason (`preload`, `safari`), and `font-size-restored-switch` ends once Safari brings the switch
+  back unchecked over the px table.
+- `examples-dialog`: Escape closed the dialog, but focus was not on its opener: in Safari a click
+  does not focus a button, so the dialog gave focus back to `<body>`. examples.js now puts it on the
+  opener when the dialog closes (in Chrome, with the opener clicked by script, which focuses nothing
+  either, focus went to `<body>` without it and to the opener with it).
+- `examples-isolation`, `examples-isolation-stored` and `examples-isolation-dark`: 51 values each,
+  every one a rem at 16 px in the reference frame where the page had 20 px. The reference now adds
+  the examples after its root is styled, and the note gives both roots' font size.
+- `pre-scroll-keyboard`: the focused code block did not scroll with the Right arrow. Each press is
+  now held 0.1 s and the scroll waited for up to 2 s, and the note lists the keydown events the
+  `pre` saw. If it still fails, the note says whether the keys reached it.
+
+In Chrome and Firefox, `p4-safari-fix-behavior-1` (`behavior --target dist --browsers
+chrome,firefox`) passed 232/232 in 369 s, with both roots at 20 px in every `examples-isolation`
+note; after the keydown record moved to `window` (it sees a cancel by any handler), its four keyboard
+and dialog checks passed again (`p4-safari-fix-behavior-2`, 8/8). The Safari paths cannot run
+here: run through `run_one` with a stand-in Safari page, the Light pass runs 101 checks and skips 15
+(5 `media:dark`, 4 `preload`, 3 `safari`, 2 `motion:reduce`, 1 `javascript:off`), and the Dark pass
+runs 5 and skips 111 (`media:light`).
+
+The owner's second pass (2026-11-05, on `5b8c218` with these fixes uncommitted) passed:
+`p4-behavior-safari-light-2` 101 PASS and 15 SKIP of 116 runs (411 s), `p4-behavior-safari-dark-2`
+5 PASS and 111 SKIP (12 s), 0 FAIL and 0 ERROR in both, the skips as the stand-in run predicted.
+Each session's log says the OS scheme it was meant to run in. The notes: `examples-isolation` had
+both roots at 20 px and every compared value equal (355 elements and pseudo-elements); `pre-scroll-keyboard`'s eight Right arrows all reached the
+`pre`, none canceled, and it scrolled to 234 px; `font-size-restored-switch` ended at the px table.
+With Chrome and Firefox's runs above, criterion 7 passes in all three browsers.
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -3232,8 +3280,9 @@ about 25 minutes of section cells per pass, plus about 19 minutes for the six `/
 cells (about 190 s each on an unlocked screen, below), a few minutes for the behavior suite and two
 for the pages; not measured yet. `content` is Phase 4's gate in Safari (criterion 7): it builds
 `dist/`, then in Light and again in Dark runs only the behavior suite (`behavior --target dist
---browsers safari`, as `p4-behavior-safari-light-1` and `-dark-1`), since Phase 4 compares nothing
-against the oracle: a few minutes a pass, not measured yet. The behavior suite needs the automation
+--browsers safari`, as `p4-behavior-safari-light-2` and `-dark-2`; `-1` was the first pass, Phase 4
+record), since Phase 4 compares nothing against the oracle: 411 s in Light and 12 s in Dark, which
+runs only the dark checks (the second pass). The behavior suite needs the automation
 window in front the whole time. Each step is one command in the script under `caffeinate -d -i`, so one can also be run
 by hand. At the end the script prints how often each self or styles run's `log.txt` says
 `OS scheme light` or `OS scheme dark`: the light run must say light and the dark run dark, and the

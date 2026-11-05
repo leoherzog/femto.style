@@ -60,6 +60,7 @@ class Check:
     cold: bool = False
     preload_optional: bool = False
     delay: dict | None = None
+    safari_skip: str | None = None
 
     def describe(self):
         d = {"name": self.name, "group": self.group, "routes": list(self.routes),
@@ -80,6 +81,8 @@ class Check:
             d["oracle_bug"] = self.oracle_bug
         if self.preload:
             d["preload"] = True
+        if self.safari_skip:
+            d["safari_skip"] = self.safari_skip
         return d
 
 
@@ -88,14 +91,16 @@ REGISTRY: list[Check] = []
 
 def check(name, routes, *, width=1300, height=900, media="light", storage=None, oracle_bug=None, preload=None,
           layouts=LAYOUTS, layout_reason=None, motion="no-preference", javascript=True, cold=False,
-          preload_optional=False, delay=None):
+          preload_optional=False, delay=None, safari_skip=None):
     """Register a check. routes: one URL or several, in the one page's URLs (the check runs once per
     route). width and height: the document viewport (innerWidth, innerHeight). media:
     prefers-color-scheme. motion: prefers-reduced-motion. storage: localStorage items (raw strings)
     set on the target's origin before the first load. preload: a JavaScript function declaration
     run in every new document before the page's own scripts (WebDriver BiDi
-    script.addPreloadScript); preload_optional: Safari, which has no BiDi, runs the check without it
-    (page.preloaded says which). javascript=False: the page's JavaScript is off (Chrome and Firefox;
+    script.addPreloadScript); Safari, which has no BiDi, skips the check (`preload`), unless
+    preload_optional: it then runs the check without it (page.preloaded says which). safari_skip: why
+    the check cannot run in Safari for another reason (what its WebDriver cannot do): skipped there
+    (`safari`) with that reason. javascript=False: the page's JavaScript is off (Chrome and Firefox;
     skipped in Safari). cold: the browser's HTTP cache is emptied before the route loads. delay:
     {path: seconds}, the target's responses for those exact paths held that long (WebDriver BiDi
     network interception, as 05's serve.py slowed the theme file; Safari, which has no BiDi, loads
@@ -126,7 +131,7 @@ def check(name, routes, *, width=1300, height=900, media="light", storage=None, 
             raise ValueError(f"{name}: a check states what it asserts in its docstring")
         REGISTRY.append(Check(name, group, tuple(routes), fn, doc, width, height, media, storage,
                               oracle_bug, preload, fn.__module__, layouts, layout_reason, motion, javascript, cold,
-                              preload_optional, delay))
+                              preload_optional, delay, safari_skip))
         return fn
     return deco
 

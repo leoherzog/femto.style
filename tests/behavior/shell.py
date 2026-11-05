@@ -103,7 +103,9 @@ COMPARISON = "[...document.querySelectorAll('main > section.comparison div.code[
 THEAD = "(() => { const h = S.querySelector('div.overflow-auto > table > thead[data-theme]'); return h && h.getAttribute('data-theme'); })()"
 
 
-@check("theme-os-live", ("/", "/docs#table"))
+@check("theme-os-live", ("/", "/docs#table"),
+       safari_skip="the OS scheme changes while the page is open, which Safari cannot emulate; the harness never "
+                   "changes macOS's appearance itself")
 def theme_os_live(page):
     """With nothing stored, the page follows a live change of the OS scheme (prefers-color-scheme
     switched while the page is open; use-prefers-color-scheme in PageContext.jsx): at dark the
@@ -404,7 +406,9 @@ def modal_helper(page):
             [e for e in page.js("return window.__bhModal") if e[1] == "classes"], [])
 
 
-@check("modal-scrollbar-width", "/docs#modal")
+@check("modal-scrollbar-width", "/docs#modal",
+       safari_skip="the harness forces a classic scrollbar with a preload script (Chrome) or a pref (Firefox); Safari's "
+                   "WebDriver has neither, and its scrollbars are the OS's, which the harness never changes")
 def modal_scrollbar_width(page):
     """With a classic (space-taking) scrollbar, which the harness forces (Chrome: a
     ::-webkit-scrollbar sheet adopted before the page loads; Firefox: ui.useOverlayScrollbars 0):
@@ -854,12 +858,6 @@ PHASE4_BUTTONS = ("Phase 4 made these controls buttons (PLAN.md Workflow, 4; tes
                   "oracle's are links with tabindex=-1 or href, which Space does not press and Tab skips")
 
 
-def shift_tab(page):
-    from selenium.webdriver.common.action_chains import ActionChains
-    from selenium.webdriver.common.keys import Keys
-    ActionChains(page.driver, duration=0).key_down(Keys.SHIFT).send_keys(Keys.TAB).key_up(Keys.SHIFT).perform()
-
-
 @check("theme-toggle-button", ("/", "/does-not-exist"), layouts=("one-page",), layout_reason=PHASE4_BUTTONS)
 def theme_toggle_button(page):
     """The header's color-scheme toggle is a <button type="button"> with no href
@@ -926,7 +924,7 @@ def mobile_menu_inert(page):
         s = state()
         page.expect(f"Tab {i + 1}: focus stays in the menu", s["inside"] or s["focus"] == "body", **s)
     for i in range(10):
-        shift_tab(page)
+        page.tab(shift=True)
         s = state()
         page.expect(f"Shift+Tab {i + 1}: focus stays in the menu", s["inside"] or s["focus"] == "body", **s)
     page.key("ESCAPE")
@@ -1064,7 +1062,9 @@ def pre_scroll_keyboard(page):
     """At 375 px Quick start's first code block that overflows sideways is a figure in the tab order
     (tabindex="0", role="figure", aria-label "<language> code", from site.js's Code block focus),
     takes focus with Tab from its copy button, matches :focus-visible with an inset focus ring
-    (box-shadow), and the Right arrow key scrolls it."""
+    (box-shadow), and the Right arrow key scrolls it: each press held 0.1 s, as a person's is
+    (Safari's keyboard scrolling animates while the key is down), and the scroll waited for up to
+    2 s. The note records the keydown events the pre saw, and whether any was canceled."""
     pre = page.js("const p = [...S.querySelectorAll('.code pre')].find(p => p.scrollWidth > p.clientWidth);"
                   " p && p.scrollIntoView({block: 'center'}); return p || null;")
     page.expect("a code block overflows", pre is not None)
@@ -1077,6 +1077,13 @@ def pre_scroll_keyboard(page):
     page.eq("it matches :focus-visible", page.js("return arguments[0].matches(':focus-visible')", pre), True)
     ring = page.js("return getComputedStyle(arguments[0]).boxShadow", pre)
     page.expect("its focus ring shows", "inset" in ring, ring=ring)
-    page.key("ARROW_RIGHT", 8)
-    page.sleep(0.3)
-    page.expect("the arrow keys scroll it", page.js("return arguments[0].scrollLeft", pre) > 0)
+    # On window, as the event bubbles out last: canceled by any handler on its way.
+    page.js("window.__bhKeys = []; const p = arguments[0]; addEventListener('keydown', e => { "
+            "if (e.target === p) window.__bhKeys.push([e.key, e.defaultPrevented]); }); return 1;", pre)
+    page.key("ARROW_RIGHT", 8, hold=0.1)
+    left = page.ajs("""const p = arguments[0], end = performance.now() + 2000;
+      while (p.scrollLeft <= 0 && performance.now() < end) await new Promise(r => setTimeout(r, 50));
+      return p.scrollLeft;""", pre)
+    keys = page.js("return window.__bhKeys")
+    page.note(f"keydown events on the pre [key, canceled]: {keys}; scrollLeft {left}")
+    page.expect("the arrow keys scroll it", left > 0, scrollLeft=left, keydowns=keys)

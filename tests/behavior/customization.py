@@ -97,12 +97,6 @@ return {inside: !!(d && d.contains(document.activeElement)),
 """
 
 
-def shift_tab(page):
-    from selenium.webdriver.common.action_chains import ActionChains
-    from selenium.webdriver.common.keys import Keys
-    ActionChains(page.driver, duration=0).key_down(Keys.SHIFT).send_keys(Keys.TAB).key_up(Keys.SHIFT).perform()
-
-
 def click_backdrop(page):
     """Click the open color dialog outside its article: a point on the dialog itself (or its
     ::backdrop, which hit-tests as the dialog)."""
@@ -239,7 +233,7 @@ def color_modal_tab(page):
     s = page.js(FOCUS)
     page.eq("Tab leaves the page where it was", s["scrollY"], y)
     page.expect("Tab keeps focus inside the dialog", s["inside"])
-    shift_tab(page)
+    page.tab(shift=True)
     page.sleep(0.2)
     s = page.js(FOCUS)
     page.eq("Shift+Tab leaves the page where it was", s["scrollY"], y)
@@ -373,7 +367,7 @@ def color_modal_tab_cycle(page):
         page.eq(f"Tab {i + 1}: copy button {i + 1}", page.js(MODAL_FOCUS)["copy"], i)
     page.key("TAB")
     page.eq("Tab wraps to the close button", page.js(MODAL_FOCUS)["close"], True)
-    shift_tab(page)
+    page.tab(shift=True)
     page.eq("Shift+Tab: the last copy button", page.js(MODAL_FOCUS)["copy"], 4)
     page.js("window.__bhCopied.length = 0")
     page.key("ENTER")

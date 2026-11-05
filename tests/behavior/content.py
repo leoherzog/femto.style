@@ -89,9 +89,10 @@ def font_size_restored_switch(page):
     on window is gone). Firefox restores the switch as checked; a browser that brings it back
     unchecked (Chrome) must show the px table with it, and then gets the same restoration from a
     preload script (the checked state set as the parser inserts the switch, before any script) on
-    a fresh load. Either way, with the switch checked at load the table shows the root sizes as
-    percentages and the multipliers, with no tooltips; one click unchecks the switch and restores
-    the px table exactly as first loaded (the same tree)."""
+    a fresh load (Safari, which has no preload script, ends there). Either way, with the switch
+    checked at load the table shows the root sizes as percentages and the multipliers, with no
+    tooltips; one click unchecks the switch and restores the px table exactly as first loaded (the
+    same tree)."""
     t0 = page.js(TABLE)
     page.eq("off on load over the px table", [t0["checked"], t0["cells"]], [False, [[list(c) for c in r] for r in px_rows()]])
     page.click(page.find(SWITCH))
@@ -104,6 +105,11 @@ def font_size_restored_switch(page):
         page.note(f"{page.browser} restored the switch as checked on the reload")
     else:
         page.eq("brought back unchecked: the px table", t1["cells"], [[list(c) for c in r] for r in px_rows()])
+        if page.browser == "safari":
+            # No preload script without WebDriver BiDi; a switch Safari never restores needs no table.
+            page.note("safari brought the switch back unchecked on the reload; the restored switch is Chrome's and "
+                      "Firefox's (Safari has no preload script)")
+            return
         page.note(f"{page.browser} brought the switch back unchecked on the reload; restored as Firefox does, "
                   "by a preload script on a fresh load")
         page.sess.add_preload(RESTORE_SWITCH)   # removed after the check by the runner

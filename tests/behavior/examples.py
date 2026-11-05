@@ -108,7 +108,12 @@ const collect = (hosts) => hosts.map(h => {
 """
 
 # The reference: the same examples in an iframe whose document loads femto alone, each in the same
-# two shadow roots, with the frame given only the geometry examples.css gives it.
+# two shadow roots, with the frame given only the geometry examples.css gives it. The examples go in
+# once that document has loaded, its root styled by femto (setHTMLUnsafe, which attaches declarative
+# shadow roots). Parsed with the document, they gave 51 values in Safari 27.2 that differed from the
+# page's, each a rem resolved at 16 px (an unstyled root's) where the page and the rest of the
+# reference had 20 px (p4-behavior-safari-light-1), most likely values Safari resolved before the
+# reference's root had femto's font size and never resolved again. The note gives both roots' size.
 REFERENCE = r"""
 const theme = arguments[1];
 const frameCss = [...document.styleSheets].find(s => s.href?.endsWith('/assets/css/examples.css'));
@@ -119,12 +124,14 @@ const sections = hosts.map(h => {
   return `<div data-ref><template shadowrootmode="open"><div${theme ? ` data-theme="${theme}"` : ''}><template shadowrootmode="open"><link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">${code}</template></div></template></div>`;
 }).join('\n');
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark">
-<link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"><style>${frameRules}</style></head><body><main class="container">${sections}</main></body></html>`;
+<link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"><style>${frameRules}</style></head><body><main class="container"></main></body></html>`;
 const iframe = document.createElement('iframe');
 iframe.style.cssText = `position: fixed; top: 0; left: 0; width: ${innerWidth}px; height: ${innerHeight}px; border: 0; visibility: hidden;`;
 document.body.append(iframe);
 await new Promise(res => { iframe.onload = res; iframe.srcdoc = html; });
 const doc = iframe.contentDocument;
+const refRoot = getComputedStyle(doc.documentElement).fontSize;
+doc.querySelector('main').setHTMLUnsafe(sections);
 const refHosts = [...doc.querySelectorAll('div[data-ref]')].map((frame, i) => {
   const inner = frame.shadowRoot.firstElementChild; return {id: hosts[i].id, frame, inner, root: inner.shadowRoot};
 });
@@ -180,9 +187,11 @@ def compare_styles(page, theme):
           }
         });
       });
-      return {diffs: diffs.slice(0, 40), total: diffs.length, skipped, elements: a.reduce((n, e) => n + e.styles.length, 0)};
+      return {diffs: diffs.slice(0, 40), total: diffs.length, skipped, elements: a.reduce((n, e) => n + e.styles.length, 0),
+              roots: [getComputedStyle(document.documentElement).fontSize, refRoot]};
     """, femto_tokens(), theme, list(LAYOUT_ONLY))
-    page.note(f"compared {res['elements']} elements and pseudo-elements; {res['skipped']} layout-resolved inset values differ (not compared)")
+    page.note(f"compared {res['elements']} elements and pseudo-elements; {res['skipped']} layout-resolved inset values differ (not compared); "
+              f"root font size {res['roots'][0]} on the page, {res['roots'][1]} in the reference before its examples")
     page.eq("every computed style equals a femto-only page's", res["total"], 0, diffs=res["diffs"])
 
 
