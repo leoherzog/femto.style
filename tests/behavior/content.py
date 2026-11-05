@@ -141,7 +141,7 @@ def table_inverse_thead(page):
     the sample reads <thead data-theme="dark">; after the header toggle makes the page dark, both
     say "light"; toggled back, "dark" again."""
     expect_thead(page, "dark", "light OS")
-    toggle = "body > header nav ul.icons a[aria-label$='dark mode']"
+    toggle = "body > header nav ul.icons :is(a, button)[aria-label$='dark mode']"   # a button from Phase 4
     page.click(toggle)
     expect_thead(page, "light", "page made dark")
     page.click(toggle)
@@ -155,16 +155,22 @@ def table_inverse_thead_dark_os(page):
     expect_thead(page, "light", "dark OS")
 
 
-# The example links of /docs/link, in document order: every <a> inside an example (article.component)
+# The example links of Link, in document order: every <a> inside an example (article.component)
 # but the copy links of the code footers. That is the three of "Links example" and the three of
-# "Active link example".
+# the aria-current example: "Current link example" with a "Current link" on the one page (Phase 4
+# wording), "Active link example" with an "Active link" on routes (the oracle).
 LINKS = """
 return [...S.querySelectorAll("#content article.component a:not(.copy-to-clipboard)")].map(a =>
   [a, a.textContent, a.getAttribute("href"), a.closest("article").getAttribute("aria-label")]);
 """
-LINK_TEXTS = [["Links example", "Primary"], ["Links example", "Secondary"], ["Links example", "Contrast"],
-              ["Active link example", "Regular link"], ["Active link example", "Active link"],
-              ["Active link example", "Regular link"]]
+
+
+def link_texts(current):
+    """The [example label, link text] pairs of the six links; current is "Current" or "Active"."""
+    return [["Links example", "Primary"], ["Links example", "Secondary"], ["Links example", "Contrast"],
+            [f"{current} link example", "Regular link"], [f"{current} link example", f"{current} link"],
+            [f"{current} link example", "Regular link"]]
+
 
 # Every click event on a link, in the capture phase, records whether it was canceled once its
 # dispatch is over; a marker on window shows that the document was not replaced.
@@ -184,14 +190,16 @@ return {marker: window.__bhMarker, url: location.pathname + location.search + lo
 @check("link-examples", "/docs#link")
 def link_examples(page):
     """Every example link of Link (Primary, Secondary and Contrast of "Links example", the two
-    Regular links and the Active link of "Active link example": 6 links, each pointing at its own
+    Regular links and the Current link of "Current link example", which routes, the oracle, call
+    the Active link of "Active link example": 6 links, each pointing at its own
     place: href="/docs/link" on routes, /docs or /docs#link on the one page) goes nowhere, by
     pointer and by keyboard. A real click on each, then Enter
     on each once focused, leaves the document (a marker set on window survives), the URL,
     history.length, the scroll position and the number of tabs as they were, and the click event
     is canceled (defaultPrevented)."""
     links = page.js(LINKS)
-    page.eq("the six example links", [[a[3], a[1]] for a in links], LINK_TEXTS)
+    page.eq("the six example links", [[a[3], a[1]] for a in links],
+            link_texts("Active" if page.layout == "routes" else "Current"))
     page.eq("every example link points at the route itself", [self_href(page, a[0]) for a in links], [True] * 6,
             hrefs=[a[2] for a in links])
     page.js(LINK_SPY)

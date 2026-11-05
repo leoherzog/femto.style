@@ -1,6 +1,13 @@
 """Customization: the Colors section's color modal and palette download (01 §2, ColorModal and
-docs.colors.jsx; colors.js in the static site)."""
-from behavior import check
+docs.colors.jsx; colors.js in the static site).
+
+Phase 4 describes femto.colors.css as femto 3 has it: the modal has five rows (the Sass variable row
+is gone, and "CSS variable" reads "Custom property"), each family's main shade is the one
+femto.colors.css gives the family's unshaded names (550 for red and fuchsia, where the oracle's
+colors.json said 500), the shade buttons sit in a div.shades (the oracle's <main>) and the close
+control is a button (the oracle's link). On routes the oracle's own markup and values are asserted,
+so the same checks still hold the oracle."""
+from behavior import COPY_SPY, check
 
 GROUP = "customization"
 
@@ -24,7 +31,10 @@ COLORS = {
     ("slate", "600"): ("Award Night", "#525f7a", "rgb(82, 95, 122)"),
     ("slate", "950"): ("Dark Rift", "#0e1118", "rgb(14, 17, 24)"),
 }
-MAIN = {"red": "#d93526", "pink": "#d92662", "fuchsia": "#d9269d", "slate": "#525f7a"}   # each family's "main" hex
+# Each family's main hex, as the glow shows it: femto.colors.css's unshaded color from Phase 4, the
+# oracle's colors.json "main" on routes.
+MAIN = {"red": "#c52f21", "pink": "#d92662", "fuchsia": "#c1208b", "slate": "#525f7a"}
+MAIN_ORACLE = {"red": "#d93526", "pink": "#d92662", "fuchsia": "#d9269d", "slate": "#525f7a"}
 # sha256 of JSON.stringify(palette, null, 2), the palette being {family: {shade: hex}} over the 20
 # families and 19 shades above, in that order (8,681 bytes): the oracle's Download content.
 PALETTE_SHA256 = "73262eda105c487a7b2628946da06241f70e743d6eaaa6cda7d62a9b5b6a9636"
@@ -43,7 +53,7 @@ return {open: true, classes: cls, header: h.className, family: h.querySelector("
 
 
 def shade_button(family, shade):
-    return f".color-families .family main > button.femto-background-{family}-{shade}"
+    return f".color-families .family :is(main, .shades) > button.femto-background-{family}-{shade}"
 
 
 def expect_color(page, family, shade, label):
@@ -56,11 +66,18 @@ def expect_color(page, family, shade, label):
     page.eq(f"{label}: header class", m["header"], f"femto-background-{family}-{shade}")
     page.eq(f"{label}: title", m["family"], f"{family.capitalize()} {shade}")
     page.eq(f"{label}: color name", m["name"], name)
-    page.eq(f"{label}: glow is the family's main color at 26 alpha", m["glow"], f"{MAIN[family]}26")
-    page.eq(f"{label}: the six labels", m["labels"], ["Hexadecimal color", "RGB color", "Sass variable",
-                                                      "Color utility class", "Background utility class", "CSS variable"])
-    page.eq(f"{label}: the six values", m["codes"], [hexv.upper(), rgb, f"${family}-{shade}", f"femto-color-{family}-{shade}",
-                                                     f"femto-background-{family}-{shade}", f"var(--femto-color-{family}-{shade})"])
+    main = MAIN_ORACLE if page.layout == "routes" else MAIN
+    page.eq(f"{label}: glow is the family's main color at 26 alpha", m["glow"], f"{main[family]}26")
+    if page.layout == "routes":
+        page.eq(f"{label}: the six labels", m["labels"], ["Hexadecimal color", "RGB color", "Sass variable",
+                                                          "Color utility class", "Background utility class", "CSS variable"])
+        page.eq(f"{label}: the six values", m["codes"], [hexv.upper(), rgb, f"${family}-{shade}", f"femto-color-{family}-{shade}",
+                                                         f"femto-background-{family}-{shade}", f"var(--femto-color-{family}-{shade})"])
+    else:
+        page.eq(f"{label}: the five labels", m["labels"], ["Hexadecimal color", "RGB color", "Color utility class",
+                                                           "Background utility class", "Custom property"])
+        page.eq(f"{label}: the five values", m["codes"], [hexv.upper(), rgb, f"femto-color-{family}-{shade}",
+                                                          f"femto-background-{family}-{shade}", f"var(--femto-color-{family}-{shade})"])
     return m
 
 
@@ -75,7 +92,7 @@ FOCUS = """
 const d = [...document.querySelectorAll("dialog.color")].find(x => x.open) || null;
 const a = d && d.querySelector(":scope > article");
 return {inside: !!(d && d.contains(document.activeElement)),
-        close: !!(d && document.activeElement === d.querySelector(":scope > article > header a.close")),
+        close: !!(d && document.activeElement === d.querySelector(":scope > article > header .close")),
         scrollY: Math.round(scrollY), articleTop: a ? Math.round(a.scrollTop) : null};
 """
 
@@ -101,14 +118,17 @@ def click_backdrop(page):
 
 @check("color-modal-open", ROUTE)
 def color_modal_open(page):
-    """A shade button (`.color-families .family main > button.femto-background-red-500`) opens the
+    """A shade button (`.color-families .family .shades > button.femto-background-red-500`; the
+    oracle's `main > button`) opens the
     color modal: one `dialog.color` is open, <html> has `modal-is-open`, and the dialog's header has
     class femto-background-red-500 and reads "Red 500" (non-breaking space) over the color's name
-    ("Shōjōhi Red"); its article sets --femto-glowing-color to the family's main hex plus "26"; the
-    six rows read Hexadecimal color #D93526, RGB color rgb(217, 53, 38), Sass variable $red-500,
-    Color utility class femto-color-red-500, Background utility class femto-background-red-500, CSS
-    variable var(--femto-color-red-500). Escape closes it. A family header (Slate's
-    `header.femto-background-slate`) opens the family's main shade, slate 600."""
+    ("Shōjōhi Red"); its article sets --femto-glowing-color to the family's main hex plus "26" (red
+    550's #c52f21, femto.colors.css's unshaded red; the oracle's 500); the five rows read
+    Hexadecimal color #D93526, RGB color rgb(217, 53, 38), Color utility class femto-color-red-500,
+    Background utility class femto-background-red-500, Custom property var(--femto-color-red-500)
+    (on routes the oracle's six, with Sass variable $red-500 and "CSS variable"). Escape closes it.
+    A family header (Slate's `header.femto-background-slate`) opens the family's main shade, slate
+    600."""
     page.eq("no open color dialog on load", page.js(MODAL)["open"], False)
     page.click(shade_button("red", "500"))
     m = expect_color(page, "red", "500", "red 500")
@@ -147,13 +167,13 @@ def color_modal_arrows(page):
 @check("color-modal-close", ROUTE)
 def color_modal_close(page):
     """The color modal closes three ways, each leaving no open `dialog.color` and no modal-is-*
-    class on <html> within 1.5 s: its close link (`header a.close`), a click on the dialog outside
-    its article (the backdrop), and Escape. A click inside the article (on its hgroup) leaves it
-    open."""
+    class on <html> within 1.5 s: its close control (`header .close`: a button from Phase 4, the
+    oracle's link), a click on the dialog outside its article (the backdrop), and Escape. A click
+    inside the article (on its hgroup) leaves it open."""
     page.click(shade_button("red", "500"))
     expect_color(page, "red", "500", "opened")
-    page.click("dialog.color[open] header a.close")
-    expect_closed(page, "close link")
+    page.click("dialog.color[open] header .close")
+    expect_closed(page, "close control")
     page.click(shade_button("pink", "500"))
     expect_color(page, "pink", "500", "reopened")
     page.click("dialog.color[open] header hgroup")
@@ -172,13 +192,13 @@ def color_modal_close(page):
                    "reason": "the #close URL: the oracle's close link is <a href=\"#close\"> without preventDefault, so "
                              "closing pushes /docs/colors#close (PLAN.md, oracle-bug)"})
 def color_modal_close_url(page):
-    """Closing the color modal with its close link leaves the URL as it was (/docs/colors, or on the
+    """Closing the color modal with its close control leaves the URL as it was (/docs/colors, or on the
     one page /docs with the hash of the section being read: no #close) and adds no history entry."""
     url, n = page.url(), page.js("return history.length")
     page.click(shade_button("red", "500"))
     expect_color(page, "red", "500", "opened")
-    page.click("dialog.color[open] header a.close")
-    expect_closed(page, "close link")
+    page.click("dialog.color[open] header .close")
+    expect_closed(page, "close control")
     page.url_kept("the close link leaves the URL as it was", url)
     page.eq("no history entry", page.js("return history.length"), n)
 
@@ -260,13 +280,13 @@ def color_modal_arrows_small(page):
                              "colors.js moves focus to the dialog's close link (PLAN.md, oracle-bug)"})
 def color_modal_focus_small(page):
     """On a short viewport (375 x 480), where the open color modal's article overflows, Enter on
-    pink 300's focused shade button opens the modal with focus on its close link (`header a.close`),
+    pink 300's focused shade button opens the modal with focus on its close control (`header .close`),
     not on the scrollable article; Escape closes it and focus returns to the button."""
     page.focus(shade_button("pink", "300"))
     page.key("ENTER")
     expect_color(page, "pink", "300", "opened with Enter")
     page.wait("focus moves to the close link", "(() => { const d = document.querySelector('dialog.color[open]');"
-              " return !!d && document.activeElement === d.querySelector(':scope > article > header a.close'); })()", 1)
+              " return !!d && document.activeElement === d.querySelector(':scope > article > header .close'); })()", 1)
     page.key("ESCAPE")
     expect_closed(page, "Escape")
     page.wait("focus returns to the shade button", "document.activeElement === document.querySelector(arguments[0])", 1,
@@ -293,7 +313,7 @@ def color_modal_resize(page):
 @check("palette-download", ROUTE)
 def palette_download(page):
     """The palette Download link (`a[download="femto-color-palette.json"][role=button]`, text
-    "Download") points at a same-origin resource (a blob: URL of this origin, or a path here) whose
+    "Download the palette (JSON)" from Phase 4, the oracle's "Download" on routes) points at a same-origin resource (a blob: URL of this origin, or a path here) whose
     body is the palette JSON: 20 families of 19 shades, each a #rrggbb hex, red 500 being #d93526,
     two-space indented (the body, less trailing whitespace, equals JSON.stringify(parsed, null,
     2)), and with the SHA-256 of the oracle's own download."""
@@ -313,7 +333,7 @@ def palette_download(page):
               red500: parsed && parsed.red && parsed.red["500"],
               hexes: parsed ? Object.values(parsed).every(f => Object.values(f).every(v => /^#[0-9a-f]{6}$/.test(v))) : false};""")
     page.expect("the Download link exists", not r.get("missing"))
-    page.eq("its text", r["text"], "Download")
+    page.eq("its text", r["text"], "Download" if page.layout == "routes" else "Download the palette (JSON)")
     page.eq("role=button", r["role"], "button")
     page.expect("it points at this origin", r["sameOrigin"], href=r["href"])
     page.eq("the resource answers 200", r["status"], 200)
@@ -323,3 +343,43 @@ def palette_download(page):
     page.eq("red 500", r["red500"], "#d93526")
     page.expect("two-space indented JSON", r["formatted"])
     page.eq("the oracle's palette, byte for byte once canonical", r["digest"], PALETTE_SHA256)
+
+
+MODAL_FOCUS = r"""
+const d = document.querySelector('dialog.color[open]');
+const a = document.activeElement;
+return {inside: !!d && d.contains(a), close: !!d && a === d.querySelector('header button.close'),
+        copy: !!d && [...d.querySelectorAll('.grid .code > button')].indexOf(a)};
+"""
+
+
+@check("color-modal-tab-cycle", ROUTE, layouts=("one-page",),
+       layout_reason="from Phase 4 the color modal's close control and copy controls are buttons in its tab order (the "
+                     "oracle's close link and copy links take no keyboard focus), and colors.js cycles Tab through them")
+def color_modal_tab_cycle(page):
+    """In the open color modal (Enter on red 500's focused shade button), focus starts on the close
+    button; Tab moves through the five copy buttons in order and wraps to the close button; Shift+Tab
+    goes back to the last copy button; Enter on it copies its value, var(--femto-color-red-500); Escape
+    closes the modal and focus returns to the shade button."""
+    shade = shade_button("red", "500")
+    page.js(COPY_SPY)
+    page.focus(shade)
+    page.key("ENTER")
+    page.wait("the modal opens", "!!document.querySelector('dialog.color[open]')", 1.5)
+    page.wait("focus is on the close button", "(() => { const d = document.querySelector('dialog.color[open]');"
+              " return !!d && document.activeElement === d.querySelector('header button.close'); })()", 1)
+    for i in range(5):
+        page.key("TAB")
+        page.eq(f"Tab {i + 1}: copy button {i + 1}", page.js(MODAL_FOCUS)["copy"], i)
+    page.key("TAB")
+    page.eq("Tab wraps to the close button", page.js(MODAL_FOCUS)["close"], True)
+    shift_tab(page)
+    page.eq("Shift+Tab: the last copy button", page.js(MODAL_FOCUS)["copy"], 4)
+    page.js("window.__bhCopied.length = 0")
+    page.key("ENTER")
+    page.wait("Enter copies", "window.__bhCopied.length === 1", 1)
+    page.eq("it copied the custom property", page.js("return window.__bhCopied[0].text"), "var(--femto-color-red-500)")
+    page.key("ESCAPE")
+    expect_closed(page, "Escape")
+    page.wait("focus returns to the shade button", "document.activeElement === document.querySelector(arguments[0])", 1,
+              args=(shade,))

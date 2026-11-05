@@ -2,27 +2,35 @@
 // absent). docs/research/01 §2 (docs.colors.jsx, ColorModal.jsx) and 03 §5.
 //
 // It rebuilds the section's color modal, attached through data-color-modal (PLAN.md Conversion
-// rules: data- attributes from Phase 3). A click on a shade button (.family > main > button) or on a
+// rules: data- attributes from Phase 3). A click on a shade button (.family > .shades > button) or on a
 // family's header (its main shade) inside that element opens dialog.color, with ColorModal.jsx's
-// exact markup, appended to the Colors section (the oracle appended it to #content, its route's
-// content) and removed again once closed. The arrow keys move through the 380 colors while it is
+// markup less its Sass variable row (femto has no Sass), appended to the Colors section (the oracle
+// appended it to #content, its route's content) and removed again once closed. Its five rows are the
+// color's hex and RGB values, its two utility classes and its custom property, as femto.colors.css
+// names them. The arrow keys move through the 380 colors while it is
 // shown: Right and Left the next and previous shade (across families, wrapping at both ends), Down
-// and Up the next and previous family at the same shade. The close link, Escape and a click on the
+// and Up the next and previous family at the same shade. The close button, Escape and a click on the
 // dialog outside its article close it, with ModalContext's classes and 400 ms animations from
 // site.js's createModal, the dialog's own helper.
 //
-// Two fixes over the oracle (PLAN.md oracle-bug, tests/behavior/customization.py):
-// - the close link cancels its navigation, so the URL keeps no #close;
-// - focus is managed as a modal <dialog>'s would be: on open it moves to the close link, the
-//   dialog's one sequential focus stop (its copy links have tabindex=-1); Tab and Shift+Tab keep it
-//   there, as showModal()'s inert page would, instead of reaching the page behind (whose scroll
-//   position they would move); and when the dialog closes with focus inside (or lost to <body>),
-//   focus returns to the element that had it before, as dialog.close() does. The dialog itself
-//   stays non-modal (the open attribute, as the oracle's): showModal() would put it in the top layer
-//   with a ::backdrop the oracle lacks.
+// Fixes over the oracle (PLAN.md oracle-bug, tests/behavior/customization.py):
+// - the close control is a <button type="button"> (the oracle's was a link to #close), so the URL
+//   keeps no #close;
+// - focus is managed as a modal <dialog>'s would be: on open it moves to the close button; Tab and
+//   Shift+Tab move through the dialog's own focus stops (the close button, then each value's copy
+//   button) and wrap around at both ends, as showModal()'s inert page would, instead of reaching the
+//   page behind (whose scroll position they would move); and when the dialog closes with focus
+//   inside (or lost to <body>), focus returns to the element that had it before, as dialog.close()
+//   does. The dialog itself stays non-modal (the open attribute, as the oracle's): showModal() would
+//   put it in the top layer with a ::backdrop the oracle lacks;
+// - the dialog is named by its title, says aria-modal (focus cannot leave it), and its title and the
+//   color's name are a polite live region, so a screen reader reads each color an arrow key shows
+//   (the oracle's dialog had no name and changed silently). The shade buttons get their color's
+//   name too ("Red 50"), not the shade alone.
 // The arrow keys only change the color, as in the oracle, whose focus stayed behind the dialog:
 // their default action is cancelled, so they never scroll an overflowing article. Space, Page Up,
-// Page Down, Home and End still scroll it from the close link: the keyboard's way to its lower rows.
+// Page Down, Home and End still scroll it from the close button: the keyboard's way to its lower
+// rows.
 
 import { createModal } from "./site.js";
 
@@ -33,14 +41,18 @@ import { createModal } from "./site.js";
 // then its colors, then `],`.
 
 // --- The palette (app/data/colors.json at remix-final) -------------------------------------------
-// family: [its main shade (colors.json's "main", the shade with the same hex), then each of SHADES'
-// colors as "<hex without #> <name>"]. Families and shades are in the oracle's order.
+// family: [its main shade, then each of SHADES' colors as "<hex without #> <name>"]. The hex values
+// are femto.colors.css's --femto-color-<family>-<shade>, and families and shades are in its order.
+// The main shade is the one femto.colors.css gives the family's unshaded names (--femto-color-<family>,
+// .femto-background-<family>, which the family's header shows): jade-550, for one (femto's README,
+// Color utilities). colors.json's "main" was another shade for seven families (500 for red, fuchsia,
+// blue, azure, cyan, jade and zinc).
 
 const SHADES = ["50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650",
   "700", "750", "800", "850", "900", "950"];
 
 const PALETTE = {
-  red: ["500",
+  red: ["550",
     "faeeeb Salt Pebble", "f8dcd6 Pale Shrimp", "f6cabf Sandblast", "f5b7a8 Pink Mimosa",
     "f5a390 Poppy Petal", "f38f79 Corralize", "f17961 Akebono Dawn", "f06048 Connect Red", "ee402e Cascara",
     "d93526 Shōjōhi Red", "c52f21 Bloody Red", "af291d Carnelian", "9b2318 Antique Port Wine",
@@ -52,7 +64,7 @@ const PALETTE = {
     "f42c6f Vivid Raspberry", "d92662 Qing Dynasty Fire", "c72259 Bright Rose",
     "b21e4f Minted Blueberry Lemonade", "9d1945 Berry Rossi", "88143b Atlas Red", "740f31 Deep Claret",
     "5f0e28 Plum Cheese", "4b0c1f What We Do in the Shadows", "380916 Ilvaite Black", "25060c Ponzu Brown"],
-  fuchsia: ["500",
+  fuchsia: ["550",
     "fbedf4 Lavender Blush", "f9daea Cherry Flower", "f9c6e1 Sugarwinkle", "f9b1d8 Hot Aquarelle Pink",
     "fa9acf Himalayan Balsam", "f983c7 Aries Hot Pink", "f869bf Kisses", "f748b7 Major Magenta",
     "ed2aac Magnificent Magenta", "d9269d Melodramatic Magenta", "c1208b Loulou's Purple",
@@ -76,25 +88,25 @@ const PALETTE = {
     "8577dd Kickstart Purple", "7569da C64 Purple", "655cd6 Dark Periwinkle", "524ed2 Iris",
     "4040bf Early Spring Night", "3838ab Purple Cabbage", "2f2f92 Royal Night", "272678 Snorlax",
     "1f1e5e Intergalactic Cowboy", "181546 Tetsu-Kon Blue", "110b31 Spanish Roast"],
-  blue: ["500",
+  blue: ["550",
     "f0f0fb Silver Phoenix", "e0e1fa Lavender Mist", "d0d2fa Miami White", "bfc3fa Light Periwinkle",
     "aeb5fb Greyish Lavender", "9ca7fa Widowmaker", "8999f9 Periwinkle Blue", "748bf8 Punch Out Glove",
     "5c7ef8 C64 NTSC", "3c71f7 Hailey Blue", "2060df Old Gungeon Red", "1d59d0 Bnei Brak Bay",
     "184eb8 Mourning Blue", "1343a0 Space Explorer", "0f3888 Magnus Blue", "0f2d70 Old Glory Blue",
     "0e2358 Fibonacci Blue", "0c1a41 Navy", "080f2d Mysterious Depths"],
-  azure: ["500",
+  azure: ["550",
     "e9f2fc First Snow", "d1e5fb Veiling Waterfalls", "b7d9fc Broad Daylight", "9bccfd Apocyan",
     "79c0ff Broken Blue", "51b4ff Tiān Lán Sky", "01aaff Protoss Pylon", "029ae8 Pervenche",
     "018cd4 Zürich Blue", "017fc0 Honolulu Blue", "0172ad Cloisonné", "02659a Wavy Navy", "015887 Baby Shoes",
     "014c75 Blue Meridian", "014063 Lush Aqua", "033452 Dark Denim Blue", "052940 Nato Blue",
     "061e2f The Count's Black", "04121d Kuretake Black Manga"],
-  cyan: ["500",
+  cyan: ["550",
     "c3fcfa VIC 20 Blue", "58faf9 CGA Blue", "3deceb Phosphorescent Blue", "25dddd Fish Boy",
     "0ccece Tilla Kari Mosque", "0ac2c2 Cala Benirrás Blue", "0ab1b1 Swagger", "05a2a2 Pleasant Stream",
     "059494 Paradise Landscape", "058686 Green Moblin", "047878 Prismarine", "046a6a Mayan Blue",
     "025d5d Dark Turquoise", "015050 Wool Turquoise", "014343 Warm Black", "043737 Shrub Green",
     "052b2b Roof Tile Green", "051f1f Stellar Explorer", "041413 Black Glaze"],
-  jade: ["500",
+  jade: ["550",
     "cbfce1 Out of Blue", "70fcba Ineffable Green", "39f1a6 Hyperpop Green", "21e299 Aqua Green",
     "00cc88 Retro Lime", "00c482 Píng Gǔo Lǜ Green", "00b478 Green Teal", "00a66e Sesame Street Green",
     "029764 Green Cyan", "00895a Vital Green", "007a50 Poplar Forest", "006d46 Clover Green",
@@ -148,7 +160,7 @@ const PALETTE = {
     "777777 Lucky Grey", "6a6a6a Dim Grey", "5e5e5e Iron", "525252 Cavernous", "474747 Wood Charcoal",
     "3b3b3b Black Liquorice", "303030 Off Black", "262626 Nero", "1b1b1b Eerie Black",
     "111111 Dreamless Sleep"],
-  zinc: ["500",
+  zinc: ["550",
     "f0f1f3 Errigal White", "e0e3e7 White Iris", "d1d5db Angel Hair Silver", "c2c7d0 Cemetery Ash",
     "b3b9c5 Blunt", "a4acba Atelier", "969eaf Vesper Violet", "8891a4 Dusty Heather", "7b8495 Stowaway",
     "6f7887 Lunar Shadow", "646b79 Magic", "5c6370 Blue Metal", "4d535e Extinct Volcano",
@@ -197,33 +209,47 @@ function step({ family, shade }, key) {
 
 // --- Color modal (ColorModal.jsx) -----------------------------------------------------------------
 // The markup is ColorModal.jsx's as React renders it: the close icon is Close.jsx, and each value is
-// Code.jsx's block (className "small", copy link to the current path, language html), its copy link
-// carrying data-copy-link as the docs' own do, so site.js's copy handler takes it. Prism's markup
-// grammar finds no token in any of the six values, so each is one plain text run, which
-// react-syntax-highlighter writes as <span class="">.
+// Code.jsx's block (className "small", language html), its copy button carrying data-copy-link as
+// the docs' own do, so site.js's copy handler takes it. Prism's markup grammar finds no token in any
+// of the five values, so each is one plain text run, which react-syntax-highlighter writes as
+// <span class="">.
 
 const CLOSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-close"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>';
 const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg>';
 
-// The six rows: label, and the value shown for a color.
+// The five rows: label, and the value shown for a color.
 const ROWS = [
   ["Hexadecimal color", (c) => c.hex.toUpperCase()],
   ["RGB color", (c) => c.rgb],
-  ["Sass variable", (c) => `$${c.family}-${c.shade}`],
   ["Color utility class", (c) => `femto-color-${c.family}-${c.shade}`],
   ["Background utility class", (c) => `femto-background-${c.family}-${c.shade}`],
-  ["CSS variable", (c) => `var(--femto-color-${c.family}-${c.shade})`],
+  ["Custom property", (c) => `var(--femto-color-${c.family}-${c.shade})`],
 ];
 
 const families = document.querySelector("[data-color-modal]");
 if (families) {
   const content = families.parentElement; // the Colors section
+  // Each shade button is named by its color and shade ("Red 50"), not by the shade it shows alone.
+  // The names are set here, not in colors.html, to keep the /docs HTML within its budget (PLAN.md
+  // Risks); the buttons do nothing without this script anyway.
+  for (const button of families.querySelectorAll(".family > .shades > button")) {
+    const match = /(?:^|\s)femto-background-([a-z]+)-(\d+)(?:\s|$)/.exec(button.className);
+    if (match && match[1] in PALETTE) button.setAttribute("aria-label", `${sentenceCase(match[1])} ${match[2]}`);
+  }
   const dialog = document.createElement("dialog");
   dialog.className = "color";
-  const copyLink = `<a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="${location.pathname}" data-copy-link>${COPY_ICON}</a>`;
-  dialog.innerHTML = `<article><header><a href="#close" rel="prev" aria-label="Close" class="close">${CLOSE_ICON}</a>`
-    + '<hgroup><h3 class="color-family"></h3><p class="color-shade"></p></hgroup></header><div class="grid">'
-    + ROWS.map(([label]) => `<p>${label}</p><div class="code small" data-theme="dark">${copyLink}`
+  // Named by its title ("Red 500"). aria-modal: focus stays inside it, as the Tab handling below
+  // keeps it. The title and the color's name are a polite live region, so a screen reader reads the
+  // new color when an arrow key changes it while focus stays on the close button.
+  dialog.setAttribute("aria-labelledby", "color-dialog-title");
+  dialog.setAttribute("aria-modal", "true");
+  // Each copy button is named by its row ("Copy hexadecimal color", "Copy RGB color"), so a screen
+  // reader can tell the five apart; the row's label is a separate <p>.
+  const copyButton = (label) => `<button type="button" class="copy-to-clipboard" aria-label="Copy ${label.replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase())}" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link>${COPY_ICON}</button>`;
+  dialog.innerHTML = `<article><header><button type="button" aria-label="Close" class="close">${CLOSE_ICON}</button>`
+    + '<hgroup aria-live="polite" aria-atomic="true"><h3 class="color-family" id="color-dialog-title"></h3>'
+    + '<p class="color-shade"></p></hgroup></header><div class="grid">'
+    + ROWS.map(([label]) => `<p>${label}</p><div class="code small" data-theme="dark">${copyButton(label)}`
       + '<pre class="prismjs"><code class="language-html"><span class=""></span></code></pre></div>').join("")
     + "</div></article>";
   const article = dialog.querySelector(":scope > article");
@@ -231,7 +257,10 @@ if (families) {
   const title = header.querySelector("h3.color-family");
   const name = header.querySelector("p.color-shade");
   const values = [...article.querySelectorAll(".grid pre code > span")];
-  const closeLink = header.querySelector("a.close");
+  const closeButton = header.querySelector("button.close");
+  // The dialog's focus stops, in document order: the close button, then each row's copy button. The
+  // values fit their code blocks, so the blocks take no focus.
+  const stops = [closeButton, ...article.querySelectorAll(".grid .code > button")];
 
   let current = null; // the color shown, while the dialog is in the page
   let opener = null; // the element that had focus when it opened
@@ -261,7 +290,9 @@ if (families) {
     if (event.key === "Tab") {
       if (shortcut) return;
       event.preventDefault();
-      closeLink.focus();
+      const at = stops.indexOf(document.activeElement);
+      const next = at < 0 ? 0 : (at + (event.shiftKey ? stops.length - 1 : 1)) % stops.length;
+      stops[next].focus();
       return;
     }
     const next = current && step(current, event.key);
@@ -291,14 +322,14 @@ if (families) {
     document.addEventListener("keydown", onKeydown);
     opener = document.activeElement;
     modal.open(); // the open attribute
-    // The close link, in every browser and at every size: dialog.show()'s focusing steps would pick
+    // The close button, in every browser and at every size: dialog.show()'s focusing steps would pick
     // the article instead where Chrome makes an overflowing one focusable (short viewports).
-    closeLink.focus();
+    closeButton.focus();
   }
 
   families.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;
-    const button = target?.closest(".family > main > button");
+    const button = target?.closest(".family > .shades > button");
     const familyHeader = target?.closest(".family > header");
     const match = /(?:^|\s)femto-background-([a-z]+)(?:-(\d+))?(?:\s|$)/.exec((button ?? familyHeader)?.className ?? "");
     if (!match || !(match[1] in PALETTE)) return;
@@ -307,8 +338,5 @@ if (families) {
     if (SHADES.includes(shade)) open(family, shade);
   });
 
-  closeLink.addEventListener("click", (event) => {
-    event.preventDefault();
-    modal.close();
-  });
+  closeButton.addEventListener("click", () => modal.close());
 }

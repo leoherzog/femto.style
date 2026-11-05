@@ -1,34 +1,39 @@
 <hgroup>
   <p class="chapter">Components</p>
   <h1 id="tooltip">Tooltip</h1>
-  <p>Enable tooltips everywhere, without JavaScript.</p>
+  <p><code>data-tooltip</code> shows its text in a tooltip on hover and focus, without JavaScript.</p>
 </hgroup>
 <section>
   <article aria-label="Tooltip example" class="component">
     <p>Tooltip on a <a data-tooltip="Tooltip" data-discover="true" href="/docs#tooltip">link</a></p>
-    <p>Tooltip on <em data-tooltip="Tooltip">inline element</em></p>
-    <p><button data-tooltip="Tooltip">Tooltip on a button</button></p>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;p&gt;Tooltip on a &lt;a href="#" data-tooltip="Tooltip"&gt;link&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;Tooltip on &lt;em data-tooltip="Tooltip"&gt;inline element&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;&lt;button data-tooltip="Tooltip"&gt;Tooltip on a button&lt;/button&gt;&lt;/p&gt;</code></pre></footer>
+    <p>Tooltip on an <em data-tooltip="Tooltip" tabindex="0">inline element</em></p>
+    <p><button type="button" data-tooltip="Tooltip">Tooltip on a button</button></p>
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;p&gt;Tooltip on a &lt;a href="#" data-tooltip="Tooltip"&gt;link&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Tooltip on an &lt;em data-tooltip="Tooltip" tabindex="0"&gt;inline element&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;button type="button" data-tooltip="Tooltip"&gt;Tooltip on a button&lt;/button&gt;&lt;/p&gt;</code></pre></footer>
   </article>
+  <p>An element other than a link, a button, an input or an element with <code>role="button"</code> also gets a dotted underline and a help cursor. An element that cannot take focus, such as an <code class="language-html">&lt;em&gt;</code>, needs <code>tabindex="0"</code> for its tooltip to show from the keyboard.</p>
 </section>
 <section>
   <h2>Placement</h2>
-  <p>The tooltip is displayed on top by default but you can change it with the <code>data-placement</code> attribute.</p>
+  <p>The tooltip shows above the element, or where <code>data-placement</code> puts it: <code>top</code>, <code>bottom</code>, <code>left</code> or <code>right</code>.</p>
   <article aria-label="Tooltip placement example" id="tooltip-placement" class="component">
-    <main class="grid">
-      <button data-tooltip="Top">Top</button>
-      <button data-tooltip="Right" data-placement="right">Right</button>
-      <button data-tooltip="Bottom" data-placement="bottom">Bottom</button>
-      <button data-tooltip="Left" data-placement="left">Left</button>
-    </main>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;button data-tooltip="Top"&gt;Top&lt;/button&gt;
-&lt;button data-tooltip="Right" data-placement="right"&gt;Right&lt;/button&gt;
-&lt;button data-tooltip="Bottom" data-placement="bottom"&gt;Bottom&lt;/button&gt;
-&lt;button data-tooltip="Left" data-placement="left"&gt;Left&lt;/button&gt;</code></pre></footer>
+    <p>
+      <button type="button" data-tooltip="Top">Top</button>
+      <button type="button" data-tooltip="Right" data-placement="right">Right</button>
+      <button type="button" data-tooltip="Bottom" data-placement="bottom">Bottom</button>
+      <button type="button" data-tooltip="Left" data-placement="left">Left</button>
+    </p>
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;button type="button" data-tooltip="Top"&gt;Top&lt;/button&gt;
+&lt;button type="button" data-tooltip="Right" data-placement="right"&gt;Right&lt;/button&gt;
+&lt;button type="button" data-tooltip="Bottom" data-placement="bottom"&gt;Bottom&lt;/button&gt;
+&lt;button type="button" data-tooltip="Left" data-placement="left"&gt;Left&lt;/button&gt;</code></pre></footer>
   </article>
 </section>
+<section>
+  <h2>Switch</h2>
+  <p>A switch shows no tooltip, since its <code>::before</code> is its thumb. Put the tooltip on the switch’s <code class="language-html">&lt;label&gt;</code>: see <a data-discover="true" href="/docs#switch">Switch</a>.</p>
+</section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.tooltip.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/tooltip.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
 </section>

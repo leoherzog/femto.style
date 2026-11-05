@@ -1,0 +1,51 @@
+<hgroup>
+  <p class="chapter">Customization</p>
+  <h1 id="modules">Custom module set</h1>
+  <p>To load only some modules, save a copy of <code>css/femto.css</code> in the same folder and delete the lines you do not need.</p>
+</hgroup>
+<section>
+  <p>The copy must sit in the same folder as <code>css/femto.css</code>, under a name of your own such as <code>site.css</code>, since its <code>@import</code> paths are relative to it. After its header comment, it holds 36 <code>@import</code> lines, one for each module:</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-css">@import "tokens/base.css";
+@import "tokens/breakpoints.css";
+@import "layout/elements.css";
+@import "tokens/schemes.css";
+@import "layout/document.css";
+@import "layout/landmarks.css";
+@import "layout/section.css";
+@import "layout/container.css";
+@import "layout/grid.css";
+@import "layout/overflow-auto.css";
+@import "content/typography.css";
+@import "content/link.css";
+@import "content/button.css";
+@import "content/table.css";
+@import "content/embedded.css";
+@import "content/code.css";
+@import "content/figure.css";
+@import "content/misc.css";
+@import "forms/basics.css";
+@import "forms/checkbox-radio-switch.css";
+@import "forms/input-color.css";
+@import "forms/input-date.css";
+@import "forms/input-file.css";
+@import "forms/input-range.css";
+@import "forms/input-search.css";
+@import "components/accordion.css";
+@import "components/card.css";
+@import "components/dropdown.css";
+@import "components/group.css";
+@import "components/loading.css";
+@import "components/modal.css";
+@import "components/nav.css";
+@import "components/progress.css";
+@import "components/tooltip.css";
+@import "utilities/accessibility.css";
+@import "utilities/reduce-motion.css";</code></pre></div>
+  <p>Keep the lines in their order, which is the cascade order, and keep the first four: <code>tokens/base.css</code>, <code>tokens/breakpoints.css</code>, <code>layout/elements.css</code> and <code>tokens/schemes.css</code>. They hold the tokens and per-element settings the other modules read. Without <code>layout/elements.css</code>, for example, headings lose their sizes and weights, and search fields their rounded ends.</p>
+  <p>The copy loads module by module, like <code>css/femto.css</code> (see <a href="/docs#files">Files</a>). A bundler that inlines <code>@import</code> turns it into one file.</p>
+  <p>If you install femto from npm, write the same list in your own CSS with package paths, such as <code>@import "@leoherzog/femto/css/tokens/base.css";</code>, instead of copying the file.</p>
+  <p>If you also load <code>no-transitions.css</code>, copy it too and delete its rules for the modules you left out (see <a href="/docs#options">Options</a>).</p>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/modules.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

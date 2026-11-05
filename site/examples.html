@@ -3,7 +3,7 @@
   <head>
     <!-- include partials/head.html -->
     <title>Examples • femto</title>
-    <meta name="description" content="Minimalist templates to discover Pico in action.">
+    <meta name="description" content="Widgets, forms and pages built with femto alone, with their HTML to copy.">
     <link rel="canonical" href="https://femto.style/examples">
     <meta property="og:url" content="https://femto.style/examples">
     <!-- include partials/structured-data.html -->
@@ -13,52 +13,1141 @@
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/code.css">
     <link rel="stylesheet" href="/assets/css/landing.css">
+    <link rel="stylesheet" href="/assets/css/examples.css">
+    <script type="module" src="/assets/js/examples.js"></script>
   </head>
   <body>
-    <a href="#content" class="skip-to-content contrast" role="button">Skip to content</a>
+    <a href="#content" class="skip-to-content">Skip to content</a>
     <!-- include partials/header.html -->
     <main id="content" class="examples container">
       <section class="examples-hero">
         <h1><mark>Examples</mark></h1>
-        <p class="secondary">Minimalist templates to discover Pico in action.</p>
+        <p class="secondary">Widgets, forms and pages built with femto alone.</p>
       </section>
-      <section class="examples-list">
-        <article>
-          <div class="badges"><span class="badge html">HTML</span><span class="badge javascript">JavaScript</span></div>
-          <h2>Preview</h2>
-          <p>A pure HTML example, without dependencies.</p>
-          <p class="links"><a href="https://4mrnhq.csb.app/" target="_blank" rel="noopener noreferrer" class="preview secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-eye"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>Preview</a><a href="https://codesandbox.io/embed/4mrnhq?view=Editor+%2B+Preview&amp;module=%2Findex.html" target="_blank" rel="noopener noreferrer" class="edit secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit in CodeSandbox</a><a href="https://github.com/picocss/examples/tree/master/v2-html" target="_blank" rel="noopener noreferrer" class="source secondary"><svg xmlns="http://www.w3.org/2000/svg" height="24" width="24.25" viewBox="0 0 496 512" class="icon-github"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>View source</a></p>
-        </article>
-        <article>
-          <div class="badges"><span class="badge html">HTML</span><span class="badge javascript">JavaScript</span></div>
-          <h2>Class-less preview</h2>
-          <p>A class-less example, without dependencies.</p>
-          <p class="links"><a href="https://x4qtf8.csb.app/" target="_blank" rel="noopener noreferrer" class="preview secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-eye"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>Preview</a><a href="https://codesandbox.io/embed/x4qtf8?view=Editor+%2B+Preview&amp;module=%2Findex.html" target="_blank" rel="noopener noreferrer" class="edit secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit in CodeSandbox</a><a href="https://github.com/picocss/examples/tree/master/v2-html-classless" target="_blank" rel="noopener noreferrer" class="source secondary"><svg xmlns="http://www.w3.org/2000/svg" height="24" width="24.25" viewBox="0 0 496 512" class="icon-github"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>View source</a></p>
-        </article>
-        <article>
-          <div class="badges"><span class="badge html">HTML</span><span class="badge javascript">JavaScript</span></div>
-          <h2>Conditional styling</h2>
-          <p>Example to apply Pico CSS styles selectively by wrapping elements in a .pico container</p>
-          <p class="links"><a href="https://kv4lrs.csb.app/" target="_blank" rel="noopener noreferrer" class="preview secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-eye"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>Preview</a><a href="https://codesandbox.io/embed/kv4lrs?view=Editor+%2B+Preview&amp;module=%2Findex.html" target="_blank" rel="noopener noreferrer" class="edit secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit in CodeSandbox</a><a href="https://github.com/picocss/examples/tree/master/v2-conditional-styling" target="_blank" rel="noopener noreferrer" class="source secondary"><svg xmlns="http://www.w3.org/2000/svg" height="24" width="24.25" viewBox="0 0 496 512" class="icon-github"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>View source</a></p>
-        </article>
-        <article>
-          <div class="badges"><span class="badge html">HTML</span><span class="badge sass">Sass</span></div>
-          <h2>Customized design system</h2>
-          <p>An example to customize Pico CSS with SASS.</p>
-          <p class="links"><a href="https://gddt65-3000.csb.app/" target="_blank" rel="noopener noreferrer" class="preview secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-eye"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>Preview</a><a href="https://codesandbox.io/p/devbox/github/picocss/examples/tree/master/v2-sass-customized-design-system?embed=1&amp;file=%2Fscss%2Fmain.scss" target="_blank" rel="noopener noreferrer" class="edit secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit in CodeSandbox</a><a href="https://github.com/picocss/examples/tree/master/v2-sass-customized-design-system" target="_blank" rel="noopener noreferrer" class="source secondary"><svg xmlns="http://www.w3.org/2000/svg" height="24" width="24.25" viewBox="0 0 496 512" class="icon-github"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>View source</a></p>
-        </article>
-        <article>
-          <div class="badges"><span class="badge react">React</span><span class="badge sass">Sass</span></div>
-          <h2>React class-less login</h2>
-          <p>A minimal, class-less login page in React, with a custom primary color.</p>
-          <p class="links"><a href="https://zhghzt-8080.csb.app/" target="_blank" rel="noopener noreferrer" class="preview secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-eye"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>Preview</a><a href="https://codesandbox.io/p/devbox/github/picocss/examples/tree/master/v2-react-classless-login?embed=1&amp;file=%2Fsrc%2Fmain.scss" target="_blank" rel="noopener noreferrer" class="edit secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit in CodeSandbox</a><a href="https://github.com/picocss/examples/tree/master/v2-react-classless-login" target="_blank" rel="noopener noreferrer" class="source secondary"><svg xmlns="http://www.w3.org/2000/svg" height="24" width="24.25" viewBox="0 0 496 512" class="icon-github"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>View source</a></p>
-        </article>
-        <article>
-          <div class="badges"><span class="badge react">React</span><span class="badge sass">Sass</span></div>
-          <h2>React color schemes and modal</h2>
-          <p>Switch color schemes and open modals with React.</p>
-          <p class="links"><a href="https://jsj2d8-8080.csb.app/" target="_blank" rel="noopener noreferrer" class="preview secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-eye"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path></svg>Preview</a><a href="https://codesandbox.io/p/devbox/github/picocss/examples/tree/master/v2-react-color-schemes-and-modal?embed=1&amp;file=%2Fsrc%2FApp.js" target="_blank" rel="noopener noreferrer" class="edit secondary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit in CodeSandbox</a><a href="https://github.com/picocss/examples/tree/master/v2-react-color-schemes-and-modal" target="_blank" rel="noopener noreferrer" class="source secondary"><svg xmlns="http://www.w3.org/2000/svg" height="24" width="24.25" viewBox="0 0 496 512" class="icon-github"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>View source</a></p>
-        </article>
+      <section class="examples-index">
+        <p>Each example is plain HTML styled by femto alone: it uses HTML's elements and only the <a href="/docs#classes">classes and attributes</a> femto reads. It renders in a <a href="/docs#shadow-roots">shadow root</a> that loads <code>dist/femto.min.css</code> and nothing else, so none of this site's CSS reaches it. Open the markup under an example to copy its HTML.</p>
+        <div class="grid">
+          <div>
+            <p class="chapter">Widgets</p>
+            <ul>
+              <li><a href="#navigation-bar">Navigation bar</a></li>
+              <li><a href="#confirm-dialog">Confirmation dialog</a></li>
+              <li><a href="#faq">FAQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="chapter">Forms</p>
+            <ul>
+              <li><a href="#sign-in">Sign in</a></li>
+              <li><a href="#sign-up">Sign up</a></li>
+              <li><a href="#contact">Contact form</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="chapter">Pages</p>
+            <ul>
+              <li><a href="#pricing">Pricing</a></li>
+              <li><a href="#dashboard">Dashboard</a></li>
+              <li><a href="#settings">Settings</a></li>
+              <li><a href="#blog-post">Blog post</a></li>
+              <li><a href="#search-results">Search results</a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <!-- Each example's markup is written twice: in its inner shadow root, after the femto link, and
+           escaped in the code sample under it. Change both the same way. examples.css and
+           examples.js explain the two shadow roots. -->
+      <section class="example" id="navigation-bar" aria-label="Navigation bar example">
+        <hgroup>
+          <p class="chapter">Widgets</p>
+          <h2>Navigation bar</h2>
+          <p>A site's links with the current page marked, an account dropdown and breadcrumbs.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <nav aria-label="Main">
+                  <ul>
+                    <li><a href="#" class="contrast"><strong>Acme</strong></a></li>
+                  </ul>
+                  <ul>
+                    <li><a href="#" aria-current="page">Products</a></li>
+                    <li>
+                      <details class="dropdown">
+                        <summary>Account</summary>
+                        <ul>
+                          <li><a href="#">Profile</a></li>
+                          <li><a href="#">Orders</a></li>
+                          <li><a href="#">Sign out</a></li>
+                        </ul>
+                      </details>
+                    </li>
+                  </ul>
+                </nav>
+                <nav aria-label="breadcrumb">
+                  <ul>
+                    <li><a href="#">Products</a></li>
+                    <li><a href="#">Lighting</a></li>
+                    <li><a href="#" aria-current="page">Desk lamps</a></li>
+                  </ul>
+                </nav>
+                <hgroup>
+                  <h3>Desk lamps</h3>
+                  <p>Twelve lamps for reading, drawing and late nights, from $39.</p>
+                </hgroup>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the navigation bar</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Main"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" class="contrast"&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" aria-current="page"&gt;Products&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;
+      &lt;details class="dropdown"&gt;
+        &lt;summary&gt;Account&lt;/summary&gt;
+        &lt;ul&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Profile&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Orders&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Sign out&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/details&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;nav aria-label="breadcrumb"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Products&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Lighting&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#" aria-current="page"&gt;Desk lamps&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;hgroup&gt;
+  &lt;h3&gt;Desk lamps&lt;/h3&gt;
+  &lt;p&gt;Twelve lamps for reading, drawing and late nights, from $39.&lt;/p&gt;
+&lt;/hgroup&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="confirm-dialog" aria-label="Confirmation dialog example">
+        <hgroup>
+          <p class="chapter">Widgets</p>
+          <h2>Confirmation dialog</h2>
+          <p>A modal that asks before a project is deleted. A script opens it with <code>showModal()</code>.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <article>
+                  <h3>Website redesign</h3>
+                  <p>48 tasks shared with 6 members. Deleting the project removes its tasks and files for everyone.</p>
+                  <button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box">Delete project</button>
+                </article>
+                <dialog id="confirm-dialog-box" aria-labelledby="confirm-dialog-title">
+                  <article>
+                    <header>
+                      <button type="button" aria-label="Close" rel="prev"></button>
+                      <h3 id="confirm-dialog-title">Delete “Website redesign”?</h3>
+                    </header>
+                    <p>Its 48 tasks and their files will be deleted for all 6 members. You cannot undo this.</p>
+                    <footer>
+                      <button type="button" class="secondary">Cancel</button>
+                      <button type="button">Delete project</button>
+                    </footer>
+                  </article>
+                </dialog>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the confirmation dialog</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+  &lt;h3&gt;Website redesign&lt;/h3&gt;
+  &lt;p&gt;48 tasks shared with 6 members. Deleting the project removes its tasks and files for everyone.&lt;/p&gt;
+  &lt;button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box"&gt;Delete project&lt;/button&gt;
+&lt;/article&gt;
+&lt;dialog id="confirm-dialog-box" aria-labelledby="confirm-dialog-title"&gt;
+  &lt;article&gt;
+    &lt;header&gt;
+      &lt;button type="button" aria-label="Close" rel="prev"&gt;&lt;/button&gt;
+      &lt;h3 id="confirm-dialog-title"&gt;Delete “Website redesign”?&lt;/h3&gt;
+    &lt;/header&gt;
+    &lt;p&gt;Its 48 tasks and their files will be deleted for all 6 members. You cannot undo this.&lt;/p&gt;
+    &lt;footer&gt;
+      &lt;button type="button" class="secondary"&gt;Cancel&lt;/button&gt;
+      &lt;button type="button"&gt;Delete project&lt;/button&gt;
+    &lt;/footer&gt;
+  &lt;/article&gt;
+&lt;/dialog&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="faq" aria-label="FAQ example">
+        <hgroup>
+          <p class="chapter">Widgets</p>
+          <h2>FAQ</h2>
+          <p>Questions that open and close, each one a <code class="language-html">&lt;details&gt;</code> element.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <h3>Frequently asked questions</h3>
+                <details open>
+                  <summary>Can I change my plan later?</summary>
+                  <p>Yes. Change it in Billing at any time. We charge or credit the difference on your next invoice.</p>
+                </details>
+                <details>
+                  <summary>Do you offer refunds?</summary>
+                  <p>We refund any payment made in the last 30 days. Write to us with your order number.</p>
+                </details>
+                <details>
+                  <summary>Where is my data stored?</summary>
+                  <p>In the United States or the European Union. You choose the region when you create a workspace.</p>
+                </details>
+                <details>
+                  <summary>How do I cancel?</summary>
+                  <p>Open Billing and choose Cancel subscription. Your workspace stays open until the end of the period you paid for.</p>
+                </details>
+                <p>Still have a question? <a href="#">Contact support</a>.</p>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the FAQ</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Frequently asked questions&lt;/h3&gt;
+&lt;details open&gt;
+  &lt;summary&gt;Can I change my plan later?&lt;/summary&gt;
+  &lt;p&gt;Yes. Change it in Billing at any time. We charge or credit the difference on your next invoice.&lt;/p&gt;
+&lt;/details&gt;
+&lt;details&gt;
+  &lt;summary&gt;Do you offer refunds?&lt;/summary&gt;
+  &lt;p&gt;We refund any payment made in the last 30 days. Write to us with your order number.&lt;/p&gt;
+&lt;/details&gt;
+&lt;details&gt;
+  &lt;summary&gt;Where is my data stored?&lt;/summary&gt;
+  &lt;p&gt;In the United States or the European Union. You choose the region when you create a workspace.&lt;/p&gt;
+&lt;/details&gt;
+&lt;details&gt;
+  &lt;summary&gt;How do I cancel?&lt;/summary&gt;
+  &lt;p&gt;Open Billing and choose Cancel subscription. Your workspace stays open until the end of the period you paid for.&lt;/p&gt;
+&lt;/details&gt;
+&lt;p&gt;Still have a question? &lt;a href="#"&gt;Contact support&lt;/a&gt;.&lt;/p&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="sign-in" aria-label="Sign in example">
+        <hgroup>
+          <p class="chapter">Forms</p>
+          <h2>Sign in</h2>
+          <p>An email and password form in a card, beside a short welcome.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <div class="grid">
+                  <hgroup>
+                    <h3>Welcome back</h3>
+                    <p>Sign in to see your orders, saved items and messages.</p>
+                  </hgroup>
+                  <article>
+                    <form>
+                      <label>
+                        Email
+                        <input type="email" name="email" autocomplete="email" required>
+                      </label>
+                      <label>
+                        Password
+                        <input type="password" name="password" autocomplete="current-password" required>
+                      </label>
+                      <label>
+                        <input type="checkbox" name="remember" checked>
+                        Keep me signed in
+                      </label>
+                      <button type="submit">Sign in</button>
+                    </form>
+                    <footer>
+                      <a href="#">Forgot your password?</a>
+                    </footer>
+                  </article>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the sign-in form</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+  &lt;hgroup&gt;
+    &lt;h3&gt;Welcome back&lt;/h3&gt;
+    &lt;p&gt;Sign in to see your orders, saved items and messages.&lt;/p&gt;
+  &lt;/hgroup&gt;
+  &lt;article&gt;
+    &lt;form&gt;
+      &lt;label&gt;
+        Email
+        &lt;input type="email" name="email" autocomplete="email" required&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Password
+        &lt;input type="password" name="password" autocomplete="current-password" required&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        &lt;input type="checkbox" name="remember" checked&gt;
+        Keep me signed in
+      &lt;/label&gt;
+      &lt;button type="submit"&gt;Sign in&lt;/button&gt;
+    &lt;/form&gt;
+    &lt;footer&gt;
+      &lt;a href="#"&gt;Forgot your password?&lt;/a&gt;
+    &lt;/footer&gt;
+  &lt;/article&gt;
+&lt;/div&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="sign-up" aria-label="Sign up example">
+        <hgroup>
+          <p class="chapter">Forms</p>
+          <h2>Sign up</h2>
+          <p>A registration form whose fields show their state with <code>aria-invalid</code> and helper text.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <article>
+                  <hgroup>
+                    <h3>Create your account</h3>
+                    <p>Free for 14 days. No credit card needed.</p>
+                  </hgroup>
+                  <form>
+                    <div class="grid">
+                      <label>
+                        First name
+                        <input type="text" name="given-name" autocomplete="given-name" value="Priya" aria-invalid="false">
+                      </label>
+                      <label>
+                        Last name
+                        <input type="text" name="family-name" autocomplete="family-name" value="Patel" aria-invalid="false">
+                      </label>
+                    </div>
+                    <label for="sign-up-email">Email</label>
+                    <input type="email" id="sign-up-email" name="email" autocomplete="email" value="priya@example" aria-invalid="true" aria-describedby="sign-up-email-error">
+                    <small id="sign-up-email-error">Enter a full email address, such as priya@example.com.</small>
+                    <label for="sign-up-password">Password</label>
+                    <input type="password" id="sign-up-password" name="password" autocomplete="new-password" aria-describedby="sign-up-password-help">
+                    <small id="sign-up-password-help">Use 12 or more characters.</small>
+                    <label>
+                      <input type="checkbox" name="terms">
+                      I agree to the <a href="#">terms of service</a>
+                    </label>
+                    <button type="submit">Create account</button>
+                  </form>
+                </article>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the sign-up form</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+  &lt;hgroup&gt;
+    &lt;h3&gt;Create your account&lt;/h3&gt;
+    &lt;p&gt;Free for 14 days. No credit card needed.&lt;/p&gt;
+  &lt;/hgroup&gt;
+  &lt;form&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        First name
+        &lt;input type="text" name="given-name" autocomplete="given-name" value="Priya" aria-invalid="false"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Last name
+        &lt;input type="text" name="family-name" autocomplete="family-name" value="Patel" aria-invalid="false"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;label for="sign-up-email"&gt;Email&lt;/label&gt;
+    &lt;input type="email" id="sign-up-email" name="email" autocomplete="email" value="priya@example" aria-invalid="true" aria-describedby="sign-up-email-error"&gt;
+    &lt;small id="sign-up-email-error"&gt;Enter a full email address, such as priya@example.com.&lt;/small&gt;
+    &lt;label for="sign-up-password"&gt;Password&lt;/label&gt;
+    &lt;input type="password" id="sign-up-password" name="password" autocomplete="new-password" aria-describedby="sign-up-password-help"&gt;
+    &lt;small id="sign-up-password-help"&gt;Use 12 or more characters.&lt;/small&gt;
+    &lt;label&gt;
+      &lt;input type="checkbox" name="terms"&gt;
+      I agree to the &lt;a href="#"&gt;terms of service&lt;/a&gt;
+    &lt;/label&gt;
+    &lt;button type="submit"&gt;Create account&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/article&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="contact" aria-label="Contact form example">
+        <hgroup>
+          <p class="chapter">Forms</p>
+          <h2>Contact form</h2>
+          <p>Contact details beside a form with a select, a textarea and radio buttons.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <div class="grid">
+                  <div>
+                    <h3>Get in touch</h3>
+                    <p>We answer every message within one business day.</p>
+                    <address>
+                      Acme Support<br>
+                      100 Main Street<br>
+                      Springfield, IL 62701
+                    </address>
+                    <p><a href="#">support@example.com</a></p>
+                  </div>
+                  <form>
+                    <div class="grid">
+                      <label>
+                        Name
+                        <input type="text" name="name" autocomplete="name" required>
+                      </label>
+                      <label>
+                        Email
+                        <input type="email" name="email" autocomplete="email" required>
+                      </label>
+                    </div>
+                    <label>
+                      Topic
+                      <select name="topic" required>
+                        <option value="" selected disabled>Choose a topic</option>
+                        <option>Billing</option>
+                        <option>A technical problem</option>
+                        <option>A feature request</option>
+                        <option>Something else</option>
+                      </select>
+                    </label>
+                    <label>
+                      Message
+                      <textarea name="message" rows="4" required></textarea>
+                    </label>
+                    <fieldset>
+                      <legend>How should we reply?</legend>
+                      <label>
+                        <input type="radio" name="contact-reply" value="email" checked>
+                        By email
+                      </label>
+                      <label>
+                        <input type="radio" name="contact-reply" value="phone">
+                        By phone
+                      </label>
+                    </fieldset>
+                    <button type="submit">Send message</button>
+                  </form>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the contact form</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;h3&gt;Get in touch&lt;/h3&gt;
+    &lt;p&gt;We answer every message within one business day.&lt;/p&gt;
+    &lt;address&gt;
+      Acme Support&lt;br&gt;
+      100 Main Street&lt;br&gt;
+      Springfield, IL 62701
+    &lt;/address&gt;
+    &lt;p&gt;&lt;a href="#"&gt;support@example.com&lt;/a&gt;&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;form&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Name
+        &lt;input type="text" name="name" autocomplete="name" required&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Email
+        &lt;input type="email" name="email" autocomplete="email" required&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;label&gt;
+      Topic
+      &lt;select name="topic" required&gt;
+        &lt;option value="" selected disabled&gt;Choose a topic&lt;/option&gt;
+        &lt;option&gt;Billing&lt;/option&gt;
+        &lt;option&gt;A technical problem&lt;/option&gt;
+        &lt;option&gt;A feature request&lt;/option&gt;
+        &lt;option&gt;Something else&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+    &lt;label&gt;
+      Message
+      &lt;textarea name="message" rows="4" required&gt;&lt;/textarea&gt;
+    &lt;/label&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;How should we reply?&lt;/legend&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="contact-reply" value="email" checked&gt;
+        By email
+      &lt;/label&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="contact-reply" value="phone"&gt;
+        By phone
+      &lt;/label&gt;
+    &lt;/fieldset&gt;
+    &lt;button type="submit"&gt;Send message&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/div&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="pricing" aria-label="Pricing example">
+        <hgroup>
+          <p class="chapter">Pages</p>
+          <h2>Pricing</h2>
+          <p>Three plans in cards on a grid, with a switch for yearly billing.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <hgroup>
+                  <h3>Plans for teams of every size</h3>
+                  <p>Start for free, and upgrade when your team grows.</p>
+                </hgroup>
+                <p>
+                  <label>
+                    <input type="checkbox" role="switch" name="yearly">
+                    Pay yearly and get two months free
+                  </label>
+                </p>
+                <div class="grid">
+                  <article>
+                    <hgroup>
+                      <h4>Starter</h4>
+                      <p>For one person</p>
+                    </hgroup>
+                    <p><strong>$0</strong> per month</p>
+                    <ul>
+                      <li>3 projects</li>
+                      <li>1 GB of storage</li>
+                      <li>Community support</li>
+                    </ul>
+                    <footer>
+                      <a href="#" role="button" class="secondary outline">Start for free</a>
+                    </footer>
+                  </article>
+                  <article>
+                    <hgroup>
+                      <h4>Team</h4>
+                      <p>For growing teams</p>
+                    </hgroup>
+                    <p><strong>$12</strong> per member per month</p>
+                    <ul>
+                      <li>Unlimited projects</li>
+                      <li>100 GB of storage</li>
+                      <li>Email support</li>
+                    </ul>
+                    <footer>
+                      <a href="#" role="button">Start a free trial</a>
+                    </footer>
+                  </article>
+                  <article>
+                    <hgroup>
+                      <h4>Enterprise</h4>
+                      <p>For large organizations</p>
+                    </hgroup>
+                    <p><strong>Custom</strong> pricing</p>
+                    <ul>
+                      <li>Single sign-on</li>
+                      <li>Unlimited storage</li>
+                      <li>A dedicated account manager</li>
+                    </ul>
+                    <footer>
+                      <a href="#" role="button" class="contrast outline">Contact sales</a>
+                    </footer>
+                  </article>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the pricing page</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+  &lt;h3&gt;Plans for teams of every size&lt;/h3&gt;
+  &lt;p&gt;Start for free, and upgrade when your team grows.&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;p&gt;
+  &lt;label&gt;
+    &lt;input type="checkbox" role="switch" name="yearly"&gt;
+    Pay yearly and get two months free
+  &lt;/label&gt;
+&lt;/p&gt;
+&lt;div class="grid"&gt;
+  &lt;article&gt;
+    &lt;hgroup&gt;
+      &lt;h4&gt;Starter&lt;/h4&gt;
+      &lt;p&gt;For one person&lt;/p&gt;
+    &lt;/hgroup&gt;
+    &lt;p&gt;&lt;strong&gt;$0&lt;/strong&gt; per month&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;3 projects&lt;/li&gt;
+      &lt;li&gt;1 GB of storage&lt;/li&gt;
+      &lt;li&gt;Community support&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;footer&gt;
+      &lt;a href="#" role="button" class="secondary outline"&gt;Start for free&lt;/a&gt;
+    &lt;/footer&gt;
+  &lt;/article&gt;
+  &lt;article&gt;
+    &lt;hgroup&gt;
+      &lt;h4&gt;Team&lt;/h4&gt;
+      &lt;p&gt;For growing teams&lt;/p&gt;
+    &lt;/hgroup&gt;
+    &lt;p&gt;&lt;strong&gt;$12&lt;/strong&gt; per member per month&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Unlimited projects&lt;/li&gt;
+      &lt;li&gt;100 GB of storage&lt;/li&gt;
+      &lt;li&gt;Email support&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;footer&gt;
+      &lt;a href="#" role="button"&gt;Start a free trial&lt;/a&gt;
+    &lt;/footer&gt;
+  &lt;/article&gt;
+  &lt;article&gt;
+    &lt;hgroup&gt;
+      &lt;h4&gt;Enterprise&lt;/h4&gt;
+      &lt;p&gt;For large organizations&lt;/p&gt;
+    &lt;/hgroup&gt;
+    &lt;p&gt;&lt;strong&gt;Custom&lt;/strong&gt; pricing&lt;/p&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Single sign-on&lt;/li&gt;
+      &lt;li&gt;Unlimited storage&lt;/li&gt;
+      &lt;li&gt;A dedicated account manager&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;footer&gt;
+      &lt;a href="#" role="button" class="contrast outline"&gt;Contact sales&lt;/a&gt;
+    &lt;/footer&gt;
+  &lt;/article&gt;
+&lt;/div&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="dashboard" aria-label="Dashboard example">
+        <hgroup>
+          <p class="chapter">Pages</p>
+          <h2>Dashboard</h2>
+          <p>Summary cards, a progress bar, a loading card and a striped table that scrolls on small screens.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <nav aria-label="Dashboard">
+                  <ul>
+                    <li><strong>Acme</strong></li>
+                  </ul>
+                  <ul>
+                    <li><a href="#" aria-current="page">Overview</a></li>
+                    <li><a href="#">Orders</a></li>
+                  </ul>
+                </nav>
+                <hgroup>
+                  <h3>Overview</h3>
+                  <p>October 2026</p>
+                </hgroup>
+                <div class="grid">
+                  <article>
+                    <hgroup>
+                      <h4>Revenue</h4>
+                      <p>$48,210, up 12% from September</p>
+                    </hgroup>
+                  </article>
+                  <article>
+                    <hgroup>
+                      <h4>Orders</h4>
+                      <p>1,284, down 3% from September</p>
+                    </hgroup>
+                  </article>
+                  <article>
+                    <hgroup>
+                      <h4>Storage</h4>
+                      <p>72 GB of 100 GB used</p>
+                    </hgroup>
+                    <progress value="72" max="100" aria-label="Storage used"></progress>
+                  </article>
+                  <article aria-busy="true">Counting visitors</article>
+                </div>
+                <h4>Recent orders</h4>
+                <div class="overflow-auto">
+                  <table class="striped">
+                    <thead>
+                      <tr>
+                        <th scope="col">Order</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Total</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th scope="row"><a href="#">1042</a></th>
+                        <td>Jordan Lee</td>
+                        <td>Oct 30</td>
+                        <td>$320.00</td>
+                        <td>Paid</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#">1041</a></th>
+                        <td>Sam Rivera</td>
+                        <td>Oct 29</td>
+                        <td>$89.50</td>
+                        <td>Shipped</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#">1040</a></th>
+                        <td>Alex Kim</td>
+                        <td>Oct 29</td>
+                        <td>$1,150.00</td>
+                        <td>Paid</td>
+                      </tr>
+                      <tr>
+                        <th scope="row"><a href="#">1039</a></th>
+                        <td>Maria Garcia</td>
+                        <td>Oct 28</td>
+                        <td>$42.00</td>
+                        <td>Refunded</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button type="button" class="secondary outline" data-tooltip="Download these orders as a CSV file">Export</button>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the dashboard</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Dashboard"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" aria-current="page"&gt;Overview&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Orders&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;hgroup&gt;
+  &lt;h3&gt;Overview&lt;/h3&gt;
+  &lt;p&gt;October 2026&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;div class="grid"&gt;
+  &lt;article&gt;
+    &lt;hgroup&gt;
+      &lt;h4&gt;Revenue&lt;/h4&gt;
+      &lt;p&gt;$48,210, up 12% from September&lt;/p&gt;
+    &lt;/hgroup&gt;
+  &lt;/article&gt;
+  &lt;article&gt;
+    &lt;hgroup&gt;
+      &lt;h4&gt;Orders&lt;/h4&gt;
+      &lt;p&gt;1,284, down 3% from September&lt;/p&gt;
+    &lt;/hgroup&gt;
+  &lt;/article&gt;
+  &lt;article&gt;
+    &lt;hgroup&gt;
+      &lt;h4&gt;Storage&lt;/h4&gt;
+      &lt;p&gt;72 GB of 100 GB used&lt;/p&gt;
+    &lt;/hgroup&gt;
+    &lt;progress value="72" max="100" aria-label="Storage used"&gt;&lt;/progress&gt;
+  &lt;/article&gt;
+  &lt;article aria-busy="true"&gt;Counting visitors&lt;/article&gt;
+&lt;/div&gt;
+&lt;h4&gt;Recent orders&lt;/h4&gt;
+&lt;div class="overflow-auto"&gt;
+  &lt;table class="striped"&gt;
+    &lt;thead&gt;
+      &lt;tr&gt;
+        &lt;th scope="col"&gt;Order&lt;/th&gt;
+        &lt;th scope="col"&gt;Customer&lt;/th&gt;
+        &lt;th scope="col"&gt;Date&lt;/th&gt;
+        &lt;th scope="col"&gt;Total&lt;/th&gt;
+        &lt;th scope="col"&gt;Status&lt;/th&gt;
+      &lt;/tr&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;
+      &lt;tr&gt;
+        &lt;th scope="row"&gt;&lt;a href="#"&gt;1042&lt;/a&gt;&lt;/th&gt;
+        &lt;td&gt;Jordan Lee&lt;/td&gt;
+        &lt;td&gt;Oct 30&lt;/td&gt;
+        &lt;td&gt;$320.00&lt;/td&gt;
+        &lt;td&gt;Paid&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;th scope="row"&gt;&lt;a href="#"&gt;1041&lt;/a&gt;&lt;/th&gt;
+        &lt;td&gt;Sam Rivera&lt;/td&gt;
+        &lt;td&gt;Oct 29&lt;/td&gt;
+        &lt;td&gt;$89.50&lt;/td&gt;
+        &lt;td&gt;Shipped&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;th scope="row"&gt;&lt;a href="#"&gt;1040&lt;/a&gt;&lt;/th&gt;
+        &lt;td&gt;Alex Kim&lt;/td&gt;
+        &lt;td&gt;Oct 29&lt;/td&gt;
+        &lt;td&gt;$1,150.00&lt;/td&gt;
+        &lt;td&gt;Paid&lt;/td&gt;
+      &lt;/tr&gt;
+      &lt;tr&gt;
+        &lt;th scope="row"&gt;&lt;a href="#"&gt;1039&lt;/a&gt;&lt;/th&gt;
+        &lt;td&gt;Maria Garcia&lt;/td&gt;
+        &lt;td&gt;Oct 28&lt;/td&gt;
+        &lt;td&gt;$42.00&lt;/td&gt;
+        &lt;td&gt;Refunded&lt;/td&gt;
+      &lt;/tr&gt;
+    &lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;
+&lt;button type="button" class="secondary outline" data-tooltip="Download these orders as a CSV file"&gt;Export&lt;/button&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="settings" aria-label="Settings example">
+        <hgroup>
+          <p class="chapter">Pages</p>
+          <h2>Settings</h2>
+          <p>A settings form with switches, a disabled option and radio buttons.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <hgroup>
+                  <h3>Account settings</h3>
+                  <p>Your profile and the email you get from us.</p>
+                </hgroup>
+                <form>
+                  <h4>Profile</h4>
+                  <div class="grid">
+                    <label>
+                      Display name
+                      <input type="text" name="display-name" autocomplete="nickname" value="Sam Rivera">
+                    </label>
+                    <label>
+                      Email
+                      <input type="email" name="email" autocomplete="email" value="sam@example.com">
+                    </label>
+                  </div>
+                  <label>
+                    Time zone
+                    <select name="time-zone">
+                      <option>Pacific Time</option>
+                      <option selected>Eastern Time</option>
+                      <option>Central European Time</option>
+                    </select>
+                  </label>
+                  <label>
+                    Bio
+                    <textarea name="bio" rows="2">Designer in Boston. I draw maps.</textarea>
+                  </label>
+                  <hr>
+                  <fieldset>
+                    <legend>Email me when</legend>
+                    <label>
+                      <input type="checkbox" role="switch" name="comments" checked>
+                      Someone comments on my posts
+                    </label>
+                    <label>
+                      <input type="checkbox" role="switch" name="mentions" checked>
+                      Someone mentions me
+                    </label>
+                    <label>
+                      <input type="checkbox" role="switch" name="news">
+                      There is product news
+                    </label>
+                    <label aria-disabled="true">
+                      <input type="checkbox" role="switch" name="security" checked disabled>
+                      There is a security alert (always on)
+                    </label>
+                  </fieldset>
+                  <hr>
+                  <fieldset>
+                    <legend>Color scheme</legend>
+                    <label>
+                      <input type="radio" name="settings-scheme" value="system" checked>
+                      Match my device
+                    </label>
+                    <label>
+                      <input type="radio" name="settings-scheme" value="light">
+                      Light
+                    </label>
+                    <label>
+                      <input type="radio" name="settings-scheme" value="dark">
+                      Dark
+                    </label>
+                  </fieldset>
+                  <button type="submit">Save changes</button>
+                  <button type="reset" class="secondary outline">Discard changes</button>
+                </form>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the settings form</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+  &lt;h3&gt;Account settings&lt;/h3&gt;
+  &lt;p&gt;Your profile and the email you get from us.&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;form&gt;
+  &lt;h4&gt;Profile&lt;/h4&gt;
+  &lt;div class="grid"&gt;
+    &lt;label&gt;
+      Display name
+      &lt;input type="text" name="display-name" autocomplete="nickname" value="Sam Rivera"&gt;
+    &lt;/label&gt;
+    &lt;label&gt;
+      Email
+      &lt;input type="email" name="email" autocomplete="email" value="sam@example.com"&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+  &lt;label&gt;
+    Time zone
+    &lt;select name="time-zone"&gt;
+      &lt;option&gt;Pacific Time&lt;/option&gt;
+      &lt;option selected&gt;Eastern Time&lt;/option&gt;
+      &lt;option&gt;Central European Time&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/label&gt;
+  &lt;label&gt;
+    Bio
+    &lt;textarea name="bio" rows="2"&gt;Designer in Boston. I draw maps.&lt;/textarea&gt;
+  &lt;/label&gt;
+  &lt;hr&gt;
+  &lt;fieldset&gt;
+    &lt;legend&gt;Email me when&lt;/legend&gt;
+    &lt;label&gt;
+      &lt;input type="checkbox" role="switch" name="comments" checked&gt;
+      Someone comments on my posts
+    &lt;/label&gt;
+    &lt;label&gt;
+      &lt;input type="checkbox" role="switch" name="mentions" checked&gt;
+      Someone mentions me
+    &lt;/label&gt;
+    &lt;label&gt;
+      &lt;input type="checkbox" role="switch" name="news"&gt;
+      There is product news
+    &lt;/label&gt;
+    &lt;label aria-disabled="true"&gt;
+      &lt;input type="checkbox" role="switch" name="security" checked disabled&gt;
+      There is a security alert (always on)
+    &lt;/label&gt;
+  &lt;/fieldset&gt;
+  &lt;hr&gt;
+  &lt;fieldset&gt;
+    &lt;legend&gt;Color scheme&lt;/legend&gt;
+    &lt;label&gt;
+      &lt;input type="radio" name="settings-scheme" value="system" checked&gt;
+      Match my device
+    &lt;/label&gt;
+    &lt;label&gt;
+      &lt;input type="radio" name="settings-scheme" value="light"&gt;
+      Light
+    &lt;/label&gt;
+    &lt;label&gt;
+      &lt;input type="radio" name="settings-scheme" value="dark"&gt;
+      Dark
+    &lt;/label&gt;
+  &lt;/fieldset&gt;
+  &lt;button type="submit"&gt;Save changes&lt;/button&gt;
+  &lt;button type="reset" class="secondary outline"&gt;Discard changes&lt;/button&gt;
+&lt;/form&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="blog-post" aria-label="Blog post example">
+        <hgroup>
+          <p class="chapter">Pages</p>
+          <h2>Blog post</h2>
+          <p>An article with a byline, a list, a quotation and a code block.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <hgroup>
+                  <h3>How we cut our page weight in half</h3>
+                  <p>By Alex Kim, <time datetime="2026-10-28">October 28, 2026</time></p>
+                </hgroup>
+                <p>Our pages had grown to 2 MB. Most of it was styles and scripts that no visitor needed, so we started again with plain HTML and one stylesheet.</p>
+                <h4>What we removed</h4>
+                <ul>
+                  <li>A front-end framework that only two pages used</li>
+                  <li>Three icon fonts, replaced by inline SVG</li>
+                  <li>Hundreds of <abbr title="Cascading Style Sheets">CSS</abbr> classes that no page used</li>
+                </ul>
+                <blockquote>
+                  Every byte we send is a byte someone waits for.
+                  <footer>
+                    <cite>Our performance team</cite>
+                  </footer>
+                </blockquote>
+                <h4>Try it yourself</h4>
+                <p>Build the site, then compare the page sizes in your browser's developer tools.</p>
+                <pre><code>npm run build</code></pre>
+                <p>The new pages load in under a second on a slow connection. <mark>Every page now weighs less than 500 KB.</mark></p>
+                <hr>
+                <p><small>Filed under <a href="#">Performance</a> and <a href="#">Engineering</a>.</small></p>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the blog post</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+  &lt;h3&gt;How we cut our page weight in half&lt;/h3&gt;
+  &lt;p&gt;By Alex Kim, &lt;time datetime="2026-10-28"&gt;October 28, 2026&lt;/time&gt;&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;p&gt;Our pages had grown to 2 MB. Most of it was styles and scripts that no visitor needed, so we started again with plain HTML and one stylesheet.&lt;/p&gt;
+&lt;h4&gt;What we removed&lt;/h4&gt;
+&lt;ul&gt;
+  &lt;li&gt;A front-end framework that only two pages used&lt;/li&gt;
+  &lt;li&gt;Three icon fonts, replaced by inline SVG&lt;/li&gt;
+  &lt;li&gt;Hundreds of &lt;abbr title="Cascading Style Sheets"&gt;CSS&lt;/abbr&gt; classes that no page used&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+  Every byte we send is a byte someone waits for.
+  &lt;footer&gt;
+    &lt;cite&gt;Our performance team&lt;/cite&gt;
+  &lt;/footer&gt;
+&lt;/blockquote&gt;
+&lt;h4&gt;Try it yourself&lt;/h4&gt;
+&lt;p&gt;Build the site, then compare the page sizes in your browser's developer tools.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;npm run build&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The new pages load in under a second on a slow connection. &lt;mark&gt;Every page now weighs less than 500 KB.&lt;/mark&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;small&gt;Filed under &lt;a href="#"&gt;Performance&lt;/a&gt; and &lt;a href="#"&gt;Engineering&lt;/a&gt;.&lt;/small&gt;&lt;/p&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="search-results" aria-label="Search results example">
+        <hgroup>
+          <p class="chapter">Pages</p>
+          <h2>Search results</h2>
+          <p>A search field joined to its button, a sort dropdown, results and page links.</p>
+        </hgroup>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <h3>Help center</h3>
+                <form role="search">
+                  <input type="search" name="q" value="dark mode" aria-label="Search the help center">
+                  <button type="submit">Search</button>
+                </form>
+                <div class="grid">
+                  <p>28 results for "dark mode"</p>
+                  <details class="dropdown">
+                    <summary>Sort by</summary>
+                    <ul>
+                      <li>
+                        <label>
+                          <input type="radio" name="search-sort" value="relevance" checked>
+                          Best match
+                        </label>
+                      </li>
+                      <li>
+                        <label>
+                          <input type="radio" name="search-sort" value="newest">
+                          Newest first
+                        </label>
+                      </li>
+                    </ul>
+                  </details>
+                </div>
+                <h4><a href="#">Turn on dark mode</a></h4>
+                <p><small>Help center › Appearance</small></p>
+                <p>Open Settings, choose Appearance, then choose Dark. Choose Match my device to follow your device's <mark>dark mode</mark>.</p>
+                <h4><a href="#">Dark mode in email</a></h4>
+                <p><small>Help center › Email</small></p>
+                <p>Emails we send follow your email app's <mark>dark mode</mark> when the app supports it.</p>
+                <h4><a href="#">Change the color scheme of a shared page</a></h4>
+                <p><small>Help center › Sharing</small></p>
+                <p>Visitors see a shared page in light or <mark>dark mode</mark>, following their own device.</p>
+                <nav aria-label="Result pages">
+                  <ul>
+                    <li><a href="#" aria-current="page" aria-label="Page 1">1</a></li>
+                    <li><a href="#" aria-label="Page 2">2</a></li>
+                    <li><a href="#" aria-label="Page 3">3</a></li>
+                  </ul>
+                  <ul>
+                    <li><a href="#">Next page</a></li>
+                  </ul>
+                </nav>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>Markup of the search results</summary>
+          <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Help center&lt;/h3&gt;
+&lt;form role="search"&gt;
+  &lt;input type="search" name="q" value="dark mode" aria-label="Search the help center"&gt;
+  &lt;button type="submit"&gt;Search&lt;/button&gt;
+&lt;/form&gt;
+&lt;div class="grid"&gt;
+  &lt;p&gt;28 results for "dark mode"&lt;/p&gt;
+  &lt;details class="dropdown"&gt;
+    &lt;summary&gt;Sort by&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;
+        &lt;label&gt;
+          &lt;input type="radio" name="search-sort" value="relevance" checked&gt;
+          Best match
+        &lt;/label&gt;
+      &lt;/li&gt;
+      &lt;li&gt;
+        &lt;label&gt;
+          &lt;input type="radio" name="search-sort" value="newest"&gt;
+          Newest first
+        &lt;/label&gt;
+      &lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+&lt;/div&gt;
+&lt;h4&gt;&lt;a href="#"&gt;Turn on dark mode&lt;/a&gt;&lt;/h4&gt;
+&lt;p&gt;&lt;small&gt;Help center › Appearance&lt;/small&gt;&lt;/p&gt;
+&lt;p&gt;Open Settings, choose Appearance, then choose Dark. Choose Match my device to follow your device's &lt;mark&gt;dark mode&lt;/mark&gt;.&lt;/p&gt;
+&lt;h4&gt;&lt;a href="#"&gt;Dark mode in email&lt;/a&gt;&lt;/h4&gt;
+&lt;p&gt;&lt;small&gt;Help center › Email&lt;/small&gt;&lt;/p&gt;
+&lt;p&gt;Emails we send follow your email app's &lt;mark&gt;dark mode&lt;/mark&gt; when the app supports it.&lt;/p&gt;
+&lt;h4&gt;&lt;a href="#"&gt;Change the color scheme of a shared page&lt;/a&gt;&lt;/h4&gt;
+&lt;p&gt;&lt;small&gt;Help center › Sharing&lt;/small&gt;&lt;/p&gt;
+&lt;p&gt;Visitors see a shared page in light or &lt;mark&gt;dark mode&lt;/mark&gt;, following their own device.&lt;/p&gt;
+&lt;nav aria-label="Result pages"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#" aria-current="page" aria-label="Page 1"&gt;1&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#" aria-label="Page 2"&gt;2&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#" aria-label="Page 3"&gt;3&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Next page&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre></div>
+        </details>
       </section>
     </main>
     <!-- include partials/footer.html -->

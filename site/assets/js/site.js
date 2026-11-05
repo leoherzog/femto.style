@@ -1,12 +1,12 @@
 // site.js: every page (loaded from partials/head.html). docs/research/01 §2 and 03 §5.
 //
-// It rebuilds the oracle's page-wide behaviors. The copy links and the modal dialogs attach through
-// data- attributes from Phase 3 (PLAN.md Conversion rules); the header toggle and the fixed header
-// still bind to the oracle's own markup in the header partials, as Phases 1 and 2 did:
+// It rebuilds the oracle's page-wide behaviors, each attached through a data- attribute (PLAN.md
+// Conversion rules):
 // - the body's min-height, innerHeight in px (react-div-100vh in Body.jsx);
-// - the header theme toggle (PageContext.jsx, Nav.jsx);
-// - the fixed header on docs pages (Header.jsx);
-// - the copy links of code blocks, a[data-copy-link] (Code.jsx);
+// - the header theme toggle, button[data-scheme-toggle] (PageContext.jsx, Nav.jsx);
+// - the fixed header on docs pages, header[data-fixed-header] (Header.jsx);
+// - the copy buttons of code blocks, button[data-copy-link] (Code.jsx);
+// - the code blocks' focus, pre[data-scroll-focus]: only a block that scrolls takes focus;
 // - the submit of example forms, canceled (01 §2, last paragraph);
 // - the modal dialogs, <dialog data-modal> with its openers and closers (ModalContext.jsx).
 // Each does nothing when its markup is absent.
@@ -73,10 +73,10 @@ export function onThemeChange(fn) {
   return () => themeListeners.delete(fn);
 }
 
-// The header toggle (a[data-scheme-toggle] in the header nav), as Nav.jsx renders it: href is the
-// current path (Remix's Link to="#"), and the label and the icon's moon class follow the scheme. The
-// icon is the owner's sun or moon emoji (Decision 16), not the oracle's animated SVG.
-const toggles = [...document.querySelectorAll("a[data-scheme-toggle]")];
+// The header toggle (button[data-scheme-toggle] in the header nav, a link in the oracle's Nav.jsx
+// until Phase 4): its label and the icon's moon class follow the scheme. The icon is the owner's sun
+// or moon emoji (Decision 16), not the oracle's animated SVG.
+const toggles = [...document.querySelectorAll("button[data-scheme-toggle]")];
 
 function applyTheme() {
   const stored = storedTheme();
@@ -104,13 +104,7 @@ export function switchTheme() {
   applyTheme();
 }
 
-for (const toggle of toggles) {
-  toggle.setAttribute("href", location.pathname);
-  toggle.addEventListener("click", (event) => {
-    event.preventDefault();
-    switchTheme();
-  });
-}
+for (const toggle of toggles) toggle.addEventListener("click", switchTheme);
 addEventListener("storage", (event) => {
   if (event.key !== KEY && event.key !== null) return;
   unstoredChoice = null;
@@ -139,17 +133,21 @@ if (fixedHeader) {
   update();
 }
 
-// --- Copy links (Code.jsx) -----------------------------------------------------------------------
-// a[data-copy-link] (a.copy-to-clipboard, the first child of div.code or footer.code; colors.js's
-// color modal writes its own the same way): a click copies the block's code text, shows the
-// animated check icon with the tooltip "Copied", and 1 s later restores the clipboard icon and
-// "Copy to clipboard" and blurs the link. As in Code.jsx, every click schedules its own revert, so
-// after repeated clicks the first one's timer reverts (1 s after the first click) and each later one
-// only blurs, or reverts a "Copied" a still later click showed. The check icon is Check.jsx's,
-// isAnimated and strokeWidth 3, with the class "check", but without its path's id="check-icon": the
-// docs page has that id already, in Version picker's swatch, and every link showing "Copied" would
-// add one more (Decision 13). Its <style> selects the path through svg.check, the copy links' check
-// alone.
+// --- Copy buttons (Code.jsx) ---------------------------------------------------------------------
+// button[data-copy-link] (button.copy-to-clipboard, the first child of div.code or footer.code;
+// colors.js's color modal writes its own the same way; links with tabindex="-1" in the oracle, which
+// the keyboard could not reach): a click, or Enter or Space, copies the block's code text, shows the
+// animated check icon with the tooltip "Copied", and 1 s later restores the clipboard icon and "Copy
+// to clipboard" and blurs the button, unless it has keyboard focus (:focus-visible), which stays
+// where the reader left it. As in Code.jsx, every click schedules its own revert, so after repeated
+// clicks the first one's timer reverts (1 s after the first click) and each later one only blurs, or
+// reverts a "Copied" a still later click showed. A screen reader hears "Copied" too, which the
+// tooltip alone does not say: it is written into one visually hidden status region (p.visually-hidden
+// role="status", the last child of <body>, added once a page has a copy button) and cleared again at
+// the revert, so the next copy is announced again. The check icon is Check.jsx's, isAnimated and
+// strokeWidth 3, with the class "check", but without its path's id="check-icon": the docs page has
+// that id already, in the Theme picker's swatch, and every button showing "Copied" would add one
+// more (Decision 13). Its <style> selects the path through svg.check, the copy buttons' check alone.
 
 const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="check"><style>
           svg.check > path {
@@ -169,7 +167,7 @@ const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="2
         </style><path d="M5 12l5 5l10 -10"></path></svg>`;
 
 const COPIED_FOR = 1000;
-const copied = new WeakMap(); // link -> {icon, check} while it shows "Copied"
+const copied = new WeakMap(); // button -> {icon, check} while it shows "Copied"
 
 function checkIcon() {
   const template = document.createElement("template");
@@ -177,30 +175,85 @@ function checkIcon() {
   return template.content.firstElementChild;
 }
 
+let copyStatus = null; // the status region; it exists before its first text, so that text is announced
+
+function announceCopy(text) {
+  if (!copyStatus) {
+    copyStatus = document.createElement("p");
+    copyStatus.className = "visually-hidden";
+    copyStatus.setAttribute("role", "status");
+    document.body.append(copyStatus);
+  }
+  if (copyStatus.textContent !== text) copyStatus.textContent = text;
+}
+if (document.querySelector("button[data-copy-link], [data-color-modal]")) announceCopy("");
+
 document.addEventListener("click", (event) => {
-  const link = event.target instanceof Element ? event.target.closest("a[data-copy-link]") : null;
-  if (!link) return;
-  event.preventDefault();
-  const code = link.parentElement.querySelector("pre code");
+  const button = event.target instanceof Element ? event.target.closest("button[data-copy-link]") : null;
+  if (!button) return;
+  const code = button.parentElement.querySelector("pre code");
   if (code) navigator.clipboard?.writeText(code.textContent).catch(() => {});
-  if (!copied.has(link)) {
-    const icon = link.querySelector("svg.clipboard");
+  if (!copied.has(button)) {
+    const icon = button.querySelector("svg.clipboard");
     if (!icon) return;
     const check = checkIcon();
     icon.replaceWith(check);
-    link.setAttribute("data-tooltip", "Copied");
-    copied.set(link, { icon, check });
+    button.setAttribute("data-tooltip", "Copied");
+    copied.set(button, { icon, check });
+    announceCopy("Copied");
   }
   setTimeout(() => {
-    const state = copied.get(link);
+    const state = copied.get(button);
     if (state) {
       state.check.replaceWith(state.icon);
-      link.setAttribute("data-tooltip", "Copy to clipboard");
-      copied.delete(link);
+      button.setAttribute("data-tooltip", "Copy to clipboard");
+      copied.delete(button);
+      announceCopy("");
     }
-    link.blur();
+    if (!button.matches(":focus-visible")) button.blur();
   }, COPIED_FOR);
 });
+
+// --- Code block focus ----------------------------------------------------------------------------
+// pre[data-scroll-focus], every highlighted <pre>, which build.mjs writes with tabindex="0" so that
+// without JavaScript each one takes focus: a block whose code is wider than it scrolls sideways, and
+// the keyboard scrolls it only once it has focus (axe's scrollable-region-focusable). Here only a
+// block that overflows keeps tabindex="0", named as a figure, role="figure" with aria-label "HTML
+// code" (or CSS, SCSS, Bash: its code's language): ARIA's figure is the role for a code snippet, and
+// unlike a region it is no landmark, so a page of code blocks does not fill the landmark list with
+// names that repeat (axe's landmark-unique). The others leave the tab order and carry no role or
+// name, so a screen reader neither stops at nor announces them. A ResizeObserver checks a block
+// whenever its box changes (the viewport, a closed <details> opening), and every block is checked
+// again when a font finishes loading (the code font changes the code's width, not the block's box).
+// A focused block keeps its tabindex until focus has left it.
+
+const LANGUAGES = { html: "HTML", css: "CSS", scss: "SCSS", bash: "Bash" };
+const scrollers = [...document.querySelectorAll("pre[data-scroll-focus]")];
+
+function fitFocus(pres) {
+  const overflows = pres.map((pre) => pre.scrollWidth > pre.clientWidth || pre.scrollHeight > pre.clientHeight);
+  pres.forEach((pre, i) => {
+    if (overflows[i]) {
+      const language = pre.querySelector("code")?.className.match(/\blanguage-([\w-]+)/)?.[1];
+      if (pre.getAttribute("tabindex") !== "0") pre.setAttribute("tabindex", "0");
+      if (pre.getAttribute("role") !== "figure") pre.setAttribute("role", "figure");
+      const label = `${LANGUAGES[language] ?? "Example"} code`;
+      if (pre.getAttribute("aria-label") !== label) pre.setAttribute("aria-label", label);
+    } else if (pre !== document.activeElement) {
+      for (const name of ["tabindex", "role", "aria-label"]) pre.removeAttribute(name);
+    }
+  });
+}
+
+if (scrollers.length) {
+  const observer = new ResizeObserver((entries) => fitFocus(entries.map((entry) => entry.target)));
+  for (const pre of scrollers) observer.observe(pre);
+  document.fonts?.addEventListener("loadingdone", () => fitFocus(scrollers));
+  document.addEventListener("focusout", (event) => {
+    const pre = event.target instanceof Element && event.target.matches("pre[data-scroll-focus]") ? event.target : null;
+    if (pre) setTimeout(() => fitFocus([pre])); // once focus has moved on
+  });
+}
 
 // --- Example forms -------------------------------------------------------------------------------
 // Every form on the site is an example, inside <main>: none submits.
@@ -328,13 +381,16 @@ export function createModal(dialog, { modal = false, backdrop = true, onClosed }
 }
 
 // --- Modal dialogs (data-modal) ------------------------------------------------------------------
-// A <dialog data-modal="<name>"> gets its helper on load, with the defaults (the open attribute, as
-// the oracle's demo had). A click on [data-modal-open="<name>"] opens it, and a click on a
-// [data-modal-close] inside it closes it; the helper adds the backdrop click and Escape. The Modal
-// section's demo is the one on the site.
+// A <dialog data-modal="<name>"> gets its helper on load, as a true modal (modal: true, from Phase 4;
+// the oracle's demo only set the open attribute, so focus stayed under the overlay and Tab walked the
+// page behind it): showModal() makes the page behind inert and moves focus into the dialog, and the
+// close gives focus back to the opener. A click on [data-modal-open="<name>"] opens it, and a click
+// on a [data-modal-close] inside it closes it; the helper adds the backdrop click and Escape (the
+// dialog's cancel event), both with the animated close. The Modal section's demo is the one on the
+// site.
 
 const dialogs = document.querySelectorAll("dialog[data-modal]");
-for (const dialog of dialogs) createModal(dialog);
+for (const dialog of dialogs) createModal(dialog, { modal: true });
 if (dialogs.length) {
   document.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;

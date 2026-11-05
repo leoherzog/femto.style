@@ -30,8 +30,9 @@ from .paths import REPO, RESULTS
 
 AXE = REPO / "node_modules" / "axe-core"
 # Criterion 10's pages: every page of the URL inventory (the 404 page through a path that has none),
-# and the docs page once more with a theme, so the theme stylesheet's colors are covered too.
-PAGES = ("/", "/examples", "/demo", "/does-not-exist", "/docs", "/docs?theme=jade")
+# and the docs page once more with a theme, so the theme stylesheet's colors are covered too. /demo
+# is not built from Phase 4 (PLAN.md Open questions 5); --pages /demo checks an older build.
+PAGES = ("/", "/examples", "/does-not-exist", "/docs", "/docs?theme=jade")
 BROWSERS = ("chrome", "firefox")
 SCHEMES = ("light", "dark")
 WIDTHS = (375, 1300)

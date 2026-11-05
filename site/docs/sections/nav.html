@@ -1,11 +1,11 @@
 <hgroup>
   <p class="chapter">Components</p>
   <h1 id="nav">Nav</h1>
-  <p>The essential navbar component in pure semantic HTML.</p>
+  <p><code class="language-html">&lt;nav&gt;</code> lays out its lists in one row, with their links, buttons and form fields lined up.</p>
 </hgroup>
 <section>
   <article aria-label="Nav example" class="component">
-    <nav data-nav-example>
+    <nav aria-label="Nav example" data-nav-example>
       <ul>
         <li><strong>Acme Corp</strong></li>
       </ul>
@@ -15,7 +15,7 @@
         <li><a data-discover="true" href="/docs">Products</a></li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -26,15 +26,13 @@
   &lt;/ul&gt;
 &lt;/nav&gt;</code></pre></footer>
   </article>
-  <p><code class="language-html">&lt;ul&gt;</code> are automatically distributed horizontally.</p>
-  <p><code class="language-html">&lt;li&gt;</code> are unstyled and inlined.</p>
-  <p><code class="language-html">&lt;a&gt;</code> are underlined only on <code>:hover</code>.</p>
+  <p>The nav spreads its <code class="language-html">&lt;ul&gt;</code> lists across its width. Their items sit side by side with no markers, and their links are underlined only on hover.</p>
 </section>
 <section>
   <h2>Link variants</h2>
-  <p>You can use <code>.secondary</code>, <code>.contrast</code>, and <code>.outline</code> classes (not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
-  <article aria-label="Nav example" class="component">
-    <nav data-nav-example>
+  <p><code>.secondary</code> and <code>.contrast</code> color links.</p>
+  <article aria-label="Nav link variants example" class="component">
+    <nav aria-label="Nav link variants example" data-nav-example>
       <ul>
         <li><strong>Acme Corp</strong></li>
       </ul>
@@ -44,7 +42,7 @@
         <li><a class="contrast" data-discover="true" href="/docs">Products</a></li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -55,8 +53,8 @@
   &lt;/ul&gt;
 &lt;/nav&gt;</code></pre></footer>
   </article>
-  <article aria-label="Nav example" class="component">
-    <nav data-nav-example>
+  <article aria-label="Nav icon links example" class="component">
+    <nav aria-label="Nav icon links example" data-nav-example>
       <ul>
         <li><a class="secondary" aria-label="Menu" data-discover="true" href="/docs"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="1rem" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-menu"><path d="M4 6l16 0"></path><path d="M4 12l16 0"></path><path d="M4 18l16 0"></path></svg></a></li>
       </ul>
@@ -67,7 +65,7 @@
         <li><a class="secondary" aria-label="Twitter" data-discover="true" href="/docs"><svg xmlns="http://www.w3.org/2000/svg" height="1rem" width="100%" viewBox="0 0 512 512" class="icon-x"><path d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"></path></svg></a></li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;a href="#" class="secondary"&gt;...&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -82,36 +80,35 @@
 </section>
 <section>
   <h2>Buttons</h2>
-  <p>You can use <code class="language-html">&lt;button&gt;</code> inside <code class="language-html">&lt;li&gt;</code>.</p>
-  <p>Button sizes automatically match link size and margin.</p>
-  <article aria-label="Nav example" class="component">
-    <nav data-nav-example>
+  <p>A <code class="language-html">&lt;button&gt;</code> in a nav item is sized to line up with the links.</p>
+  <article aria-label="Nav buttons example" class="component">
+    <nav aria-label="Nav buttons example" data-nav-example>
       <ul>
         <li><strong>Acme Corp</strong></li>
       </ul>
       <ul>
         <li><a data-discover="true" href="/docs">About</a></li>
         <li><a data-discover="true" href="/docs">Services</a></li>
-        <li><button class="secondary">Products</button></li>
+        <li><button type="button" class="secondary">Products</button></li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;a href="#"&gt;About&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;&lt;button class="secondary"&gt;Products&lt;/button&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;button type="button" class="secondary"&gt;Products&lt;/button&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/nav&gt;</code></pre></footer>
   </article>
 </section>
 <section>
   <h2>Dropdowns</h2>
-  <p>You can use <a data-discover="true" href="/docs#dropdown">dropdowns</a> inside Nav.</p>
-  <article aria-label="Dropdowns inside nav" class="component">
-    <nav data-nav-example>
+  <p>A <a data-discover="true" href="/docs#dropdown">dropdown</a> in a nav item is as wide as its summary.</p>
+  <article aria-label="Nav dropdown example" class="component">
+    <nav aria-label="Nav dropdown example" data-nav-example>
       <ul>
         <li><strong>Acme Corp</strong></li>
       </ul>
@@ -124,13 +121,13 @@
               <li><a data-discover="true" href="/docs">Profile</a></li>
               <li><a data-discover="true" href="/docs">Settings</a></li>
               <li><a data-discover="true" href="/docs">Security</a></li>
-              <li><a data-discover="true" href="/docs">Logout</a></li>
+              <li><a data-discover="true" href="/docs">Log out</a></li>
             </ul>
           </details>
         </li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -145,7 +142,7 @@
           &lt;li&gt;&lt;a href="#"&gt;Profile&lt;/a&gt;&lt;/li&gt;
           &lt;li&gt;&lt;a href="#"&gt;Settings&lt;/a&gt;&lt;/li&gt;
           &lt;li&gt;&lt;a href="#"&gt;Security&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href="#"&gt;Logout&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Log out&lt;/a&gt;&lt;/li&gt;
         &lt;/ul&gt;
       &lt;/details&gt;
     &lt;/li&gt;
@@ -155,10 +152,10 @@
 </section>
 <section>
   <h2>Vertical stacking</h2>
-  <p>Inside <code class="language-html">&lt;aside&gt;</code>, navs items are stacked vertically.</p>
+  <p>Inside <code class="language-html">&lt;aside&gt;</code>, a nav stacks its items vertically.</p>
   <article aria-label="Vertical nav example" class="component">
-    <aside>
-      <nav data-nav-example>
+    <aside aria-label="Vertical nav example">
+      <nav aria-label="Vertical nav" data-nav-example>
         <ul>
           <li><a data-discover="true" href="/docs">About</a></li>
           <li><a data-discover="true" href="/docs">Services</a></li>
@@ -166,7 +163,7 @@
         </ul>
       </nav>
     </aside>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;aside&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;aside&gt;
   &lt;nav&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;a href="#"&gt;About&lt;/a&gt;&lt;/li&gt;
@@ -179,8 +176,9 @@
 </section>
 <section>
   <h2>Breadcrumb</h2>
-  <p>With <code class="language-html">&lt;nav aria-label="breadcrumb"&gt;</code>, you can turn a nav into a breadcrumb.</p>
+  <p><code class="language-html">&lt;nav aria-label="breadcrumb"&gt;</code> is a breadcrumb, with a divider between its items. Write the current page as plain text, or as a link with <code>aria-current="page"</code>, which femto shows as plain text.</p>
   <article aria-label="Breadcrumb example" class="component">
+    <!-- [html-validate-disable-next unique-landmark -- femto styles a breadcrumb only through nav[aria-label="breadcrumb"], so every breadcrumb on the page shares that name] -->
     <nav aria-label="breadcrumb" data-nav-example>
       <ul>
         <li><a data-discover="true" href="/docs">Home</a></li>
@@ -188,7 +186,7 @@
         <li>Design</li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav aria-label="breadcrumb"&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="breadcrumb"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;/li&gt;
     &lt;li&gt;&lt;a href="#"&gt;Services&lt;/a&gt;&lt;/li&gt;
@@ -196,8 +194,9 @@
   &lt;/ul&gt;
 &lt;/nav&gt;</code></pre></footer>
   </article>
-  <p>You can change the divider with a local CSS custom property <code>--femto-nav-breadcrumb-divider</code>.</p>
-  <article aria-label="Breadcrumb example" class="component">
+  <p>Set <code>--femto-nav-breadcrumb-divider</code> on the nav to change the divider.</p>
+  <article aria-label="Breadcrumb divider example" class="component">
+    <!-- [html-validate-disable-next unique-landmark -- femto styles a breadcrumb only through nav[aria-label="breadcrumb"], so every breadcrumb on the page shares that name] -->
     <nav aria-label="breadcrumb" style="--femto-nav-breadcrumb-divider:'✨'" data-nav-example>
       <ul>
         <li><a data-discover="true" href="/docs">Home</a></li>
@@ -205,7 +204,7 @@
         <li>Design</li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;nav
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;nav
   aria-label="breadcrumb"
   style="--femto-nav-breadcrumb-divider: '✨';"
 &gt;
@@ -219,9 +218,9 @@
 </section>
 <section id="overflow">
   <h2>Overflow</h2>
-  <p>The <code class="language-html">&lt;nav&gt;</code> component uses <code class="language-css">overflow: visible;</code> on the container and negative margins on children to provide a nice <code>::focus-visible</code> style for links on keyboard navigation while keeping the content aligned horizontally.</p>
+  <p>Nav links have padding, so their keyboard focus ring has room, and negative margins that keep their text lined up with the content around the nav. The nav keeps <code class="language-css">overflow: visible</code>, so the ring is not cut off. Below, the dashed lines are the edges of two navs, and the second shows the focus rings.</p>
   <article aria-label="Overflow example" class="component">
-    <nav aria-label="overflow" data-nav-example>
+    <nav aria-label="Overflow example" data-nav-example>
       <ul>
         <li><a data-discover="true" href="/docs">About</a></li>
         <li><a data-discover="true" href="/docs">Services</a></li>
@@ -230,7 +229,7 @@
         <li><a data-discover="true" href="/docs">Products</a></li>
       </ul>
     </nav>
-    <nav aria-label="overflow-with-focus" data-nav-example>
+    <nav aria-label="Overflow example with focus rings" data-nav-example>
       <ul>
         <li><a class="focused" data-discover="true" href="/docs">About</a></li>
         <li><a data-discover="true" href="/docs">Services</a></li>
@@ -242,14 +241,5 @@
   </article>
 </section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.nav.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/nav.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
 </section>
-<nav aria-label="overflow-with-focus" data-nav-example>
-  <ul>
-    <li><a class="focused" data-discover="true" href="/docs">About</a></li>
-    <li><a data-discover="true" href="/docs">Services</a></li>
-  </ul>
-  <ul>
-    <li><a class="focused" data-discover="true" href="/docs">Products</a></li>
-  </ul>
-</nav>

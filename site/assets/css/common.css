@@ -1,6 +1,7 @@
 /* The site's shared styles, on every page after femto and its responsive-spacings option: the
    site's own tokens for each color scheme, the header, document and footer layout, and the skip
-   link, logo, theme toggle, chapter label and component card. Code blocks are in code.css. */
+   link, screen-reader-only text, logo, theme toggle, chapter label and component card. Code blocks
+   are in code.css. */
 
 /* Landmarks and sections get 4 times --femto-spacing above and below from 1536px up, past the
    2.25 that responsive-spacings.css gives them */
@@ -15,6 +16,9 @@
 
 /**
  * Color schemes
+ * --femto-code-comment, the color of Prism's comment and doctype tokens, keeps 4.5:1 on every code
+ * block background (the card, the card footer and femto's code background) in both schemes
+ * (criterion 10): #667080 in light, #828b9b in dark.
  */
 
 /* Light color scheme (Default)
@@ -29,8 +33,6 @@
   --femto-logo-wordmark: #2a3140;
   --femto-logo-small-sparkles: #ffbf00;
   --femto-logo-big-sparkle: #ff9500;
-  /* Current version checkmark */
-  --femto-current-version-checkmark: rgb(28.5, 105.5, 84);
   /* Card for components */
   --femto-card-component-outline-width: 0;
   --femto-card-component-outline-color: transparent;
@@ -39,7 +41,7 @@
   --femto-code-tag: #8b4f00;
   --femto-code-attr: rgb(152, 45.75, 121);
   --femto-code-value: #2e685b;
-  --femto-code-comment: #7b8495;
+  --femto-code-comment: #667080;
   --femto-code-copied: rgb(28.5, 105.5, 84);
   /* Chapter */
   --femto-chapter-color: var(--femto-code-tag);
@@ -65,8 +67,6 @@
     --femto-logo-wordmark: #fff;
     --femto-logo-small-sparkles: #ff9500;
     --femto-logo-big-sparkle: #ffbf00;
-    /* Current version checkmark */
-    --femto-current-version-checkmark: #62af9a;
     /* Card for components */
     --femto-card-component-outline-width: 2px;
     --femto-card-component-outline-color: var(--femto-card-background-color);
@@ -75,7 +75,7 @@
     --femto-code-tag: rgb(186.75, 150.5, 43.75);
     --femto-code-attr: rgb(199, 131.5, 183);
     --femto-code-value: rgb(112.5, 163.5, 161.25);
-    --femto-code-comment: #6f7887;
+    --femto-code-comment: #828b9b;
     --femto-code-copied: #62af9a;
     /* Chapter */
     --femto-chapter-color: var(--femto-code-tag);
@@ -99,8 +99,6 @@
   --femto-logo-wordmark: #fff;
   --femto-logo-small-sparkles: #ff9500;
   --femto-logo-big-sparkle: #ffbf00;
-  /* Current version checkmark */
-  --femto-current-version-checkmark: #62af9a;
   /* Card for components */
   --femto-card-component-outline-width: 2px;
   --femto-card-component-outline-color: var(--femto-card-background-color);
@@ -109,7 +107,7 @@
   --femto-code-tag: rgb(186.75, 150.5, 43.75);
   --femto-code-attr: rgb(199, 131.5, 183);
   --femto-code-value: rgb(112.5, 163.5, 161.25);
-  --femto-code-comment: #6f7887;
+  --femto-code-comment: #828b9b;
   --femto-code-copied: #62af9a;
   /* Chapter */
   --femto-chapter-color: var(--femto-code-tag);
@@ -158,6 +156,36 @@ body > header .container nav svg {
   transform: translateY(-0.0625rem);
 }
 
+/* The color-scheme toggle is a <button type="button">, drawn as the header's contrast links are:
+   femto's nav link box, no border or background, the contrast link colors, and femto's link focus
+   ring on keyboard focus only. No transition: Firefox styles the docs page once before the site's
+   stylesheets apply (docs.html links them after the head scripts), so a transition here would run
+   on load from femto's button colors, white on the primary background */
+body > header .container nav ul.icons button {
+  --femto-color: var(--femto-contrast);
+  display: inline-block;
+  max-width: none;
+  margin: calc(var(--femto-nav-link-spacing-vertical) * -1) calc(var(--femto-nav-link-spacing-horizontal) * -1);
+  padding: var(--femto-nav-link-spacing-vertical) var(--femto-nav-link-spacing-horizontal);
+  border: 0;
+  border-radius: var(--femto-border-radius);
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--femto-color);
+  font-weight: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  transition: none;
+}
+
+body > header .container nav ul.icons button:is(:hover, :active, :focus) {
+  --femto-color: var(--femto-contrast-hover);
+}
+
+body > header .container nav ul.icons button:focus-visible {
+  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
+}
+
 /* Hide docs link on mobile */
 @media (max-width: 575px) {
   body > header .container nav ul li.hide-before-sm {
@@ -174,43 +202,6 @@ body > header .container nav svg {
     border-left: var(--femto-border-width) solid var(--femto-form-element-border-color);
     content: "";
   }
-}
-
-/* Dropdown menu */
-body > header .container nav details[class=dropdown] {
-  display: inline-block;
-  margin: calc(var(--femto-nav-element-spacing-vertical) * -1) calc(var(--femto-nav-element-spacing-horizontal) * -1);
-}
-
-body > header .container nav details[class=dropdown]:not(:focus-within) summary,
-body > header .container nav details[class=dropdown] summary:not(:hover, :focus, :focus-visible) {
-  border-color: transparent;
-  background-color: transparent;
-}
-
-body > header .container nav details[class=dropdown] summary:hover,
-body > header .container nav details[class=dropdown] summary:focus,
-body > header .container nav details[class=dropdown] summary:focus-visible {
-  color: var(--femto-secondary-hover);
-}
-
-body > header .container nav details[class=dropdown] summary:focus {
-  border: var(--femto-border-width) solid var(--femto-dropdown-border-color);
-  box-shadow: none;
-}
-
-body > header .container nav details[class=dropdown] summary:focus-visible {
-  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
-}
-
-body > header .container nav details[class=dropdown] summary::after {
-  transform: rotate(0) translate(0.2rem) translateY(0.0625rem);
-}
-
-body > header .container nav details[class=dropdown] ul li a svg {
-  stroke: var(--femto-current-version-checkmark);
-  margin-left: 0.25rem;
-  transform: scale(0.75);
 }
 
 /* Fixed header: the docs header, from 1024px up (site.js adds is-fixed once the page scrolls) */
@@ -312,7 +303,7 @@ body > footer .container section:first-of-type nav.links {
 
 @media (min-width: 768px) {
   body > footer .container section:first-of-type nav.links {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     column-gap: calc(var(--femto-spacing) * 2);
     justify-content: flex-end;
     width: 100%;
@@ -411,19 +402,57 @@ body > footer .container section:last-of-type p code {
 /**
  * Skip to content
  */
-.skip-to-content {
+
+/* A plain link (it navigates, so it has no button role), drawn as femto's .contrast button: its
+   padding, border, radius, colors and focus ring from femto's button tokens, with no underline. It
+   sits above the page out of view until it takes focus. Its text color is set directly, not through
+   --femto-color, which femto's link rules set on a focused link at a higher specificity (a focused
+   a.contrast gets --femto-contrast-hover, the color of this link's background) */
+a.skip-to-content {
+  --femto-background-color: var(--femto-contrast-background);
+  --femto-border-color: var(--femto-contrast-border);
+  --femto-box-shadow: var(--femto-card-box-shadow);
+  --femto-text-decoration: none;
+  display: inline-block;
   z-index: 999;
   position: absolute;
   top: calc(var(--femto-spacing) * 0.75);
   left: calc(var(--femto-spacing) * 0.75);
+  padding: var(--femto-form-element-spacing-vertical) var(--femto-form-element-spacing-horizontal);
+  border: var(--femto-border-width) solid var(--femto-border-color);
+  border-radius: var(--femto-border-radius);
+  background-color: var(--femto-background-color);
+  box-shadow: var(--femto-box-shadow);
+  color: var(--femto-contrast-inverse);
+  font-weight: var(--femto-font-weight);
+  font-size: 1rem;
+  line-height: var(--femto-line-height);
+  text-align: center;
   transform: translateY(-1000%);
-  --femto-box-shadow: var(--femto-card-box-shadow);
   opacity: 0;
 }
 
-.skip-to-content:focus {
+a.skip-to-content:focus {
+  --femto-background-color: var(--femto-contrast-hover-background);
+  --femto-border-color: var(--femto-contrast-hover-border);
+  --femto-box-shadow: var(--femto-button-hover-box-shadow, 0 0 0 rgba(0, 0, 0, 0)), 0 0 0 var(--femto-outline-width) var(--femto-contrast-focus);
+  --femto-text-decoration: none;
   transform: translateY(0);
   opacity: 1;
+}
+
+/* Text for screen readers only: the status region site.js writes "Copied" into. Out of the body's
+   grid flow, one pixel, clipped */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  white-space: nowrap;
+  clip-path: inset(50%);
 }
 
 /**

@@ -1,0 +1,113 @@
+<hgroup>
+  <p class="chapter">Customization</p>
+  <h1 id="files">Files</h1>
+  <p>femto comes in two forms that style a page the same way: one file in <code>dist/</code>, or the modules it is built from in <code>css/</code>.</p>
+</hgroup>
+<section>
+  <div class="overflow-auto">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Path</th>
+          <th scope="col">Contents</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row"><code>dist/femto.min.css</code>, <code>dist/femto.css</code></th>
+          <td>All of femto in one file, minified and not. Recommended.</td>
+        </tr>
+        <tr>
+          <th scope="row"><code>dist/femto.colors.min.css</code>, <code>dist/femto.colors.css</code></th>
+          <td>The <a href="/docs#colors">color utilities</a>, minified and not.</td>
+        </tr>
+        <tr>
+          <th scope="row"><code>css/femto.css</code></th>
+          <td>The entry: it imports the 36 modules with <code>@import</code>, in cascade order.</td>
+        </tr>
+        <tr>
+          <th scope="row"><code>css/femto.colors.css</code></th>
+          <td>The source of the color utilities.</td>
+        </tr>
+        <tr>
+          <th scope="row"><code>css/tokens/</code>, <code>css/layout/</code>, <code>css/content/</code>, <code>css/forms/</code>, <code>css/components/</code>, <code>css/utilities/</code></th>
+          <td>The modules.</td>
+        </tr>
+        <tr>
+          <th scope="row"><code>css/themes/</code></th>
+          <td>The 20 <a href="/docs#themes">theme colors</a>.</td>
+        </tr>
+        <tr>
+          <th scope="row"><code>css/options/</code></th>
+          <td>The 3 <a href="/docs#options">options</a>.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Use <code>dist/femto.min.css</code> unless you need the modules. It is about 74 KB, 11 KB gzipped and 10 KB with Brotli.</p>
+  <p>With <code>css/femto.css</code>, the browser finds the modules only after it has downloaded the entry, then fetches 36 files instead of one, and many small files compress worse than one.</p>
+</section>
+<section>
+  <h2>The cost of <code>@import</code></h2>
+  <p>Median first contentful paint in milliseconds, with a cold cache, in Chrome and Firefox over emulated links to a local HTTPS server set up like a CDN (2026-10-28 and 29). Each cell gives <code>css/femto.css</code> first, then the one file.</p>
+  <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
+  <div class="overflow-auto" tabindex="0" role="region" aria-label="First contentful paint by link and protocol">
+    <table>
+      <caption>First contentful paint in ms: <code>css/femto.css</code> / one file</caption>
+      <thead>
+        <tr>
+          <th scope="col">Link (round trip)</th>
+          <th scope="col">HTTP/2</th>
+          <th scope="col">HTTP/3</th>
+          <th scope="col">HTTP/1.1</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">Fiber (5 ms)</th>
+          <td>68 / 57</td>
+          <td>80 / 56</td>
+          <td>100 / 60</td>
+        </tr>
+        <tr>
+          <th scope="row">Cable (28 ms)</th>
+          <td>246 / 196</td>
+          <td>247 / 172</td>
+          <td>550 / 192</td>
+        </tr>
+        <tr>
+          <th scope="row">LTE (70 ms)</th>
+          <td>411 / 276</td>
+          <td>380 / 260</td>
+          <td>862 / 280</td>
+        </tr>
+        <tr>
+          <th scope="row">4G (170 ms)</th>
+          <td>916 / 588</td>
+          <td>846 / 564</td>
+          <td>1976 / 580</td>
+        </tr>
+        <tr>
+          <th scope="row">Slow 3G (400 ms)</th>
+          <td>2525 / 1808</td>
+          <td>2258 / 1452</td>
+          <td>5334 / 1820</td>
+        </tr>
+        <tr>
+          <th scope="row">2G (800 ms)</th>
+          <td>4622 / 3259</td>
+          <td>4192 / 3000</td>
+          <td>10135 / 3267</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>On a first visit the <code>@import</code> entry costs about 2 extra round trips on HTTP/2 and HTTP/3, and 8 to 9 on HTTP/1.1. Repeat visits, from the cache, take about 19 ms either way.</p>
+</section>
+<section>
+  <h2>When to use the modules</h2>
+  <p>Use <code>css/</code> for a <a href="/docs#modules">custom module set</a>, which can also go in a <a href="/docs#cascade-layer">cascade layer</a>, or to read and edit the modules. A bundler that inlines <code>@import</code> turns <code>css/femto.css</code> into one file too.</p>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/files.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

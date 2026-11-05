@@ -1,6 +1,6 @@
-/* The landing pages' styles, on the homepage, the examples page and the demo page after common.css:
-   their tokens for each color scheme, the page spacing, the homepage's hero, typing demo, features
-   and comparison, the examples list, the larger headings, and the arrow icon and gradient mark. */
+/* The landing pages' styles, on the homepage and the examples page after common.css: their tokens
+   for each color scheme, the page spacing, the homepage's hero, typing demo, features and
+   comparison, the examples page's hero, the larger headings, and the arrow icon and gradient mark. */
 
 /**
  * Color schemes
@@ -24,17 +24,6 @@
   /* Comparison gradients */
   --femto-comparison-gradient-valid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(122.5, 177.5, 197.75), rgb(90, 166.25, 163.75), rgb(100, 154.5, 102));
   --femto-comparison-gradient-invalid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(207.5, 160.5, 99.5), rgb(207.125, 126.125, 109.375), rgb(212.25, 108.25, 99.25));
-  /* Language badges */
-  --femto-badge-html-background-color: rgba(168, 52, 16, 0.125);
-  --femto-badge-html-color: #a83410;
-  --femto-badge-react-background-color: rgba(34.5, 113.875, 142.75, 0.125);
-  --femto-badge-react-color: rgb(34.5, 113.875, 142.75);
-  --femto-badge-sass-background-color: rgba(149.5, 44.75, 123.5, 0.125);
-  --femto-badge-sass-color: rgb(149.5, 44.75, 123.5);
-  --femto-badge-javascript-background-color: rgba(129.5, 83.5, 0, 0.125);
-  --femto-badge-javascript-color: rgb(129.5, 83.5, 0);
-  --femto-badge-css-background-color: rgba(29, 89, 208, 0.125);
-  --femto-badge-css-color: #1d59d0;
 }
 
 /* Dark color scheme (Auto)
@@ -57,17 +46,6 @@
     /* Comparison gradients */
     --femto-comparison-gradient-valid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(79.25, 123.5, 148.25), rgb(58.125, 112.625, 115.625), rgb(63, 101.5, 67));
     --femto-comparison-gradient-invalid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(138.5, 110, 76.5), rgb(153, 77.625, 63.25), rgb(151.75, 54.5, 52.25));
-    /* Language badges */
-    --femto-badge-html-background-color: rgba(224.5, 149.5, 127.75, 0.125);
-    --femto-badge-html-color: rgb(224.5, 149.5, 127.75);
-    --femto-badge-react-background-color: rgba(78.375, 167.75, 195.125, 0.125);
-    --femto-badge-react-color: rgb(78.375, 167.75, 195.125);
-    --femto-badge-sass-background-color: rgba(204.5, 151.5, 199, 0.125);
-    --femto-badge-sass-color: rgb(204.5, 151.5, 199);
-    --femto-badge-javascript-background-color: rgba(188, 166.5, 99.5, 0.125);
-    --femto-badge-javascript-color: rgb(188, 166.5, 99.5);
-    --femto-badge-css-background-color: rgba(156, 167, 250, 0.125);
-    --femto-badge-css-color: #9ca7fa;
   }
 }
 
@@ -89,17 +67,6 @@
   /* Comparison gradients */
   --femto-comparison-gradient-valid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(79.25, 123.5, 148.25), rgb(58.125, 112.625, 115.625), rgb(63, 101.5, 67));
   --femto-comparison-gradient-invalid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(138.5, 110, 76.5), rgb(153, 77.625, 63.25), rgb(151.75, 54.5, 52.25));
-  /* Language badges */
-  --femto-badge-html-background-color: rgba(224.5, 149.5, 127.75, 0.125);
-  --femto-badge-html-color: rgb(224.5, 149.5, 127.75);
-  --femto-badge-react-background-color: rgba(78.375, 167.75, 195.125, 0.125);
-  --femto-badge-react-color: rgb(78.375, 167.75, 195.125);
-  --femto-badge-sass-background-color: rgba(204.5, 151.5, 199, 0.125);
-  --femto-badge-sass-color: rgb(204.5, 151.5, 199);
-  --femto-badge-javascript-background-color: rgba(188, 166.5, 99.5, 0.125);
-  --femto-badge-javascript-color: rgb(188, 166.5, 99.5);
-  --femto-badge-css-background-color: rgba(156, 167, 250, 0.125);
-  --femto-badge-css-color: #9ca7fa;
 }
 
 /**
@@ -148,19 +115,6 @@ body > main {
   body > main {
     --femto-homepage-spacing-vertical: calc(var(--femto-spacing) * 10);
     --femto-homepage-spacing-horizontal: calc(var(--femto-spacing) * 6);
-  }
-}
-
-body > main.is-loading {
-  animation-duration: 1s;
-  animation-fill-mode: forwards;
-  animation-name: page-loading;
-  opacity: 0.5;
-}
-
-@keyframes page-loading {
-  0% {
-    opacity: 1;
   }
 }
 
@@ -413,88 +367,24 @@ body > main.homepage > .hero > .demo article.component footer.code pre {
   overflow: hidden;
 }
 
-body > main.homepage > .hero > .demo article.component footer.code [data-typeit-id] .ti-cursor {
-  transform: translate(-0.25em);
-  color: inherit;
-  font-style: inherit;
-  font-weight: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  font-family: inherit;
-}
-
+/* The pause control (demo.js, WCAG 2.2.2): a small outline button at the card's bottom right. Its
+   box has the card's background, so code that reaches the corner passes under it, and it takes
+   clicks although the card does not (pointer-events: none) */
 body > main.homepage > .hero > .demo article.component .controls {
-  display: grid;
   position: absolute;
   right: 0;
   bottom: 0;
-  grid-auto-flow: column;
   padding: var(--femto-spacing);
-  pointer-events: all;
-  transition: opacity var(--femto-transition);
-  grid-gap: calc(var(--femto-spacing) * 0.25);
+  border-radius: var(--femto-border-radius);
+  background-color: var(--femto-background-color);
+  pointer-events: auto;
 }
 
-@media (min-width: 1280px) {
-  body > main.homepage > .hero > .demo article.component .controls {
-    opacity: 0;
-  }
-}
-
-body > main.homepage > .hero > .demo article.component .controls svg {
-  width: auto;
-  height: 1rem;
-  color: var(--femto-muted-color);
-  cursor: pointer;
-  transition: color var(--femto-transition);
-}
-
-body > main.homepage > .hero > .demo article.component .controls svg:hover {
-  color: var(--femto-secondary-hover);
-}
-
-body > main.homepage > .hero > .demo article.component:hover .controls {
-  opacity: 1;
-}
-
-body > main.homepage > .hero > .demo.is-maximized {
-  z-index: 999;
-  position: fixed;
-  max-width: none;
-  inset: 0;
-  transform: none;
-  background: var(--femto-background-color);
-}
-
-body > main.homepage > .hero > .demo.is-maximized article.component {
-  position: unset;
-  max-width: none;
-  border-radius: 0;
-  outline: 0;
-}
-
-@media (min-width: 576px) {
-  body > main.homepage > .hero > .demo.is-maximized article.component {
-    max-width: 510px;
-    height: auto;
-    margin: auto;
-  }
-}
-
-@media (min-width: 1024px) {
-  body > main.homepage > .hero > .demo.is-maximized article.component {
-    max-width: 700px;
-  }
-}
-
-@media (min-width: 1280px) {
-  body > main.homepage > .hero > .demo.is-maximized article.component {
-    max-width: 950px;
-  }
-}
-
-body > main.homepage > .hero > .demo.is-maximized article.component .controls {
-  opacity: 1;
+body > main.homepage > .hero > .demo article.component .controls button {
+  --femto-form-element-spacing-vertical: 0.25rem;
+  --femto-form-element-spacing-horizontal: 0.75rem;
+  margin: 0;
+  font-size: 0.875rem;
 }
 
 /* Border gradient */
@@ -716,124 +606,6 @@ body > main.examples > .examples-hero {
   body > main.examples > .examples-hero {
     text-align: center;
   }
-}
-
-/* Examples list */
-body > main.examples > .examples-list {
-  display: grid;
-  column-gap: calc(var(--femto-homepage-spacing-horizontal) / 2);
-  row-gap: calc(var(--femto-homepage-spacing-vertical) / 2);
-  margin-top: calc(var(--femto-homepage-spacing-vertical) / 2);
-}
-
-@media (min-width: 1024px) {
-  body > main.examples > .examples-list {
-    grid-template-columns: 1fr 1fr;
-    row-gap: calc(var(--femto-homepage-spacing-horizontal) / 2);
-  }
-}
-
-@media (min-width: 1536px) {
-  body > main.examples > .examples-list {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-}
-
-body > main.examples > .examples-list article {
-  margin: 0;
-  outline-color: var(--femto-card-component-outline-color);
-  outline-style: solid;
-  outline-width: var(--femto-card-component-outline-width);
-}
-
-@media (min-width: 1280px) {
-  body > main.examples > .examples-list article {
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.75);
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.75);
-  }
-}
-
-body > main.examples > .examples-list article .badges {
-  display: flex;
-  margin-bottom: calc(var(--femto-spacing) / 2);
-}
-
-body > main.examples > .examples-list article .badges .badge {
-  padding: 0.125rem 0.25rem;
-  border-radius: 0.125rem;
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  vertical-align: text-bottom;
-}
-
-body > main.examples > .examples-list article .badges .badge:not(:last-child) {
-  margin-right: calc(var(--femto-spacing) / 2);
-}
-
-body > main.examples > .examples-list article .badges .badge.html {
-  background-color: var(--femto-badge-html-background-color);
-  color: var(--femto-badge-html-color);
-}
-
-body > main.examples > .examples-list article .badges .badge.react {
-  background-color: var(--femto-badge-react-background-color);
-  color: var(--femto-badge-react-color);
-}
-
-body > main.examples > .examples-list article .badges .badge.sass {
-  background-color: var(--femto-badge-sass-background-color);
-  color: var(--femto-badge-sass-color);
-}
-
-body > main.examples > .examples-list article .badges .badge.javascript {
-  background-color: var(--femto-badge-javascript-background-color);
-  color: var(--femto-badge-javascript-color);
-}
-
-body > main.examples > .examples-list article .badges .badge.css {
-  background-color: var(--femto-badge-css-background-color);
-  color: var(--femto-badge-css-color);
-}
-
-body > main.examples > .examples-list article h2 {
-  font-size: 1.25rem;
-  line-height: 1.2;
-  text-wrap: balance;
-  margin-bottom: calc(var(--femto-spacing) / 4);
-}
-
-body > main.examples > .examples-list article p {
-  color: var(--femto-muted-color);
-  /* eslint-disable-next-line css/use-baseline -- the oracle's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
-  text-wrap: pretty;
-}
-
-body > main.examples > .examples-list article p:not(:last-child) {
-  margin-bottom: calc(var(--femto-spacing) * 1.5);
-}
-
-body > main.examples > .examples-list article p.links {
-  margin-bottom: 0;
-}
-
-body > main.examples > .examples-list article p.links a {
-  display: block;
-}
-
-body > main.examples > .examples-list article p.links a:not(:last-child) {
-  margin-bottom: calc(var(--femto-spacing) / 4);
-}
-
-body > main.examples > .examples-list article p.links a svg {
-  width: auto;
-  height: 1rem;
-  margin-right: calc(var(--femto-spacing) / 4);
-  transform: translateY(-0.0625rem);
-}
-
-body > main.examples > .examples-list article p.links a svg.femto-icon path {
-  fill: currentColor;
 }
 
 /**

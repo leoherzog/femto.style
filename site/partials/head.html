@@ -15,7 +15,8 @@
 <link rel="manifest" href="/site.webmanifest">
 <script>
   // The first of the page's two render-blocking scripts, the ?theme= script (criterion 15). On the
-  // docs page, ?theme=<color> adds that femto theme color (Decision 8, 02 §5). Its <link> is written
+  // docs page, ?theme=<color> adds that femto theme color (Decision 8, 02 §5), the color the Theme
+  // picker (/docs?theme=<color>#theme-picker, picker.js) sets and swaps in place. Its <link> is written
   // by document.write, so the parser inserts it, after femto's stylesheets (docs.html links them
   // before this partial), and the theme's :root tokens come after femto's. Chrome holds its first
   // paint for that <link> as a render-blocking stylesheet. Firefox holds its first paint for it only

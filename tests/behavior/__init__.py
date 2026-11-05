@@ -13,7 +13,7 @@ or a script's source, so the same check runs against the oracle and the static s
 Assertions are page.expect(label, ok, **detail), page.eq(label, actual, expected) and
 page.wait(label, js, timeout): the first one that fails ends the check, and its label is what the
 result names. Routes are written in the one page's URLs (/docs#modal, /docs, /docs?theme=jade#
-version-picker); on a target with one page per route each is loaded at its old route
+theme-picker); on a target with one page per route each is loaded at its old route
 (harness.behavior, layouts), and the check's scripts find its content in S, the route's section on
 the one page or the whole document there. layouts=("one-page",) with layout_reason marks a check of
 what only the one page has; it is recorded as skipped, with that reason, on the other layout.
@@ -21,13 +21,19 @@ oracle_bug={"fails": label, "reason": ...} marks a check whose assertion `label`
 an oracle bug the conversion fixes (PLAN.md, Divergence categories, oracle-bug): against the oracle
 the check must fail at exactly that assertion (XFAIL); passing there (XPASS) or failing elsewhere
 fails the run.
+
+From Phase 4 the static site describes femto 3 and no longer matches the oracle's markup and text
+(PLAN.md Decision 6). A check whose assertions hold the Phase 4 markup branches on page.layout where
+the oracle's own markup can still be held to the same behavior (a link that became a button, a
+count that changed), and runs on the one page only (layouts) where the widget itself is new or
+reworked: the Theme picker, the /examples mockups.
 """
 import dataclasses
 import inspect
 import textwrap
 
 GROUPS = ("shell", "one-page", "getting-started", "customization", "layout", "content", "forms", "components-a",
-          "components-b", "landing")
+          "components-b", "landing", "examples")
 MEDIA = ("light", "dark")
 MOTION = ("no-preference", "reduce")
 LAYOUTS = ("one-page", "routes")

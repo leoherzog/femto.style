@@ -21,10 +21,11 @@
 //   link to /docs#<id> clicked on /docs?theme=<color>, whose #hash it then follows on this page;
 // - the side menu, aside[data-docs-menu]: its nav's --max-height (innerHeight minus its top, when
 //   the module runs, on the window's load and on resize), and the mobile off-canvas
-//   (is-open-on-mobile), opened by the breadcrumb's Documentation link and closed by its Close link,
-//   by any of its links and by Escape, with the opener's aria-expanded and focus moved into the menu
-//   and back (criterion 7; the oracle had no Escape and no aria-expanded, 01 §2). Its scroll lock is
-//   the CSS's :has();
+//   (is-open-on-mobile), opened by the breadcrumb's Documentation button and closed by its Close
+//   button, by any of its links and by Escape, with the opener's aria-expanded, focus moved into the
+//   menu and back, and the rest of the page inert while it is open, so focus stays in it (criterion 7;
+//   the oracle had no Escape, no aria-expanded and no focus handling, 01 §2). Its scroll lock is the
+//   CSS's :has();
 // - the breadcrumb, nav[data-docs-breadcrumb] (Breadcrumb.jsx): is-sticky while its top is -1 px or
 //   less, that is while it is stuck to the top of the viewport (its CSS sticks it at top: -1px).
 // The spy is main[data-docs-spy], the docs page's main: the sections in its [role=document], the
@@ -218,7 +219,7 @@ function spy() {
 
   // A click on a link to a section: the browser navigates and scrolls, smoothly because of the
   // class; mark the target now and lock until the scroll ends. A link another handler canceled (a
-  // copy link, a picker swatch) is not followed. A link to /docs#<id> from /docs?theme=<color> would
+  // picker swatch) is not followed. A link to /docs#<id> from /docs?theme=<color> would
   // load the page again without its theme, so it becomes the fragment navigation it means, keeping
   // the query (02 §5: the theme lasts as long as the URL carries it).
   document.addEventListener("click", (event) => {
@@ -271,17 +272,36 @@ function sideMenu() {
   addEventListener("resize", fit);
 
   // The off-canvas menu below lg (docs.css's max-width: 1023px), opened by the breadcrumb's
-  // Documentation link (data-menu-open) and closed by its Close link (data-menu-close), by any of
-  // its nav links and by Escape. The opener's aria-expanded follows it. Opening moves focus to the
-  // Close link; the Close link and Escape move it back to the opener, while a nav link leaves it to
-  // the browser's fragment navigation. Closed below lg, the panel is only moved off screen, so it is
-  // inert there to keep its links out of the tab order.
-  const opener = document.querySelector("[data-docs-breadcrumb] a[data-menu-open]");
-  const close = menu.querySelector(":scope > header a[data-menu-close]");
+  // Documentation button (data-menu-open) and closed by its Close button (data-menu-close), by any
+  // of its nav links and by Escape. The opener's aria-expanded follows it. Opening moves focus to
+  // the Close button; the Close button and Escape move it back to the opener, while a nav link leaves
+  // it to the browser's fragment navigation. Closed below lg, the panel is only moved off screen, so
+  // it is inert there to keep its links out of the tab order. Open below lg, it covers the page, so
+  // the rest of the page is inert instead (every sibling of the menu and of each of its ancestors up
+  // to <body> that is not inert already), and Tab and Shift+Tab stay within the menu; the page's
+  // inert goes the moment the menu closes, before a nav link's fragment navigation runs.
+  const opener = document.querySelector("[data-docs-breadcrumb] button[data-menu-open]");
+  const close = menu.querySelector(":scope > header button[data-menu-close]");
   const offCanvas = matchMedia("(max-width: 1023px)");
   let open = false;
+  let covered = []; // the elements made inert while the menu covers the page
+  const cover = (on) => {
+    if (on === (covered.length > 0)) return;
+    if (!on) {
+      for (const element of covered) element.inert = false;
+      covered = [];
+      return;
+    }
+    for (let node = menu; node.parentElement && node !== document.body; node = node.parentElement) {
+      for (const sibling of node.parentElement.children) {
+        if (sibling !== node && !sibling.inert) covered.push(sibling);
+      }
+    }
+    for (const element of covered) element.inert = true;
+  };
   const sync = () => {
     menu.inert = offCanvas.matches && !open;
+    cover(offCanvas.matches && open);
   };
   // The opener sits in the sticky breadcrumb, always on screen below lg, and Chrome would scroll the
   // page to the breadcrumb's place in the flow to show it: focus it without scrolling.
@@ -303,6 +323,7 @@ function sideMenu() {
       close?.focus({ preventScroll: true });
     } else {
       document.removeEventListener("keydown", onKeydown);
+      cover(false);
       // After the click that closes it has run its course: a nav link still navigates.
       setTimeout(sync);
     }
@@ -310,12 +331,8 @@ function sideMenu() {
   if (opener) setAttr(opener, "aria-expanded", "false");
   sync();
   offCanvas.addEventListener("change", sync);
-  opener?.addEventListener("click", (event) => {
-    event.preventDefault();
-    setOpen(true);
-  });
-  close?.addEventListener("click", (event) => {
-    event.preventDefault();
+  opener?.addEventListener("click", () => setOpen(true));
+  close?.addEventListener("click", () => {
     setOpen(false);
     refocus();
   });
@@ -352,7 +369,7 @@ widgets("getting-started", () => {
   // button[data-scheme-switcher], which switches the page's scheme as the header toggle does, its
   // icon's class and its label following the scheme: "icon-theme-toggle theme-toggle" (" moon" added
   // when dark; the emoji of Decision 16) and "Turn on dark mode" or "Turn off dark mode", the text
-  // after the icon. The version picker is picker.js's.
+  // after the icon. The Theme picker is picker.js's.
   const button = document.querySelector("button[data-scheme-switcher]");
   const icon = button?.querySelector(":scope > .icon-theme-toggle");
   const label = button && [...button.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
@@ -528,16 +545,15 @@ widgets("components-b", () => {
   // open, and their buttons do nothing.
 
   // The Nav section (docs.nav.jsx): the example links are Link to="#" with an onClick that prevents
-  // the default, so they show the page's own path and go nowhere: those of the examples' navs and of
-  // the nav[aria-label=overflow-with-focus] that the section puts at its end, each a
-  // nav[data-nav-example].
+  // the default, so they show the page's own path and go nowhere: the links of every example nav,
+  // each a nav[data-nav-example] (the breadcrumbs and the two overflow examples among them).
   for (const link of document.querySelectorAll("[data-nav-example] a")) link.addEventListener("click", (event) => event.preventDefault());
 
   // The Progress section (docs.progress.jsx), article[data-progress-example]: the example's value is
   // a random whole number from 5 to 94, drawn again every 5 s, and its code sample prints it: the
-  // token right after value=" in <progress value="N" max="100" />. A value is drawn on load (the
-  // oracle's client render draws its own), and the interval runs only while the example is on
-  // screen (PLAN.md Conversion rules).
+  // token right after value=" in <progress value="N" max="100"></progress>. A value is drawn on
+  // load (the oracle's client render draws its own), and the interval runs only while the example
+  // is on screen (PLAN.md Conversion rules).
   const example = document.querySelector("[data-progress-example]");
   const progress = example?.querySelector(":scope > progress");
   const token = example?.querySelector(":scope > footer.code > pre > code > span.attr-value:not(.punctuation)");

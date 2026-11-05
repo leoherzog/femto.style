@@ -1,15 +1,22 @@
 """Shell: what every page or every docs page shares (docs/research/01 §2: PageContext, Nav, Header,
 Code, ModalContext, DocumentationMenu, Breadcrumb; and the example forms' submit, 01 §2's last
 paragraph). In the static site these live in site.js and docs.js. The one page's spy, its URLs and
-?theme= are the one-page group's."""
+?theme= are the one-page group's.
+
+Phase 4 turned the site's link-styled controls into buttons: the header's color-scheme toggle, the
+code blocks' copy controls, the breadcrumb's Documentation control and the off-canvas menu's Close.
+The selectors take either element (`:is(a, button)`), so the oracle's links are held to the same
+behavior; what only a button has (Space, the tab order, type=button) and what only the one page does
+(the inert page behind the open menu, focusable code blocks) run on the one page only."""
 import json
 import math
+import time
 
 from behavior import COPY_SPY, HEADING_LINE, check, nav_href
 
 GROUP = "shell"
 
-TOGGLE = "body > header nav ul.icons a[aria-label$='dark mode']"
+TOGGLE = "body > header nav ul.icons :is(a, button)[aria-label$='dark mode']"   # a button from Phase 4, the oracle's link
 KEY = "femtoColorScheme"
 
 THEME_STATE = """
@@ -47,7 +54,7 @@ def toggle_and_expect(page, theme_after, label_after):
 @check("theme-toggle", ("/", "/docs#typography"))
 def theme_toggle(page):
     """With a light OS scheme and nothing stored: <html> has no data-theme, the header toggle
-    (`ul.icons a`, its icon `.icon-theme-toggle`: the oracle's SVG, the site's emoji of Decision
+    (`ul.icons button`, the oracle's `ul.icons a`; its icon `.icon-theme-toggle`: the oracle's SVG, the site's emoji of Decision
     16) reads "Turn on dark mode" without the `moon` class. A click sets data-theme="dark" on
     <html>, stores localStorage femtoColorScheme = '"dark"' (JSON), relabels the toggle "Turn off
     dark mode" and adds `moon`; the URL is unchanged (no `#`).
@@ -75,7 +82,7 @@ def theme_toggle_dark_os(page):
 
 @check("theme-toggle-keyboard", ("/", "/docs#typography"))
 def theme_toggle_keyboard(page):
-    """The header toggle (an <a href>) works from the keyboard as from the pointer: focused, Enter
+    """The header toggle (a <button>; the oracle's an <a href>) works from the keyboard as from the pointer: focused, Enter
     sets data-theme="dark", stores '"dark"' and relabels it "Turn off dark mode" with `moon`, with
     no navigation (URL unchanged, the document kept: a marker set on window survives); Enter again
     gives light the same way."""
@@ -281,15 +288,16 @@ a.addEventListener("click", () => __bhCopy.push([t(), "click"]), true);
 
 @check("copy-button", ("/docs", "/docs#modal"))
 def copy_button(page):
-    """Each code block's copy link of the route's content (`a.copy-to-clipboard`, data-tooltip "Copy to clipboard", icon
+    """Each code block's copy control of the route's content (`.copy-to-clipboard`: a button from
+    Phase 4, the oracle's link; data-tooltip "Copy to clipboard", icon
     `svg.clipboard`): a click copies exactly that block's code text (its `pre code` textContent; the
     copy is recorded in the page, the machine's clipboard is never touched) and leaves the URL as it
     was. Timed in the page: within 100 ms of the click the tooltip reads "Copied" with the animated
     `svg.check` icon, and 1 s later (900 to 1500 ms) "Copy to clipboard" with `svg.clipboard` again,
-    with no other step; the link then does not hold focus. A second block's link copies its own
-    code."""
+    with no other step; the control then does not hold focus (a pointer click blurs it). A second
+    block's control copies its own code."""
     page.js(COPY_SPY)
-    links = page.find_all("a.copy-to-clipboard")
+    links = page.find_all(".copy-to-clipboard")
     page.expect("at least two copy links", len(links) >= 2, count=len(links))
     for n, link in enumerate((links[0], links[-1]), 1):
         code = page.js("return arguments[0].parentElement.querySelector('pre code').textContent", link)
@@ -317,12 +325,12 @@ def copy_button(page):
 
 @check("copy-button-repeat", "/docs#modal")
 def copy_button_repeat(page):
-    """Repeated use of a copy link, as Code.jsx behaves (every click schedules its own 1 s revert,
+    """Repeated use of a copy control, as Code.jsx behaves (every click schedules its own 1 s revert,
     and the first one to fire reverts): two clicks 500 ms apart copy the block's code twice, and
     "Copied" reverts to "Copy to clipboard" with `svg.clipboard` once, 1 s after the FIRST click (900
-    to 1200 ms), with no other step; the link then does not hold focus."""
+    to 1200 ms), with no other step; the control then does not hold focus."""
     page.js(COPY_SPY)
-    link = page.find_all("a.copy-to-clipboard")[0]
+    link = page.find_all(".copy-to-clipboard")[0]
     code = page.js("return arguments[0].parentElement.querySelector('pre code').textContent", link)
     page.js(COPY_TIMELINE, link)
     page.click(link)
@@ -448,11 +456,12 @@ return read();
 TWO_DIALOGS_WHY = ("Modal's demo dialog and the Colors section's color modal are on one page only on the one page (PLAN.md "
                    "Decision 2; Conversion rules, one modal helper per dialog); on routes /docs/modal and /docs/colors are "
                    "separate pages, so the two never meet")
-RED_500 = ".color-families .family main > button.femto-background-red-500"
+RED_500 = ".color-families .family :is(main, .shades) > button.femto-background-red-500"   # .shades from Phase 4
 
 
-def dialog_steps(page, label, tl, want):
-    """Assert that the timeline's states after its first key are exactly `want`, each [open,
+def dialog_steps(page, label, tl, want, after="the key"):
+    """Assert that the timeline's states after its first key (a keydown, or a marker a check pushes
+    for a script's action, named by `after`) are exactly `want`, each [open,
     classes, scrollbar width, min_ms, max_ms] with its time measured from the key (not from the
     previous step: a step is seen only after the handler that made it returns, so the time between
     two steps loses whatever that handler did after it started a timer)."""
@@ -462,7 +471,7 @@ def dialog_steps(page, label, tl, want):
     page.eq(f"{label}: the steps", [s[2:] for s in steps], [w[:3] for w in want], timeline=tl)
     key = tl[ev][0]
     for s, w in zip(steps, want):
-        page.expect(f"{label}: {w[0] or 'no dialog'}, {w[1] or 'no class'} {w[3]} to {w[4]} ms after the key",
+        page.expect(f"{label}: {w[0] or 'no dialog'}, {w[1] or 'no class'} {w[3]} to {w[4]} ms after {after}",
                     w[3] <= s[0] - key <= w[4], ms=s[0] - key, timeline=tl)
 
 
@@ -471,24 +480,30 @@ def modal_two_dialogs(page):
     """One modal helper per dialog, one holder of <html>'s classes (PLAN.md Conversion rules; site.js
     createModal), with the two dialogs of the one page and a classic scrollbar (as
     modal-scrollbar-width forces it; Safari, which has no preload script, keeps its own, whose width
-    may be 0): "Open modal" opens Modal's demo dialog alone, and once it is
-    open (`modal-is-open` alone) <html>'s --femto-scrollbar-width is the scrollbar's width. With the
-    demo open, Enter on the Colors section's focused red 500 shade button opens the color modal and
-    hides the demo at once: the first change after the key, within 250 ms of it (the demo's own
-    close would take 400 ms), is the color modal open with the demo closed, `modal-is-open
-    modal-is-opening` and the same scrollbar width, then `modal-is-open` 350 to 800 ms after the
-    key, and nothing else (the demo never shows `modal-is-closing`, and the two are never open
-    together); so <html> keeps `modal-is-open` while one is open. Escape then gives
-    `modal-is-closing modal-is-open` within 100 ms and, 350 to 800 ms after the key, no dialog open
-    (the two static examples aside), no modal-is-* class on <html> and an empty
+    may be 0). "Open modal" opens Modal's demo dialog alone, and once it is open (`modal-is-open`
+    alone) <html>'s --femto-scrollbar-width is the scrollbar's width. The demo is a true modal
+    (showModal(), from Phase 4): it matches :modal, focus is inside it, and the page behind is
+    inert, so the Colors section's red 500 shade button cannot take focus (focus stays in the demo)
+    and no Enter on it can open the color modal, as it could before Phase 4. A script still can: a
+    click() on that button (inert stops user input, not a script's events) runs colors.js's
+    handler, which opens the color modal through
+    its own helper while the demo is open, and that hides the demo at once: the first change after
+    the click, within 250 ms of it (the demo's own close would take 400 ms), is the color modal open
+    with the demo closed, `modal-is-open modal-is-opening` and the same scrollbar width, then
+    `modal-is-open` 350 to 800 ms after the click, and nothing else (the demo never shows
+    `modal-is-closing`, and the two are never open together); so <html> keeps `modal-is-open` while
+    one is open, and the page behind is no longer inert (the color modal's close button has focus).
+    Escape then gives `modal-is-closing modal-is-open` within 100 ms and, 350 to 800 ms after the
+    key, no dialog open (the two static examples aside), no modal-is-* class on <html> and an empty
     --femto-scrollbar-width, and nothing changes in the next 0.6 s (no timer of the hidden demo acts
     late). Every state is read from a MutationObserver in the page, as it stands after each handler,
-    and timed from the key: colors.js's open handler starts the 400 ms timer (modal.open()) and then
-    focuses the close link, which lays out the long page, so the observer sees `modal-is-opening`
-    65 to 106 ms after Enter and the gap to `modal-is-open` shrinks by as much as that layout takes
-    (343 and 349 ms in Firefox in p3f-review-m2d-1 and p3f-review-behavior-1, 342 in
-    p3f-head-m2d-3, below the 350 ms floor the steps once had between them), while `modal-is-open` itself came 438 to 454 ms after Enter in every run of
-    both browsers (p3f-head-* and p3f-review-*)."""
+    and timed from the click or the key: colors.js's open handler starts the 400 ms timer
+    (modal.open()) and then focuses the close button, which lays out the long page, so the observer
+    sees `modal-is-opening` 65 to 106 ms after it and the gap to `modal-is-open` shrinks by as much
+    as that layout takes (343 and 349 ms in Firefox in p3f-review-m2d-1 and p3f-review-behavior-1,
+    342 in p3f-head-m2d-3, below the 350 ms floor the steps once had between them), while
+    `modal-is-open` itself came 438 to 454 ms after Enter in every run of both browsers (p3f-head-*
+    and p3f-review-*)."""
     if page.browser == "safari":
         page.note("Safari: no preload script, so the page's own scrollbar (overlay scrollbars give 0px)")
     else:
@@ -501,10 +516,17 @@ def modal_two_dialogs(page):
     page.click("#modal-demo button")
     page.wait("the demo opens, alone, with modal-is-open alone", f"JSON.stringify({DIALOGS}) === arguments[0]", 1.5,
               args=(json.dumps(["demo", OPEN, width], separators=(",", ":")),), got=page.js(f"return {DIALOGS}"))
-    page.eq("the shade button takes focus", page.focus(RED_500), True)
-    page.js("window.__bhDialogs.length = 0")
-    page.key("ENTER")
-    page.wait("Enter on the shade button opens the color modal", "!!document.querySelector('dialog.color[open]')", 1)
+    demo = "dialog[data-modal=modal-demo]"
+    page.eq("the demo is a true modal (:modal) with focus inside it", page.js(
+        "const d = document.querySelector(arguments[0]); return [d.matches(':modal'), d.contains(document.activeElement)];",
+        demo), [True, True], active=page.js("return document.activeElement.outerHTML.slice(0, 120)"))
+    page.eq("the page behind is inert: the shade button cannot take focus", page.focus(RED_500), False)
+    page.eq("focus stays in the demo", page.js("return document.querySelector(arguments[0]).contains(document.activeElement)", demo),
+            True, active=page.js("return document.activeElement.outerHTML.slice(0, 120)"))
+    page.js("window.__bhDialogs.length = 0;"
+            "window.__bhDialogs.push([Math.round(performance.now()), 'key', 'click()']);"
+            "document.querySelector(arguments[0]).click();", RED_500)
+    page.wait("a script's click() on the shade button opens the color modal", "!!document.querySelector('dialog.color[open]')", 1)
     page.wait("the color modal is open with modal-is-open alone", f"JSON.stringify({DIALOGS}) === arguments[0]", 1.5,
               args=(json.dumps(["color", OPEN, width], separators=(",", ":")),), got=page.js(f"return {DIALOGS}"))
     tl = page.js("return window.__bhDialogs")
@@ -512,7 +534,11 @@ def modal_two_dialogs(page):
     page.expect("<html> has modal-is-open whenever a dialog is open",
                 all("modal-is-open" in e[3].split() for e in tl if e[1] == "state" and e[2]), timeline=tl)
     dialog_steps(page, "the color modal over the demo", tl,
-                 [["color", OPENING, width, 0, 250], ["color", OPEN, width, 350, 800]])
+                 [["color", OPENING, width, 0, 250], ["color", OPEN, width, 350, 800]], after="the click()")
+    page.eq("the demo is closed and the page behind no longer inert: the color modal's close button has focus", page.js(
+        "const d = document.querySelector(arguments[0]), c = document.querySelector('dialog.color');"
+        "return [d.open, d.matches(':modal'), !!c && c.contains(document.activeElement)];", demo), [False, False, True],
+        active=page.js("return document.activeElement.outerHTML.slice(0, 120)"))
     page.js("window.__bhDialogs.length = 0")
     page.key("ESCAPE")
     page.wait("Escape closes it: no dialog, no modal class, no --femto-scrollbar-width",
@@ -524,7 +550,7 @@ def modal_two_dialogs(page):
 
 
 # Each route's menu category (Breadcrumb.jsx's chapter; the one page's spy sets it for the section).
-CATEGORY = {"/docs": "Getting started", "/docs?theme=jade#version-picker": "Getting started", "/docs#colors": "Customization",
+CATEGORY = {"/docs": "Getting started", "/docs?theme=jade#theme-picker": "Getting started", "/docs#colors": "Customization",
             "/docs#grid": "Layout", "/docs#table": "Content", "/docs#input": "Forms", "/docs#radios": "Forms",
             "/docs#modal": "Components"}
 
@@ -568,27 +594,27 @@ return {open: m.classList.contains("is-open-on-mobile"), overflowY: getComputedS
         focus: document.activeElement === document.body ? "body" : document.activeElement.outerHTML.slice(0, 100),
         focusInside: m.contains(document.activeElement)};
 """
-OPENER = "nav[aria-label=breadcrumb] ul li:first-child a"
-CLOSE = "#documentation-menu header a[aria-label=Close]"
+OPENER = "nav[aria-label=breadcrumb] ul li:first-child :is(a, button)"   # buttons from Phase 4, the oracle's links
+CLOSE = "#documentation-menu header :is(a, button)[aria-label=Close]"
 IS_OPEN = "document.querySelector('#documentation-menu').classList.contains('is-open-on-mobile')"
 
 
 @check("mobile-menu", "/docs#modal", width=375, height=812)
 def mobile_menu(page):
-    """At 375 px the breadcrumb's "Documentation" link opens the off-canvas menu: a click adds
-    `is-open-on-mobile` to `aside#documentation-menu`, <html> stops scrolling (overflow-y hidden)
-    and the URL is unchanged; the menu's own close link (`header a[aria-label=Close]`) removes the
-    class, scrolling returns and the URL is still unchanged."""
+    """At 375 px the breadcrumb's "Documentation" control (a button; the oracle's a link) opens the
+    off-canvas menu: a click adds `is-open-on-mobile` to `aside#documentation-menu`, <html> stops
+    scrolling (overflow-y hidden) and the URL is unchanged; the menu's own Close control (`header
+    [aria-label=Close]`) removes the class, scrolling returns and the URL is still unchanged."""
     s = page.js(MOBILE)
     page.eq("closed on load", s["open"], False)
     url = page.url()
     page.click(OPENER)
-    page.wait("the breadcrumb link opens the menu", IS_OPEN, 1)
+    page.wait("the Documentation control opens the menu", IS_OPEN, 1)
     s = page.js(MOBILE)
     page.eq("the page behind stops scrolling", s["overflowY"], "hidden")
     page.url_kept("opening leaves the URL", url)
     page.click(CLOSE)
-    page.wait("the close link closes the menu", f"!{IS_OPEN}", 1)
+    page.wait("the Close control closes the menu", f"!{IS_OPEN}", 1)
     s = page.js(MOBILE)
     page.expect("the page scrolls again", s["overflowY"] != "hidden", **s)
     page.url_kept("closing leaves the URL", url)
@@ -597,20 +623,20 @@ def mobile_menu(page):
 @check("mobile-menu-keyboard", "/docs#modal", width=375, height=812)
 def mobile_menu_keyboard(page):
     """At 375 px the off-canvas menu works from the keyboard as from the pointer: Enter on the
-    breadcrumb's focused "Documentation" link adds `is-open-on-mobile`, with no navigation (URL
-    unchanged, the document kept); Enter on the menu's focused close link removes it, still with no
-    navigation."""
+    breadcrumb's focused "Documentation" control adds `is-open-on-mobile`, with no navigation (URL
+    unchanged, the document kept); Enter on the menu's focused Close control removes it, still with
+    no navigation."""
     page.js("window.__bhMarker = 'kept'")
     url = page.url()
-    page.expect("the Documentation link takes focus", page.focus(OPENER))
+    page.expect("the Documentation control takes focus", page.focus(OPENER))
     page.key("ENTER")
     page.wait("Enter on Documentation opens the menu", IS_OPEN, 1.5)
     page.url_kept("opening: no navigation", url)
     page.eq("opening: the document is kept", page.js("return window.__bhMarker || null"), "kept")
     page.sleep(0.5)   # the menu slides in
-    page.expect("the close link takes focus", page.focus(CLOSE))
+    page.expect("the Close control takes focus", page.focus(CLOSE))
     page.key("ENTER")
-    page.wait("Enter on the close link closes the menu", f"!{IS_OPEN}", 1.5)
+    page.wait("Enter on the Close control closes the menu", f"!{IS_OPEN}", 1.5)
     page.url_kept("closing: no navigation", url)
     page.eq("closing: the document is kept", page.js("return window.__bhMarker || null"), "kept")
 
@@ -623,13 +649,14 @@ MENU_FOCUS_BUG = {"fails": "opening moves focus into the menu",
 @check("mobile-menu-focus", "/docs#modal", width=375, height=812, oracle_bug=MENU_FOCUS_BUG)
 def mobile_menu_focus(page):
     """At 375 px the off-canvas menu takes focus and gives it back (criterion 7): Enter on the
-    breadcrumb's focused "Documentation" link opens the menu with focus inside
+    breadcrumb's focused "Documentation" control opens the menu with focus inside
     `aside#documentation-menu`; Escape closes it (no `is-open-on-mobile`, the page scrolls again, the
-    URL unchanged) and focus returns to the Documentation link. Opened again with a pointer click,
-    focus is inside the menu again; Enter on its focused close link closes it and focus returns to
-    the Documentation link. Escape with the menu closed changes nothing."""
+    URL unchanged) and focus returns to the Documentation control. Opened again with a pointer click,
+    focus is inside the menu again; Enter on its focused Close control closes it and focus returns to
+    the Documentation control. Escape with the menu closed changes nothing. That focus stays inside
+    while the menu is open is mobile-menu-inert's."""
     url = page.url()
-    page.expect("the Documentation link takes focus", page.focus(OPENER))
+    page.expect("the Documentation control takes focus", page.focus(OPENER))
     page.key("ENTER")
     page.wait("Enter on Documentation opens the menu", IS_OPEN, 1.5)
     page.wait("opening moves focus into the menu", "document.querySelector('#documentation-menu').contains(document.activeElement)",
@@ -639,17 +666,17 @@ def mobile_menu_focus(page):
     s = page.js(MOBILE)
     page.expect("Escape: the page scrolls again", s["overflowY"] != "hidden", **s)
     page.url_kept("Escape: no navigation", url)
-    page.wait("Escape: focus returns to the Documentation link", "document.activeElement === document.querySelector(arguments[0])",
+    page.wait("Escape: focus returns to the Documentation control", "document.activeElement === document.querySelector(arguments[0])",
               1, args=(OPENER,), got=page.js(MOBILE))
     page.click(OPENER)
     page.wait("a click on Documentation opens the menu", IS_OPEN, 1)
     page.wait("clicked open: focus is inside the menu", "document.querySelector('#documentation-menu').contains(document.activeElement)",
               1, got=page.js(MOBILE))
     page.sleep(0.5)   # the menu slides in
-    page.expect("the close link takes focus", page.focus(CLOSE))
+    page.expect("the Close control takes focus", page.focus(CLOSE))
     page.key("ENTER")
-    page.wait("Enter on the close link closes the menu", f"!{IS_OPEN}", 1.5)
-    page.wait("closed: focus returns to the Documentation link", "document.activeElement === document.querySelector(arguments[0])",
+    page.wait("Enter on the Close control closes the menu", f"!{IS_OPEN}", 1.5)
+    page.wait("closed: focus returns to the Documentation control", "document.activeElement === document.querySelector(arguments[0])",
               1, args=(OPENER,), got=page.js(MOBILE))
     page.key("ESCAPE")
     page.sleep(0.3)
@@ -732,26 +759,30 @@ def breadcrumb_sticky(page):
     page.wait("not sticky at the top", f"!{bc}.classList.contains('is-sticky')", 1)
 
 
-@check("breadcrumb-chapter", ("/docs", "/docs?theme=jade#version-picker", "/docs#colors", "/docs#grid", "/docs#table",
+@check("breadcrumb-chapter", ("/docs", "/docs?theme=jade#theme-picker", "/docs#colors", "/docs#grid", "/docs#table",
                               "/docs#radios", "/docs#modal"), width=375, height=812)
 def breadcrumb_chapter(page):
     """The breadcrumb's last item names the route's menu category (Getting started, Customization,
-    Layout, Content, Forms, Components; a version-picker color route is Getting started), within 1 s
-    of the load (the one page's spy sets it for the section a deep link lands on), and its first
-    item is the "Documentation" link to /docs (on the one page, a link on the docs page itself)."""
-    page.expect("the page has a breadcrumb", page.js("return !!document.querySelector('nav[aria-label=breadcrumb] ul li a')"))
+    Layout, Content, Forms, Components; a Theme picker color, the old version-picker color route, is
+    Getting started), within 1 s of the load (the one page's spy sets it for the section a deep link
+    lands on), and its first item is "Documentation": on the one page a button (type=button) that
+    opens the off-canvas menu (aria-controls="documentation-menu"; Phase 4), on routes the oracle's
+    link to /docs."""
+    page.expect("the page has a breadcrumb", page.js("return !!document.querySelector('nav[aria-label=breadcrumb] ul li')"))
     page.wait("the chapter is the route's category",
               "document.querySelector('nav[aria-label=breadcrumb] ul li:last-child').textContent.trim() === arguments[0]", 1,
               args=(CATEGORY[page.route],),
               got=page.js("return document.querySelector('nav[aria-label=breadcrumb] ul li:last-child').textContent.trim()"))
     r = page.js("""const n = document.querySelector('nav[aria-label=breadcrumb]');
-      const a = n.querySelector('ul li:first-child a');
-      return {text: a.textContent.trim(), href: a.getAttribute('href'), path: new URL(a.href).pathname}""")
+      const a = n.querySelector('ul li:first-child > :is(a, button)');
+      return a && {tag: a.localName, text: a.textContent.trim(), href: a.getAttribute('href'), type: a.getAttribute('type'),
+                   controls: a.getAttribute('aria-controls')}""")
+    page.expect("the first item is a link or a button", r is not None)
     page.eq("the first item is Documentation", r["text"], "Documentation")
     if page.layout == "one-page":
-        page.eq("which links to the docs page", r["path"], "/docs", href=r["href"])
+        page.eq("a button that opens the menu", [r["tag"], r["type"], r["controls"]], ["button", "button", "documentation-menu"])
     else:
-        page.eq("which links to /docs", r["href"], "/docs")
+        page.eq("which links to /docs", [r["tag"], r["href"]], ["a", "/docs"])
 
 
 FORM_FIELDS = """
@@ -776,7 +807,7 @@ window.__bhMarker = "kept";
 """
 
 
-@check("example-forms", ("/docs#forms", "/docs#input", "/docs#group", "/docs#color-schemes", "/docs#version-picker"))
+@check("example-forms", ("/docs#forms", "/docs#group", "/docs#color-schemes", "/docs#theme-picker"))
 def example_forms(page):
     """No example form navigates: for every form in the route's content, Enter in each enabled
     text-like input (text, email, password, search, tel, url, number, date) and a click on each
@@ -815,3 +846,237 @@ def example_forms(page):
             tried += 1
     page.expect("something was submitted", tried > 0, tried=tried)
     page.note(f"{len(forms)} forms, {tried} submissions tried, {events} submit events (all canceled)")
+
+
+# -- Phase 4: the controls that became buttons, and the off-canvas menu's inert page ---------------
+
+PHASE4_BUTTONS = ("Phase 4 made these controls buttons (PLAN.md Workflow, 4; tests/README.md, Accessibility): the "
+                  "oracle's are links with tabindex=-1 or href, which Space does not press and Tab skips")
+
+
+def shift_tab(page):
+    from selenium.webdriver.common.action_chains import ActionChains
+    from selenium.webdriver.common.keys import Keys
+    ActionChains(page.driver, duration=0).key_down(Keys.SHIFT).send_keys(Keys.TAB).key_up(Keys.SHIFT).perform()
+
+
+@check("theme-toggle-button", ("/", "/does-not-exist"), layouts=("one-page",), layout_reason=PHASE4_BUTTONS)
+def theme_toggle_button(page):
+    """The header's color-scheme toggle is a <button type="button"> with no href
+    (`button[data-scheme-toggle]`): Tab from the header's GitHub link reaches it; Space turns the
+    page dark (data-theme="dark") and Enter light again, with no navigation (URL and history
+    kept), and it reads "Turn on dark mode" after."""
+    gh = "body > header nav ul.icons a[aria-label='GitHub repository']"
+    t = "body > header nav ul.icons button[data-scheme-toggle]"
+    r = page.js("const b = document.querySelector(arguments[0]); return b && [b.getAttribute('type'), b.hasAttribute('href')]", t)
+    page.eq("a button of type button, with no href", r, ["button", False])
+    page.key("SHIFT")   # a key press first, so the focus that follows is keyboard focus
+    page.expect("the GitHub link takes focus", page.focus(gh))
+    page.key("TAB")
+    page.eq("Tab reaches the toggle", page.js("return document.activeElement === document.querySelector(arguments[0])", t), True,
+            active=page.js("return document.activeElement.outerHTML.slice(0, 120)"))
+    url = page.url()
+    page.key(" ")
+    page.wait("Space: dark", "document.documentElement.getAttribute('data-theme') === 'dark'", 1.5)
+    page.key("ENTER")
+    page.wait("Enter: light", "document.documentElement.getAttribute('data-theme') === 'light'", 1.5)
+    page.url_kept("no navigation", url)
+    wait_label(page, "Turn on dark mode")
+
+
+MENU_STATE = r"""
+const m = document.querySelector('#documentation-menu');
+const a = document.activeElement;
+const outside = [];
+for (let n = m; n.parentElement && n !== document.body; n = n.parentElement)
+  for (const s of n.parentElement.children) if (s !== n) outside.push(s);
+return {open: m.classList.contains('is-open-on-mobile'), menuInert: m.inert,
+        outsideInert: outside.filter(e => e.inert).length, outside: outside.length,
+        focus: a === document.body ? 'body' : a ? a.outerHTML.slice(0, 90) : null,
+        inside: m.contains(a), expanded: document.querySelector(arguments[0]).getAttribute('aria-expanded')};
+"""
+
+
+@check("mobile-menu-inert", "/docs#modal", width=375, height=812, layouts=("one-page",),
+       layout_reason="the oracle's off-canvas menu leaves the page behind it in the tab order (01 §2); from Phase 4 "
+                     "docs.js makes it inert while the menu is open (tests/README.md, Accessibility)")
+def mobile_menu_inert(page):
+    """At 375 px the open off-canvas menu keeps focus (criterion 7, the mobile menu's focus): opened
+    with Enter on the breadcrumb's Documentation button, focus is on the menu's Close button, the
+    opener has aria-expanded="true", every sibling of the menu and of each of its ancestors up to
+    <body> is inert and the menu is not, and 60 Tabs and 10 Shift+Tabs never put focus outside the
+    menu. Escape closes it: nothing outside is inert, the menu is inert again (off screen, its links
+    out of the tab order), aria-expanded="false" and focus is back on the opener. Opened again and
+    closed by a nav link (Layout's Grid): nothing stays inert and the URL is /docs#grid. Opened at
+    375 and resized to 1300 (the menu becomes the side nav), nothing is inert; back at 375, still
+    open, the page behind is inert again."""
+    def state():
+        return page.js(MENU_STATE, OPENER)
+
+    page.expect("the Documentation button takes focus", page.focus(OPENER))
+    page.key("ENTER")
+    page.wait("Enter opens the menu", IS_OPEN, 1.5)
+    page.wait("focus is on Close", "document.activeElement === document.querySelector(arguments[0])", 1, args=(CLOSE,))
+    s = state()
+    page.eq("aria-expanded is true", s["expanded"], "true")
+    page.eq("every element outside the menu is inert", s["outsideInert"], s["outside"], **s)
+    page.eq("the menu is not inert", s["menuInert"], False)
+    for i in range(60):
+        page.key("TAB")
+        s = state()
+        page.expect(f"Tab {i + 1}: focus stays in the menu", s["inside"] or s["focus"] == "body", **s)
+    for i in range(10):
+        shift_tab(page)
+        s = state()
+        page.expect(f"Shift+Tab {i + 1}: focus stays in the menu", s["inside"] or s["focus"] == "body", **s)
+    page.key("ESCAPE")
+    page.wait("Escape closes it", f"!{IS_OPEN}", 1.5)
+    page.sleep(0.1)
+    s = state()
+    page.eq("Escape: nothing outside is inert", s["outsideInert"], 0, **s)
+    page.eq("Escape: the menu is inert again", s["menuInert"], True)
+    page.eq("Escape: aria-expanded is false", s["expanded"], "false")
+    page.wait("Escape: focus is on the opener", "document.activeElement === document.querySelector(arguments[0])", 1, args=(OPENER,))
+    page.click(OPENER)
+    page.wait("a click opens it", IS_OPEN, 1.5)
+    s = state()
+    page.eq("open again: the page behind is inert", s["outsideInert"], s["outside"], **s)
+    summary = page.js("""return [...document.querySelectorAll('#documentation-menu nav details > summary')]
+                         .find(s => s.textContent.trim() === 'Layout')""")
+    if not page.js("return arguments[0].parentElement.open", summary):
+        page.click(summary)
+    page.click("#documentation-menu a[href='#grid']")
+    page.wait("the link closes the menu", f"!{IS_OPEN}", 1.5)
+    page.wait("the URL is /docs#grid", "location.hash === '#grid'", 3)
+    page.sleep(0.2)
+    s = state()
+    page.eq("nav link: nothing outside is inert", s["outsideInert"], 0, **s)
+    page.eq("nav link: the menu is inert", s["menuInert"], True)
+    page.click(OPENER)
+    page.wait("it opens once more", IS_OPEN, 1.5)
+    page.resize(1300, 900)
+    page.sleep(0.3)
+    s = state()
+    page.eq("1300: nothing outside is inert", s["outsideInert"], 0, **s)
+    page.eq("1300: the menu is not inert", s["menuInert"], False)
+    page.resize(375, 812)
+    page.sleep(0.3)
+    s = state()
+    page.eq("back at 375, still open: the page behind is inert again", s["outsideInert"], s["outside"], **s)
+    page.key("ESCAPE")
+    page.wait("closed", f"!{IS_OPEN}", 1.5)
+    page.eq("closed: nothing outside is inert", state()["outsideInert"], 0)
+
+
+COPY_INFO = r"""
+const b = arguments[0];
+return {tooltip: b.getAttribute('data-tooltip'), focused: document.activeElement === b, copied: window.__bhCopied || []};
+"""
+STATUS = "const p = document.querySelector('body > p.visually-hidden[role=status]'); return p && p.textContent"
+
+# A code block's tab stop (site.js, Code block focus): whether its code overflows it, its tabindex,
+# role and aria-label, and the name a block that overflows takes from its code's language.
+PRE_FOCUS = r"""
+const p = arguments[0], lang = (p.querySelector("code").className.match(/\blanguage-([\w-]+)/) || [])[1];
+return {overflows: p.scrollWidth > p.clientWidth || p.scrollHeight > p.clientHeight,
+        attrs: [p.getAttribute("tabindex"), p.getAttribute("role"), p.getAttribute("aria-label")],
+        name: ({html: "HTML", css: "CSS", scss: "SCSS", bash: "Bash"}[lang] || "Example") + " code"};
+"""
+
+
+def expect_pre_focus(page, label, pre):
+    """Assert, within 1 s (site.js checks a block from a ResizeObserver, so a block just shown is
+    checked a frame later), that a code block that overflows has tabindex="0", role="figure" and
+    aria-label "<language> code", and one that does not has none of the three; return PRE_FOCUS."""
+    end = time.time() + 1
+    while True:
+        fit = page.js(PRE_FOCUS, pre)
+        want = ["0", "figure", fit["name"]] if fit["overflows"] else [None, None, None]
+        if fit["attrs"] == want or time.time() > end:
+            break
+        time.sleep(0.05)
+    page.eq(f"{label} {'overflows: a figure in the tab order' if fit['overflows'] else 'does not overflow: no tab stop, role or name'}",
+            fit["attrs"], want, overflows=fit["overflows"])
+    return fit
+
+
+@check("copy-keyboard", ("/docs#button", "/examples"), layouts=("one-page",), layout_reason=PHASE4_BUTTONS)
+def copy_keyboard(page):
+    """The copy buttons are in the tab order: Tab from the focusable element before the route's first
+    copy button (on /examples inside a Markup disclosure, opened first) reaches it; Enter copies the
+    block's `pre code` text, the tooltip and the visually hidden status line (`body >
+    p.visually-hidden[role=status]`) read "Copied", and 1 s later the tooltip reads "Copy to
+    clipboard", the status line is empty and keyboard focus is still on the button; Space copies
+    again. Then the block's <pre> is a tab stop only when its code overflows it (site.js, Code
+    block focus): a block that does not overflow has no tabindex, role or aria-label, and Tab moves
+    past it to the next control, after the block in document order; a block that overflows has
+    tabindex="0", role="figure" and aria-label "<language> code" ("HTML code"), and Tab moves to
+    it (pre-scroll-keyboard holds that branch at 375 px, where Quick start's blocks overflow). The
+    note says which branch each route took."""
+    page.js(COPY_SPY)
+    btn = page.js("const b = S.querySelector('button.copy-to-clipboard');"
+                  " b.closest('details')?.setAttribute('open', ''); b.scrollIntoView({block: 'center'}); return b;")
+    code = page.js("return arguments[0].parentElement.querySelector('pre code').textContent", btn)
+    prev = page.js(r"""const b = arguments[0];
+      const all = [...document.querySelectorAll('a[href], button, input, select, textarea, summary, [tabindex]')]
+        .filter(e => e.tabIndex >= 0 && !e.disabled && !e.closest('[inert]') && e.getClientRects().length);
+      return all[all.indexOf(b) - 1];""", btn)
+    page.key("SHIFT")
+    page.js("arguments[0].focus({preventScroll: true})", prev)
+    page.key("TAB")
+    page.eq("Tab reaches the copy button", page.js("return document.activeElement === arguments[0]", btn), True,
+            active=page.js("return document.activeElement.outerHTML.slice(0, 120)"))
+    page.js("window.__bhCopied.length = 0")
+    page.key("ENTER")
+    page.wait("Enter copies", "window.__bhCopied.length === 1", 1)
+    s = page.js(COPY_INFO, btn)
+    page.eq("Enter: the block's code", s["copied"][0]["text"], code)
+    page.eq("Enter: the tooltip reads Copied", s["tooltip"], "Copied")
+    page.eq("the status line says Copied", page.js(STATUS), "Copied")
+    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && !!arguments[0].querySelector('svg.clipboard')",
+              2, args=(btn,))
+    page.sleep(0.2)
+    page.eq("keyboard focus stays on the button", page.js(COPY_INFO, btn)["focused"], True)
+    page.eq("the status line is empty again", page.js(STATUS), "")
+    page.key(" ")
+    page.wait("Space copies", "window.__bhCopied.length === 2", 1)
+    page.wait("it reverts again", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard'", 2, args=(btn,))
+    pre = page.js("return arguments[0].parentElement.querySelector('pre')", btn)
+    fit = expect_pre_focus(page, "the block", pre)
+    page.key("TAB")
+    active = page.js("return document.activeElement.outerHTML.slice(0, 120)")
+    if fit["overflows"]:
+        page.eq("Tab moves to the block's pre, which overflows", page.js("return document.activeElement === arguments[0]", pre),
+                True, active=active)
+    else:
+        page.expect("Tab skips the block's pre, which does not overflow, for the next control after it", page.js(
+            """const a = document.activeElement, p = arguments[0], b = arguments[1];
+            return a !== p && a !== b && a !== document.body && !p.contains(a)
+              && !!(p.compareDocumentPosition(a) & Node.DOCUMENT_POSITION_FOLLOWING);""", pre, btn), active=active)
+    page.note(f"the first block {'overflows: Tab focused it' if fit['overflows'] else 'does not overflow: Tab moved on to ' + ' '.join(active.split())[:60]}")
+
+
+@check("pre-scroll-keyboard", "/docs", width=375, height=812, layouts=("one-page",),
+       layout_reason="from Phase 4 a highlighted <pre> whose code overflows is a focusable figure (build.mjs writes "
+                     "tabindex=0, site.js keeps it on a block that overflows), so it scrolls from the keyboard "
+                     "(axe's scrollable-region-focusable); the oracle's take no focus")
+def pre_scroll_keyboard(page):
+    """At 375 px Quick start's first code block that overflows sideways is a figure in the tab order
+    (tabindex="0", role="figure", aria-label "<language> code", from site.js's Code block focus),
+    takes focus with Tab from its copy button, matches :focus-visible with an inset focus ring
+    (box-shadow), and the Right arrow key scrolls it."""
+    pre = page.js("const p = [...S.querySelectorAll('.code pre')].find(p => p.scrollWidth > p.clientWidth);"
+                  " p && p.scrollIntoView({block: 'center'}); return p || null;")
+    page.expect("a code block overflows", pre is not None)
+    expect_pre_focus(page, "the block", pre)
+    btn = page.js("return arguments[0].parentElement.querySelector('button.copy-to-clipboard')", pre)
+    page.key("SHIFT")
+    page.js("arguments[0].focus({preventScroll: true})", btn)
+    page.key("TAB")
+    page.eq("Tab focuses the pre", page.js("return document.activeElement === arguments[0]", pre), True)
+    page.eq("it matches :focus-visible", page.js("return arguments[0].matches(':focus-visible')", pre), True)
+    ring = page.js("return getComputedStyle(arguments[0]).boxShadow", pre)
+    page.expect("its focus ring shows", "inset" in ring, ring=ring)
+    page.key("ARROW_RIGHT", 8)
+    page.sleep(0.3)
+    page.expect("the arrow keys scroll it", page.js("return arguments[0].scrollLeft", pre) > 0)

@@ -33,7 +33,7 @@ vendor.mjs                npm run vendor: a femto commit into site/vendor/femto/
 eslint.config.js          npm run lint (criterion 11)
 .htmlvalidate.mjs         html-validate's rules, from Phase 3 (criterion 9)
 site/
-  index.html  examples.html  demo.html  404.html  docs.html
+  index.html  examples.html  demo.html (until Phase 4)  404.html  docs.html
   docs/menu.json          categories and sections in order: id, title, description (until Phase 3, also per-route fields)
   docs/sections/<id>.html one section each: its hgroup (the h1 carries the id), content, edit link
   docs/sections/version-picker/<color>.html  one per color route, until Phase 3
@@ -60,12 +60,12 @@ docs/research/            01 to 05 and spike/
 
 | URL | Phases 1 and 2 | From Phase 3 |
 |---|---|---|
-| `/`, `/examples`, `/demo` | static pages | same; `/examples` and `/demo` per Open questions |
+| `/`, `/examples`, `/demo` | static pages | same; from Phase 4 `/examples` holds femto's own examples and `/demo` is not built (404; Open questions 1 and 5) |
 | `/docs` | the Quick start page, per route | the one docs page |
 | `/docs#<id>` | — | that section |
 | `/docs?theme=<color>` | — | the docs page in that color |
 | `/docs/<route>` for the 30 other kept routes | one static page each, at parity | 404 (not built) |
-| `/docs/version-picker/<color>` ×19 | one static page each, at parity | 404; the same view is `/docs?theme=<color>#version-picker` |
+| `/docs/version-picker/<color>` ×19 | one static page each, at parity | 404; the same view is `/docs?theme=<color>#version-picker`, and from Phase 4 `/docs?theme=<color>#theme-picker` (Open question 3) |
 | `/docs/`, `/docs.html` | 308 to `/docs` | same |
 | The Decision 5 routes, and anything else | 404 | 404 |
 
@@ -237,7 +237,7 @@ Commit messages use a Title Case subject under 60 characters, with no body unles
 |---|---|
 | The oracle must build | `.node-version` says 18.19.0; the machine has Node 24.22.0 and no yarn. Phase 0 tries `npx yarn@1.22.22 install --frozen-lockfile` under Node 24, then under an 18 or 20 runtime fetched with `npx -p node@…`. `build:fetch-stats` needs the network (stats fall back to 0) and `build:v1-documentation` needs `rsync`. |
 | The rebrand was uncommitted | The oracle must include it. Resolved 2026-10-30: the owner chose to commit it as the first commit on `dev`, which `remix-final` tags. |
-| femto's working tree | `npm run vendor` refuses a dirty tree. Resolved 2026-10-30: the owner first approved 65453b74 ("Prepare 3.0.0 Alpha 1"), then rewrote femto's `dev` and chose its latest commit "for now": e3b141f3 ("Remove Composer Package", 3.0.0-alpha.1), vendored from a clean `../femto`. On 2026-10-31 the owner moved it to the latest commit on femto's `main`: 7bcd5758 ("Register Safari-Only Computed Values From The Bug Fixes", still 3.0.0-alpha.1), 30 commits of rendering fixes later. On 2026-11-03 the owner moved it to femto's latest commit, d4f8d1fd ("Add Android Browsers", on `dev` and `main`, still 3.0.0-alpha.1), whose only change to the vendored files is a comment in `css/forms/input-date.css`. Re-vendor when femto moves on; `SOURCE` records the commit and the refs that reach it. The vendored commit sets what Phase 4 describes. |
+| femto's working tree | `npm run vendor` refuses a dirty tree. Resolved 2026-10-30: the owner first approved 65453b74 ("Prepare 3.0.0 Alpha 1"), then rewrote femto's `dev` and chose its latest commit "for now": e3b141f3 ("Remove Composer Package", 3.0.0-alpha.1), vendored from a clean `../femto`. On 2026-10-31 the owner moved it to the latest commit on femto's `main`: 7bcd5758 ("Register Safari-Only Computed Values From The Bug Fixes", still 3.0.0-alpha.1), 30 commits of rendering fixes later. On 2026-11-03 the owner moved it to femto's latest commit, d4f8d1fd ("Add Android Browsers", on `dev` and `main`, still 3.0.0-alpha.1), whose only change to the vendored files is a comment in `css/forms/input-date.css`. On 2026-11-04, before Phase 4, the owner moved it to femto's latest commit, 8cd05767 ("Add A Script For Both Safari Passes", still 3.0.0-alpha.1); its only change to the vendored files is 1f7c75b2's "Drop The Bottom Margin On Typed Modal Footer Buttons" (`css/components/modal.css` and `dist/`). On 2026-11-05, during Phase 4, the owner moved it to c608ee06 ("Darken Dark Hover Backgrounds For Contrast", on femto's `dev`, still 3.0.0-alpha.1), femto's fix for criterion 10's last failure: in azure and eight other themes `--femto-primary-hover-background` takes its light value in both schemes, so white text on a hovered, focused or current button reaches 4.5:1 in dark (`tests/README.md`, owner decision 15). Re-vendor when femto moves on; `SOURCE` records the commit and the refs that reach it. The vendored commit sets what Phase 4 describes. |
 | femto is alpha and unpublished | Names and files may change before 3.0.0, and `npm/@leoherzog/femto@3` URLs 404 until the first publish. Re-vendoring is one command, and criterion 13 then flags stale docs. Go live after femto's first publish (04 §3). |
 | Safari | The spike ran only in Chrome and Firefox. Phase 0 must establish three Safari behaviors: whether `document.write` of the theme `<link>` applies before the first paint, what back does for a `#hash` entry, and the 100-calls-in-10-seconds history limit, past which WebKit throws (the spy wraps `replaceState` in `try`). Safari gates need femto's rig rules: Safari quit, the machine idle, and the owner's dark pass. Established in Safari 27.2 (2026-11-01, `docs/research/05-spike.md`): `document.write` of the theme `<link>` applies before the first frame (so do the other two methods); back restores a `#hash` entry's exact position; call 101 within 10 seconds throws a `SecurityError`, and the spy keeps working through it. `location.reload()` returns to the `#hash` heading, which the owner accepted on 2026-11-02. |
 | `document.write` | It is the only way the spike found to apply `?theme=` before the first paint in both Chrome and Firefox (02 §5). Lighthouse flags `document.write`; the warning targets cross-origin scripts, and this one writes a same-origin `<link>` from an allow-list. If a browser ever blocks it, the fallback is a script-inserted `<link>`, which shows azure for one frame. |
@@ -245,7 +245,7 @@ Commit messages use a Title Case subject under 60 characters, with no body unles
 | Hidden tabs throttle the spy | rAF and timers run about once a second in background tabs (05). Behavior checks run headless or in a foreground window. |
 | Highlighting parity | The oracle flattens Prism tokens through react-syntax-highlighter. Its "html" resolves to refractor's `html` alias, Prism `markup` with CSS and JS inlined: prism-light's `registerLanguage` ignores its name, so `jsx` was registered only as `jsx`. The build must reproduce the same spans, or register `highlight` differences. Proven in Phase 1's pilot: `build.mjs` with Prism 1.30 `markup` matches all 298 distinct oracle code blocks (`node tests/convert/highlight-check.mjs`). |
 | TypeIt license | TypeIt is GPL-3.0 or commercially licensed. The static site uses a hand-written typing loop instead. The animation is masked in parity runs and checked by behavior tests (it types, loops, and the form state follows). |
-| Page size | About 5,900 lines of route JSX, about 250 highlighted code blocks, about 84 live examples and 400 color swatches on one page, with `femto.colors.min.css` (4.4 KB with Brotli) loaded up front. Phase 3 measures transfer size, DOM size and the spy's cost per frame, records the budget here in the form criterion 15's check reads (one sentence that says "budget" and then gives each limit as a size, raw or "with Brotli" or "gzipped"), and only then considers trimming, such as building the swatches from JSON on first view. `content-visibility` stays out (Decision 12). Measured in Phase 3 (2026-11-04, headless Chrome Beta 158): `dist/docs.html` is 800,000 bytes raw, 52,594 gzipped (level 9) and 33,497 with Brotli (quality 11); its DOM has 17,151 elements, 13,160 of them Prism's token spans in the 126 code blocks; scrolled from top to bottom at 200 px a frame, the spy's frame callback takes 0.06 ms a frame on average and at most 0.8 ms at 1300 px (2.8 ms with the CPU slowed 4 times), all the site's scroll work at most 2.2 ms at 375 px, and no frame is a long animation frame, so nothing is trimmed. The `/docs` HTML budget is 900 KB raw, 60 KB gzipped and 40 KB with Brotli. |
+| Page size | About 5,900 lines of route JSX, about 250 highlighted code blocks, about 84 live examples and 400 color swatches on one page, with `femto.colors.min.css` (4.4 KB with Brotli) loaded up front. Phase 3 measures transfer size, DOM size and the spy's cost per frame, records the budget here in the form criterion 15's check reads (one sentence that says "budget" and then gives each limit as a size, raw or "with Brotli" or "gzipped"), and only then considers trimming, such as building the swatches from JSON on first view. `content-visibility` stays out (Decision 12). Measured in Phase 3 (2026-11-04, headless Chrome Beta 158): `dist/docs.html` is 800,000 bytes raw, 52,594 gzipped (level 9) and 33,497 with Brotli (quality 11); its DOM has 17,151 elements, 13,160 of them Prism's token spans in the 126 code blocks; scrolled from top to bottom at 200 px a frame, the spy's frame callback takes 0.06 ms a frame on average and at most 0.8 ms at 1300 px (2.8 ms with the CPU slowed 4 times), all the site's scroll work at most 2.2 ms at 375 px, and no frame is a long animation frame, so nothing is trimmed. Measured again in Phase 4 (2026-11-05), with nine more sections and femto 3's content: 806,898 bytes raw, 63,085 gzipped and 41,990 with Brotli, over Phase 3's gzip and Brotli limits, so the owner raised those two rather than trim (2026-11-05). The `/docs` HTML budget is 900 KB raw, 70 KB gzipped and 48 KB with Brotli. |
 | The picker recolors the page | femto themes are `:root, :host` rules, so a theme color recolors the whole page, as the oracle's color routes did. With `?theme=` in the URL, reloads and shared links keep it. Phase 4 may scope a preview to a shadow root instead, which femto supports through `:host`. |
 | Search and previews | One URL, by choice (Decision 9). Sections will not rank as separate pages, and every shared link previews as the docs page. |
 | Cloudflare | Pages still works and has no sunset date, but Cloudflare steers new projects to Workers (02 §2). Check where femto.style's DNS lives before any move. Without a top-level `404.html`, Pages serves `/` for unknown paths. Pages also answers some paths itself, and Decision 11 leaves no `_redirects` to change them: `/404` serves the 404 page with status 200, and `/404.html`, `/index`, `/index.html`, `/docs/index` and any page's `.html` name 308 to the clean URL. Accepted (the owner, 2026-10-31); criterion 6 exempts them, and `static_checks.py` probes each one (`PAGES_INHERENT`). |
@@ -253,13 +253,13 @@ Commit messages use a Title Case subject under 60 characters, with no body unles
 
 ## Open questions for the owner
 
-Answer before Phase 4; none blocks Phases 0 to 3.
+Answered by the owner on 2026-11-04, before Phase 4, with 04 §1's disposition and its new sections and menu placement approved as proposed:
 
-1. **Examples page.** All its entries are Pico CodeSandboxes. Drop `/examples` and its header and footer links, or supply femto examples?
-2. **Migrating from Pico.** Is it a docs section (04 §1)? It is the only new section that names Pico.
-3. **Picker.** What is the reworked version picker called, and what is its section id?
-4. **Header.** Does the header keep a version dropdown with one entry, or become a plain version label?
-5. **`/demo`.** Keep the capture page?
+1. **Examples page.** Neither: replace the Pico CodeSandboxes with the site's own set of simple mockups of web page widgets, forms and pages, all in vanilla femto, ideally all on the one `/examples` page.
+2. **Migrating from Pico.** Yes, a docs section under Getting started, from the README.
+3. **Picker.** "Theme picker", section id `theme-picker` (`/docs?theme=<color>#theme-picker`).
+4. **Header.** A plain version label linking to `/docs`.
+5. **`/demo`.** Dropped: not built from Phase 4 (404). The homepage keeps its typing demo.
 
 ## References
 

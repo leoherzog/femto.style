@@ -32,12 +32,16 @@ uv run tests/run.py sections --full                       # the Phase 3 gate: ea
 uv run tests/run.py sections --b dist:build/p3 --routes /docs/button,/docs/version-picker/jade   # an agent's own build, fast axes
 uv run tests/run.py pages --a static-femto --b dist --full --routes /,/examples,/demo,/does-not-exist   # Phase 3's whole pages
 uv run tests/run.py a11y --target dist                    # criterion 10: axe-core on every page, Chrome and Firefox
+uv run tests/run.py a11y --target dist:/path/to/build     # criterion 10 on an agent's own build
 uv run tests/run.py registry                              # validate tests/divergences/
 uv run tests/run.py oracle                                # build, serve and capture the oracle
 uv run tests/run.py static                                # the static checks
+uv run tests/static_checks.py --phase 4 --dist /path/to/build              # every static criterion and the link check, on a build
+uv run tests/static_checks.py --criteria links --external --dist /path/to/build   # the link check, external links fetched once
 uv run tests/run.py behavior --target oracle              # the behavior suite (tests/behavior/), Chrome and Firefox
 uv run tests/run.py behavior --target dist --groups shell # one group against the static site
 uv run tests/run.py behavior --target dist --browsers safari   # Safari, serialized, on an unlocked screen (the owner's)
+uv run tests/run.py behavior --target dist:/path/to/build --browsers chrome,firefox   # criterion 7 on an agent's own build
 ```
 
 Every comparison run writes `tests/results/<run-id>/result.json`, `summary.txt` and `log.txt`,
@@ -57,11 +61,11 @@ chromedriver and geckodriver into `~/.cache/selenium`; Safari uses `/usr/bin/saf
 | `harness/` | harness | Python modules, `differ.js` (in-page collector and differ), `host.html` (the host page), `probe.html` (rig probe), and the configuration: `matrix.json` (widths, fast axes, theme routes), `masks.json` (the only masks), `targets.json` (named sides) |
 | `harness/oracle.py` | oracle | builds the oracle from tag `remix-final` in `tests/oracle/worktree`, serves it with its locked `wrangler pages dev`, captures every route; `wait_ready()` is side A's readiness hook |
 | `oracle-routes.json` | oracle | the oracle's routes: path, kind, kept (Decision 5), title; the 20 static Pico v1 pages are listed as kind `v1-page` (old paths for criterion 6, never captured or compared) |
-| `static_checks.py` | static | the mechanical acceptance criteria (`run.py static` calls its `main(argv)`) |
+| `static_checks.py` | static | the mechanical acceptance criteria and the link check (Link check; `run.py static` calls its `main(argv)`) |
 | `divergences/` | harness (schema, rig seed); phase agents add entries | divergence registry, `schema.json` |
 | `fixtures/` | harness | the selftest site (`site/`, with `site/sections/`, a one-page docs site in miniature for the sections controls), its named controls (`controls.json`) and its state targets for the styles controls (`states.json`) |
 | `harness/states.json` | harness | the styles mode's interactive state targets (Tokens and states) |
-| `behavior/` | behavior | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per route group (`shell.py`, `getting-started.py`, `customization.py`, `layout.py`, `content.py`, `forms.py`, `components-a.py`, `components-b.py`, `landing.py`, `one-page.py`); see Behavior |
+| `behavior/` | behavior | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per route group (`shell.py`, `getting-started.py`, `customization.py`, `layout.py`, `content.py`, `forms.py`, `components-a.py`, `components-b.py`, `landing.py`, `one-page.py`, and from Phase 4 `examples.py`); see Behavior |
 | `harness/behavior.py` | behavior | the `behavior` mode: its subcommand, the page API checks drive, sessions, runner and report |
 | `oracle/`, `results/`, `builds/` | generated | gitignored; `builds/<tag>/` holds a tag's build (`harness/tagbuild.py`) |
 
@@ -417,11 +421,11 @@ registry, Comparisons).
 | `selftest` | The negative controls (below), each a real `run.py pages` subprocess. `--cases`, `--browsers`. |
 | `registry` | Validates `tests/divergences/` and lists the entries by category. Every comparison run validates them again (a registry error is a harness error). |
 | `oracle` | `harness/oracle.py`'s `main(argv)`: build the oracle if missing or stale, serve it, capture every route into `tests/oracle/`. |
-| `static` | `tests/static_checks.py`'s `main(argv)`. |
+| `static` | `tests/static_checks.py`'s `main(argv)`: every criterion it can check without a browser, and the link check (Link check). `--dist DIR` reads a built folder instead of `dist/` (criterion 5 then builds into it, never into `dist/`), `--criteria 9,13,links` some of them, `--external` fetches the external links. |
 | `styles` | The Phase 2 gate (criterion 2), femto's native mode ported to this site: one document, two stylesheet lists. `--a` (default `static-multipage`, the tag's build: the frozen legacy CSS) against `--b` (default `dist`: vendored femto, the responsive-spacings option and the site CSS). Phase 2 changes no markup apart from the stylesheet links, so the two documents align element for element, and everything `pages` compares is compared (tree, attributes, text, computed styles, head, status, same-origin loads, with the same routes, legs, widths, masks, value rules, chunking, Safari handling and `--full` matrix), plus femto's tokens and interactive states (Tokens and states). `--states FILE` replaces `harness/states.json`, `--no-states` replays none (a `cap:` line). The same target on both sides (`--a static-multipage --b static-multipage`) is a self comparison: no registry entry but a skipped check applies, the mode's criterion-1 check. A styles comparison applies only the registry entries that name it (Divergence registry). Fast axes; `--full` runs the full matrix. |
 | `sections` | The Phase 3 gate (criterion 2; Sections): each old docs route of `--a` (default `static-femto`) against its section of the one page of `--b` (default `dist`), side A's `[role=document]` (`--root-a`) against the `<section>` around the element with the section's id, loaded at `/docs#<id>` (a color route at `/docs?theme=<color>#version-picker`). Its routes and their sections come from side A's `menu.json` at the tag. A `one-page` comparison; everything else is the pages mode's (legs, widths, masks, value rules, chunking, Safari handling, same-origin rule, `--full` matrix). Fast axes; `--full` runs the full matrix. |
 | `behavior` | Scripted checks of every widget in 01 §2 that Phase 1 rebuilds, against one target (`--target oracle`, `dist`, `dist:<path>` or a base URL), in headless Chrome and Firefox, and in Safari with `--browsers safari` (serialized, the OS scheme only, on an unlocked screen: the owner's); see Behavior. Phase 3 adds the docs spy, `#hash` and history behavior and `?theme=` (criterion 7), growing from the spike's `test_spike.py`. |
-| `a11y` | Criterion 10 (Accessibility): axe-core from `node_modules/axe-core` run in every page of one target (`--target`, default `dist`): `/`, `/examples`, `/demo`, the 404 page, `/docs` and `/docs?theme=jade`, in headless Chrome and Firefox, light and dark, at 375 and 1300. A serious or critical violation fails the run; moderate and minor ones are listed. `--pages`, `--browsers`, `--schemes`, `--widths`, `--plan`. |
+| `a11y` | Criterion 10 (Accessibility): axe-core from `node_modules/axe-core` run in every page of one target (`--target`, default `dist`): `/`, `/examples`, the 404 page, `/docs` and `/docs?theme=jade` (until Phase 4 also `/demo`), in headless Chrome and Firefox, light and dark, at 375 and 1300. A serious or critical violation fails the run; moderate and minor ones are listed. `--pages`, `--browsers`, `--schemes`, `--widths`, `--plan`. |
 
 Named targets (`harness/targets.json`):
 
@@ -809,6 +813,35 @@ the version picker's swatches and links, so `picker-logo` holds it there. Remix'
 feedback is dropped. The version dropdown is a native `<details>` with no script, and the demo's
 maximize controls are dead code, so neither has a check.
 
+**Phase 4** (PLAN.md Workflow, 4 femto 3 content; criterion 7 rerun) changed what several checks
+hold, and the suite follows the Phase 4 site; parity with the oracle no longer binds:
+- The version picker is the Theme picker, section `#theme-picker`, with no base select, Conditional
+  switch or Sass sample: `picker-configuration` and the Sass half of `picker-code-highlight` went
+  with them, and `picker-options` (the option switches and the links they write), a new
+  `picker-code-highlight`, `picker-unknown-theme` and `picker-popstate` hold the new picker.
+- `/demo` is not built: `demo-page` went with it.
+- The header's version dropdown is a plain label linking to `/docs` (no check had held the dropdown).
+- The header toggle, the copy controls, the breadcrumb's Documentation control and the menu's Close
+  are buttons: the checks select `:is(a, button)`, and `theme-toggle-button`, `copy-keyboard` and
+  `pre-scroll-keyboard` hold what only a button or a focusable code block does. Only a code block
+  that overflows stays a tab stop (a figure named "HTML code" or its language's): `copy-keyboard`
+  holds that the others are skipped.
+- The off-canvas menu makes the page behind it inert: `mobile-menu-inert`. Modal's demo is a true
+  modal (`showModal()`), so the page behind it is inert too: `modal-two-dialogs` asserts that, and
+  opens the color modal over it with a script's `click()` instead of Enter on a shade button.
+- The typing demo has a Pause button and starts paused under reduced motion: `demo-pause` and
+  `demo-reduced-motion`.
+- Link's aria-current example is "Current link example" (the oracle's "Active link example"), and
+  Input has no example forms: `link-examples` names both, `example-forms` dropped `/docs#input`.
+- The Colors section's modal has five rows and its family colors are femto.colors.css's, Nav lost a
+  stray copy of its focus-ring nav (28 example links), Progress' sample is valid HTML, and the nav
+  has 40 sections: those checks assert the Phase 4 values on the one page and the oracle's on routes.
+- `/examples` holds the site's own mockups: the `examples` group (12 checks) holds examples.js and the
+  mockups' isolation in their shadow roots.
+
+What Phase 4 reworked or added runs on the one page only (`layouts`, with the reason; on the oracle a
+`SKIP`); the rest still runs against the oracle, whose own markup each branch asserts.
+
 ```sh
 uv run tests/run.py behavior --target oracle                         # every check, Chrome and Firefox (routes layout)
 uv run tests/run.py behavior --target dist --groups shell,landing    # some groups against the static site (one page)
@@ -835,7 +868,9 @@ that showed it, through `static-femto`'s `menu.json` read from the tag (the map 
 uses): `/docs#modal` at `/docs/modal`, `/docs` at `/docs`, `/docs#landmarks` at
 `/docs/landmarks-section`, `/docs?theme=jade#version-picker` at `/docs/version-picker/jade`. A route
 no old route showed (`/docs?theme=bogus`) is a setup error there, unless the check runs on the one
-page only. Every script a check runs in the page sees `S`, the element its route's content lives in:
+page only. Phase 4's `/docs?theme=<color>#theme-picker` is loaded at the old
+`/docs/version-picker/<color>` (`harness/behavior.py` `SECTION_ALIASES`: the Theme picker is the
+version picker reworked). Every script a check runs in the page sees `S`, the element its route's content lives in:
 on the one page the section, `document.getElementById(<id>).closest("section")` (a check fails at
 once, at "the page has the #<id> section", if it is missing); on routes the whole document
 (`document.documentElement`, as the checks queried it before). So `S.querySelector(...)` finds the
@@ -845,7 +880,8 @@ layouts behave differently by design, a check says both in its docstring and bra
 `page.layout`: the picker's swatches push routes on one and `replaceState` `?theme=` on the other,
 a link to the Grid section loads `/docs/grid` or scrolls to `#grid`. A check of what only one layout
 has (the `one-page` group, and the shell group's `modal-two-dialogs`: Modal's demo and the color
-modal share a page only there) is registered with `layouts=("one-page",)` and a `layout_reason`, and on
+modal share a page only there) or what Phase 4 added (the Theme picker, `/examples`, the typing
+demo's pause button) is registered with `layouts=("one-page",)` and a `layout_reason`, and on
 the other layout it is recorded as `SKIP` (`layout:routes`) with that reason in the summary, never
 silently dropped.
 
@@ -923,8 +959,11 @@ the run fails. Against any other target it is an ordinary check. Eleven checks c
 shows each with the assertion it fails): `color-scheme-flash` (two routes), `theme-stored-invalid`,
 `mobile-menu-focus`, `picker-swatch-focus`, `color-modal-close-url`, `color-modal-focus`,
 `color-modal-tab`, `color-modal-focus-small`, `font-size-restored-switch`, `progress-offscreen` and
-`demo-offscreen`, so a full run against the oracle expects 12 `XFAIL` per browser, and 20 `SKIP`
-(the `one-page` group's 15 checks over 19 routes and `modal-two-dialogs`, `layout:routes`). `mobile-menu-focus` is Phase 3's:
+`demo-offscreen`, so a full run against the oracle expects 12 `XFAIL` per browser, and 48 `SKIP`
+(`layout:routes`: the `one-page` group's 15 checks over 19 routes, `modal-two-dialogs`, and the 25
+checks over 28 routes of what Phase 4 reworked or added: `theme-toggle-button`, `mobile-menu-inert`,
+`copy-keyboard`, `pre-scroll-keyboard`, `color-modal-tab-cycle`, six of the picker's, `demo-pause`,
+`demo-reduced-motion` and the 12 of the `examples` group). `mobile-menu-focus` is Phase 3's:
 the oracle's off-canvas menu has no Escape and no focus handling (01 §2), which criterion 7 asks for.
 Two kinds of fix are among the others.
 The color-scheme flash, the invalid stored theme and the two off-screen intervals are what the
@@ -996,17 +1035,22 @@ label names the failure, so labels say what should hold.
 
 Each check's docstring (`--list`) is its full statement; this is the summary. Viewport 1300 × 900,
 light OS and nothing stored unless the table says otherwise. Routes are the one page's URLs (Layouts;
-on routes, `/docs#modal` is `/docs/modal`, and so on). 74 checks over 94 check-routes, 188 runs in
-Chrome and Firefox (`--list` prints the count): the 57 checks kept from Phase 2 (59 less `toc-spy`
-and `side-menu-current`) over 73 check-routes, `mobile-menu-focus`, `modal-two-dialogs`, and the
-`one-page` group's 15 checks over 19 routes. Against the oracle the `one-page` group and
-`modal-two-dialogs` are skipped (`layout:routes`).
+on routes, `/docs#modal` is `/docs/modal`, and so on). 94 checks over 116 check-routes, 232 runs in
+Chrome and Firefox (`--list` prints the count): Phase 3's 74 checks over 94 check-routes, less
+`picker-configuration`, `demo-page` and `example-forms`' `/docs#input` (whose forms Phase 4
+removed), plus Phase 4's 22 checks over 25 routes (`theme-toggle-button`, `mobile-menu-inert`,
+`copy-keyboard`, `pre-scroll-keyboard`, `color-modal-tab-cycle`, `picker-options`,
+`picker-unknown-theme`, `picker-popstate`, `demo-pause`, `demo-reduced-motion` and the `examples`
+group's 12), with `picker-code-highlight` and `modal-two-dialogs` rewritten. Against the oracle 41
+checks over 48 routes are skipped
+(`layout:routes`, Expected failures).
 
 | Group | Check | Routes | Asserts |
 |---|---|---|---|
-| shell | `theme-toggle` | `/`, `/docs#typography` | No `data-theme` and nothing stored at first; the header toggle reads "Turn on dark mode" without `moon`. A click sets `data-theme="dark"`, stores `femtoColorScheme` `'"dark"'`, relabels "Turn off dark mode" with `moon`, URL unchanged; a second click gives `light` the same way. |
+| shell | `theme-toggle` | `/`, `/docs#typography` | No `data-theme` and nothing stored at first; the header toggle (a button from Phase 4; `:is(a, button)`) reads "Turn on dark mode" without `moon`. A click sets `data-theme="dark"`, stores `femtoColorScheme` `'"dark"'`, relabels "Turn off dark mode" with `moon`, URL unchanged; a second click gives `light` the same way. |
 | shell | `theme-toggle-dark-os` | `/docs` (dark OS) | The toggle follows the OS ("Turn off dark mode", `moon`) with no `data-theme`; a click stores `'"light"'`, the next `'"dark"'`. |
 | shell | `theme-toggle-keyboard` | `/`, `/docs#typography` | The toggle focused, Enter gives dark (data-theme, storage, label) and Enter again light, with no navigation and the document kept. |
+| shell | `theme-toggle-button` | `/`, `/does-not-exist` (one page) | The toggle is a `<button type="button">` with no href; Tab from the GitHub link reaches it; Space gives dark and Enter light, no navigation. |
 | shell | `theme-os-live` | `/`, `/docs#table` | With nothing stored, a live switch of `prefers-color-scheme` to dark and back relabels the toggle, turns the homepage comparison samples dark (`/`) or the inverse thead light (`/docs/table`) and back; no `data-theme` written, nothing stored. |
 | shell | `theme-stored-dark` | `/`, `/docs#button` (stored dark) | A stored choice wins over a light OS: `data-theme="dark"`, toggle "Turn off dark mode". |
 | shell | `theme-stored-light` | `/docs#button` (dark OS, stored light) | `data-theme="light"`, toggle "Turn on dark mode"; a click stores dark. |
@@ -1015,25 +1059,28 @@ and `side-menu-current`) over 73 check-routes, `mobile-menu-focus`, `modal-two-d
 | shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Once a paint entry exists (Chrome can record it a few hundred ms after load), seen from a preload script, `data-theme` appears while the head is parsed (no `<body>` yet), before the first paint, and the first animation frame sees it. **XFAIL on the oracle** at "set while the head is parsed": it sets the attribute during hydration (the flash; whether that still precedes the first paint is a race). |
 | shell | `header-fixed` | `/docs#modal` | Scrolled to the top first, `body > header` has `is-fixed-above-lg`; `is-fixed` exactly while `scrollY > 20` (off at 20, on at 21, off again at 20 and 0). |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled. |
-| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy links (in `S`) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `svg.check` within 100 ms, back to "Copy to clipboard" with `svg.clipboard` 900 to 1500 ms later, no other step, focus not on the link. |
+| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `svg.check` within 100 ms, back to "Copy to clipboard" with `svg.clipboard` 900 to 1500 ms later, no other step, focus not on the control after a pointer click. |
 | shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice; "Copied" reverts once, 900 to 1200 ms after the first click (Code.jsx: every click schedules its own revert), no other step, not focused. |
+| shell | `copy-keyboard` | `/docs#button`, `/examples` (one page) | Tab reaches the first copy button; Enter copies its block, the tooltip and the visually hidden `role=status` line read "Copied", 1 s later they revert with keyboard focus kept; Space copies again. The block's `<pre>` is a tab stop only when its code overflows (site.js, Code block focus): one that does not has no `tabindex`, `role` or `aria-label` and Tab moves past it to the next control after it (both routes' first blocks, in both browsers); one that overflows has `tabindex="0"`, `role="figure"` and `aria-label` "HTML code" (or its language's) and Tab moves to it. |
+| shell | `pre-scroll-keyboard` | `/docs` (375 × 812; one page) | Quick start's first code block that overflows is a figure in the tab order (`tabindex="0"`, `role="figure"`, `aria-label` "HTML code"), takes focus with Tab from its copy button, matches `:focus-visible` with an inset ring, and Right arrow scrolls it. |
 | shell | `modal-helper` | `/docs#modal` | Timed in the page: `modal-is-open modal-is-opening` within 100 ms of "Open modal", `modal-is-open` alone 350 to 700 ms later; Escape gives `modal-is-open modal-is-closing` within 100 ms and no class 350 to 700 ms later; Escape with nothing open does nothing. |
 | shell | `modal-scrollbar-width` | `/docs#modal` (classic scrollbars) | While open, `<html>`'s `--femto-scrollbar-width` is the scrollbar's width (15px) and the page behind keeps its left edge; gone once closed. |
-| shell | `modal-two-dialogs` | `/docs#modal` (classic scrollbars; one page only) | PLAN.md Conversion rules, one modal helper per dialog (site.js `createModal`), read from a MutationObserver: "Open modal" opens Modal's demo alone, `modal-is-open` and the scrollbar's width on `<html>`. With it open, Enter on Colors' focused red 500 shade button opens the color modal and hides the demo at once: the first change, within 250 ms, is the color modal alone open with `modal-is-open modal-is-opening` and the same width, then `modal-is-open` 350 to 800 ms after Enter, nothing else (no `modal-is-closing`, never both open, `modal-is-open` whenever one is). Escape: `modal-is-closing modal-is-open` within 100 ms, then no dialog open (the static examples aside), no modal-is-* class and an empty `--femto-scrollbar-width` 350 to 800 ms after Escape, unchanged 0.6 s on. Each step is timed from the key, not from the step before: colors.js starts the 400 ms timer and then focuses the close link, which lays out the long page, so the observer sees `modal-is-opening` 65 to 106 ms after Enter and the gap between the two steps fell to 342 to 349 ms in Firefox (`p3f-review-behavior-1`, `p3f-review-m2d-1`, `p3f-head-m2d-3`), while `modal-is-open` itself comes 438 to 454 ms after Enter. Skipped on routes (`layout:routes`). |
+| shell | `modal-two-dialogs` | `/docs#modal` (classic scrollbars; one page only) | PLAN.md Conversion rules, one modal helper per dialog (site.js `createModal`), read from a MutationObserver: "Open modal" opens Modal's demo alone, `modal-is-open` and the scrollbar's width on `<html>`. The demo is a true modal (`showModal()`, from Phase 4): it matches `:modal` with focus inside, and the page behind is inert (Colors' red 500 shade button cannot take focus; focus stays in the demo). A script's `click()` on that button (inert stops user input, not a script's events) opens the color modal through colors.js's own helper and hides the demo at once: the first change, within 250 ms, is the color modal alone open with `modal-is-open modal-is-opening` and the same width, then `modal-is-open` 350 to 800 ms after the click, nothing else (no `modal-is-closing`, never both open, `modal-is-open` whenever one is); then the demo is closed, not `:modal`, and focus is in the color modal. Escape: `modal-is-closing modal-is-open` within 100 ms, then no dialog open (the static examples aside), no modal-is-* class and an empty `--femto-scrollbar-width` 350 to 800 ms after Escape, unchanged 0.6 s on. Each step is timed from the click or the key, not from the step before: colors.js starts the 400 ms timer and then focuses its close button, which lays out the long page, so the observer sees `modal-is-opening` 65 to 106 ms after it and the gap between the two steps fell to 342 to 349 ms in Firefox (`p3f-review-behavior-1`, `p3f-review-m2d-1`, `p3f-head-m2d-3`), while `modal-is-open` itself comes 438 to 454 ms after Enter (447 to 450 ms after the click in `p4-fix-checks-2-behavior-dev-1`). Until Phase 4 the scenario was Enter on the focused shade button behind the open demo, which a true modal makes impossible. Skipped on routes (`layout:routes`). |
 | shell | `side-menu-max-height` | `/docs#grid` (375 × 812) | The menu nav's `--max-height` is `innerHeight` minus its top (within 0.5 px) on load and after resizes to 375 × 600, 1300 × 900 and, scrolled 500 px, 1300 × 700; each time `<body>`'s inline `min-height` is `innerHeight` px. |
-| shell | `mobile-menu` | `/docs#modal` (375 × 812) | The breadcrumb's "Documentation" link adds `is-open-on-mobile` to `aside#documentation-menu`, `<html>` stops scrolling, URL unchanged; the menu's close link reverses all three. |
-| shell | `mobile-menu-keyboard` | `/docs#modal` (375 × 812) | Enter on the focused "Documentation" link opens the menu, Enter on its focused close link closes it; no navigation either time. |
+| shell | `mobile-menu` | `/docs#modal` (375 × 812) | The breadcrumb's "Documentation" control (a button from Phase 4) adds `is-open-on-mobile` to `aside#documentation-menu`, `<html>` stops scrolling, URL unchanged; the menu's Close reverses all three. |
+| shell | `mobile-menu-keyboard` | `/docs#modal` (375 × 812) | Enter on the focused "Documentation" control opens the menu, Enter on its focused Close closes it; no navigation either time. |
 | shell | `mobile-menu-focus` | `/docs#modal` (375 × 812) | Criterion 7's Escape and focus: Enter on "Documentation" opens the menu with focus inside `aside#documentation-menu`; Escape closes it (scrolling back, URL kept) and returns focus to the Documentation link; opened by a click, focus is inside again, and Enter on the close link closes it with focus back on Documentation; Escape with it closed does nothing. **XFAIL on the oracle** at "opening moves focus into the menu" (no Escape, no focus handling, 01 §2). |
+| shell | `mobile-menu-inert` | `/docs#modal` (375 × 812; one page) | Criterion 7's mobile menu focus: opened with Enter, focus on Close, `aria-expanded="true"`, every sibling of the menu and of its ancestors inert and the menu not; 60 Tabs and 10 Shift+Tabs stay in the menu; Escape: nothing inert outside, the menu inert, `aria-expanded="false"`, focus on the opener; a nav link (Grid) closes it with nothing left inert; resized to 1300 nothing is inert, back at 375 the page is inert again. |
 | shell | `mobile-menu-link` | `/docs#modal` (375 × 812) | With the menu open ("Layout" opened if closed), following "Grid" closes the menu: on routes it lands on `/docs/grid`, and back returns to the same `/docs/modal` document (client-side history, or the back-forward cache); on the one page the URL becomes `/docs#grid` with one new entry and Grid's heading on its line, and back returns to `/docs#modal` in the same document; the menu closed both times. |
 | shell | `breadcrumb-sticky` | `/docs#modal` (375 × 812) | Scrolled to the top first; relative to the breadcrumb's own natural top t (the static site's sits about 37 px higher, with no banner): `is-sticky` within 1 s at 400 px and at ceil(t) + 2, gone at floor(t) - 1, floor(t) - 20 and the top. |
-| shell | `breadcrumb-chapter` | 7 docs routes (375 × 812) | Within 1 s of the load the last item names the route's category (on the one page the spy sets it for the deep link's section); the first is the "Documentation" link to `/docs` (on the one page, a link on `/docs`). |
+| shell | `breadcrumb-chapter` | 7 docs routes (375 × 812) | Within 1 s of the load the last item names the route's category (on the one page the spy sets it for the deep link's section); the first is "Documentation": on the one page a `type=button` button with `aria-controls="documentation-menu"`, on routes the oracle's link to `/docs`. |
 | one-page | `spy-deep-link` | `/docs#input` | The browser's fragment scroll puts Input's heading on the scroll-padding line (within 2 px); the nav's one current link is `#input` (`aria-current="true"`), Forms open with its summary alone current, the chapter Forms, the title "Input • femto", the URL kept. |
 | one-page | `spy-deep-link-small` | `/docs#input` (375 × 812) | The same under the sticky breadcrumb. |
 | one-page | `deep-link-cold` | `/docs#input` (cold cache) | Criterion 15: Input's heading on its line, and in Chrome the buffered `layout-shift` entries without recent input sum below 0.01, read 1 s after the page is ready (Firefox and Safari have no such entries: noted, position only). |
 | one-page | `nojs-deep-link` | `/docs#forms` (JavaScript off) | Forms' heading on its line, scrolled down, the title unchanged (no script ran). Chrome and Firefox; skipped in Safari. |
 | one-page | `spy-scroll` | `/docs` | Grid's heading 40 px past its line: the nav marks `#grid` and the title is "Grid • femto" at once, and one `replaceState` writes `/docs#grid` 180 ms or more after the jump, no new entry; at the top plain `/docs`, "Documentation • femto", `#quick-start`; at the bottom `/docs#tooltip`. |
 | one-page | `spy-fast-scroll` | `/docs` | 200 px every 16 ms, top to bottom, in the page: at most 3 `replaceState` calls, ending on `/docs#tooltip`. |
-| one-page | `spy-categories` | `/docs` | For each of the nav's 31 links, the section's heading on its line: its link alone current, its category's summary alone current and open, the chapter its category, the title its own; a closed Forms opens again when Input becomes current. |
+| one-page | `spy-categories` | `/docs` | The nav's links are menu.json's 40 sections in order; for each, the section's heading on its line: its link alone current, its category's summary alone current and open, the chapter its category, the title its own; a closed Forms opens again when Input becomes current. |
 | one-page | `spy-chapter-small` | `/docs` (375 × 812) | The breadcrumb's chapter follows the spy: Customization, Layout, Content, Forms, Components, and Getting started at the top. |
 | one-page | `spy-nav-click` | `/docs#modal` | From 200 px into Modal, a real click on Container: `/docs#container`, one new entry, the heading on its line, the nav straight to `#container` (never a section in between), Layout current, the title; the scroll animated with `html` smooth during it, `auto` after. |
 | one-page | `spy-nav-click-reduced` | `/docs#modal` (reduced motion) | The same click under `prefers-reduced-motion: reduce` jumps: at most 2 scroll positions, never smooth. Skipped in Safari. |
@@ -1042,44 +1089,86 @@ and `side-menu-current`) over 73 check-routes, `mobile-menu-focus`, `modal-two-d
 | one-page | `theme-first-frame` | `/docs?theme=jade#grid` (cold cache, jade's file held 300 ms) | One theme stylesheet, jade's, in `<head>`, held (resource timing; not in Safari); `DOMContentLoaded` after it arrived (parser-inserted: it holds back the deferred scripts, a script-added `<link>` does not); `--femto-primary` not azure's. In Chrome and Firefox a first-contentful-paint entry within 3 s, the first contentful paint after the file arrived and the first animation frame already jade's; in Chrome also `renderBlockingStatus` `blocking`. Firefox holds its paint because the color-scheme head script, parser-blocking, comes after the `?theme=` one and waits for the stylesheet (Decisions 8 and 14): `p3f-head-tff-1` to `-3` paint at 492 to 498 ms, after the file's 355 to 359; with the two merged into one script, `p3f-head-neg-merged-1` paints at 181 ms, before it, and fails. Safari's paint asserted as Chrome's when it has the entries. |
 | one-page | `theme-kept` | `/docs?theme=jade#grid` | `?theme=jade` survives the spy (`#modal`) and nav clicks (`#forms`); Quick start ends on plain `/docs?theme=jade` with its heading on its line and the page's title; jade the one theme stylesheet throughout. |
 | one-page | `theme-unknown` | `?theme=bogus`, `azure`, `JADE`, `..%2Fthemes%2Fjade`, `jade.css` on `/docs` | No theme stylesheet, `--femto-primary` azure's; the query stays as given, through the spy too (`/docs?<query>#grid`). |
-| shell | `example-forms` | `/docs#forms`, `/docs#input`, `/docs#group`, `/docs#color-schemes`, `/docs#version-picker` | Enter in every enabled text-like input and a click on every submit button of every content form: no navigation, no reload, every submit event canceled. |
-| getting-started | `picker-configuration` | `/docs#version-picker` | The select and the Conditional Styling switch regenerate the four samples (footer link, CDN, Sass, starter template; exact text) and the two descriptions, over six configurations. |
-| getting-started | `picker-code-highlight` | `/docs#version-picker` | The regenerated samples keep the load-time highlighting: links with only the file name's token changed, the template plus the `class="pico"` tokens, Sass as Prism's scss output. |
-| getting-started | `picker-swatch` | `/docs#version-picker` | Pumpkin's swatch: scroll kept, and the theme example, samples, reset form values, every `aria-current` outside the table of contents (header, footer, side menu, swatches), title, `--femto-primary` and theme stylesheets as a fresh load of pumpkin has them (tree snapshots); on routes the URL `/docs/version-picker/pumpkin` with one history entry, on the one page `/docs?theme=pumpkin#version-picker` with none (criterion 7: the picker swaps the theme and updates `?theme=`); the configuration survives a swap to jade; back (routes) or a reload (one page, jade kept) and azure's swatch (no `?theme=`, no theme stylesheet) work. |
-| getting-started | `picker-logo` | `/docs#version-picker` | The header logo is `femto-logo` on load; pumpkin's swatch (a route change, or `?theme=` on the one page) makes it `femto-logo animated` within 2 s and `femto-logo` again 900 to 1500 ms later, no other step. |
-| getting-started | `picker-swatch-focus` | `/docs#version-picker` | Enter on pumpkin's focused swatch swaps to pumpkin with focus kept on it; Tab reaches orange's, Enter swaps to orange with focus on it. **XFAIL on the oracle** at "focus stays on pumpkin's swatch" (its remount drops focus to `<body>`). |
-| getting-started | `picker-links` | `/docs#version-picker` | The configuration (base 2) survives the other links to the picker, with no page load. On routes: the table of contents' Theme link (the page itself), the footer's and the side menu's Version picker links, back and forward each render in place, the URL, history and page as that route has them on load. On the one page they are fragment links: the side menu's `#version-picker` from pumpkin (`?theme=` kept), the footer's `/docs#version-picker` from azure, and the footer's from jade (`?theme=jade` kept: docs.js makes it the fragment navigation, where the browser would load `/docs`) put the heading on its line, a new entry only for a new URL; back from jade's returns in the same document, jade kept, to the bottom or the entry's section heading. |
+| shell | `example-forms` | `/docs#forms`, `/docs#group`, `/docs#color-schemes`, `/docs#theme-picker` | Enter in every enabled text-like input and a click on every submit button of every content form: no navigation, no reload, every submit event canceled. `/docs#input` left the list in Phase 4, when its two `<form>` wrappers (no submit button, `wcag/h32`) were removed. |
+| getting-started | `picker-options` | `/docs#theme-picker` (one page) | Three option switches (responsive-spacings, fixed-typography, no-transitions; `role=switch`, each described by its helper), off on load; they regenerate the three samples exactly (the cdn links in load order then `styles.css`, the combine URL or femto's link alone, the template's links) on load and after five sets of options, and leave the page's own stylesheets as loaded. |
+| getting-started | `picker-code-highlight` | `/docs#theme-picker` (one page) | The three samples are exactly Prism's markup tokens for their `<link>` lines on load and after option changes and swaps (all options; jade with all; jade with fixed-typography; azure with none), the template's other lines keeping their load-time tokens; azure with no options gives the load-time tokens. |
+| getting-started | `picker-swatch` | `/docs#theme-picker` (one page) | Each swatch is labeled with its own color. Pumpkin's swatch: scroll kept, `/docs?theme=pumpkin#theme-picker` with no new entry (criterion 7: the picker swaps the theme and updates `?theme=`), and the theme example, samples, labels, every `aria-current` outside the side menu, `--femto-primary` and theme stylesheets as a fresh load of pumpkin has them (tree snapshots); the example form keeps what was typed; options survive a swap to jade; a reload keeps jade; azure's swatch (no `?theme=`, no theme stylesheet) works. |
+| getting-started | `picker-logo` | `/docs#theme-picker` | The header logo is `femto-logo` on load; pumpkin's swatch (a route change on routes, `?theme=` on the one page) makes it `femto-logo animated` within 2 s and `femto-logo` again 900 to 1500 ms later, no other step. |
+| getting-started | `picker-swatch-focus` | `/docs#theme-picker` | Enter on pumpkin's focused swatch swaps to pumpkin with focus kept on it; Tab reaches orange's, Enter swaps to orange with focus on it. **XFAIL on the oracle** at "focus stays on pumpkin's swatch" (its remount drops focus to `<body>`). |
+| getting-started | `picker-links` | `/docs#theme-picker` (one page) | With fixed-typography on, the side menu's `#theme-picker` from pumpkin (`?theme=` kept), the footer's `/docs#theme-picker` from azure, and the footer's from jade (`?theme=jade` kept: docs.js makes it the fragment navigation) put the heading on its line, a new entry only for a new URL, the options kept; back from jade's returns in the same document, jade kept, to the bottom or the entry's section heading. |
+| getting-started | `picker-unknown-theme` | `/docs?theme=bogus#theme-picker`, `/docs?theme=JADE#theme-picker` (one page) | An unknown `?theme=` is ignored by the picker as by the head script: no theme stylesheet, azure's swatch current, "Azure", azure's samples, the query as given; jade's swatch then sets `?theme=jade`. |
+| getting-started | `picker-popstate` | `/docs#theme-picker` (one page) | Jade's swatch, a fragment navigation to `#themes` and pumpkin's swatch: back shows jade (current swatch, stylesheet, samples), forward pumpkin, in the same document. |
 | getting-started | `color-schemes-toggle` | `/docs#color-schemes` | The page's own switcher toggles the scheme and storage and relabels itself and the header toggle; the header toggle drives it too. |
-| customization | `color-modal-open` | `/docs#colors` | Red 500's button opens one `dialog.color` (header class, "Red 500", "Shōjōhi Red", glow, the six labelled values); Escape closes; Slate's family header opens slate 600. |
+| customization | `color-modal-open` | `/docs#colors` | Red 500's button (in `div.shades`; the oracle's `main`) opens one `dialog.color` (header class, "Red 500", "Shōjōhi Red", glow of the family's main color, femto.colors.css's red 550 on the one page, and the five labelled values: hex, RGB, the two utility classes, the custom property; on routes the oracle's six, with the Sass variable); Escape closes; Slate's family header opens slate 600. |
 | customization | `color-modal-arrows` | `/docs#colors` | Right and Left step shades, Down and Up step families, wrapping at both ends (red 50 to slate 950 and back). |
-| customization | `color-modal-close` | `/docs#colors` | The close link, a backdrop click and Escape close it (no open dialog, no modal class); a click inside the article does not. |
-| customization | `color-modal-close-url` | `/docs#colors` | The close link leaves the URL and history as they were. **XFAIL on the oracle** (`#close`). |
+| customization | `color-modal-close` | `/docs#colors` | The close control (a button from Phase 4), a backdrop click and Escape close it (no open dialog, no modal class); a click inside the article does not. |
+| customization | `color-modal-close-url` | `/docs#colors` | The close control leaves the URL and history as they were. **XFAIL on the oracle** (`#close`). |
 | customization | `color-modal-focus` | `/docs#colors` | Enter on a focused shade button opens the modal with focus inside it; Escape returns focus to the button. **XFAIL on the oracle** (no focus management). |
 | customization | `color-modal-tab` | `/docs#colors` | Tab and Shift+Tab in the open modal keep focus inside the dialog and leave `scrollY` as it was; Escape returns focus to the button. **XFAIL on the oracle** at "Tab keeps focus inside the dialog". |
 | customization | `color-modal-arrows-small` | `/docs#colors` (375 × 480) | Where the open modal's article overflows, the arrow keys step colors without scrolling the article or the page. |
-| customization | `color-modal-focus-small` | `/docs#colors` (375 × 480) | Enter opens the modal with focus on its close link (`header a.close`), not the scrollable article; Escape returns focus to the button. **XFAIL on the oracle** at "focus moves to the close link". |
+| customization | `color-modal-focus-small` | `/docs#colors` (375 × 480) | Enter opens the modal with focus on its close control (`header .close`), not the scrollable article; Escape returns focus to the button. **XFAIL on the oracle** at "focus moves to the close link". |
 | customization | `color-modal-resize` | `/docs#colors` | The open modal's article has `max-height: calc(<innerHeight>px - 2rem)` at 1300 × 900 and after resizes to 1300 × 600 and 1300 × 760. |
-| customization | `palette-download` | `/docs#colors` | The Download link's same-origin resource is the 20 × 19 palette, two-space JSON, with the SHA-256 of the oracle's download. |
+| customization | `color-modal-tab-cycle` | `/docs#colors` (one page) | In the open modal focus starts on the close button; Tab steps through the five copy buttons and wraps to it; Shift+Tab goes back to the last; Enter there copies `var(--femto-color-red-500)`; Escape returns focus to the shade button. |
+| customization | `palette-download` | `/docs#colors` | The Download link (text "Download the palette (JSON)"; on routes the oracle's "Download") points at a same-origin resource that holds the 20 × 19 palette as two-space JSON, with the SHA-256 of the oracle's download. |
 | layout | `grid-columns` | `/docs#grid` | Add and Remove column from 4 up to 10 and down to 1 (clamped both ways): the columns, the code text and its highlighted tokens follow every click. |
 | content | `font-size-units` | `/docs#typography` | The "Display in rem" switch turns the px table (values and formula tooltips) into percentages and multipliers without tooltips, and back to the exact load-time tree. |
 | content | `font-size-restored-switch` | `/docs#typography` | With the "Display in rem" switch restored as checked on a reload (Firefox; a preload script in Chrome), the table shows rem from load, and one click restores the exact px table. **XFAIL on the oracle** at "with the switch restored as checked, the table shows rem". |
 | content | `table-inverse-thead` | `/docs#table` | The color-schemes example's thead and its sample read `data-theme="dark"` on a light page and follow the header toggle. |
 | content | `table-inverse-thead-dark-os` | `/docs#table` (dark OS) | They read `light`. |
-| content | `link-examples` | `/docs#link` | The 6 example links (each pointing at its own route, or on the one page at `/docs` or `/docs#link`) go nowhere, clicked and with Enter: the document, URL, history, scroll position and tabs unchanged, every click canceled. |
+| content | `link-examples` | `/docs#link` | The 6 example links ("Links example": Primary, Secondary, Contrast; "Current link example": Regular link, Current link, Regular link, which the oracle on routes calls "Active link example" and "Active link"; each pointing at its own route, or on the one page at `/docs` or `/docs#link`) go nowhere, clicked and with Enter: the document, URL, history, scroll position and tabs unchanged, every click canceled. |
 | forms | `checkbox-indeterminate` | `/docs#checkboxes` | The example checkbox is indeterminate after load with no added attributes; a click checks it. |
 | components-a | `dropdown-items` | `/docs#dropdown` | The 45 example links (four items in each of the eleven link dropdowns, plus the nav example's "Services") go nowhere. Pointer: each dropdown is opened once from its summary and its items are clicked in turn. Keyboard: Enter on the summary, Tab to each item, Enter. After each click or Enter, the window marker, URL, history.length and scroll position are unchanged, the dropdown stays open and the click is defaultPrevented; after an Enter, focus stays on the item. |
-| components-b | `modal-demo` | `/docs#modal` | "Open modal" opens the demo dialog; Cancel, Confirm and the backdrop close it, a click inside does not; the two example dialogs stay open and their buttons do nothing. |
-| components-b | `progress-value` | `/docs#progress` | Watched 16 s on screen: an integer 5 to 94 with `max="100"`, the sample printing the same value, at least two changes, each a whole number of 5 s periods (± 400 ms) after the last. |
+| components-b | `modal-demo` | `/docs#modal` | "Open modal" opens the demo dialog ("Confirm your membership"; on routes the oracle's "Confirm Your Membership"); once its opening animation ends, Cancel, Confirm and the backdrop close it and a click inside does not; the two example dialogs stay open and their buttons do nothing. |
+| components-b | `progress-value` | `/docs#progress` | Watched 16 s on screen: an integer 5 to 94 with `max="100"`, the sample printing the same value (`<progress value="N" max="100"></progress>`; on routes the oracle's `/>`), at least two changes, each a whole number of 5 s periods (± 400 ms) after the last. |
 | components-b | `progress-offscreen` | `/docs#progress` (1300 × 300) | No change for 10.5 s while the bar is below the viewport; on screen, changes 5 s and 10 s later; above the viewport, none for 10.5 s (intervals run only on screen). **XFAIL on the oracle** at "no change for 10.5 s while the example is below the viewport". |
-| components-b | `nav-example-links` | `/docs#nav` | The 31 example links (the `overflow-with-focus` nav's 3 and the examples' 28, dropdown items included) go nowhere, clicked and with Enter: document, URL, history and scroll kept, dropdowns open, every click canceled. |
+| components-b | `nav-example-links` | `/docs#nav` | The 28 example links of the examples' navs, dropdown items included (on routes 31, with the oracle's `overflow-with-focus` nav's 3, which Phase 4 removed from the section), go nowhere, clicked and with Enter: document, URL, history and scroll kept, dropdowns open, every click canceled. |
 | components-b | `tooltip-link` | `/docs#tooltip` (1300 × 500) | On routes the example link (`href="/docs/tooltip"`), clicked scrolled down, ends at `/docs/tooltip` at scrollY 0 with no new history entry; on the one page it points at `/docs#tooltip`, and the click, in the same document, ends there with Tooltip's heading on its line and a new entry only for a new URL. The oracle keeps the document (Remix's client-side navigation); the static site's plain link loads it again, which the check notes and does not assert (PLAN.md Conversion rules: plain `<a>` replaces Link). |
 | landing | `demo-loop` | `/` | Up to 100 s: the form's phases are exactly the demo's 15 (email ... range-50) and then email and invalid again; each phase's markup shows in the code while the form is in it; the fields carry each phase's values; at least 50 typed characters. |
 | landing | `demo-variant` | `/` (1280 × 800) | The large code layout at 1280, the small one at 1279 and 375 and the large again at 1280, each within 3 s and each time started over at the first phase. |
-| landing | `demo-page` | `/demo` | The first four phases in order with their markup, the email typed letter by letter. |
 | landing | `comparison-toggle` | `/` | The comparison's code samples read `light`, then `dark` and `light` after header-toggle clicks. |
 | landing | `demo-offscreen` | `/` | The demo changes on screen; above the viewport (after 2 s to settle) no change for 7 s; back on screen it changes within 5 s. **XFAIL on the oracle** at "no change for 7 s while the demo is above the viewport" (TypeIt runs off screen). |
+| landing | `demo-pause` | `/` (one page) | `button[data-demo-pause]`, hidden in the markup, is shown once demo.js runs (rendered, `type="button"`, "Pause", the cursor's blink running) and the demo changes within 4 s. A click relabels it "Play": the code and the form (markup and values) do not change for 6 s and the blink is paused. A second click relabels it "Pause", the blink runs and the demo changes within 4 s. |
+| landing | `demo-reduced-motion` | `/` (`prefers-reduced-motion: reduce`; one page) | The demo starts paused: the button reads "Play", the blink is paused, the code shows the first phase's markup and the form its one empty, valid email input, and nothing changes for 6 s (unpaused, the first phase would start at 1.75 s). A click on Play relabels it "Pause", the blink runs and the demo changes within 4 s. |
+| examples | `examples-structure` | `/examples` | Each `section.example` has one `div[data-example]` whose shadow root holds only a div with its own shadow root: there femto's `dist/femto.min.css` link (loaded, nothing else styled) and then exactly the Markup sample's markup; no id repeats on the page, shadow roots included. |
+| examples | `examples-isolation` | `/examples` | Every element of every mockup (host and pseudo-elements included) has the computed style, every property and every custom property femto names, of a document that loads femto alone around the same markup: no site CSS reaches in. |
+| examples | `examples-isolation-dark` | `/examples` (dark OS) | The same with the OS dark. |
+| examples | `examples-isolation-stored` | `/examples` (stored dark) | With a stored dark choice on a light OS, every inner host has `data-theme="dark"` and the styles equal the femto-only document's with it. |
+| examples | `examples-scheme` | `/examples` | The inner hosts follow `<html>`'s `data-theme`: none on load, dark and light again with the header toggle, their background with them. |
+| examples | `examples-forms` | `/examples` | Each mockup form submitted with a real click on its submit button (and the search with Enter): every submit canceled, document, URL and history kept. |
+| examples | `examples-links` | `/examples` | Every visible mockup link, clicked and with Enter, goes nowhere: canceled, document, URL and history kept. |
+| examples | `examples-dialog` | `/examples` | The confirmation dialog opens as a modal with focus inside; Escape, its close button, Cancel, Delete project and a backdrop click close it with focus back on the opener; a click on its text keeps it open. |
+| examples | `examples-dropdown` | `/examples` | The navigation bar's Account dropdown opens on its summary and closes on a click outside. |
+| examples | `examples-fit` | `/examples` (375 × 812) | At 375 × 812 the page does not scroll sideways and no mockup element leaves its frame (outside a scrolling `.overflow-auto`). |
+| examples | `examples-first-frame` | `/examples` (stored dark) | With a stored dark choice, the first frame that has the mockups already shows them dark with femto applied; no transition runs after load. |
+| examples | `examples-first-frame-cold` | `/examples` (cold cache) | With the cache emptied, the first frame that has the mockups already has femto applied in every root; no transition after load. |
 
 ### Proof
+
+Phase 4 (2026-11-05, the same rig: Chrome Beta 158.0.8127.18, Firefox 160.0, Selenium 4.52.0; the
+working tree after the Phase 4 writers and the a11y agent, built by the checks agent into its scratch
+folder, `dist:<build>`):
+
+| Run id | Command | Runs | Result |
+|---|---|---|---|
+| `p4-checks-behavior-dev-1` | `behavior --target dist:<build> --workers chrome=2,firefox=2 --checks` the 17 new and changed checks | 52 | PASS: 52 PASS; 29 s |
+| `p4-checks-behavior-1` | `behavior --target dist:<build>`, every check (criterion 7 in Chrome and Firefox) | 230 | **PASS: 230 PASS** (115 per browser), 0 FAIL, 0 ERROR; 349 s |
+| `p4-checks-behavior-neg-1` | `picker-options`, `picker-code-highlight` and `mobile-menu-inert` against a copy of the build whose picker.js writes the options' links in another order (`fixed-typography` first) and whose docs.js leaves the page behind the open menu not inert | 6 | FAIL as intended, all six: the two picker checks at "codes regenerated" with all three options on, `mobile-menu-inert` at "every element outside the menu is inert" |
+| `p4-checks-behavior-oracle-1` | `behavior --target oracle` (routes layout) | 230 | **PASS: 114 PASS, 24 XFAIL** (12 per browser, each at its named assertion), **92 SKIP** (46 per browser, `layout:routes`), 0 FAIL, 0 XPASS; 248 s. The branches that assert the oracle's own markup (five modal rows against six, 28 nav links against 31, the copy links, the breadcrumb link) hold it |
+| `p4-checks-a11y-1` | `a11y --target dist:<build>` (criterion 10) | 40 cells | FAIL on 2 targets in 1 rule (Accessibility, Phase 4), 0 errors; 39 s |
+| `p4-checks-selftest-1` | `selftest --browsers chrome,firefox` | 70 controls | **PASS: 70 of 70** |
+| — | `registry`; `static_checks.py --phase 4 --dist <build>` | 246 entries; 15 criteria and the link check | valid; 3, 4, 5, 6, 8, 11, 12, 13, 14 and the link check PASS (the link check's 6 controls fail as intended), 9 and 15 FAIL (site content: the rules turned back on, and the `/docs` budget), 1, 2, 7 and 10 NOT-YET (the harness's) |
+| `p4-fix-checks-1-modal-1` to `-5` | `behavior --target dist:<build> --checks modal-demo` after its clicks were made to wait for the opening animation to end (`-2` to `-5` while `p4-fix-checks-1-behavior-1` ran; review finding: Firefox FAILed once in a loaded full run at "a click inside the article keeps it open") | 2 each | PASS: 10 of 10; the new waits took 0.36 to 0.45 s |
+| `p4-fix-checks-1-modal-neg-1` | `modal-demo` against a copy of the build whose site.js closes the demo on any click inside the dialog | 2 | FAIL as intended, both browsers, at "a click inside the article keeps it open: the demo dialog is open" |
+| `p4-fix-checks-1-behavior-1` | `behavior --target dist:<build> --workers chrome=2,firefox=2`, every check | 230 | FAIL: 228 PASS, 2 FAIL, both `link-examples` at "the six example links": the Link section now names its example "Current link example" and its link "Current link", and the check still wants "Active link"; `modal-demo` PASS in both browsers |
+| `p4-fix-checks-2-behavior-dev-1` | `behavior --target dist:<build> --workers chrome=2,firefox=2 --checks` the seven fixed and new checks (`link-examples`, `copy-keyboard`, `pre-scroll-keyboard`, `modal-two-dialogs`, `example-forms`, `demo-pause`, `demo-reduced-motion`) | 22 | PASS: 22 PASS. `copy-keyboard`: both routes' first blocks do not overflow, and Tab moved on to the Secondary button (`/docs#button`) and the next mockup's frame (`/examples`); `pre-scroll-keyboard`: the overflowing block is `tabindex="0"`, `role="figure"`, "HTML code"; `modal-two-dialogs`: `modal-is-opening` 95 and 100 ms and `modal-is-open` 447 and 450 ms after the `click()` (Chrome, Firefox) |
+| `p4-fix-checks-2-neg-1` | `copy-keyboard`, `modal-two-dialogs` and `demo-pause` against a copy of the build whose site.js keeps every code block a tab stop (`if (true)` for `overflows[i]`) and gives the demo dialog no `modal: true`, and whose demo.js ignores the pause (`running = () => onScreen`) | 8 | FAIL as intended, all eight: `copy-keyboard` at "the block does not overflow: no tab stop, role or name" (both routes), `modal-two-dialogs` at "the demo is a true modal (:modal) with focus inside it", `demo-pause` at "paused: no change to the code or the form for 6 s" |
+| `p4-fix-checks-2-neg-2` | `demo-reduced-motion` against a copy whose demo.js does not start paused under reduced motion | 2 | FAIL as intended, both browsers, at "the script shows it reading Play" |
+| `p4-fix-checks-2-neg-3` | `modal-two-dialogs` against a copy whose site.js `createModal` no longer hides the dialog that holds `<html>`'s classes when another opens | 2 | FAIL as intended, both browsers, at "the color modal is open with modal-is-open alone" (the demo stays open under it) |
+| `p4-fix-checks-2-behavior-1` | `behavior --target dist:<build> --workers chrome=2,firefox=2`, every check (04:13 build) | 232 | FAIL: 228 PASS, 4 FAIL, text another writer changed in the same round: `modal-demo` at "the demo is 'Confirm Your Membership'" (now "Confirm your membership") and `palette-download` at "its text" (now "Download the palette (JSON)"); both now take the Phase 4 text on the one page and the oracle's on routes |
+| `p4-fix-checks-2-behavior-2` | `behavior --target dist:<build> --workers chrome=2,firefox=2`, every check (04:23 build), criterion 7 in Chrome and Firefox | 232 | **PASS: 232 PASS** (116 per browser), 0 FAIL, 0 ERROR; 231 s |
+| `p4-fix-checks-2-oracle-1` | `behavior --target oracle --checks` the nine changed checks (routes layout) | 26 | PASS: 14 PASS (`link-examples` "Active link", `modal-demo` "Confirm Your Membership", `palette-download` "Download", `example-forms` on four routes), 12 SKIP (`layout:routes`) |
+| `p4-fix-checks-2-a11y-1` | `a11y --target dist:<build>` (04:23 build, criterion 10) | 40 cells | FAIL on 2 targets in 1 rule, 0 errors: `color-contrast` on Group's current button (`button[aria-current="true"]` "Week") in the dark cells of `/docs` (white on `#017fc0`, 4.37:1) and `/docs?theme=jade` (white on `#00895a`, 4.44:1); site content, not the harness; 26 s |
+| — | `npx html-validate` with `.htmlvalidate.mjs` on the build's four pages; the same with `no-redundant-role`'s `exclude` emptied; `static_checks.py --phase 4 --criteria 9,13,14 --dist <build>`; `npm run lint` | 4 pages; 3 criteria | exit 0 with `exclude: ["button"]` (the unused `"group"` dropped); 13 `no-redundant-role` errors on `/docs` with it emptied (every one `summary[role=button]`, in Accordion and Dropdown), so the one left is used; 9, 13 and 14 PASS; lint exit 0 |
 
 Phase 3 (2026-11-04, the rig as Phase 2: Chrome Beta 158.0.8127.18, Firefox 160.0, Selenium 4.52.0;
 the one page built from the working tree while the other Phase 3 agents were still changing it, into
@@ -1174,20 +1263,29 @@ the file's header in round 1 of the Phase 1 fixes (it had shipped in `dist/`):
   `/`, `/examples`, `/demo` or the 404 page takes those page routes instead, as
   `p3-footer-docs-link-href-*` do). In Phases 1 and 2 widgets bound to the oracle's own markup (ids,
   classes, `aria-` attributes, structure) without adding attributes, since any added attribute was a
-  parity difference with no category. `widgets()` reports an exception without stopping the regions
-  after it.
-- The hooks: the base's `main[data-docs-spy]`, `aside[data-docs-menu]` (its Close link
-  `data-menu-close`) and `nav[data-docs-breadcrumb]` (its Documentation link `data-menu-open`), in
-  `site/docs.html`, outside every compared root, so no entry; the
+  parity difference with no category. From Phase 4 the parity comparisons no longer gate (PLAN.md
+  Workflow), so a hook added or renamed in Phase 4 gets no registry entry; the Phase 3 entries stay
+  for the Phase 3 comparisons. `widgets()` reports an exception without stopping the regions after
+  it.
+- The hooks: the base's `main[data-docs-spy]`, `aside[data-docs-menu]` (its Close button
+  `button[data-menu-close]`) and `nav[data-docs-breadcrumb]` (its Documentation button
+  `button[data-menu-open]`), in `site/docs.html`, outside every compared root, so no entry; the
   regions' `button[data-scheme-switcher]` (getting-started), `section[data-grid-example]` (layout),
   `section[data-font-size-demo]`, `section[data-inverse-thead]` and `article[data-link-example]`
   (content), `article[data-indeterminate-example]` (forms; on the example, since
   `checkbox-indeterminate` holds the checkbox to its own two attributes),
   `article[data-dropdown-example]` (components-a), `nav[data-nav-example]` and
-  `article[data-progress-example]` (components-b); and beside them site.js's `a[data-copy-link]`,
-  `data-modal`, `data-modal-open` and `data-modal-close`, colors.js's `data-color-modal` and
-  picker.js's `article[data-version-picker]`, `section[data-picker-configuration]` and
-  `section[data-picker-usage]` (`cdn`, `sass`, `template`).
+  `article[data-progress-example]` (components-b); and beside them site.js's `button[data-copy-link]`
+  (a link until Phase 4), the header's `button[data-scheme-toggle]`, `data-modal`, `data-modal-open`
+  and `data-modal-close`, colors.js's `data-color-modal`, picker.js's `article[data-version-picker]`
+  (the Theme picker's swatches; the hook keeps its Phase 3 name), `section[data-picker-options]` and
+  `section[data-picker-usage]` (`cdn`, `combine`, `template`; Phase 4 removed
+  `section[data-picker-configuration]` and `sass`), examples.js's `div[data-example]` on
+  `/examples`, demo.js's `[data-comparison]` and `article[data-typing-demo]` on `/` with the demo's
+  `button[data-demo-pause]` (Phase 4: hidden in the markup, shown by demo.js; `demo-pause`,
+  `demo-reduced-motion`), and `pre[data-scroll-focus]`, which build.mjs writes on every highlighted
+  `<pre>` (with `tabindex="0"`) and site.js reads to keep only a block that overflows in the tab
+  order (Phase 4; `copy-keyboard`, `pre-scroll-keyboard`).
 
 ## Accessibility
 
@@ -1195,16 +1293,17 @@ The a11y mode holds the site to criterion 10: axe-core finds no serious or criti
 page, in Chrome and Firefox, light and dark, at 375 and 1300.
 
 ```sh
-uv run tests/run.py a11y --target dist                    # the criterion's 48 cells
+uv run tests/run.py a11y --target dist                    # the criterion's 40 cells (48 until Phase 4, with /demo)
 uv run tests/run.py a11y --target static-femto --pages /,/docs
 uv run tests/run.py a11y --plan
 ```
 
 - **axe-core** is the repository's own: `node_modules/axe-core/axe.min.js` at the exact version
   `package.json` pins (4.14.0), never downloaded; a missing or mispinned copy is a setup error (exit 2).
-- **Pages** (`--pages`): `/`, `/examples`, `/demo`, the 404 page (`/does-not-exist`), `/docs`, and
-  `/docs?theme=jade`, so a theme stylesheet's colors are checked too.
-- **Cells**: browser × page × scheme × width, 24 per browser. Each is loaded as a behavior check is
+- **Pages** (`--pages`): `/`, `/examples`, the 404 page (`/does-not-exist`), `/docs`, and
+  `/docs?theme=jade`, so a theme stylesheet's colors are checked too. `/demo` was one until Phase 4,
+  which does not build it (PLAN.md Open questions 5).
+- **Cells**: browser × page × scheme × width, 20 per browser. Each is loaded as a behavior check is
   (`harness/behavior.py` `Page.reset`: a fresh headless tab, the viewport set exactly with WebDriver
   BiDi to the width × 800, `prefers-color-scheme` emulated, storage emptied, the page loaded and the
   static readiness hook run). Then axe's source runs in the document through Selenium and
@@ -1236,6 +1335,51 @@ parity keeps through Phase 3, and each also fires on `static-femto`'s per-route 
   The swatches and Group's button are femto's styles, so their fix may belong in femto.
 - `scrollable-region-focusable` (serious): `pre` code blocks and `div.overflow-auto` scroll but take
   no focus.
+
+Phase 4's gate (`p4-gate-a11y-2`, the 40 cells, and `p4-gate-a11y-widths-2`, the same pages at
+320, 768 and 1024: 100 cells, Chrome Beta 158 and Firefox 160, 0 errors) **passes: no serious or
+critical violation**. Phase 4 fixed all five rules. Their last target, Group's
+`button[aria-current="true"]` in dark (white on `#017fc0`, 4.37:1; jade's `#00895a`, 4.44:1), was
+femto's own hover background, which femto's c608ee06 fixed (owner decision 15). Listed (moderate):
+`landmark-unique` on the breadcrumb examples and the docs breadcrumb (femto styles breadcrumbs
+through `nav[aria-label="breadcrumb"]`, so they share the name) and on the Dropdown section's nav
+example.
+
+## Link check
+
+Phase 4's gate includes a link check of `dist/` (PLAN.md Workflow, 4 femto 3 content). It is part of
+`static_checks.py` (`check_links`), runs with every default run of the static checks, and alone with
+`--criteria links`:
+
+```sh
+uv run tests/static_checks.py --criteria links --dist /path/to/build             # internal links, and the external ones listed
+uv run tests/static_checks.py --criteria links --external --dist /path/to/build  # and every external URL fetched once
+uv run tests/run.py static --criteria links                                      # the same on dist/
+```
+
+- **Internal links.** Every URL a dist page links to or loads (`href`, `src`, `srcset`, `poster`,
+  `data`, `action`, `formaction`, `cite`, SVG `href`, the `og:` and `twitter:` URL metas, JSON-LD's
+  site URLs), declarative shadow roots included, resolved against the page's URL as Cloudflare Pages
+  serves it, plus every `url()` and `@import` in dist CSS and the web app manifest's icons and
+  `start_url`. A URL on `https://femto.style` (or relative) must name a page of the URL inventory
+  (`/`, `/docs`, `/examples`: each dist page at its extensionless URL) or a file in `dist/`; a page's
+  `.html` name or `/docs/` fails, since Pages answers it with a 308; a query is allowed only as
+  `/docs?theme=<one of femto's 20 colors>`; a fragment must be an id or an `<a name>` in the target
+  page's own tree, outside every `<template>` (a fragment never reaches into a shadow root; `#` and
+  `#top` are the top of the page). A fragment alone (`href="#content"`) is looked up in the page
+  that holds it, with no path resolved, since the 404 page is served at every missing URL. An SVG
+  `<use href="#id">` names an element of its own tree, shadow roots included. Code samples are text
+  and are not read.
+- **External links** are listed. With `--external` each distinct URL is fetched once (HEAD, then GET
+  when HEAD fails, redirects followed, a browser's User-Agent: Figma and npm answer 403 to a
+  script's), and one that answers 400 or more, or not at all, fails the check, except two kinds,
+  which are listed: femto's npm and jsDelivr URLs before its first publish (PLAN.md Risks), and the
+  "Edit this page on GitHub" links to files this branch adds, which answer once the owner merges and
+  pushes `main` (Decision 15).
+- **Controls.** Every run first copies `dist/` and plants six broken links, one per copy (a missing
+  asset, a missing page, a missing fragment on another page, a missing fragment on the page itself,
+  a page's `.html` name, an unknown `?theme=`); each copy must fail with exactly its planted link and
+  nothing else new, or the check fails (`LINK_CONTROLS`).
 
 ## Divergence registry: `tests/divergences/`
 
@@ -2945,6 +3089,91 @@ stale comments, and the owners fixed all three. Last, the lead:
 The gate's Safari part is the owner's: `tests/owner-safari.sh one-page` (Owner's Safari steps, about
 1 h 45 min), on the Phase 3 commit.
 
+### Phase 4: femto 3 content (2026-11-05)
+
+PLAN's Phase 4: the docs are rewritten for femto 3 from femto's README at `8cd05767` (re-vendored
+before the phase, and moved to `c608ee06` at its gate: owner decision 2), and the site drops what parity kept. `/docs` has 40 sections,
+nine of them new (Classes and attributes, Browser support, Migrating from Pico, Files, Themes,
+Options, Custom module set, Cascade layer, Shadow roots). The version picker is the Theme picker
+(`#theme-picker`), the header's version dropdown is a plain version label, and each section's edit
+link opens its own file. `/examples` is 11 mockups of widgets, forms and pages in vanilla femto, on
+one page, each in a declarative shadow root that loads only `dist/femto.min.css`; `/demo` is not
+built and answers 404 (PLAN.md Open questions). The explained separators are gone, every
+accessibility item from Phase 3 is fixed, and the ten html-validate rules that were off for parity
+are on again. Its gate: criteria 13 and 14, the link check, criterion 10, and criteria 7 to 9
+rerun, in Chrome and Firefox; Safari is the owner's (`tests/owner-safari.sh content`). Rig as in
+Phase 3.
+
+**How it ran.** One workflow (`wf_027de50c-894`, 34 agents, about 4 h 50 min):
+1. A scaffold agent renamed the picker, added the nine stubs in the menu's new order, pointed every
+   edit link at its section file, deleted `site/demo.html` and removed the separators.
+2. Seven writers ran in parallel, each on its own files: Getting started, theming (the picker,
+   Themes, Options, Colors), Customization, layout and content, Forms and Components, the site
+   shell, and `/examples`.
+3. An accessibility agent, alone on `site/`:
+   - links that act as buttons became buttons: the theme toggle, the 146 copy controls, the docs
+     menu's Documentation and Close, and the color modal's close;
+   - the open off-canvas menu makes the rest of the page `inert`;
+   - a code block that scrolls is a named tab stop;
+   - the landmarks have names.
+4. A checks agent:
+   - brought the behavior suite to 232 runs, with new checks for each new control;
+   - wrote the link check and the Phase 4 parts of criteria 6, 9 and 13;
+   - turned the parity-only html-validate rules back on;
+   - added `owner-safari.sh content`.
+5. Two review rounds, each of four lenses (accuracy against femto's README and CSS,
+   accessibility, wording, completeness), found 79 and 58 findings. A fix round by each owner
+   followed each round.
+
+**The lead's calls, and the owner's.**
+- The link check looked up a fragment-only link through the page's URL, so the 404 page's skip
+  link (`#content`) was read as a link to `/404`. A fragment alone is now looked up in the page that
+  holds it (Link check); the six controls still fail as intended.
+- `/docs` is over Phase 3's gzip and Brotli budgets; the owner raised them (owner decision 14).
+- Criterion 10's last failure is femto's dark hover color; the owner chose to fix it in femto
+  (owner decision 15). A subagent made the fix in `../femto` (9 theme values, femto's divergence
+  entries, its theme check, a CHANGELOG line; femto's static checks, its comparisons of every
+  default page and all 20 themes, and its selftest pass in Chrome and Firefox), the lead committed
+  it there on the owner's word as `c608ee06`, and `npm run vendor` moved the site to it. The CSS
+  variables section's orange sample follows it, and Themes now says a custom theme's inverse text
+  needs 4.5:1 on both backgrounds.
+- The build fills `{{commit}}` from `SOURCE`, as it fills `{{version}}`, so the site's 19 links to
+  femto's files at the vendored commit (14 on `/docs`, the footer's license on every page) follow a
+  re-vendor.
+- Criterion 15's run-time loads used to come from the parity comparisons, which Phase 4 no longer
+  runs. `dist` against itself (`p4-gate-loads-1`) checks every load of the five pages instead.
+
+**Owner items left for femto.** Found by the reviewers, not fixed here, and not failing a
+criterion:
+- An open dropdown's summary in dark, without focus, is `#7b8495` on `#1c212c` (4.27:1;
+  `css/components/accordion.css` line 62). axe passes the page as it loads.
+- A read-only input or textarea shows no focus indicator (`css/forms/basics.css`).
+- CSS-only tooltips cannot be dismissed with Escape (WCAG 1.4.13), and on a copy button the
+  tooltip covers the code next to it.
+- The focus-ring tokens are 1.4:1 to 2.0:1 against the page background.
+- femto's README says `dist/femto.min.css` is "about 74 KB"; the vendored file is 78,280 bytes, and
+  Files repeats the README's number.
+- femto's README says `.femto-background-*` gives "a readable text color", but 31 shades set white
+  text below 4.5:1.
+
+**Registry.** 246 entries in 28 files, as at Phase 3's gate: Phase 4 compares no route against the
+oracle, so it adds none. `/docs` is 806,978 bytes raw, 63,158 gzipped and 42,115 with Brotli; the budget in
+PLAN.md Risks (Page size) is 900 KB, 70 KB and 48 KB.
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p4-gate-behavior-1` | `behavior --target dist --browsers chrome,firefox` (criterion 7; femto at `8cd05767`) | 232 runs | **PASS: 232/232** | 0 | 361 s |
+| `p4-gate-a11y-1`, `p4-gate-a11y-widths-1` | `a11y --target dist`, then `--widths 320,768,1024` (criterion 10; femto at `8cd05767`) | 40 and 60 | FAIL on 2 targets in 1 rule, Group's current button in dark (owner decision 15) | 0 | 41 s and 59 s |
+| `p4-gate-selftest-1` | `selftest --browsers chrome,firefox` | 70 controls × 2 browsers | **70/70** | 0 | — |
+| `p4-gate-a11y-2`, `p4-gate-a11y-widths-2` | the same two a11y runs, femto at `c608ee06` | 40 and 60 | **PASS: 0 serious or critical**; 16 and 24 moderate cell findings (`landmark-unique`), listed | 0 | 41 s and 60 s |
+| `p4-gate-behavior-2` | `behavior --target dist --browsers chrome,firefox`, femto at `c608ee06` | 232 runs | **PASS: 232/232** | 0 | 360 s |
+| `p4-gate-loads-1` | `pages --a dist --b dist --routes /,/docs,/docs?theme=jade,/examples,/does-not-exist --browsers chrome,firefox` (criterion 15's run-time loads) | 56 (420,984 elements) | **0 cross-origin loads**. The run FAILs on 4 style records in one cell (Chrome, `/docs?theme=jade`, light, 375): the Progress example's code is one character wider on one side (344.5 against 352.906 px). Its random value had one digit on one side and two on the other; Phase 4's longer sample overflows its `pre` at 375, so the `code`'s width follows the value, and the `progress-value-code` mask covers only the token. Not a site difference, and Phase 4 gates on no comparison | 0 | 87 s |
+| — | `static_checks.py --phase 4`; `registry`; `npm run lint` | 15 criteria and the link check; 246 entries | **3, 4, 5, 6, 8, 9, 11, 12, 13, 14 and the link check PASS** (451 internal links; its six controls fail as intended); 15's static part passes (its run-time parts are the runs above); 1, 2, 7 and 10 NOT-YET (the harness's); registry valid; lint exit 0 | — | — |
+| — | `static_checks.py --criteria links --external` | 67 outside URLs | FAIL on 11, every link to femto's files at `c608ee06` (404 until the owner pushes femto's `dev`). Listed as pending: the edit links to files this branch adds, and npm's page before femto's first publish. At `8cd05767`, before the move, it passed | — | — |
+
+The gate's Safari part is the owner's: `tests/owner-safari.sh content` (Owner's Safari steps), on
+the Phase 4 commit.
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -2954,10 +3183,10 @@ rest, and the registered ones with a consequence a later phase owns.
 | Item | What | Owner |
 |---|---|---|
 | The 404 page's footer | Without the banner, main.css's `auto auto 1fr auto` body rows give the footer the free space: on the 404 page at 800 to 1300 px it sits 43 to 100 px higher, with blank space under it, and so would any page shorter than a taller window (p1-shell-404-footer-track). | Settled in Phase 2: `common.css` writes the rows `auto 1fr auto` (p2-common-body-rows) |
-| Six footer links on `/docs` | The About column's five items and Class-less version point at `/docs` (PLAN.md Text: removed or pointed at `/docs`), so on `/docs` they carry `aria-current="page"` and a screen reader hears each as the current page (p1-shell-footer-dropped-links-current). Kept so the footer's columns and height stay the oracle's. | Phase 4's footer rewrite removes them |
+| Six footer links on `/docs` | The About column's five items and Class-less version point at `/docs` (PLAN.md Text: removed or pointed at `/docs`), so on `/docs` they carry `aria-current="page"` and a screen reader hears each as the current page (p1-shell-footer-dropped-links-current). Kept so the footer's columns and height stay the oracle's. | Settled in Phase 4: the footer's three columns link only real places; its one `/docs` link is Quick start, the top of the page |
 | woff fallbacks | The frozen `main.css` names 10 `.woff` fallbacks under `/assets/fonts/` beside the woff2 files; only woff2 ships (PLAN.md File tree), so those URLs answer 404. Every target browser takes the woff2. | Settled in Phase 2: `fonts.css` names woff2 only, and `assets/legacy/` is gone |
 | Pacifico on `/docs/css-variables` | The oracle loads Pacifico from Google Fonts; the static page links `/assets/legacy/pacifico.css` (menu.json `styles`), Google's stylesheet with its 5 `src` URLs pointed at the same woff2 files, byte-identical to the captured ones (`tests/oracle/capture/_fonts`), so the page loads only same-origin resources (criterion 15). The pages mode skips stylesheet links (head comparison), so this is the one stylesheet whose origin changed without a record. | Settled 2026-10-31, the owner keeps it: PLAN.md's File tree lists Pacifico 400, Phase 2's `fonts.css` took its `@font-face` rules (menu.json no longer links a stylesheet for it), and Phase 4 keeps the example |
-| React text separators | Two section files keep React's `<!-- -->` separator (`color-schemes.html`, `version-picker.html` and its 19 colors: 22 copies in `dist/`), for a sub-pixel label width (tests/convert/README.md). PLAN.md's Conversion rules strip them. | Kept through Phase 3: removing them brought the sub-pixel width back in Chrome only (196 unregistered records in 46 of 1,368 cells, `p3-review-behavior-3-sections-full-1`: color-schemes' two "Remember me" labels at 1100 and 1300, 180.359 against 180.375 px, and "I agree to the" on the version picker and its 19 color routes at 1300, 299.859 against 299.875 px), which no category covers. `color-schemes.html` (two) and `version-picker.html` (one) carry the explained separator again, as at `static-femto` (`p3-registry-separator-probe-1` passes with them); `dist/docs.html` has three. Phase 4, where parity no longer binds, removes them |
+| React text separators | Two section files keep React's `<!-- -->` separator (`color-schemes.html`, `version-picker.html` and its 19 colors: 22 copies in `dist/`), for a sub-pixel label width (tests/convert/README.md). PLAN.md's Conversion rules strip them. | Kept through Phase 3: removing them brought the sub-pixel width back in Chrome only (196 unregistered records in 46 of 1,368 cells, `p3-review-behavior-3-sections-full-1`: color-schemes' two "Remember me" labels at 1100 and 1300, 180.359 against 180.375 px, and "I agree to the" on the version picker and its 19 color routes at 1300, 299.859 against 299.875 px), which no category covers. `color-schemes.html` (two) and `version-picker.html` (one) carry the explained separator again, as at `static-femto` (`p3-registry-separator-probe-1` passes with them); `dist/docs.html` has three. Settled in Phase 4, where parity no longer binds: removed, and `dist/docs.html` has none |
 | Per-route build scaffolding | In per-route mode `build.mjs` also swaps literal markup in `docs.html` per route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical, `og:url`), fills two slot comments (`<!-- docs:menu -->`, `<!-- docs:sections -->`) and adds route stylesheets; `menu.json` carries `route`, `label`, `routeTitle`, `toc`, `styles` and `variants` beyond the File tree's id, title, description. PLAN.md allows only the include markers and three placeholders. | Settled 2026-10-31, accepted as scaffolding for Phases 1 and 2 (PLAN.md File tree, Per-route scaffolding). Settled in Phase 3: `build.mjs` has no slot comments or per-route swaps, and `menu.json` keeps only id, title, description and label |
 | The palette download | 01 §2 and 03 §5 plan a static JSON file written by the build; Phase 1's `colors.js` makes an on-load `blob:` URL, for parity with the oracle's (normalized by the `blob:` value rule). No phase owns the switch. | Settled 2026-10-31: Phase 3 switches to the build's static JSON file (PLAN.md Workflow) and registers the URL as `asset-path`. Done in Phase 3: `build.mjs` writes `assets/femto-color-palette.json`, the Download link points at it, registered as p3-colors-palette-download |
 | File tree extras | `site/partials/` holds `docs-header.html`, `logo.html`, `nav-icons.html` and `structured-data.html` beyond head, header and footer; the root holds `vendor.mjs` and `eslint.config.js`; `site/docs/sections/version-picker/<color>.html` are 19 per-route files. `.prettierrc` names a plugin no longer installed, `robots.txt` is absent, and `site/_headers` still caches `/build/*`. | Settled 2026-10-31: PLAN.md's File tree lists the extra partials, `vendor.mjs`, `eslint.config.js` and the color files; Phase 3 deletes the color files (done: `site/docs/sections/version-picker/` is gone), Phase 5 the rest |
@@ -2978,6 +3207,7 @@ tests/owner-safari.sh dark
 tests/owner-safari.sh spike
 tests/owner-safari.sh styles
 tests/owner-safari.sh one-page
+tests/owner-safari.sh content
 ```
 
 With no argument it runs the spike (into `results/p0-spike-safari.txt`, for
@@ -3000,8 +3230,11 @@ and the whole pages (`pages --a static-femto --b dist --full --browsers safari -
 pass). About 1 h 45 min: Phase 2's styles passes took about 4.6 s a cell with their state replays, so
 about 25 minutes of section cells per pass, plus about 19 minutes for the six `/docs/css-variables`
 cells (about 190 s each on an unlocked screen, below), a few minutes for the behavior suite and two
-for the pages; not measured yet. The behavior suite needs the automation window in front the whole
-time. Each step is one command in the script under `caffeinate -d -i`, so one can also be run
+for the pages; not measured yet. `content` is Phase 4's gate in Safari (criterion 7): it builds
+`dist/`, then in Light and again in Dark runs only the behavior suite (`behavior --target dist
+--browsers safari`, as `p4-behavior-safari-light-1` and `-dark-1`), since Phase 4 compares nothing
+against the oracle: a few minutes a pass, not measured yet. The behavior suite needs the automation
+window in front the whole time. Each step is one command in the script under `caffeinate -d -i`, so one can also be run
 by hand. At the end the script prints how often each self or styles run's `log.txt` says
 `OS scheme light` or `OS scheme dark`: the light run must say light and the dark run dark, and the
 dark run's skipped checks are `media:light`. Measured on an unlocked screen: a full dark pass
@@ -3022,6 +3255,13 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    are unchanged. Moved 2026-11-03: the owner chose femto's latest commit, d4f8d1fd ("Add Android
    Browsers", on `dev` and `main`, still 3.0.0-alpha.1), vendored with
    `npm run vendor -- ../femto d4f8d1fd`. It changes only a comment in `css/forms/input-date.css`.
+   Moved 2026-11-04, before Phase 4: the owner chose femto's latest commit, 8cd05767 ("Add A Script
+   For Both Safari Passes", still 3.0.0-alpha.1), vendored with `npm run vendor`. Its only change to
+   the vendored files is 1f7c75b2's "Drop The Bottom Margin On Typed Modal Footer Buttons"
+   (`css/components/modal.css` and `dist/femto.css` and `femto.min.css`). Moved 2026-11-05, during
+   Phase 4: c608ee06 ("Darken Dark Hover Backgrounds For Contrast", on femto's `dev`, still
+   3.0.0-alpha.1), vendored with `npm run vendor`. It changes `css/tokens/schemes.css`, nine theme
+   files and `dist/femto.css` and `femto.min.css` (owner decision 15).
 3. **`.gitignore`**: settled 2026-10-30. It reads `/dist/`, so `site/vendor/femto/dist/` is no
    longer ignored.
 4. **PLAN and its sources disagree** in four places the static checks had settled silently. All
@@ -3091,3 +3331,16 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    theme script moves the first contentful paint from 80 to 277 ms (before the theme's responseEnd)
    to 455 to 588 ms (after it); a script that `document.write` adds after the `<link>` does not). The owner chose two inline head scripts, the `?theme=` one first and the
    color-scheme one second (PLAN.md Decisions 8 and 14, criterion 15).
+14. **The `/docs` size budget** (2026-11-05). With Phase 4's nine new sections and femto 3's text,
+   `dist/docs.html` is 806,898 bytes raw, 63,085 gzipped and 41,990 with Brotli, over Phase 3's 60 KB
+   and 40 KB. The owner raised those two limits to 70 KB and 48 KB rather than trim the page, for
+   example by building the Colors section's 380 swatches from JSON, which would save about 4 KB
+   (PLAN.md Risks, Page size).
+15. **femto's dark hover color** (2026-11-05). Criterion 10's last failure was the Group example's
+   current button in dark: white on `#017fc0`, 4.37:1 (jade's `#00895a`, 4.44:1). It comes from
+   femto's `--femto-primary-hover-background`, whose dark value gave white text less than 4.5:1 in 9
+   of the 20 themes (azure, blue, cyan, fuchsia, green, jade, orange, pink and zinc; green 3.76:1),
+   on every hovered, focused, pressed or current button. The owner chose to fix it in femto, rather
+   than record an exception or change the example. femto's c608ee06 gives those nine themes their
+   light value in both schemes (5.41:1 to 6.54:1), registered in femto's own divergences, and the
+   site vendors it (owner decision 2).

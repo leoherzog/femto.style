@@ -1,8 +1,9 @@
 /* The docs page, after common.css and code.css: the docs tokens for each color scheme, the main
    grid with its breadcrumb, side menu and document (every section, each with its header), smooth
    scrolling for nav clicks, the rules of single sections (the oracle's main.page-<id> rules), and
-   the docs components: the menu's focus style, the version picker card, the color families and
-   color dialog of the Colors section, inline example dialogs, headings and bordered images. */
+   the docs components: the menu's focus style, the Theme picker card, the color families (with
+   readable text on every shade) and color dialog of the Colors section, the color dots of the
+   Themes table, inline example dialogs and headings. */
 
 /**
  * Docs color schemes
@@ -184,13 +185,39 @@ main > [aria-label=breadcrumb] ul li:not(:last-child)::after {
   content: ">";
 }
 
-main > [aria-label=breadcrumb] ul li:first-child a {
+/* The Documentation button, which opens the menu, is a <button type="button"> drawn as the
+   breadcrumb's secondary link it replaced: femto's breadcrumb link box, no border or background,
+   the secondary link color and underline on hover, and femto's link focus ring on keyboard focus.
+   No transition: Firefox styles the docs page once before the site's stylesheets apply (docs.html
+   links them after the head scripts), so a transition here would run on load from femto's button
+   colors, white on the primary background */
+main > [aria-label=breadcrumb] ul li:first-child button {
+  display: inline-block;
+  max-width: none;
+  margin: calc(var(--femto-nav-link-spacing-vertical) * -1) 0;
+  margin-inline-start: calc(var(--femto-nav-link-spacing-horizontal) * -1);
+  padding: var(--femto-nav-link-spacing-vertical) var(--femto-nav-link-spacing-horizontal);
+  border: 0;
+  border-radius: var(--femto-border-radius);
+  background-color: transparent;
+  box-shadow: none;
   color: var(--femto-secondary);
-  cursor: pointer;
+  font-weight: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration-color: var(--femto-secondary-underline);
+  text-underline-offset: 0.125em;
+  transition: none;
 }
 
-main > [aria-label=breadcrumb] ul li:first-child a:hover {
+main > [aria-label=breadcrumb] ul li:first-child button:hover {
   color: var(--femto-secondary-hover);
+  text-decoration-line: underline;
+  text-decoration-color: var(--femto-secondary-hover-underline);
+}
+
+main > [aria-label=breadcrumb] ul li:first-child button:focus-visible {
+  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
 main > [aria-label=breadcrumb] ul li:last-child {
@@ -294,14 +321,6 @@ main > aside nav details ul li a[aria-current]:hover {
   text-decoration: none;
 }
 
-main > aside nav details ul li a mark {
-  border-radius: 0.125rem;
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  vertical-align: text-bottom;
-}
-
 /**
  * Docs: Documentation Menu
  */
@@ -322,18 +341,43 @@ main > aside#documentation-menu header h2 {
   margin-bottom: 0;
 }
 
-main > aside#documentation-menu header a {
-  opacity: 0.5;
-  transition: background-color var(--femto-transition), color var(--femto-transition), opacity var(--femto-transition);
+/* The Close button, a <button type="button"> drawn as the secondary link it replaced: its icon in the
+   secondary link colors at 0.8 opacity, full on hover, and femto's link focus ring on keyboard
+   focus. At 0.8 the icon keeps at least 3:1 on the menu's background (3.5:1 light, 4.7:1 dark;
+   WCAG 1.4.11, criterion 10). Only its opacity transitions: Firefox styles the docs page once before
+   the site's stylesheets apply (docs.html links them after the head scripts), so a color transition
+   would run on load from femto's button colors, white on the primary background */
+main > aside#documentation-menu header button {
+  --femto-color: var(--femto-secondary);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background-color: transparent;
+  box-shadow: none;
+  color: var(--femto-color);
+  font-weight: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  opacity: 0.8;
+  transition: opacity var(--femto-transition);
 }
 
-main > aside#documentation-menu header a svg {
+main > aside#documentation-menu header button:is(:hover, :active, :focus) {
+  --femto-color: var(--femto-secondary-hover);
+}
+
+main > aside#documentation-menu header button:focus-visible {
+  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
+}
+
+main > aside#documentation-menu header button svg {
   display: block;
   width: auto;
   height: 1.125rem;
 }
 
-main > aside#documentation-menu header a:hover {
+main > aside#documentation-menu header button:hover {
   opacity: 1;
 }
 
@@ -627,11 +671,23 @@ main > [role=document] .edit-on-github svg {
 }
 
 /**
- * Section: Version Picker
+ * Section: Colors. The names table writes placeholders such as --femto-color-<color>-<shade>, where
+ * Fira Code's ligatures would draw -< and >- as arrows
  */
-[role=document] > section:where(:has(> hgroup > h1[id=version-picker])) select + small {
-  /* eslint-disable-next-line css/no-important -- the oracle's !important (docs/pages/_version-picker.scss), kept for parity: Phase 2 changes no rule's weight */
-  margin-bottom: calc(var(--femto-spacing) * 2) !important;
+[role=document] > section:where(:has(> hgroup > h1[id=colors])) td > code {
+  font-variant-ligatures: none;
+}
+
+/**
+ * Section: Themes, a dot of each theme color before its name in the table of the 20 colors
+ */
+[role=document] > section:where(:has(> hgroup > h1[id=themes])) td > span[class^="femto-background-"] {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-inline-end: 0.5em;
+  border-radius: 50%;
+  vertical-align: -0.125em;
 }
 
 /**
@@ -646,7 +702,7 @@ main > aside > nav details > ul li a:not([role=button]):focus-visible:not([role]
 }
 
 /**
- * Card: color picker (the Version picker section)
+ * Card: color picker (the Theme picker section)
  */
 article.color-picker > header {
   grid-gap: var(--femto-block-spacing-horizontal);
@@ -665,27 +721,21 @@ article.color-picker > header a {
   border-radius: 50%;
 }
 
-article.color-picker > header a[aria-busy=true]::before {
-  max-width: 1.5rem;
-  filter: brightness(0) invert(1);
-  opacity: 0.875;
-}
-
-/* A dark spinner on the light swatches */
-article.color-picker > header a[aria-busy=true].femto-background-lime::before,
-article.color-picker > header a[aria-busy=true].femto-background-yellow::before,
-article.color-picker > header a[aria-busy=true].femto-background-amber::before,
-article.color-picker > header a[aria-busy=true].femto-background-pumpkin::before,
-article.color-picker > header a[aria-busy=true].femto-background-sand::before,
-article.color-picker > header a[aria-busy=true].femto-background-grey::before {
-  filter: brightness(0);
-}
-
 article.color-picker > header a svg {
   width: 50%;
   max-width: 1.5rem;
   height: auto;
   opacity: 0.875;
+}
+
+/* The focused swatch draws its ring inside: a contrast ring with an inverse ring within it, which
+   shows on light and dark swatches in both schemes (WCAG 2.4.7). femto's outer ring, a translucent
+   primary, is faint on dark swatches in the dark scheme, and from 1280px, where the swatches have
+   no gaps, it is painted under the next swatch and clipped by the header. */
+article.color-picker > header a:focus-visible {
+  box-shadow:
+    inset 0 0 0 var(--femto-outline-width) var(--femto-contrast-inverse),
+    inset 0 0 0 calc(var(--femto-outline-width) * 2) var(--femto-contrast);
 }
 
 @media (min-width: 768px) {
@@ -714,9 +764,30 @@ article.color-picker h2 {
 }
 
 article.color-picker > hgroup,
-article.color-picker > form,
-article.color-picker > footer {
+article.color-picker > form {
   transition: opacity var(--femto-transition), filter var(--femto-transition);
+}
+
+/* The theme example's row of fields is a div.grid, and its switch a bare <label>, not fieldsets,
+   which would need a legend (criterion 9, wcag/h71); the row keeps the space below it that femto
+   gives a fieldset */
+article.color-picker > form > .grid {
+  margin-bottom: var(--femto-spacing);
+}
+
+/* The option switches share one fieldset with a legend (criterion 9, wcag/h71), so each note follows
+   its <label>, not a fieldset of its own: it gets femto's helper text style for a <small> after a
+   fieldset, at the same distance from its switch */
+[data-picker-options] fieldset > label + small {
+  display: block;
+  width: 100%;
+  margin-top: calc(var(--femto-spacing) * 0.625);
+  margin-bottom: var(--femto-spacing);
+  color: var(--femto-muted-color);
+}
+
+[data-picker-options] fieldset > small:last-child {
+  margin-bottom: 0;
 }
 
 /**
@@ -754,13 +825,13 @@ article.color-picker > footer {
   cursor: pointer;
 }
 
-.color-families .family main {
+.color-families .family .shades {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0.75rem;
 }
 
-.color-families .family main > button {
+.color-families .family .shades > button {
   display: flex;
   position: relative;
   align-items: center;
@@ -771,6 +842,41 @@ article.color-picker > footer {
   border-width: 0;
   border-radius: var(--femto-border-radius);
   font-size: 0.75rem;
+}
+
+/* Black text on the 31 shades whose .femto-background-* class sets white text with a contrast below
+   4.5:1 (WCAG AA for text of this size); black has at least 4.69:1 on each. Only the swatches and
+   the color dialog's header change: the classes keep femto's text colors, and the Colors section
+   says so above the swatches (colors.html). The swatches' color is
+   not transitioned: Firefox can style them before this file has loaded, and then fades their text
+   from white to black, which axe read mid-fade (#212121) in one run */
+.color-families .family .shades > button {
+  transition: background-color var(--femto-transition), border-color var(--femto-transition), box-shadow var(--femto-transition);
+}
+
+.color-families .family .shades > button:is(.femto-background-red-450, .femto-background-pink-450,
+  .femto-background-fuchsia-450, .femto-background-fuchsia-500, .femto-background-purple-500,
+  .femto-background-violet-500, .femto-background-indigo-500, .femto-background-blue-500,
+  .femto-background-azure-400, .femto-background-azure-450, .femto-background-azure-500,
+  .femto-background-cyan-350, .femto-background-cyan-400, .femto-background-cyan-450,
+  .femto-background-cyan-500, .femto-background-jade-350, .femto-background-jade-400,
+  .femto-background-jade-450, .femto-background-jade-500, .femto-background-green-400,
+  .femto-background-green-450, .femto-background-lime-400, .femto-background-lime-450,
+  .femto-background-yellow-450, .femto-background-amber-450, .femto-background-pumpkin-450,
+  .femto-background-orange-450, .femto-background-sand-500, .femto-background-grey-500,
+  .femto-background-zinc-500, .femto-background-slate-500),
+dialog.color > article > header:is(.femto-background-red-450, .femto-background-pink-450,
+  .femto-background-fuchsia-450, .femto-background-fuchsia-500, .femto-background-purple-500,
+  .femto-background-violet-500, .femto-background-indigo-500, .femto-background-blue-500,
+  .femto-background-azure-400, .femto-background-azure-450, .femto-background-azure-500,
+  .femto-background-cyan-350, .femto-background-cyan-400, .femto-background-cyan-450,
+  .femto-background-cyan-500, .femto-background-jade-350, .femto-background-jade-400,
+  .femto-background-jade-450, .femto-background-jade-500, .femto-background-green-400,
+  .femto-background-green-450, .femto-background-lime-400, .femto-background-lime-450,
+  .femto-background-yellow-450, .femto-background-amber-450, .femto-background-pumpkin-450,
+  .femto-background-orange-450, .femto-background-sand-500, .femto-background-grey-500,
+  .femto-background-zinc-500, .femto-background-slate-500) {
+  color: var(--femto-color-dark);
 }
 
 /**
@@ -808,16 +914,25 @@ dialog.color > article header {
   transition: color var(--femto-transition), background-color var(--femto-transition);
 }
 
-dialog.color > article header a.close {
+/* The close button: the header's own close icon (an inline SVG) in its text color, without femto's
+   background icon, and a focus ring on keyboard focus only, as the link it replaced had */
+dialog.color > article header button.close {
   z-index: 1;
   position: relative;
   height: inherit;
+  border-radius: 0;
   background-image: none;
   background-position: inherit;
   background-size: inherit;
   background-repeat: inherit;
+  box-shadow: none;
   color: inherit;
+  font-weight: inherit;
   line-height: initial;
+}
+
+dialog.color > article header button.close:focus-visible {
+  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
 dialog.color > article header hgroup {
@@ -828,9 +943,11 @@ dialog.color > article header hgroup h3 {
   color: inherit;
 }
 
+/* The shade's name, smaller than the title and not bold, at full opacity: the header's text color
+   has 4.5:1 on its swatch color, and half opacity would bring it below that (criterion 10) */
 dialog.color > article header hgroup p {
   --femto-font-size: 0.875em;
-  opacity: 0.5;
+  font-weight: normal;
 }
 
 dialog.color > article pre {
@@ -877,12 +994,4 @@ dialog.example > article {
  */
 :is(h1, h2, h3, h4, h5, h6) {
   position: relative;
-}
-
-/**
- * Image: rounded and bordered
- */
-img.rounded-bordered {
-  border: 1px solid var(--femto-muted-border-color);
-  border-radius: var(--femto-border-radius);
 }

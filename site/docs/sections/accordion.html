@@ -1,11 +1,11 @@
 <hgroup>
   <p class="chapter">Components</p>
-  <h1 id="accordion">Accordions</h1>
-  <p>Toggle sections of content in pure&nbsp;HTML, without JavaScript, using minimal and semantic&nbsp;markup.</p>
+  <h1 id="accordion">Accordion</h1>
+  <p>A <code class="language-html">&lt;details&gt;</code> is an accordion: its <code class="language-html">&lt;summary&gt;</code> opens and closes the content, without JavaScript.</p>
 </hgroup>
 <section>
-  <p><code>name="example"</code> can be added to multiple  <code class="language-html">&lt;details&gt;</code> so only one can be open at a time.</p>
-  <article aria-label="Accordions example" class="component">
+  <p>The summary ends with a chevron, which turns when the accordion opens; in right-to-left text the chevron is on the left. Give several <code class="language-html">&lt;details&gt;</code> the same <code>name</code>, and the browser keeps only one of them open at a time. Firefox does this from version 130: in Firefox 128 and 129, each one opens and closes on its own.</p>
+  <article aria-label="Accordion example" class="component">
     <details name="example" open>
       <summary>Accordion 1</summary>
       <p>Flamingos are known for their bright pink feathers and distinctive long necks. These birds are social creatures that live in large groups, and a group of flamingos is called a flamboyance. They can often be seen standing on one leg, which helps them conserve body heat.</p>
@@ -21,12 +21,12 @@
         <li>Some species of kangaroos can leap up to 30 feet in a single bound.</li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;details name="example" open&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;details name="example" open&gt;
   &lt;summary&gt;Accordion 1&lt;/summary&gt;
   &lt;p&gt;...&lt;/p&gt;
 &lt;/details&gt;
 
-&lt;hr /&gt;
+&lt;hr&gt;
 
 &lt;details name="example"&gt;
   &lt;summary&gt;Accordion 2&lt;/summary&gt;
@@ -39,19 +39,19 @@
 </section>
 <section>
   <h2>Button variants</h2>
-  <p><code>role="button"</code> can be used to turn <code class="language-html">&lt;summary&gt;</code> into a button.</p>
-  <article aria-label="Accordions buttons example" class="component">
+  <p><code>role="button"</code> makes a <code class="language-html">&lt;summary&gt;</code> look like a button as wide as the accordion.</p>
+  <article aria-label="Accordion button example" class="component">
     <details>
       <summary role="button">Button</summary>
       <p>Owls are nocturnal birds of prey that are known for their distinctive hooting calls. A group of owls is called a parliament, and these birds are often associated with wisdom and intelligence. Owls have excellent hearing and vision, which helps them hunt prey in the dark.</p>
     </details>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;details&gt;
-  &lt;summary role="button"&gt;Owls&lt;/summary&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;details&gt;
+  &lt;summary role="button"&gt;Button&lt;/summary&gt;
   &lt;p&gt;...&lt;/p&gt;
 &lt;/details&gt;</code></pre></footer>
   </article>
-  <p>Like regular buttons, they come with <code>.secondary</code>, <code>.contrast</code>, and <code>.outline</code> (Not available in the <a data-discover="true" href="/docs">class-less version</a>).</p>
-  <article aria-label="Accordions buttons example" class="component">
+  <p>Like other buttons, it takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code>.</p>
+  <article aria-label="Accordion button variants example" class="component">
     <details>
       <summary role="button" class="secondary">Secondary</summary>
       <p>Ostriches are the largest birds in the world and are native to Africa. They have long, powerful legs that they use to run at high speeds, and they can reach up to 45 miles per hour. An ostrich’s eye is bigger than its brain, which is unusual for birds.</p>
@@ -72,7 +72,7 @@
       <summary role="button" class="outline contrast">Contrast outline</summary>
       <p>Penguins are flightless birds with a tuxedo-like appearance. They swim well and can hold their breath for up to 20 minutes. Penguins are social, forming tight-knit communities, and some mate for life. They have adaptations to survive in cold climates, including thick feathers and a layer of fat for insulation.</p>
     </details>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!-- Secondary --&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;!-- Secondary --&gt;
 &lt;details&gt;
   &lt;summary role="button" class="secondary"&gt;Secondary&lt;/summary&gt;
   &lt;p&gt;...&lt;/p&gt;
@@ -104,5 +104,5 @@
   </article>
 </section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.accordion.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/accordion.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
 </section>

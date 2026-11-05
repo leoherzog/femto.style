@@ -26,10 +26,11 @@ window and a check that needs a preload script errors there.
 
 The target has one of two layouts (--layout; the target's by default). On `one-page` (the static
 site from Phase 3: targets.json one_page) the docs are the one page /docs, and a check's routes are
-written in its URLs: /docs#<id>, /docs (Quick start), /docs?theme=<color>#version-picker. On `routes`
+written in its URLs: /docs#<id>, /docs (Quick start), /docs?theme=<color>#theme-picker. On `routes`
 (the oracle, static-femto, static-multipage: one page per docs route) each such URL is loaded at its
 old route instead, through static-femto's menu.json (the map PLAN.md's sections comparison uses):
-/docs#modal at /docs/modal, /docs?theme=jade#version-picker at /docs/version-picker/jade. Every
+/docs#modal at /docs/modal, /docs?theme=jade#theme-picker at /docs/version-picker/jade (Phase 4's
+Theme picker is the old version picker's section, SECTION_ALIASES). Every
 script a check runs sees `S`, the element its route's content lives in: on the one page the
 route's section, document.getElementById(id).closest("section"); on routes the whole document
 (document.documentElement). A check that can run on one layout only says why, and is recorded as
@@ -63,12 +64,16 @@ RESET_PATH = "/favicon.svg"   # a static same-origin file on every side: storage
 ONE_PAGE = "/docs"            # the one docs page (PLAN.md Decision 2)
 FIRST_SECTION = "quick-start"  # the section at the top of /docs, which has no hash
 ROUTES_MENU = ("static-femto", "site/docs/menu.json")   # the old routes' menu: tag and path in it
+# Phase 4's section ids whose section an old route showed under another id: the Theme picker is the
+# version picker reworked (PLAN.md Open questions 3), so /docs?theme=jade#theme-picker is the old
+# /docs/version-picker/jade on the routes layout.
+SECTION_ALIASES = {"theme-picker": "version-picker"}
 
 
 def route_parts(route):
     """(section id, theme color) of a check route on the one docs page, or None for another page:
-    /docs#input is ("input", None), /docs is ("quick-start", None), /docs?theme=jade#version-picker is
-    ("version-picker", "jade")."""
+    /docs#input is ("input", None), /docs is ("quick-start", None), /docs?theme=jade#theme-picker is
+    ("theme-picker", "jade")."""
     u = urllib.parse.urlsplit(route)
     if u.path != ONE_PAGE:
         return None
@@ -95,7 +100,7 @@ def to_old_route(route, table):
     u = urllib.parse.urlsplit(route)
     if set(urllib.parse.parse_qs(u.query)) - {"theme"}:
         return None
-    return table.get(parts)
+    return table.get((SECTION_ALIASES.get(parts[0], parts[0]), parts[1]))
 
 
 def csv(s):

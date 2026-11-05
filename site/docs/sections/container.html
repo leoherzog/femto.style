@@ -1,76 +1,71 @@
 <hgroup>
   <p class="chapter">Layout</p>
   <h1 id="container">Container</h1>
-  <p>Use <code>.container</code> for a centered&nbsp;viewport or <code>.container-fluid</code> for a full-width&nbsp;layout.</p>
+  <p>Use <code>.container</code> to center the content at a maximum width for each breakpoint, or <code>.container-fluid</code> to span the full&nbsp;width.</p>
 </hgroup>
 <section>
-  <p>Pico includes six default breakpoints. These breakpoints can be customized with <a data-discover="true" href="/docs">Sass</a>.</p>
+  <p>femto's breakpoints are fixed at 576, 768, 1024, 1280 and 1536px. At each one, <code>.container</code> takes a wider maximum&nbsp;width.</p>
   <table class="striped">
     <thead>
       <tr>
-        <th>Device</th>
-        <th>Breakpoint</th>
-        <th>Viewport</th>
+        <th scope="col">Size</th>
+        <th scope="col">Viewport width</th>
+        <th scope="col">Maximum width</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Extra small</td>
+        <td>xs</td>
         <td>&lt;576px</td>
         <td>100%</td>
       </tr>
       <tr>
-        <td>Small</td>
+        <td>sm</td>
         <td>≥576px</td>
         <td>510px</td>
       </tr>
       <tr>
-        <td>Medium</td>
+        <td>md</td>
         <td>≥768px</td>
         <td>700px</td>
       </tr>
       <tr>
-        <td>Large</td>
+        <td>lg</td>
         <td>≥1024px</td>
         <td>950px</td>
       </tr>
       <tr>
-        <td>Extra large</td>
+        <td>xl</td>
         <td>≥1280px</td>
         <td>1200px</td>
       </tr>
       <tr>
-        <td>Extra extra large</td>
+        <td>xxl</td>
         <td>≥1536px</td>
         <td>1450px</td>
       </tr>
     </tbody>
   </table>
-  <p><code>.container</code> and <code>.container-fluid</code> are not available in the <a data-discover="true" href="/docs">class‑less&nbsp;version</a> (see <a data-discover="true" href="/docs#container">Semantic containers</a> for an alternative).</p>
+  <p>Both classes have a side padding of <code>--femto-spacing</code>, 1rem by default: <code>.container-fluid</code> at every width, <code>.container</code> only below&nbsp;576px.</p>
 </section>
 <section>
-  <h2>Fixed width</h2>
-  <p><code>.container</code> provides a centered container with a fixed width.</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;body&gt;
-  &lt;main class="container"&gt;
-    ...
-  &lt;/main&gt;
+  <h2>Centered</h2>
+  <p><code>.container</code> centers its content at the maximum width of the current breakpoint. Put it on the page's <code class="language-html">&lt;header&gt;</code>, <code class="language-html">&lt;main&gt;</code> and <code class="language-html">&lt;footer&gt;</code>, or on any other&nbsp;element.</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;body&gt;
+  &lt;header class="container"&gt;...&lt;/header&gt;
+  &lt;main class="container"&gt;...&lt;/main&gt;
+  &lt;footer class="container"&gt;...&lt;/footer&gt;
 &lt;/body&gt;</code></pre></div>
 </section>
 <section>
-  <h2>Fluid width</h2>
-  <p><code>.container-fluid</code> provides a full-width container.</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;body&gt;
+  <h2>Full width</h2>
+  <p><code>.container-fluid</code> spans the full width at every&nbsp;breakpoint.</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;body&gt;
   &lt;main class="container-fluid"&gt;
     ...
   &lt;/main&gt;
 &lt;/body&gt;</code></pre></div>
 </section>
-<section>
-  <h2>Semantic containers</h2>
-  <p>In the classless version, <code class="language-html">&lt;header&gt;</code>, <code class="language-html">&lt;main&gt;</code>, and <code class="language-html">&lt;footer&gt;</code> inside <code class="language-html">&lt;body&gt;</code> act as containers to define a centered or a fluid viewport.</p>
-  <p>See <a data-discover="true" href="/docs">Class-less version</a>.</p>
-</section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.container.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/container.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
 </section>

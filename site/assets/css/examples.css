@@ -1,0 +1,102 @@
+/* The examples page's styles (/examples, site/examples.html), after landing.css: the index under the
+   hero, each example's heading, and the frame around each example. Nothing here reaches inside an
+   example: it renders in a shadow root that loads femto alone (assets/js/examples.js). */
+
+/* The body is a one-column grid (common.css), and a grid item's min-content width widens that
+   column: the dashboard's table, which scrolls inside its .overflow-auto, would otherwise make the
+   page wider than a 375px screen. */
+body > main.examples {
+  min-width: 0;
+}
+
+/**
+ * Index
+ */
+body > main.examples > .examples-index {
+  margin-block: calc(var(--femto-homepage-spacing-vertical) / 4) calc(var(--femto-homepage-spacing-vertical) / 2);
+}
+
+body > main.examples > .examples-index > p {
+  max-width: 45rem;
+}
+
+@media (min-width: 576px) {
+  body > main.examples > .examples-index > p {
+    margin-inline: auto;
+    text-align: center;
+  }
+}
+
+body > main.examples > .examples-index .grid {
+  row-gap: 0;
+}
+
+@media (min-width: 576px) {
+  body > main.examples > .examples-index .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 45rem;
+    margin-inline: auto;
+  }
+}
+
+body > main.examples > .examples-index .chapter {
+  margin-bottom: calc(var(--femto-spacing) / 4);
+}
+
+body > main.examples > .examples-index ul {
+  padding-left: 0;
+}
+
+body > main.examples > .examples-index li {
+  list-style: none;
+}
+
+/**
+ * Examples
+ */
+body > main.examples > section.example {
+  margin-block: 0 calc(var(--femto-homepage-spacing-vertical) / 2);
+}
+
+body > main.examples > section.example > hgroup h2 {
+  --femto-font-size: 1.5rem;
+  --femto-line-height: 1.2;
+}
+
+/* The frame: it passes nothing down (all: initial), so the example's own shadow host starts from
+   the initial values, as a page's <html> does. femto's root font size, a percentage on :host, then
+   means what it means in a page of its own, not a percentage of this page's. Custom properties
+   still inherit, and femto declares on :host every one it reads but --femto-form-label-font-weight,
+   which this site never sets. */
+body > main.examples > section.example > div[data-example] {
+  all: initial;
+  display: block;
+  margin-bottom: var(--femto-spacing);
+  padding: var(--femto-spacing);
+  border: var(--femto-border-width) solid var(--femto-muted-border-color);
+  border-radius: var(--femto-border-radius);
+  color-scheme: inherit;
+}
+
+@media (min-width: 768px) {
+  body > main.examples > section.example > div[data-example] {
+    padding: calc(var(--femto-spacing) * 1.5);
+  }
+}
+
+/* A stored color scheme (data-theme on <html>, set before the first paint) reaches the example's
+   own host as its color-scheme, so the first paint already shows it: examples.js, a module that
+   runs later, then gives the host the data-theme femto reads (which also switches the validation
+   icons), and the colors do not first paint in the other scheme and transition. ::part() is the one
+   way into the frame's shadow root, and this rule sets nothing femto's data-theme does not. */
+:root[data-theme=light] body > main.examples > section.example > div[data-example]::part(example) {
+  color-scheme: light;
+}
+
+:root[data-theme=dark] body > main.examples > section.example > div[data-example]::part(example) {
+  color-scheme: dark;
+}
+
+body > main.examples > section.example > details {
+  margin-bottom: 0;
+}

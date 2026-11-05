@@ -3,7 +3,7 @@
   "targets": [
     {"id": "header-nav-links", "selector": "body > header nav a.contrast", "states": ["hover", "focus-visible", "active"], "routes": ["/", "/docs/button"], "scope": "body > header", "max": 2,
      "why": "the header's text and icon links (Examples, Docs, GitHub; the first two that render: at 375 the text links are hidden)"},
-    {"id": "header-theme-toggle", "selector": "body > header a[aria-label$=\" dark mode\"]", "states": ["hover", "focus-visible", "active"], "routes": ["/", "/docs/button"], "scope": "body > header", "max": 1,
+    {"id": "header-theme-toggle", "selector": "body > header :is(a, button)[aria-label$=\" dark mode\"]", "states": ["hover", "focus-visible", "active"], "routes": ["/", "/docs/button"], "scope": "body > header", "max": 1,
      "why": "the theme toggle and its emoji (PLAN.md Decision 16); the click that would switch the theme is cancelled"},
     {"id": "header-logo", "selector": "body > header a[aria-label=\"femto homepage\"]", "states": ["hover", "focus-visible"], "routes": ["/docs/button"], "scope": "body > header", "max": 1,
      "why": "the logo link"},
@@ -29,7 +29,7 @@
      "why": "the breadcrumb's Documentation link (below 1024 px)"},
     {"id": "docs-heading-anchor", "selector": "[role=document] h2 > a.secondary[tabindex=\"-1\"]", "states": ["hover"], "routes": ["/docs/button"], "scope": "[role=document] section", "max": 1,
      "why": "a subheading's # permalink"},
-    {"id": "docs-copy-button", "selector": "[role=document] a.copy-to-clipboard", "states": ["hover", "active"], "routes": ["/docs/button"], "scope": "article", "max": 1,
+    {"id": "docs-copy-button", "selector": "[role=document] :is(a, button).copy-to-clipboard", "states": ["hover", "active"], "routes": ["/docs/button"], "scope": "article", "max": 1,
      "why": "the code copy button and its tooltip"},
     {"id": "docs-edit-link", "selector": "[role=document] a.secondary[target=_blank]", "states": ["hover", "focus-visible"], "routes": ["/docs/button"], "scope": "[role=document]", "max": 1,
      "why": "the section's edit link"},

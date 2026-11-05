@@ -1,6 +1,9 @@
 """Landing: the homepage's typing demo (01 §2, homepage/Demo: TypeIt driving the form; demo.js in
 the static site, a hand-written loop). The parity runs mask the demo's contents (PLAN.md, Masked),
-so these checks are what holds it to the oracle."""
+so these checks are what holds it to the oracle. /demo, the capture page that ran the same demo, is not built
+from Phase 4 (PLAN.md Open questions 5), so its check went with it. Phase 4 added the demo's pause
+button and its paused start under prefers-reduced-motion (WCAG 2.2.2), which the oracle lacks:
+demo-pause and demo-reduced-motion hold them on the one page only."""
 import json
 import time
 
@@ -205,23 +208,7 @@ def demo_variant(page):
                     and st["role"] is None and st["invalid"] is None, **st)
 
 
-@check("demo-page", "/demo")
-def demo_page(page):
-    """/demo, the capture page, runs the same demo: within 25 s its form goes through email,
-    invalid, invalid-helper and group-subscribe in that order, each phase's markup shows in the code
-    while the form is in it, and the email is typed letter by letter."""
-    page.js(RECORDER, MARKERS)
-    want = CYCLE[:4]
-    d = watch(page, lambda segs: len(phases(segs)) > len(want), 25)
-    page.eq("the first phases, in order", phases(d["segments"])[:len(want)], want)
-    lead = 1 if d["segments"][0]["phase"] == "initial" else 0
-    for s in d["segments"][lead:lead + len(want)]:
-        page.expect(f"{s['phase']}: the code shows its markup", s["met"], markers=MARKERS[s["phase"]], code=s["code"])
-        check_fields(page, s, s["phase"])
-    page.note(json.dumps([(s["phase"], s["start"]) for s in d["segments"]]))
-
-
-TOGGLE = "body > header nav ul.icons a[aria-label$='dark mode']"
+TOGGLE = "body > header nav ul.icons :is(a, button)[aria-label$='dark mode']"   # a button from Phase 4
 COMPARISON = "[...document.querySelectorAll('main > section.comparison div.code[data-theme]')].map(d => d.getAttribute('data-theme'))"
 
 
@@ -278,3 +265,81 @@ def demo_offscreen(page):
     page.scroll_to(0)
     page.eq("back at the top, the demo is on screen", page.js(DEMO_WATCH), "on")
     page.wait("back on screen, the demo changes again within 5 s", "window.__bhDemoOff.changes.length > 0", 5)
+
+
+# The typing demo's pause button (demo.js, from Phase 4: WCAG 2.2.2), and the demo's state around it:
+# the button's own state, and the play state of every animation in the code sample (the cursor's
+# blink), which no mutation shows.
+PAUSE = ".demo > article.component button[data-demo-pause]"
+PAUSE_WHY = ("the pause button and the reduced-motion start are new from Phase 4 (WCAG 2.2.2, Pause, Stop, Hide: "
+             "the demo moves for more than 5 s); the oracle's TypeIt demo has neither")
+PAUSE_STATE = """
+const b = document.querySelector(arguments[0]);
+const code = document.querySelector(".demo > article.component footer code");
+return b && {hidden: b.hidden, shown: b.getClientRects().length > 0 && getComputedStyle(b).visibility !== "hidden",
+             type: b.getAttribute("type"), text: b.textContent.trim(),
+             cursor: code.getAnimations({subtree: true}).map(a => a.playState)};
+"""
+
+
+def expect_button(page, label, text, cursor):
+    """The pause button reads `text` (within 1 s) and the code's animations are all `cursor`."""
+    page.wait(f"{label}: the button reads {text}", "document.querySelector(arguments[0]).textContent.trim() === arguments[1]", 1,
+              args=(PAUSE, text))
+    s = page.js(PAUSE_STATE, PAUSE)
+    page.expect(f"{label}: the cursor's blink is {cursor}", s["cursor"] and all(c == cursor for c in s["cursor"]), **s)
+
+
+@check("demo-pause", "/", layouts=("one-page",), layout_reason=PAUSE_WHY)
+def demo_pause(page):
+    """The typing demo's `button[data-demo-pause]`, hidden in the markup (nothing runs without
+    JavaScript), is shown once demo.js runs: rendered, type="button", reading "Pause", with the
+    cursor blinking (its animation running). The demo changes within 4 s while it plays. A click on
+    the button relabels it "Play" and pauses the demo: from then on its code and its form (markup and
+    field values, DEMO_WATCH) do not change for 6 s, and the cursor's blink is paused. A second click
+    relabels it "Pause", the blink runs again, and the demo changes again within 4 s."""
+    s = page.js(PAUSE_STATE, PAUSE)
+    page.expect("the demo has a pause button", s is not None)
+    page.eq("the script shows it: not hidden, rendered, type=button, reading Pause",
+            [s["hidden"], s["shown"], s["type"], s["text"]], [False, True, "button", "Pause"])
+    page.eq("the demo starts on screen", page.js(DEMO_WATCH), "on")
+    page.wait("the demo changes while it plays", "window.__bhDemoOff.changes.length > 0", 4)
+    expect_button(page, "playing", "Pause", "running")
+    page.click(PAUSE)
+    expect_button(page, "Pause clicked", "Play", "paused")
+    page.js(DEMO_WATCH)   # record from here
+    page.sleep(6)
+    page.eq("paused: no change to the code or the form for 6 s", page.js("return window.__bhDemoOff.changes"), [])
+    expect_button(page, "still paused", "Play", "paused")
+    page.click(PAUSE)
+    expect_button(page, "Play clicked", "Pause", "running")
+    page.wait("playing again, the demo changes within 4 s", "window.__bhDemoOff.changes.length > 0", 4)
+
+
+@check("demo-reduced-motion", "/", motion="reduce", layouts=("one-page",), layout_reason=PAUSE_WHY)
+def demo_reduced_motion(page):
+    """Under prefers-reduced-motion: reduce the typing demo starts paused: once demo.js runs, its
+    pause button is shown reading "Play", the cursor's blink is paused, the code shows the first
+    phase's markup (the email input's type and placeholder, no aria-invalid) and the form its one
+    email input, empty and valid; neither the code nor the form changes for 6 s (unpaused, the first
+    phase would start 1.75 s after load). A click on Play relabels the button "Pause", the blink
+    runs, and the demo changes within 4 s: the viewer can still start it."""
+    s = page.js(PAUSE_STATE, PAUSE)
+    page.expect("the demo has a pause button", s is not None)
+    page.eq("the script shows it reading Play", [s["hidden"], s["shown"], s["type"], s["text"]], [False, True, "button", "Play"])
+    expect_button(page, "reduced motion", "Play", "paused")
+    page.eq("the demo is on screen", page.js(DEMO_WATCH), "on")
+    first = page.js("""const art = document.querySelector('.demo > article.component'), f = art.querySelector('form');
+      const i = [...f.querySelectorAll('input, select, button')];
+      return {code: art.querySelector('footer code').textContent.replace(/\\|/g, '').replace(/\\s+/g, ' ').trim(),
+              fields: i.map(e => [e.tagName.toLowerCase(), e.getAttribute('type'), e.value, e.getAttribute('aria-invalid')]),
+              role: f.getAttribute('role')};""")
+    page.expect("the code shows the first phase's markup", all(m in first["code"] for m in MARKERS["email"]["has"])
+                and not any(m in first["code"] for m in MARKERS["email"]["not"]), **first)
+    page.eq("the form holds the first phase's email input, empty and valid", [first["role"], first["fields"]],
+            [None, [["input", "email", "", None]]])
+    page.sleep(6)
+    page.eq("no change to the code or the form for 6 s", page.js("return window.__bhDemoOff.changes"), [])
+    page.click(PAUSE)
+    expect_button(page, "Play clicked", "Pause", "running")
+    page.wait("playing, the demo changes within 4 s", "window.__bhDemoOff.changes.length > 0", 4)

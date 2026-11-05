@@ -1,46 +1,62 @@
 <hgroup>
   <p class="chapter">Layout</p>
-  <h1 id="landmarks">Landmarks &amp; section</h1>
-  <p>Structure your pages with semantic landmarks and sections for better&nbsp;accessibility and graceful&nbsp;spacings.</p>
+  <h1 id="landmarks">Landmarks and sections</h1>
+  <p>The page's header, main and footer, and every section, get vertical&nbsp;spacing.</p>
 </hgroup>
 <section>
-  <p><code class="language-html">&lt;header&gt;</code>, <code class="language-html">&lt;main&gt;</code> and <code class="language-html">&lt;footer&gt;</code> as direct children of <code class="language-html">&lt;body&gt;</code> provide a responsive vertical <code>padding</code></p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;body&gt;
+  <p><code class="language-html">&lt;header&gt;</code>, <code class="language-html">&lt;main&gt;</code> and <code class="language-html">&lt;footer&gt;</code> as direct children of <code class="language-html">&lt;body&gt;</code> get a vertical padding of <code>--femto-block-spacing-vertical</code>, which is <code>--femto-spacing</code>, 1rem, by&nbsp;default.</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;body&gt;
   &lt;header&gt;...&lt;/header&gt;
   &lt;main&gt;...&lt;/main&gt;
   &lt;footer&gt;...&lt;/footer&gt;
 &lt;/body&gt;</code></pre></div>
 </section>
 <section>
-  <h2>Root container</h2>
-  <p>If you need to customize the default root container for <code class="language-html">&lt;header&gt;</code>, <code class="language-html">&lt;main&gt;</code>, and <code class="language-html">&lt;footer&gt;</code>, you can recompile Pico with another CSS selector.</p>
-  <p>Useful for <a href="https://reactjs.org/">React</a>, <a href="https://www.gatsbyjs.com/">Gatsby</a>, or <a href="https://nextjs.org/">Next.js</a>.</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-scss">/* Custom Class-less version for React */
-@use "pico" with (
-  
-  // Define the root element used to target &lt;header&gt;, &lt;main&gt;, &lt;footer&gt;
-  // with $enable-semantic-container and $enable-responsive-spacings
-  $semantic-root-element: "#root",
-  
-  // Enable &lt;header&gt;, &lt;main&gt;, &lt;footer&gt; inside $semantic-root-element as containers
-  $enable-semantic-container: true,
-
-  // Enable .classes
-  $enable-classes: false
-)</code></pre></div>
-  <p>The code above will compile Pico with the containers defined like this:</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-css">/* Containers */
-#root &gt; header,
-#root &gt; main,
-#root &gt; footer {
-  ...
-}</code></pre></div>
-  <p>Learn more about <a data-discover="true" href="/docs">compiling a custom version of Pico with SASS</a>.</p>
+  <h2>Section</h2>
+  <p>Every <code class="language-html">&lt;section&gt;</code> gets a bottom margin of <code>--femto-block-spacing-vertical</code>, which separates it from what&nbsp;follows.</p>
 </section>
 <section>
-  <h2>Section</h2>
-  <p><code class="language-html">&lt;section&gt;</code> provides a responsive <code>margin-bottom</code> to separate your sections.</p>
+  <h2>Responsive spacings</h2>
+  <p>By default the spacing is one <code>--femto-spacing</code> at every width. The <code>css/options/responsive-spacings.css</code> option grows it at each breakpoint, from 1.25 to 2.25 times <code>--femto-spacing</code>, for the page's header, main and footer and for sections. Cards (<code class="language-html">&lt;article&gt;</code>) grow by the same steps, vertically and horizontally. This site loads&nbsp;it.</p>
+  <table class="striped">
+    <thead>
+      <tr>
+        <th scope="col">Viewport width</th>
+        <th scope="col">Spacing with the option</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>&lt;576px</td>
+        <td>1 × <code>--femto-spacing</code></td>
+      </tr>
+      <tr>
+        <td>≥576px</td>
+        <td>1.25 × <code>--femto-spacing</code></td>
+      </tr>
+      <tr>
+        <td>≥768px</td>
+        <td>1.5 × <code>--femto-spacing</code></td>
+      </tr>
+      <tr>
+        <td>≥1024px</td>
+        <td>1.75 × <code>--femto-spacing</code></td>
+      </tr>
+      <tr>
+        <td>≥1280px</td>
+        <td>2 × <code>--femto-spacing</code></td>
+      </tr>
+      <tr>
+        <td>≥1536px</td>
+        <td>2.25 × <code>--femto-spacing</code></td>
+      </tr>
+    </tbody>
+  </table>
+  <p>Load it right after femto and before your own stylesheets, like every <a data-discover="true" href="/docs#options">option</a>.</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/options/responsive-spacings.css"&gt;
+&lt;link rel="stylesheet" href="styles.css"&gt;</code></pre></div>
 </section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.landmarks-section.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/landmarks.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
 </section>

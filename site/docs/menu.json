@@ -1,5 +1,5 @@
 {
-  "about": "The docs sections in the oracle's menu order (PLAN.md File tree; ids from docs/research/02 §1). build.mjs assembles them into the one docs page, docs.html, and generates its side nav from this file: each category is a <details> in the nav, and each section a link to #<id> (build.mjs header comment, step 3). Per section: id, the section's id, which its file site/docs/sections/<id>.html puts on its hgroup's h1; title, that h1's text; description, the oracle's head description of its route; and label, its nav link as HTML, only where that is not the title.",
+  "about": "The docs sections in menu order (PLAN.md File tree; ids from docs/research/02 §1, and the sections Phase 4 adds from docs/research/04 §1). build.mjs assembles them into the one docs page, docs.html, and generates its side nav from this file: each category is a <details> in the nav, and each section a link to #<id> (build.mjs header comment, step 3). Per section: id, the section's id, which its file site/docs/sections/<id>.html puts on its hgroup's h1; title, that h1's text; description, the sentence of its hgroup's <p> as plain text; and label, its nav link as HTML, only where that is not the title. The migration section has no title or description here: both hold the name criterion 14 allows only in that section's own file, so its nav link takes the content of the file's h1 (build.mjs, step 3).",
   "categories": [
     {
       "title": "Getting started",
@@ -7,23 +7,35 @@
         {
           "id": "quick-start",
           "title": "Quick start",
-          "description": "Link femto manually or via CDN for a dependency-free setup, or use NPM or Composer for advanced usage."
+          "description": "Link femto from a CDN, a download or npm, and plain HTML looks clean and readable."
         },
         {
-          "id": "version-picker",
-          "title": "Version picker",
-          "label": "Version picker <mark>New</mark>",
-          "description": "Easily select the ideal Pico CSS version variant to match your project's needs."
+          "id": "classes",
+          "title": "Classes and attributes",
+          "description": "Most of femto works from the elements alone; these are the classes and attributes it also reads."
+        },
+        {
+          "id": "theme-picker",
+          "title": "Theme picker",
+          "description": "Choose a theme color and options, and copy the links that load them."
         },
         {
           "id": "color-schemes",
           "title": "Color schemes",
-          "description": "femto comes with both Light and Dark color schemes, automatically enabled based on user preferences."
+          "description": "femto has a light and a dark color scheme, which follow the visitor's system setting unless you choose one with data-theme."
         },
         {
           "id": "rtl",
           "title": "RTL",
-          "description": "Support for Right-To-Left text."
+          "description": "Set dir=\"rtl\" for right-to-left text, and femto mirrors the parts of its components that have a direction."
+        },
+        {
+          "id": "browser-support",
+          "title": "Browser support",
+          "description": "femto targets Baseline Widely Available on its release date: Chrome and Edge 125, Firefox 128, Safari 17.5 and Samsung Internet 27."
+        },
+        {
+          "id": "migration"
         }
       ]
     },
@@ -31,16 +43,44 @@
       "title": "Customization",
       "sections": [
         {
+          "id": "files",
+          "title": "Files",
+          "description": "femto comes in two forms that style a page the same way: one file in dist/, or the modules it is built from in css/."
+        },
+        {
+          "id": "themes",
+          "title": "Themes",
+          "description": "femto's built-in color is azure, and each of the 19 others is one file in css/themes/."
+        },
+        {
+          "id": "options",
+          "title": "Options",
+          "description": "Each file in css/options/ changes one default."
+        },
+        {
           "id": "css-variables",
           "title": "CSS variables",
-          "label": "CSS Variables",
-          "description": "Customize femto's design system with over 130 CSS variables to create a unique look and feel."
+          "description": "Change femto's fonts, spacing, borders and colors by setting its --femto-* custom properties in your own CSS."
         },
         {
           "id": "colors",
           "title": "Colors",
-          "label": "Colors <mark>New</mark>",
-          "description": "femto comes with 380 manually crafted colors to help you personalize your brand design system."
+          "description": "femto.colors.css holds the palette of femto's 20 theme colors, in 19 shades each, as custom properties and utility classes."
+        },
+        {
+          "id": "modules",
+          "title": "Custom module set",
+          "description": "To load only some modules, save a copy of css/femto.css in the same folder and delete the lines you do not need."
+        },
+        {
+          "id": "cascade-layer",
+          "title": "Cascade layer",
+          "description": "femto is not in a cascade layer: to put it in one, import it with layer(), with your theme and option files in the same layer."
+        },
+        {
+          "id": "shadow-roots",
+          "title": "Shadow roots",
+          "description": "femto declares its tokens on :host as well as :root, so it also styles the inside of a shadow root that loads it."
         }
       ]
     },
@@ -50,23 +90,22 @@
         {
           "id": "container",
           "title": "Container",
-          "description": "Use .container for a centered viewport or .container-fluid for a full-width layout."
+          "description": "Use .container to center the content at a maximum width for each breakpoint, or .container-fluid to span the full width."
         },
         {
           "id": "landmarks",
-          "title": "Landmarks & section",
-          "description": "Structure your pages with semantic landmarks and sections for better accessibility and graceful spacings."
+          "title": "Landmarks and sections",
+          "description": "The page's header, main and footer, and every section, get vertical spacing."
         },
         {
           "id": "grid",
           "title": "Grid",
-          "description": "Create minimal responsive layouts with .grid to enable auto-layout columns."
+          "description": ".grid lays its children out in equal columns from 768px, and in one column below."
         },
         {
           "id": "overflow-auto",
           "title": "Overflow auto",
-          "label": "Overflow auto <mark>New</mark>",
-          "description": ".overflow-auto enables automatic scrollbars to an element if its content extends beyond its limits."
+          "description": ".overflow-auto scrolls content that overflows it, such as a wide table."
         }
       ]
     },
@@ -76,22 +115,22 @@
         {
           "id": "typography",
           "title": "Typography",
-          "description": "All typographic elements are responsive and scale gracefully across devices and viewports."
+          "description": "The root font size steps up at each breakpoint, and text elements are sized relative to it, so text grows with the screen."
         },
         {
           "id": "link",
           "title": "Link",
-          "description": "Link come with .secondary and .contrast styles."
+          "description": "Links use the primary color, and .secondary or .contrast gives them the secondary or contrast color."
         },
         {
           "id": "button",
           "title": "Button",
-          "description": "Buttons are using the native <button> tag, without .classes for the default style."
+          "description": "A plain <button> needs no class: femto styles it from the element alone."
         },
         {
           "id": "table",
           "title": "Table",
-          "description": "Clean and minimal styles for <table>, providing consistent spacings and a minimal unbordered look."
+          "description": "A <table> fills the width of its container, with padded cells, a line under each row and a line above the footer."
         }
       ]
     },
@@ -102,42 +141,42 @@
           "id": "forms",
           "title": "Forms overview",
           "label": "Overview",
-          "description": "All form elements are fully responsive with pure semantic HTML, enabling forms to scale gracefully across devices and viewports."
+          "description": "Inputs, selects and textareas are styled from their elements alone: each is as wide as its container, and inputs and selects are as tall as a button."
         },
         {
           "id": "input",
           "title": "Input",
-          "description": "All input types are consistently styled and come with validation states."
+          "description": "Every input type shares one style, with valid and invalid states."
         },
         {
           "id": "textarea",
           "title": "Textarea",
-          "description": "The native <textarea> is styled like the input for consistency."
+          "description": "<textarea> has the style of the other fields, and the visitor can resize it vertically."
         },
         {
           "id": "select",
           "title": "Select",
-          "description": "The native <select> is styled like the input for consistency."
+          "description": "<select> has the style of the other fields, with a chevron at the end."
         },
         {
           "id": "checkboxes",
           "title": "Checkboxes",
-          "description": "The native <input type='checkbox'> with a custom and responsive style."
+          "description": "<input type=\"checkbox\"> is drawn as a bordered box that fills with the primary color and a check when checked."
         },
         {
           "id": "radios",
           "title": "Radios",
-          "description": "The native <input type='radio'> with a custom and responsive style."
+          "description": "<input type=\"radio\"> is drawn as a circle with a thick ring in the primary color when checked."
         },
         {
           "id": "switch",
           "title": "Switch",
-          "description": "A switch component in pure CSS, using the checkbox syntax."
+          "description": "<input type=\"checkbox\" role=\"switch\"> is a switch: a checkbox drawn as a sliding toggle."
         },
         {
           "id": "range",
           "title": "Range",
-          "description": "Create a slider control with <input type='range'>."
+          "description": "<input type=\"range\"> is a full-width slider with a thin track and a round thumb."
         }
       ]
     },
@@ -146,50 +185,48 @@
       "sections": [
         {
           "id": "accordion",
-          "title": "Accordions",
-          "label": "Accordion",
-          "description": "Toggle sections of content in pure HTML, without JavaScript, using minimal and semantic markup."
+          "title": "Accordion",
+          "description": "A <details> is an accordion: its <summary> opens and closes the content, without JavaScript."
         },
         {
           "id": "card",
           "title": "Card",
-          "description": "Create flexible cards with a semantic markup that provides graceful spacings across various devices and viewports."
+          "description": "An <article> is a card: a padded block with rounded corners, a background and a shadow."
         },
         {
           "id": "dropdown",
           "title": "Dropdown",
-          "description": "Create dropdown menus and custom selects with minimal and semantic HTML, without JavaScript."
+          "description": "<details class=\"dropdown\"> is a dropdown: a <summary> and a <ul> that opens below it."
         },
         {
           "id": "group",
           "title": "Group",
-          "label": "Group <mark>New</mark>",
-          "description": "Stack forms elements and buttons horizontally with role='group' and role='search'."
+          "description": "role=\"group\" joins buttons, inputs and selects in one row, and role=\"search\" also rounds its ends."
         },
         {
           "id": "loading",
           "title": "Loading",
-          "description": "Add a loading indicator with aria-busy='true'."
+          "description": "aria-busy=\"true\" shows a loading spinner before an element’s content."
         },
         {
           "id": "modal",
           "title": "Modal",
-          "description": "The classic modal component with graceful spacings across devices and viewports, using the semantic HTML tag <dialog>."
+          "description": "A <dialog> holding an <article> is a modal: a card centered over the page."
         },
         {
           "id": "nav",
           "title": "Nav",
-          "description": "The essential navbar component in pure semantic HTML."
+          "description": "<nav> lays out its lists in one row, with their links, buttons and form fields lined up."
         },
         {
           "id": "progress",
           "title": "Progress",
-          "description": "The progress bar element in pure HTML, without JavaScript."
+          "description": "<progress> is a full-width rounded bar in the primary color."
         },
         {
           "id": "tooltip",
           "title": "Tooltip",
-          "description": "Enable tooltips everywhere, without JavaScript."
+          "description": "data-tooltip shows its text in a tooltip on hover and focus, without JavaScript."
         }
       ]
     }

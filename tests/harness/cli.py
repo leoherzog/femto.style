@@ -47,7 +47,7 @@ MODES_HELP = """modes:
   behavior  scripted checks of every widget (tests/behavior/; harness/behavior.py) against one target:
             --target oracle, dist, dist:<path> or a base URL; --groups, --checks, --browsers, --list.
   a11y      axe-core (node_modules/axe-core) in every page of one target (--target, default dist):
-            /, /examples, /demo, the 404 page, /docs and /docs?theme=jade, in Chrome and Firefox,
+            /, /examples, the 404 page, /docs and /docs?theme=jade, in Chrome and Firefox,
             light and dark, at 375 and 1300 (criterion 10). A serious or critical violation fails.
 
 Add --plan to self, pages, fast, styles or sections to print the planned cells per browser without

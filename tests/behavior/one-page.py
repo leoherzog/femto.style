@@ -10,9 +10,16 @@ spike's are: WebKit's back skips a history entry that a script's click made (05)
 scrolled to the link first, never the page, since a click's own scroll into view would move the page
 too. Positions are read in the page: a heading is "on the line" when its top is within 2 px of html's
 scroll-padding-top, where a link to its #id puts it (behavior.HEADING_LINE)."""
+import json
+from pathlib import Path
+
 from behavior import HEADING_LINE, check
 
 GROUP = "one-page"
+
+# The sections in menu order, as the working tree's site/docs/menu.json lists them (40 from Phase 4).
+MENU_IDS = [s["id"] for c in json.loads((Path(__file__).resolve().parents[2] / "site/docs/menu.json").read_text(
+    encoding="utf-8"))["categories"] for s in c["sections"]]
 
 ONLY = ("one-page",)
 WHY = ("the one docs page's spy, #hash URLs and ?theme= (PLAN.md Decisions 2, 8 and 10) exist only on the one page; "
@@ -309,7 +316,8 @@ def spy_fast_scroll(page):
 @check("spy-categories", "/docs", layouts=ONLY, layout_reason=WHY)
 def spy_categories(page):
     """The nav, its categories, the breadcrumb's chapter and the title follow the spy through every
-    section: for each of the nav's links in order (one per section, 31), with the page scrolled so
+    section: for each of the nav's links in order (one per section: 40 from Phase 4, the 31 of
+    Phase 3 and the 9 sections 04 §1 adds, as site/docs/menu.json lists them), with the page scrolled so
     that section's heading is on its line (or as far as the page goes, for the last), the one current
     link is its own (aria-current="true"), its category's summary alone is current and that category
     is open, the breadcrumb's chapter names the category, and the title is "<the section's h1> •
@@ -317,7 +325,7 @@ def spy_categories(page):
     sections becomes current: Forms closed (a click on its summary) while Quick start is read opens,
     with its summary current, once the page is scrolled to Input."""
     sections = page.js(SECTIONS)
-    page.eq("31 sections in the nav", len(sections), 31, ids=[s[0] for s in sections])
+    page.eq(f"{len(MENU_IDS)} sections in the nav, in menu.json's order", [s[0] for s in sections], MENU_IDS)
     page.expect("every nav link has its section", all(s[1] for s in sections), missing=[s[0] for s in sections if not s[1]])
     last = sections[-1]
     for sid, h1, category in sections:

@@ -40,19 +40,28 @@ def expect_demo(page, open_, label):
 @check("modal-demo", "/docs#modal")
 def modal_demo(page):
     """Modal's demo: "Open modal" (`#modal-demo button`) opens the demo dialog (the `main
-    dialog` without class example: "Confirm Your Membership"), its Cancel and Confirm buttons close
-    it, a click on the dialog outside its article (the backdrop) closes it, and a click inside the
-    article does not. The two always-open example dialogs (`dialog.example`) stay open throughout,
-    and their own buttons (the first's Close, the second's Cancel and Confirm) change nothing: no
-    dialog closes, the URL stays."""
+    dialog` without class example: "Confirm your membership", in sentence case from Phase 4; on
+    routes the oracle's "Confirm Your Membership"); once its opening animation ends, its
+    Cancel and Confirm buttons close it, a click on the dialog outside its article (the backdrop)
+    closes it, and a click inside the article does not. The two always-open example dialogs
+    (`dialog.example`) stay open throughout, and their own buttons (the first's Close, the second's
+    Cancel and Confirm) change nothing: no dialog closes, the URL stays."""
     url = page.url()
+    title = "Confirm Your Membership" if page.layout == "routes" else "Confirm your membership"
     expect_demo(page, False, "on load")
     for how in ("Cancel", "Confirm", "backdrop"):
         page.click("#modal-demo button")
         expect_demo(page, True, f"before {how}")
-        page.eq(f"before {how}: the demo is 'Confirm Your Membership'",
+        # femto's opening animation moves the article: after a 0.2 s delay it slides in from
+        # translateY(-100%) over 0.2 s, and site.js drops modal-is-opening at 400 ms, which ends the
+        # animation wherever it is (in headless Firefox well short of its end, so the article jumps).
+        # A point sampled before that, aimed inside the article, can land on the backdrop by the
+        # time the click arrives, and the backdrop closes the dialog. So every click below waits.
+        page.wait(f"before {how}: the opening ends",
+                  "!document.documentElement.classList.contains('modal-is-opening')", 1)
+        page.eq(f"before {how}: the demo is {title!r}",
                 page.js(f"return S.querySelector('{DEMO}').querySelector('h2').textContent.replace('#', '').trim()"),
-                "Confirm Your Membership")
+                title)
         if how == "backdrop":
             page.click(page.find(f"{DEMO} > article > p"))
             page.sleep(0.6)
@@ -102,7 +111,8 @@ return __bhProgress[0];
 def progress_value(page):
     """Progress' example (`article[aria-label="Progress example"] > progress`, kept on screen)
     shows a random integer value from 5 to 94 with max="100", and its code sample reads
-    <progress value="N" max="100" /> with the same N. Watched for 16 s, the value changes at least
+    <progress value="N" max="100"></progress> with the same N (from Phase 4, valid HTML; the
+    oracle's JSX-style <progress value="N" max="100" /> on routes). Watched for 16 s, the value changes at least
     twice; every change is a whole number of 5 s periods after the previous one (within 400 ms),
     every value stays in 5 to 94, and the sample always matches it."""
     first = page.js(PROGRESS)
@@ -112,7 +122,8 @@ def progress_value(page):
     page.note(f"values: {[x[1] for x in log]}")
     for t, v, mx, code_v, code in log:
         page.expect(f"value {v} is an integer from 5 to 94", v is not None and v.isdigit() and 5 <= int(v) <= 94, value=v)
-        page.eq(f"the sample prints {v}", code, f'<progress value="{v}" max="100" />')
+        page.eq(f"the sample prints {v}", code, f'<progress value="{v}" max="100" />' if page.layout == "routes"
+                else f'<progress value="{v}" max="100"></progress>')
     page.expect("the value changed at least twice in 16 s", len(log) >= 3, changes=len(log) - 1, log=[x[:2] for x in log])
     for (t0, *_), (t1, *_) in zip(log[1:], log[2:]):
         gap = t1 - t0
@@ -185,9 +196,10 @@ def progress_offscreen(page):
     page.eq("no change for 10.5 s while the example is above the viewport", page.js("return window.__bhProgress"), [])
 
 
-# /docs/nav's example links, in document order: those of the nav[aria-label=overflow-with-focus]
-# that the route puts first in <main>, then those of every nav inside an example (article.component),
-# 31 in all. Each comes with its dropdown's summary (or null), its text, its example's label and the
+# /docs/nav's example links, in document order: on routes those of the nav[aria-label=overflow-with-focus]
+# that the oracle's route puts first in <main> (a hydration leftover that Phase 4 removed from the
+# section), then those of every nav inside an example (article.component): 31 on routes, 28 on the
+# one page. Each comes with its dropdown's summary (or null), its text, its example's label and the
 # index of its nav.
 NAV_LINKS = """
 const navs = [];
@@ -226,16 +238,17 @@ return Math.round(scrollY);
 
 @check("nav-example-links", "/docs#nav")
 def nav_example_links(page):
-    """Every example link of Nav (the 3 of the nav[aria-label=overflow-with-focus] first in <main>,
-    on the one page last in the section, after the edit link, and the 28 inside the examples' navs,
-    dropdown items included: 31 links, each pointing at its own place: href="/docs/nav" on routes,
-    /docs or /docs#nav on the one page) goes nowhere. A real click on each (its dropdown opened
+    """Every example link of Nav (the 28 inside the examples' navs, dropdown items included, and on
+    routes also the 3 of the oracle's nav[aria-label=overflow-with-focus] first in <main>, which
+    Phase 4 removed from the section: 28 links on the one page, 31 on routes, each pointing at its
+    own place: href="/docs/nav" on routes, /docs or /docs#nav on the one page) goes nowhere. A real click on each (its dropdown opened
     first with a click on the summary), and Enter on the first link of each nav outside a dropdown,
     leave the document (a marker set on window survives), the URL, history.length and the scroll
     position as they were, keep the dropdown open, and the click event is canceled
     (defaultPrevented)."""
     links = page.js(NAV_LINKS)
-    page.eq("31 example links", len(links), 31, labels=[f"{x[3]}: {x[2]}" for x in links])
+    want = 31 if page.layout == "routes" else 28
+    page.eq(f"{want} example links", len(links), want, labels=[f"{x[3]}: {x[2]}" for x in links])
     page.expect("every example link points at the route itself", all(self_href(page, x[0]) for x in links))
     page.js(CLICK_SPY)
     url, history = page.url(), page.js("return history.length")
@@ -266,7 +279,7 @@ def nav_example_links(page):
         clicked += 1
     if summary is not None:
         page.click(summary)
-    page.eq("every example link was clicked", clicked, 31)
+    page.eq("every example link was clicked", clicked, want)
 
     entered, seen = 0, set()
     for link, owner, text, example, nav in links:

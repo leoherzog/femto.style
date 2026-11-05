@@ -1,5 +1,5 @@
-// demo.js: the landing pages' widgets, on / and /demo (docs/research/01 §2). Each does nothing when
-// its markup is absent.
+// demo.js: the homepage's widgets, on / (docs/research/01 §2; /demo is not built from Phase 4, PLAN.md
+// Open question 5). Each does nothing when its markup is absent.
 //
 // 1. The comparison's code samples on / (homepage/Comparison.jsx) take the page's color scheme:
 //    data-theme on `[data-comparison] div.code` is pageTheme(), on load and after every change.
@@ -10,13 +10,20 @@
 //    - The code sample is a list of characters, each with the token class it is typed in, plus line
 //      breaks, and a cursor among them. The steps type, move the cursor, delete and pause exactly as
 //      the oracle's LargeWidthCode.jsx and SmallWidthCode.jsx queue them (counts are in characters, a
-//      line break counts as one), then run the step's form change.
+//      line break counts as one), then run the step's form change. From Phase 4 a void element ends
+//      in ">" (the oracle's JSX wrote " />"), as in the docs' samples, so the counts that cross one
+//      are 1 or 2 smaller than the oracle's.
 //    - The form follows the code: one state object with DemoContext.jsx's fields, rendered as Form.jsx
-//      renders it (one render per change, as React batches them).
+//      renders it (one render per change, as React batches them). The email input has type="email"
+//      from the start, as the code shows it (the oracle's had no type for its first 1.75 s).
 //    - The large layout (attributes on one line) is used from an innerWidth of 1280 px, the small one
 //      below; crossing 1280 px starts the demo over in the other layout, as the oracle's remount did.
-//    - The whole sequence loops forever. It waits while the demo is off screen (PLAN.md, JavaScript:
-//      intervals run only while their element is on screen).
+//    - The sequence loops until it is paused. It waits while the demo is off screen (PLAN.md,
+//      JavaScript: intervals run only while their element is on screen) and while it is paused:
+//      `button[data-demo-pause]` in the article pauses and plays it (its label says which it does,
+//      "Pause" or "Play"), and the demo starts paused under prefers-reduced-motion: reduce, or pauses
+//      when that setting turns on (WCAG 2.2.2). Paused, nothing changes: the steps, the form changes
+//      they scheduled and the email's letters wait, and the cursor stops blinking.
 //    Left out on purpose: the maximize controls and their Escape handler, dead code in the oracle
 //    (01 §2); they are not rebuilt.
 
@@ -36,6 +43,7 @@ if (samples.length) {
 const article = document.querySelector("article[data-typing-demo]");
 const form = article?.querySelector("form");
 const code = article?.querySelector("footer.code pre code");
+const toggle = article?.querySelector("button[data-demo-pause]");
 
 // --- Timing (DemoContext.jsx: speed 7, so pause 70 ms and a phase 3.5 s) -------------------------
 const PAUSE = 70;
@@ -86,7 +94,7 @@ const delInstant = { instant: true, delay: 0 };
 // DemoContext.jsx's states and their initial values (resetForm).
 const INITIAL = {
   formRole: null, formGroupIsFocused: false,
-  displayInput: true, inputPlaceholder: "Enter your email", inputInvalid: null, inputClass: "", inputType: null,
+  displayInput: true, inputPlaceholder: "Enter your email", inputInvalid: null, inputClass: "", inputType: "email",
   inputValue: "", displayedInputValue: "", inputIsDisabled: false, inputIsFocused: false,
   inputHelper: null, inputHelperClass: "",
   displaySelect: false,
@@ -164,17 +172,22 @@ let run = 0;          // the current run; a restart makes every older step and t
 let text = [];        // the code's characters
 let at = 0;           // the cursor: the number of characters before it
 let onScreen = true;
+let paused = false;
 const resumes = [];
+const running = () => onScreen && !paused;
+function resume() {
+  if (running()) for (const done of resumes.splice(0)) done();
+}
 
-// ms later, and then only once the demo is on screen.
+// ms later, and then only once the demo is on screen and not paused.
 function wait(ms) {
   return new Promise((done) => setTimeout(done, ms))
-    .then(() => onScreen || new Promise((done) => resumes.push(done)));
+    .then(() => running() || new Promise((done) => resumes.push(done)));
 }
 // A form change later in this run (the oracle's setTimeout inside a step).
 function later(ms, fn) {
   const mine = run;
-  setTimeout(() => mine === run && fn(), ms);
+  wait(ms).then(() => mine === run && fn());
 }
 
 // Change the form state and render it once. inputValue fills the email field in letter by letter,
@@ -185,25 +198,21 @@ function set(changes) {
   if (filled) {
     const v = state.inputValue;
     if (!v || /^\d{4}-\d{2}-\d{2}$/.test(v)) state.displayedInputValue = v;
-    else {
-      const mine = run;
-      let i = 0;
-      const timer = setInterval(() => {
-        if (mine !== run) return clearInterval(timer);
-        set({ displayedInputValue: state.displayedInputValue + v[i] });
-        i++;
-        if (i === v.length) {
-          clearInterval(timer);
-          later(SHOW / 4, () => set({ inputIsFocused: false }));
-        }
-      }, FILL);
-    }
+    else fill(v, run);
   }
   renderForm();
 }
+async function fill(v, mine) {
+  for (const letter of v) {
+    await wait(FILL);
+    if (mine !== run) return;
+    set({ displayedInputValue: state.displayedInputValue + letter });
+  }
+  later(SHOW / 4, () => set({ inputIsFocused: false }));
+}
 
 // The cursor: TypeIt's zero-width "|" between characters, solid while the code changes and
-// blinking once it rests.
+// blinking once it rests (and solid while the demo is paused).
 const caret = el("span", { class: "ti-cursor" }, "|");
 caret.style.cssText = "display: inline-block; width: 0; transform: translateX(-0.25em)";
 let blink = null;
@@ -224,9 +233,10 @@ function renderCode() {
   flush();
   if (at === text.length) nodes.push(caret);
   code.replaceChildren(...nodes);
-  if (blink) blink.currentTime = 0;
-  else blink = caret.animate([{ opacity: 1, easing: "step-end" }, { opacity: 0, easing: "step-end" }, { opacity: 1 }],
+  blink ??= caret.animate([{ opacity: 1, easing: "step-end" }, { opacity: 0, easing: "step-end" }, { opacity: 1 }],
     { duration: 1000, iterations: Infinity });
+  blink.currentTime = 0;
+  if (paused) blink.pause();
 }
 
 async function play(steps, mine) {
@@ -317,13 +327,13 @@ const phase = {
 
 const largeCode = [
   `&lt;${tag("form")}&gt;`,
-  `<br />  &lt;${tag("input")} ${attr("type")}=${value('"email"')} ${attr("placeholder")}=${value('"Enter your email"')} /&gt;`,
+  `<br />  &lt;${tag("input")} ${attr("type")}=${value('"email"')} ${attr("placeholder")}=${value('"Enter your email"')}&gt;`,
   `<br />&lt;/${tag("form")}&gt;`,
 ];
 const large = queue()
   // Email input
   .type(largeCode[0], instant).type(largeCode[1], instant).type(largeCode[2], instant)
-  .move(-11, instant)
+  .move(-9, instant)
   .pause(SHOW / 2)
   .exec(phase.email)
   // Invalid email input
@@ -332,35 +342,35 @@ const large = queue()
   .exec(phase.invalid)
   // Invalid email input helper
   .pause(SHOW)
-  .move(3, moveOpts)
+  .move(1, moveOpts)
   .type("  <br />  ", moveOpts)
   .type(`&lt;${tag("small")}&gt;Please enter a valid email!&lt;/${tag("small")}&gt;`)
   .exec(phase.helper)
   // Email input with submit button
   .pause(SHOW)
   .delete(47, delOpts)
-  .move(-3, moveOpts)
+  .move(-1, moveOpts)
   .delete(20, delOpts)
   .move(-53, moveOpts)
   .type(`<br />  &lt;${tag("fieldset")} ${attr("role")}=${value('"group"')}&gt;`)
-  .move(56, moveOpts)
+  .move(54, moveOpts)
   .type(`<br />  &lt;/${tag("fieldset")}&gt;`)
-  .move(-67, moveInstant)
+  .move(-65, moveInstant)
   .type("  ", moveInstant)
-  .move(53, moveInstant)
+  .move(51, moveInstant)
   .type(`<br />    &lt;${tag("button")} ${attr("type")}=${value('"submit"')}&gt;&lt;/${tag("button")}&gt;`)
   .move(-9, moveOpts)
   .type("Subscribe")
   .exec(phase.subscribe)
   // Search input with button
   .pause(SHOW)
-  .move(-94, moveOpts)
+  .move(-92, moveOpts)
   .delete(26, delOpts)
-  .move(117, moveOpts)
+  .move(115, moveOpts)
   .delete(14, delOpts)
   .move(-40, moveInstant)
   .delete(2, delInstant)
-  .move(-56, moveInstant)
+  .move(-54, moveInstant)
   .delete(2, delInstant)
   .move(-4, moveOpts)
   .type(` ${attr("role")}=${value('"search"')}`)
@@ -370,7 +380,7 @@ const large = queue()
   .move(31, moveOpts)
   .delete(18, delOpts)
   .type(value('"Search"'))
-  .move(37, moveOpts)
+  .move(35, moveOpts)
   .delete(8, delOpts)
   .type("earch")
   .exec(phase.search)
@@ -385,7 +395,7 @@ const large = queue()
   .pause(SHOW)
   .move(9, moveOpts)
   .delete(60, delOpts)
-  .move(-3, moveOpts)
+  .move(-1, moveOpts)
   .delete(29, delOpts)
   .type(value('"date"'))
   .move(-22, moveOpts)
@@ -393,13 +403,13 @@ const large = queue()
   .exec(phase.date)
   // Date input with Next button
   .pause(SHOW)
-  .move(25, moveOpts)
+  .move(23, moveOpts)
   .type(`<br />  &lt;${tag("button")}&gt;Next&lt;/${tag("button")}&gt;`)
   .exec(phase.next)
   // Select
   .pause(SHOW)
   .move(-24, moveOpts)
-  .delete(21, delOpts)
+  .delete(19, delOpts)
   .type(`&lt;${tag("select")}&gt;&lt;/${tag("select")}&gt;`)
   .move(-9, moveOpts)
   .type("<br />    <br />  ", moveOpts)
@@ -414,7 +424,7 @@ const large = queue()
   .move(-8, moveOpts)
   .type("<br />    <br />  ", moveOpts)
   .move(-3, moveOpts)
-  .type(`&lt;${tag("input")} ${attr("type")}=${value('"checkbox"')} /&gt;`)
+  .type(`&lt;${tag("input")} ${attr("type")}=${value('"checkbox"')}&gt;`)
   .type("<br />    ", moveOpts)
   .type("Publish on my profile")
   .move(35, moveOpts)
@@ -422,7 +432,7 @@ const large = queue()
   .exec(phase.checkbox)
   // Checkbox checked
   .pause(SHOW)
-  .move(-40, moveOpts)
+  .move(-38, moveOpts)
   .type(` ${attr("checked")}`)
   .exec(phase.check(true))
   // Switch checked
@@ -437,9 +447,9 @@ const large = queue()
   .exec(phase.check(false))
   // Range
   .pause(SHOW)
-  .move(29, moveOpts)
+  .move(27, moveOpts)
   .delete(26, delOpts)
-  .move(-44, moveOpts)
+  .move(-42, moveOpts)
   .type("    <br />    ", moveOpts)
   .type("Brightness")
   .move(41, moveOpts)
@@ -454,8 +464,8 @@ const large = queue()
   .exec(phase.range50)
   // Loop to input email
   .pause(SHOW)
-  .move(15, moveOpts)
-  .delete(79, delOpts)
+  .move(13, moveOpts)
+  .delete(77, delOpts)
   .move(-1, moveOpts)
   .move(1, moveOpts)
   .type("<br />")
@@ -468,14 +478,14 @@ const smallCode = [
   `<br />  &lt;${tag("input")}`,
   `<br />    ${attr("type")}=${value('"email"')}`,
   `<br />    ${attr("placeholder")}=${value('"Enter your email"')}`,
-  "<br />  /&gt;",
+  "<br />  &gt;",
   `<br />&lt;/${tag("form")}&gt;`,
 ];
 const small = queue()
   // Email input
   .type(smallCode[0], instant).type(smallCode[1], instant).type(smallCode[2], instant)
   .type(smallCode[3], instant).type(smallCode[4], instant).type(smallCode[5], instant)
-  .move(-13, instant)
+  .move(-12, instant)
   .pause(SHOW / 2)
   .exec(phase.email)
   // Invalid email input
@@ -485,7 +495,7 @@ const small = queue()
   .exec(phase.invalid)
   // Invalid email input helper
   .pause(SHOW)
-  .move(6, moveOpts)
+  .move(5, moveOpts)
   .type("  <br />", moveOpts)
   .move(-1, moveOpts)
   .type(`&lt;${tag("small")}&gt;&lt;/${tag("small")}&gt;`)
@@ -498,16 +508,16 @@ const small = queue()
   .pause(SHOW)
   .move(11, moveOpts)
   .delete(53, delOpts)
-  .move(-5, moveOpts)
+  .move(-4, moveOpts)
   .delete(24, delOpts)
   .move(-58, moveOpts)
   .type("<br />  ", moveOpts)
   .move(-3, moveOpts)
   .type(`&lt;${tag("fieldset")} ${attr("role")}=${value('"group"')}&gt;`)
-  .move(66, moveOpts)
+  .move(65, moveOpts)
   .type("<br />  ", moveOpts)
   .type(`&lt;/${tag("fieldset")}&gt;`)
-  .move(-16, moveInstant)
+  .move(-15, moveInstant)
   .type("  ", moveInstant)
   .move(-36, moveInstant)
   .type("  ", moveInstant)
@@ -515,7 +525,7 @@ const small = queue()
   .type("  ", moveInstant)
   .move(-12, moveInstant)
   .type("  ", moveInstant)
-  .move(69, moveInstant)
+  .move(68, moveInstant)
   .type("<br />    ", moveOpts)
   .type(`&lt;${tag("button")} ${attr("type")}=${value('"submit"')}&gt;&lt;/${tag("button")}&gt;`)
   .move(-9, moveOpts)
@@ -525,9 +535,9 @@ const small = queue()
   .exec(phase.subscribe)
   // Search input with button
   .pause(SHOW)
-  .move(-117, moveOpts)
+  .move(-116, moveOpts)
   .delete(26, delOpts)
-  .move(145, moveOpts)
+  .move(144, moveOpts)
   .delete(14, delOpts)
   .move(-10, moveInstant)
   .delete(2, delInstant)
@@ -535,7 +545,7 @@ const small = queue()
   .delete(2, delInstant)
   .move(-26, moveInstant)
   .delete(2, delInstant)
-  .move(-5, moveInstant)
+  .move(-4, moveInstant)
   .delete(2, delInstant)
   .move(-34, moveInstant)
   .delete(2, delInstant)
@@ -551,7 +561,7 @@ const small = queue()
   .move(35, moveOpts)
   .delete(18, delOpts)
   .type(value('"Search"'))
-  .move(44, moveOpts)
+  .move(43, moveOpts)
   .delete(8, delOpts)
   .type("earch")
   .exec(phase.search)
@@ -570,7 +580,7 @@ const small = queue()
   .pause(SHOW)
   .move(12, moveOpts)
   .delete(79, delOpts)
-  .move(-2, moveOpts)
+  .move(-1, moveOpts)
   .delete(46, delOpts)
   .type(` ${attr("type")}=${value('"date"')} `)
   .move(-23, moveOpts)
@@ -578,14 +588,14 @@ const small = queue()
   .exec(phase.date)
   // Date input with Next button
   .pause(SHOW)
-  .move(25, moveOpts)
+  .move(24, moveOpts)
   .type("<br />  ", moveOpts)
   .type(`&lt;${tag("button")}&gt;Next&lt;/${tag("button")}&gt;`)
   .exec(phase.next)
   // Select
   .pause(SHOW)
   .move(-24, moveOpts)
-  .delete(21, delOpts)
+  .delete(20, delOpts)
   .type(`&lt;${tag("select")}&gt;&lt;/${tag("select")}&gt;`)
   .move(-9, moveOpts)
   .type("<br />    <br />  ", moveOpts)
@@ -600,7 +610,7 @@ const small = queue()
   .move(-8, moveOpts)
   .type("<br />    <br />  ", moveOpts)
   .move(-3, moveOpts)
-  .type(`&lt;${tag("input")} ${attr("type")}=${value('"checkbox"')} /&gt;`)
+  .type(`&lt;${tag("input")} ${attr("type")}=${value('"checkbox"')}&gt;`)
   .type("<br />    ", moveOpts)
   .type("Publish on my profile")
   .move(35, moveOpts)
@@ -608,14 +618,14 @@ const small = queue()
   .exec(phase.checkbox)
   // Checkbox checked
   .pause(SHOW)
-  .move(-40, moveOpts)
+  .move(-38, moveOpts)
   .type(` ${attr("checked")}`)
   .exec(phase.check(true))
   // Switch checked
   .pause(SHOW)
-  .move(1, moveOpts)
+  .move(0, moveOpts)
   .type("<br />    ", moveOpts)
-  .move(-14, moveOpts)
+  .move(-13, moveOpts)
   .type("<br />     ", moveOpts)
   .move(-22, moveOpts)
   .type("<br />     ", moveOpts)
@@ -630,9 +640,9 @@ const small = queue()
   .exec(phase.check(false))
   // Range
   .pause(SHOW)
-  .move(34, moveOpts)
+  .move(32, moveOpts)
   .delete(26, delOpts)
-  .move(-56, moveOpts)
+  .move(-54, moveOpts)
   .type("    <br />    ", moveOpts)
   .move(-9, moveOpts)
   .type("Brightness")
@@ -650,8 +660,8 @@ const small = queue()
   .exec(phase.range50)
   // Loop to input email
   .pause(SHOW)
-  .move(20, moveOpts)
-  .delete(96, delOpts)
+  .move(18, moveOpts)
+  .delete(94, delOpts)
   .move(-1, moveOpts)
   .move(1, moveOpts)
   .type(`${smallCode[1]}<br />`)
@@ -667,8 +677,24 @@ const small = queue()
 if (article && form && code) {
   new IntersectionObserver(([entry]) => {
     onScreen = entry.isIntersecting;
-    if (onScreen) for (const done of resumes.splice(0)) done();
+    resume();
   }).observe(article);
+  if (toggle) {
+    const pause = (value) => {
+      paused = value;
+      toggle.textContent = paused ? "Play" : "Pause";
+      if (blink && paused) {
+        blink.pause();
+        blink.currentTime = 0; // the cursor's solid frame
+      } else blink?.play();
+      resume();
+    };
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    if (reduce.matches) pause(true);
+    toggle.hidden = false; // hidden in the markup, where nothing runs without JavaScript
+    reduce.addEventListener("change", () => reduce.matches && pause(true));
+    toggle.addEventListener("click", () => pause(!paused));
+  }
   let isLarge = innerWidth >= LARGE;
   addEventListener("resize", () => {
     if ((innerWidth >= LARGE) === isLarge) return;

@@ -1,14 +1,14 @@
 <hgroup>
   <p class="chapter">Components</p>
   <h1 id="modal">Modal</h1>
-  <p>The classic modal component with graceful spacings across devices and viewports, using the semantic HTML tag <code class="language-html">&lt;dialog&gt;</code>.</p>
+  <p>A <code class="language-html">&lt;dialog&gt;</code> holding an <code class="language-html">&lt;article&gt;</code> is a modal: a card centered over the page.</p>
 </hgroup>
 <section>
-  <p>Modals are built with <code class="language-html">&lt;dialog&gt;</code> as a wrapper and <code class="language-html">&lt;article&gt;</code> for the modal content.</p>
-  <p>Inside <code class="language-html">&lt;header&gt;</code> <code class="language-html">&lt;button rel="prev"&gt;</code> is defined to <code>float: right;</code> allowing a close icon to be top aligned with a title.</p>
+  <p>The dialog covers the viewport with an overlay, and the <code class="language-html">&lt;article&gt;</code> inside it is the modal’s card.</p>
+  <p>A <code>.close</code> element, or a link or button with <code>rel="prev"</code>, in the card is a close button: an × icon at the top right, or the top left in right-to-left text. In a <code class="language-html">&lt;header&gt;</code>, it lines up with the title.</p>
   <dialog class="example" open>
     <article>
-      <header><button aria-label="Close" rel="prev"></button><p><strong>🗓️ Thank You for Registering!</strong></p></header>
+      <header><button type="button" aria-label="Close" rel="prev"></button><p><strong>🗓️ Thank you for registering!</strong></p></header>
       <p>We’re excited to have you join us for our upcoming event. Please arrive at the museum on time to check in and get started.</p>
       <ul>
         <li>Date: Saturday, April 15</li>
@@ -16,17 +16,17 @@
       </ul>
     </article>
   </dialog>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
   &lt;article&gt;
     &lt;header&gt;
-      &lt;button aria-label="Close" rel="prev"&gt;&lt;/button&gt;
+      &lt;button type="button" aria-label="Close" rel="prev"&gt;&lt;/button&gt;
       &lt;p&gt;
-        &lt;strong&gt;🗓️ Thank You for Registering!&lt;/strong&gt;
+        &lt;strong&gt;🗓️ Thank you for registering!&lt;/strong&gt;
       &lt;/p&gt;
     &lt;/header&gt;
     &lt;p&gt;
       We're excited to have you join us for our
-      upcoming event. Please arrive at the museum 
+      upcoming event. Please arrive at the museum
       on time to check in and get started.
     &lt;/p&gt;
     &lt;ul&gt;
@@ -35,21 +35,21 @@
     &lt;/ul&gt;
   &lt;/article&gt;
 &lt;/dialog&gt;</code></pre></div>
-  <p>Inside <code class="language-html">&lt;footer&gt;</code>, the content is right aligned by default.</p>
+  <p>The content of the card’s <code class="language-html">&lt;footer&gt;</code> is aligned to the end: on the right, or on the left in right-to-left text.</p>
   <dialog open class="example">
     <article>
-      <h2>Confirm Your Membership</h2>
+      <h2>Confirm your membership</h2>
       <p>Thank you for signing up for a membership! Please review the membership details below:</p>
       <ul>
         <li>Membership: Individual</li>
         <li>Price: $10</li>
       </ul>
-      <footer><button class="secondary">Cancel</button><button>Confirm</button></footer>
+      <footer><button type="button" class="secondary">Cancel</button><button type="button">Confirm</button></footer>
     </article>
   </dialog>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
   &lt;article&gt;
-    &lt;h2&gt;Confirm Your Membership&lt;/h2&gt;
+    &lt;h2&gt;Confirm your membership&lt;/h2&gt;
     &lt;p&gt;
       Thank you for signing up for a membership!
       Please review the membership details below:
@@ -59,59 +59,96 @@
       &lt;li&gt;Price: $10&lt;/li&gt;
     &lt;/ul&gt;
     &lt;footer&gt;
-      &lt;button class="secondary"&gt;
+      &lt;button type="button" class="secondary"&gt;
         Cancel
       &lt;/button&gt;
-      &lt;button&gt;Confirm&lt;/button&gt;
+      &lt;button type="button"&gt;Confirm&lt;/button&gt;
     &lt;/footer&gt;
   &lt;/article&gt;
 &lt;/dialog&gt;</code></pre></div>
 </section>
 <section>
   <h2>Demo</h2>
-  <p>Toggle a modal by clicking the button below.</p>
+  <p>Open a modal with the button below.</p>
   <article aria-label="Modal demo" id="modal-demo">
-    <button class="contrast" data-modal-open="modal-demo">Open modal</button>
+    <button type="button" class="contrast" data-modal-open="modal-demo">Open modal</button>
   </article>
-  <p>femto does not include JavaScript code. You need to implement your JS to interact with modals.</p>
-  <p>As a starting point, you can look at the <a rel="noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement" target="_blank">HTMLDialogElement</a> or the advanced examples below:</p>
-  <ul>
-    <li><a rel="noopener noreferrer" href="https://codesandbox.io/embed/4mrnhq?view=Editor+%2B+Preview&amp;module=%2Fjs%2Fmodal.js" target="_blank">Vanilla JavaScript</a></li>
-    <li><a rel="noopener noreferrer" href="https://codesandbox.io/p/devbox/github/picocss/examples/tree/master/v2-react-color-schemes-and-modal?embed=1&amp;file=%2Fsrc%2Fcomponents%2FModal.js" target="_blank">React</a></li>
-  </ul>
-  <p>To open a modal, add the <code>open</code> attribute to the<code class="language-html">&lt;dialog&gt;</code> container.</p>
+  <p>A dialog shows when it has the <code>open</code> attribute, which the <a rel="noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement" target="_blank">HTMLDialogElement</a> methods <code>show()</code> and <code>showModal()</code> set. femto has no JavaScript: your own script opens and closes the modal.</p>
 </section>
 <section>
-  <h2>Utilities</h2>
-  <p>Modals come with 3 utility classes.</p>
-  <p>These classes are not available in the <a data-discover="true" href="/docs">class-less version</a>.</p>
-  <p><code>.modal-is-open</code> prevents any scrolling and interactions below the modal.</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
-&lt;html class="modal-is-open"&gt;
-  ...
-&lt;/html&gt;</code></pre></div>
-  <p><code>.modal-is-opening</code> brings an opening animation.</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
+  <h2>Opening and closing</h2>
+  <p>Three classes, which your script sets on <code class="language-html">&lt;html&gt;</code>, lock scrolling and run the opening and closing animations:</p>
+  <ul>
+    <li><code>.modal-is-open</code> while a modal is open: the page behind it does not scroll and ignores the pointer.</li>
+    <li><code>.modal-is-opening</code> with it, during the opening animation.</li>
+    <li><code>.modal-is-closing</code> with it, during the closing animation.</li>
+  </ul>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
 &lt;html class="modal-is-open modal-is-opening"&gt;
   ...
 &lt;/html&gt;</code></pre></div>
-  <p><code>.modal-is-closing</code> brings a closing animation.</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
-&lt;html class="modal-is-open modal-is-closing"&gt;
-  ...
-&lt;/html&gt;</code></pre></div>
+  <p><code>.modal-is-open</code> hides the page’s scrollbar. To keep the page from shifting, your script can also set <code>--femto-scrollbar-width</code> on <code class="language-html">&lt;html&gt;</code> to the scrollbar’s width. A script that does all of this:</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;button type="button" data-target="membership"&gt;Open modal&lt;/button&gt;
+
+&lt;dialog id="membership" aria-labelledby="membership-title"&gt;
+  &lt;article&gt;
+    &lt;h2 id="membership-title"&gt;Confirm your membership&lt;/h2&gt;
+    &lt;p&gt;...&lt;/p&gt;
+    &lt;footer&gt;
+      &lt;button type="button" class="secondary" data-close&gt;Cancel&lt;/button&gt;
+      &lt;button type="button" data-close&gt;Confirm&lt;/button&gt;
+    &lt;/footer&gt;
+  &lt;/article&gt;
+&lt;/dialog&gt;
+
+&lt;script&gt;
+  const html = document.documentElement;
+  const duration = 400; // milliseconds
+
+  function openModal(dialog) {
+    const scrollbarWidth = window.innerWidth - html.clientWidth;
+    if (scrollbarWidth) {
+      html.style.setProperty("--femto-scrollbar-width", `${scrollbarWidth}px`);
+    }
+    html.classList.add("modal-is-open", "modal-is-opening");
+    dialog.showModal();
+    setTimeout(() =&gt; html.classList.remove("modal-is-opening"), duration);
+  }
+
+  function closeModal(dialog) {
+    html.classList.add("modal-is-closing");
+    setTimeout(() =&gt; {
+      html.classList.remove("modal-is-open", "modal-is-closing");
+      html.style.removeProperty("--femto-scrollbar-width");
+      dialog.close();
+    }, duration);
+  }
+
+  for (const button of document.querySelectorAll("[data-target]")) {
+    const dialog = document.getElementById(button.dataset.target);
+    button.addEventListener("click", () =&gt; openModal(dialog));
+    for (const close of dialog.querySelectorAll("[data-close]")) {
+      close.addEventListener("click", () =&gt; closeModal(dialog));
+    }
+    // Escape: close with the animation
+    dialog.addEventListener("cancel", (event) =&gt; {
+      event.preventDefault();
+      closeModal(dialog);
+    });
+  }
+&lt;/script&gt;</code></pre></div>
 </section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.modal.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/modal.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
 </section>
-<dialog data-modal="modal-demo">
+<dialog data-modal="modal-demo" aria-label="Confirm your membership">
   <article>
-    <h2>Confirm Your Membership</h2>
+    <h2>Confirm your membership</h2>
     <p>Thank you for signing up for a membership! Please review the membership details below:</p>
     <ul>
       <li>Membership: Individual</li>
       <li>Price: $10</li>
     </ul>
-    <footer><button class="secondary" data-modal-close>Cancel</button><button data-modal-close>Confirm</button></footer>
+    <footer><button type="button" class="secondary" data-modal-close>Cancel</button><button type="button" data-modal-close>Confirm</button></footer>
   </article>
 </dialog>

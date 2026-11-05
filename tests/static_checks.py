@@ -13,6 +13,10 @@
   uv run tests/static_checks.py --femto DIR            femto checkout for 12 and 13 (default: SOURCE's
                                                        source, then $FEMTO_REPO, then ../femto)
   uv run tests/static_checks.py --root DIR             check another checkout
+  uv run tests/static_checks.py --dist DIR             check a built folder (node build.mjs --out DIR)
+                                                       instead of ROOT/dist; criterion 5 builds into DIR
+  uv run tests/static_checks.py --criteria links       the link check of dist/ (also in the default run)
+  uv run tests/static_checks.py --criteria links --external   ... and fetch every external link once
 
 From tests/run.py: `import static_checks; static_checks.main(argv) -> int` (argv without the program name).
 
@@ -27,10 +31,24 @@ done, so 1), tag static-multipage or "Convert Pages To Static HTML" (2), tag sta
 Styles To femto 3" (3), "Merge Docs Into One Page" (4), "Describe femto 3" (5), "Finish Static Site"
 (6). Before Phase 2, site/assets/legacy/ is allowed in git (the Phase 1 gate's exception to 4) and in
 dist/ (03 §2 copies it during Phase 1). From Phase 3, dist/ has no per-route docs/ pages, 6 expects
-the old routes to 404, and 9 checks the one page's section ids and side nav. 13 applies from Phase 4.
+the old routes to 404, and 9 checks the one page's section ids and side nav. 13 applies from Phase 4,
+and from Phase 4 6 expects /demo to 404 (PLAN.md Open questions 5: not built).
 
 Browser and server criteria (1, 2, 7, 10, and the layout-shift part of 15) are the harness's; this
 script reports them NOT-YET with the harness command. 6 starts `wrangler pages dev dist` itself.
+
+The link check (PLAN.md Workflow, Phase 4's gate: "link check of dist/") is not a numbered
+criterion; it runs with the others, or alone with --criteria links. Every internal href, src and
+fragment in every dist page resolves (check_links: an extensionless page URL as Pages serves it, a
+file in dist/, an id or <a name> in the target page's own tree, ?theme= only on /docs with one of
+femto's colors; a link to a page's .html name or to /docs/ fails, since Pages redirects it), and so do
+dist CSS url()s and the web app manifest's icons. External links are listed; --external fetches each
+once (HEAD, then GET when HEAD fails, redirects followed) and fails on any that answers 400 or more or
+not at all, except the npm and jsDelivr URLs of femto's package before its first publish and edit
+links to files this branch adds before it is on GitHub's main, which are listed. Each run first
+proves the check: LINK_CONTROLS plant six broken links in copies of dist/ (a missing asset, page and
+fragment, a missing fragment on the page itself, a redirecting .html name, an unknown ?theme=), and
+each must fail with exactly its planted link.
 
 Interpretations, where PLAN's wording leaves a choice:
 - 4: "git ls-files shows none of" is checked on the files that would be tracked after committing
@@ -74,7 +92,11 @@ Interpretations, where PLAN's wording leaves a choice:
   the config file).
 - 14 and 13's No Pico: `git grep -il pico` as PLAN gives it, run once on tracked files and once with
   --untracked (new files a gate has not committed yet), and the union is compared with the list.
-- 9: html-validate must be shown to run: `--version` answers the pinned version, and its JSON report
+- 9: declarative shadow roots (<template shadowrootmode>, the /examples mockups) are part of their
+  page for the duplicate-id check (ids across shadow roots count page-wide) and their section.example
+  is the example a radio or details name belongs to; ids in other <template>s are excluded. With
+  --dist, html-validate is given the repository's .htmlvalidate.mjs explicitly (it would look for a
+  config upward from the folder). html-validate must be shown to run: `--version` answers the pinned version, and its JSON report
   parses, names only the files given, and (exit 1) holds an error. Empty or unparsable output is a
   tool failure, never a pass. From Phase 3 the config is `.htmlvalidate.mjs`, the only one
   html-validate can find (no other `.htmlvalidate.*`, no flat `html-validate.config.*`, no
@@ -88,7 +110,12 @@ Interpretations, where PLAN's wording leaves a choice:
 - 12: also fails when git ignores a vendored file (it would never be committed), whatever the
   working tree holds.
 - 13: from Phase 4 (04 §3), on the docs page; the package-name part reads every dist page and
-  dist script outside dist/vendor/. femto's package is FEMTO_PACKAGE, @leoherzog/femto (the owner,
+  dist script outside dist/vendor/. A file path named pico.*css (Pico's own files, in the Migrating
+  from Pico table) is listed, not looked up in vendor/femto/. A module @import relative to femto's
+  css/ folder (@import "tokens/base.css", url(themes/jade.css), url(femto.css)) must name a file in
+  vendor/femto/css/, so a custom module set's list goes stale loudly when femto renames a module.
+  Repository links include archive/<ref>.zip and raw.githubusercontent.com. The class part also reads
+  /examples' mockups (their shadow roots) and Markup samples. femto's package is FEMTO_PACKAGE, @leoherzog/femto (the owner,
   2026-10-30), and femto's package.json at the vendored commit must say so. In package contexts (a
   jsDelivr npm or combine URL, a jsDelivr package page or API URL, an unpkg URL, an npm package page
   or registry URL, an esm.sh, esm.run, Skypack, jspm or cdnjs URL, a name@version specifier, a
@@ -178,7 +205,7 @@ import time
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
-from urllib.parse import unquote, unquote_to_bytes, urlsplit
+from urllib.parse import unquote, unquote_to_bytes, urljoin, urlsplit, urlunsplit
 
 WRANGLER = "4.156.0"  # latest on npm, checked 2026-10-30; package.json's exact pin wins once it has one
 HTML_VALIDATE = "11.17.0"  # latest on npm, checked 2026-10-30; same rule
@@ -233,11 +260,11 @@ PHASE_TAGS = ((2, "static-multipage"), (3, "static-femto"))
 HARNESS = {  # tests/run.py modes (tests/harness/cli.py) that the criteria below need a browser for
     1: "uv run tests/run.py self --full (the oracle against itself in the PLAN.md matrix: Chrome, Firefox, then Safari serialized; the owner's dark Safari pass too)",
     7: "uv run tests/run.py behavior --target dist (Chrome and Firefox; Safari through tests/owner-safari.sh one-page, the owner's light and dark passes)",
-    10: "uv run tests/run.py a11y --target dist (axe-core from node_modules on /, /examples, /demo, the 404 page, /docs and /docs?theme=jade; Chrome and Firefox, light and dark, 375 and 1300; a serious or critical violation fails)",
+    10: "uv run tests/run.py a11y --target dist (axe-core from node_modules on /, /examples, the 404 page, /docs and /docs?theme=jade; Chrome and Firefox, light and dark, 375 and 1300; a serious or critical violation fails)",
     15: "uv run tests/run.py behavior --target dist --checks deep-link-cold (a cold load of /docs#input: layout shift < 0.01 in Chrome, Input's heading within 2 px of its scroll-padding line in Chrome and Firefox)",
 }
 HARNESS_15_LOADS = ("uv run tests/run.py sections --full and pages --a static-femto --b dist --full --routes "
-                    "/,/examples,/demo,/does-not-exist (Phase 3's gate; pages --a oracle --b dist --full before it): every "
+                    "/,/examples,/does-not-exist (Phase 3's gate, then with /demo; pages --a oracle --b dist --full before it): every "
                     "dist document's Resource Timing entries and the proxy's CSP reports (workers and frames the page "
                     "cannot read included), where a cross-origin load fails the run whatever code or markup started it")
 
@@ -297,7 +324,7 @@ class Result:
                 "failures": self.failures, "evidence": self.evidence, "notes": self.notes}
 
     def print(self):
-        print(f"\n== Criterion {self.id}: {self.title}")
+        print(f"\n== Criterion {self.id}: {self.title}" if isinstance(self.id, int) else f"\n== {self.title}")
         print(self.state.upper())
         for prefix, lines in (("  FAIL ", self.failures), ("  why: ", self.pending), ("  ", self.evidence), ("  note: ", self.notes)):
             for line in lines:
@@ -589,7 +616,10 @@ class Node:
         return self.attrs.get("class", "").split()
 
     def in_template(self) -> bool:
-        return any(a.tag == "template" for a in self.ancestors())
+        """Inside a <template> whose content is not part of the page: any template but a declarative
+        shadow root's (<template shadowrootmode>, which the parser attaches as a shadow root, as the
+        /examples mockups are)."""
+        return any(a.tag == "template" and "shadowrootmode" not in a.attrs for a in self.ancestors())
 
 
 class TreeBuilder(HTMLParser):
@@ -702,9 +732,11 @@ def menu_ids(menu) -> list[str]:
 
 
 class Context:
-    def __init__(self, root: Path, phase: int, phase_why: str, femto: str | None):
+    def __init__(self, root: Path, phase: int, phase_why: str, femto: str | None, dist: Path | None = None):
         self.root, self.phase, self.phase_why, self.femto_arg = root, phase, phase_why, femto
-        self.site, self.dist = root / "site", root / "dist"
+        self.site, self.dist = root / "site", dist or root / "dist"
+        self.dist_given = dist is not None  # --dist: a built folder of its own, which criterion 5 builds into
+        self.external = False  # --external: the link check fetches external URLs
         self._pages: dict[Path, Node] = {}
         self.cache: dict[str, object] = {}
 
@@ -960,9 +992,11 @@ def criterion_5(ctx: Context) -> Result:
         r.fail("package.json has no build script")
         return r
     trees = []
+    # With --dist the two builds go to that folder (npm run build -- --out DIR), never to dist/.
+    out = ["--", "--out", str(dist)] if ctx.dist_given else []
     for run in (1, 2):
         start = time.monotonic()
-        proc = subprocess.run(["npm", "run", "build", "--silent"], cwd=root, capture_output=True, text=True, timeout=900)
+        proc = subprocess.run(["npm", "run", "build", "--silent", *out], cwd=root, capture_output=True, text=True, timeout=900)
         if proc.returncode != 0:
             r.fail(f"npm run build (run {run}) exited {proc.returncode}: {(proc.stderr or proc.stdout).strip()[-400:]}")
             return r
@@ -1056,7 +1090,13 @@ def criterion_6(ctx: Context) -> Result:
         ok_200 -= old
     else:
         ok_200 |= old
-    for name in ("/examples", "/demo"):
+    if ctx.phase >= 4:
+        # PLAN.md URL inventory and Open question 5: from Phase 4 /demo is not built, so it is a 404.
+        gone.add("/demo")
+        if "/demo" in pages:
+            r.fail("dist/ has a /demo page, which Phase 4 drops (PLAN.md Open questions 5: not built, 404)")
+        ok_200.discard("/demo")
+    for name in ("/examples",) + (("/demo",) if ctx.phase < 4 else ()):
         if name not in pages:
             r.note(f"{name} is not in dist/ (PLAN: per the Open questions), so it is not expected to answer 200")
     version = ctx.pinned("wrangler", WRANGLER)
@@ -1240,8 +1280,10 @@ def criterion_8(ctx: Context) -> Result:
 
 
 def example_container(node: Node) -> Node | None:
-    """The live example a node belongs to: its nearest article.component (the oracle's example card)."""
-    return next((a for a in node.ancestors() if a.tag == "article" and "component" in a.classes()), None)
+    """The live example a node belongs to: its nearest article.component (the docs' example card), or
+    on /examples its section.example (the mockup's shadow roots included)."""
+    return next((a for a in node.ancestors() if (a.tag == "article" and "component" in a.classes())
+                 or (a.tag == "section" and "example" in a.classes())), None)
 
 
 HTMLVALIDATE_CONFIG = ".htmlvalidate.mjs"
@@ -1403,8 +1445,11 @@ def criterion_9(ctx: Context) -> Result:
         # The report goes to a file, not a pipe: on macOS Node writes to a pipe asynchronously, and
         # html-validate's process.exit() cut its multi-megabyte JSON report short (the Phase 1
         # integration found a report of dist/ ending mid-string).
+        # html-validate finds its config upward from each file, so a --dist folder outside the
+        # repository is given the repository's config explicitly.
+        config = ["--config", str(root / HTMLVALIDATE_CONFIG)] if (root / HTMLVALIDATE_CONFIG).is_file() else []
         with tempfile.TemporaryFile("w+", encoding="utf-8") as out:
-            proc = subprocess.run(["npx", "--yes", f"html-validate@{version}", "--formatter", "json", *[str(p) for p in pages]],
+            proc = subprocess.run(["npx", "--yes", f"html-validate@{version}", "--formatter", "json", *config, *[str(p) for p in pages]],
                                   cwd=root, stdout=out, stderr=subprocess.PIPE, text=True, timeout=900)
             out.seek(0)
             proc.stdout = out.read()
@@ -1460,8 +1505,10 @@ def criterion_9(ctx: Context) -> Result:
                 name_lines.append(f"{where}: {kind} name {name!r} in {len(boxes)} separate examples ({lines})")
     r.fails(f"{len(dup_lines)} duplicate id(s):", dup_lines, "more ids")
     if not dup_lines:
-        r.ok(f"no duplicate id on any of {len(pages)} pages (ids inside <template> excluded)")
-    r.fails(f"{len(name_lines)} radio or details name(s) repeat across separate examples (an example is its nearest article.component):", name_lines, "more names")
+        r.ok(f"no duplicate id on any of {len(pages)} pages (declarative shadow roots counted with their page; ids inside "
+             "other <template>s excluded)")
+    r.fails(f"{len(name_lines)} radio or details name(s) repeat across separate examples (an example is its nearest "
+            "article.component, or section.example on /examples):", name_lines, "more names")
     if not name_lines:
         r.ok("no radio name or details name repeats across separate examples")
 
@@ -2089,6 +2136,7 @@ def version_ok(found: str, version: str) -> bool:
 # dependency entry), the name must be FEMTO_PACKAGE. File names (femto.css, dist/femto.min.css) are not
 # package names and are never judged here.
 FEMTO_PACKAGE = "@leoherzog/femto"
+FEMTO_CSS_DIRS = ("tokens", "layout", "content", "forms", "components", "utilities", "themes", "options")  # femto's css/ folders
 PKG_NAME = r"(?:@[A-Za-z0-9][\w.~-]*/)?[A-Za-z0-9][\w.~-]*"
 PACKAGE_CONTEXTS = (  # (what, pattern, also read in prose)
     ("a jsDelivr npm URL", re.compile(r"(?i)(?:jsdelivr\.net/(?:combine/)?|,)npm/(" + PKG_NAME + ")"), True),
@@ -2394,20 +2442,38 @@ def content_checks(ctx: Context, r: Result) -> None:
             paths.add(m.group(1).rstrip(".:;!?"))  # a sentence's end is not part of the path
     for m in re.finditer(r"(?<![\w./@-])((?:dist|css)/[\w./<>*-]+\.css)\b", blob):
         paths.add(m.group(1))
+    # A module path relative to femto's css/ folder, as a custom module set or a layered import
+    # writes it (@import "tokens/base.css", @import url(themes/jade.css) layer(femto)): names a file
+    # in css/. Only femto's own folders and femto.css are read this way, never the reader's files.
+    modules = set()
+    for m in re.finditer(r"@import\s+(?:url\(\s*)?[\"']?(?:\./)?((?:(?:" + "|".join(FEMTO_CSS_DIRS) + r")/[\w./-]+|femto(?:\.colors)?)\.css)\b", text):
+        modules.add(m.group(1))
+    pico_files = sorted(p for p in paths if re.search(r"(?:^|/)pico\.[\w.]*css$", p))
     for p in sorted(paths):
-        if re.search(r"[<>*{]", p):
+        if re.search(r"[<>*{]", p) or p in pico_files:
             continue
         if not (vendor / p).is_file():
             bad_paths.append(f"{p}: not a file in site/vendor/femto/")
-    refs = set()
-    for m in re.finditer(re.escape(FEMTO_GITHUB) + r"/(?:blob|tree|raw|commit)/([^/\s\"'<>#?]+)", blob):
+    for p in sorted(modules):
+        if not (vendor / "css" / p).is_file():
+            bad_paths.append(f"@import {p}: not a module in site/vendor/femto/css/")
+    if pico_files:
+        r.note(f"{len(pico_files)} path(s) name Pico's own files, not femto's (the Migrating from Pico section's table), so "
+               "they are not looked up in site/vendor/femto/: " + ", ".join(pico_files))
+    refs, nlinks = set(), 0
+    for m in re.finditer(re.escape(FEMTO_GITHUB) + r"/(?:blob|tree|raw|commit|archive)/(?:refs/(?:heads|tags)/)?([^/\s\"'<>#?]+)", blob):
+        refs.add(re.sub(r"\.(?:zip|tar\.gz)$", "", m.group(1)))
+        nlinks += 1
+    for m in re.finditer(r"raw\.githubusercontent\.com/leoherzog/femto/([^/\s\"'<>#?]+)", blob):
         refs.add(m.group(1))
+        nlinks += 1
     for ref in sorted(refs):
         if not ((len(ref) >= 7 and commit.startswith(ref)) or ref in tag.split(", ")):
             bad_paths.append(f"{FEMTO_GITHUB}/…/{ref}: not the vendored commit {commit[:8]} or tag {tag}")
     r.fails(f"{len(bad_paths)} femto file path(s), URL(s) or repository link(s) do not match the vendored femto:", bad_paths, "more")
     if not bad_paths:
-        r.ok(f"{len(paths)} femto paths and {len(refs)} repository links match site/vendor/femto/ and SOURCE")
+        r.ok(f"{len(paths) - len(pico_files)} femto paths, {len(modules)} module @imports relative to css/ and {nlinks} "
+             f"repository links ({', '.join(sorted(x[:8] for x in refs)) or 'no ref'}) match site/vendor/femto/ and SOURCE")
 
     # 3. Classes in example markup.
     femto_css = (vendor / "dist/femto.css").read_text(encoding="utf-8") if (vendor / "dist/femto.css").is_file() else ""
@@ -2424,21 +2490,29 @@ def content_checks(ctx: Context, r: Result) -> None:
             listed |= set(re.findall(r"(?<![\w-])\.([A-Za-z_][\w-]*)", span))
             for cls in re.findall(r"class=\"([^\"]*)\"", span):
                 listed |= set(cls.split())
-        example_classes: dict[str, int] = {}
-        for n in main.iter():
-            if n.tag != "#document" and example_container(n) is not None:
-                for c in n.classes():
-                    example_classes.setdefault(c, n.line)
-        for code in main.find_all("code"):
-            if re.search(r"language-(html|markup|jsx)", code.attrs.get("class", "")):
-                for cls in re.findall(r"class=\"([^\"]*)\"", code.text()):
-                    for c in cls.split():
-                        example_classes.setdefault(c, code.line)
-        unlisted = [f".{c} (line {line})" for c, line in sorted(example_classes.items())
+        example_classes: dict[str, str] = {}
+        # The docs page's examples and HTML samples, and /examples' mockups (their declarative
+        # shadow roots included) and samples: the example markup femto's classes are used in.
+        scopes = [("docs.html", main)]
+        if (dist / "examples.html").is_file():
+            ex = ctx.page(dist / "examples.html")
+            scopes.append(("examples.html", next(iter(ex.find_all("main")), None) or ex))
+        for name, scope in scopes:
+            for n in scope.iter():
+                if n.tag != "#document" and example_container(n) is not None:
+                    for c in n.classes():
+                        example_classes.setdefault(c, f"{name}:{n.line}")
+            for code in scope.find_all("code"):
+                if re.search(r"language-(html|markup|jsx)", code.attrs.get("class", "")):
+                    for cls in re.findall(r"class=\"([^\"]*)\"", code.text()):
+                        for c in cls.split():
+                            example_classes.setdefault(c, f"{name}:{code.line}")
+        unlisted = [f".{c} ({where})" for c, where in sorted(example_classes.items())
                     if c in femto_classes and c not in listed and c not in color_classes]
         r.fails(f"{len(unlisted)} femto class(es) in example markup are not in README 'Classes and attributes' or femto.colors.css:", unlisted, "more classes")
         if not unlisted:
-            r.ok(f"{len(example_classes)} classes in example markup; every femto one is listed in the README or is a color utility")
+            r.ok(f"{len(example_classes)} classes in example markup (docs.html and /examples); every femto one is listed in the "
+                 "README or is a color utility")
         site_only = sorted(c for c in example_classes if c not in femto_classes and c not in color_classes)
         if site_only:
             r.note(f"{len(site_only)} example classes femto does not style (site classes): {', '.join(site_only[:10])}" + (" ..." if len(site_only) > 10 else ""))
@@ -3589,28 +3663,314 @@ def criterion_15(ctx: Context) -> Result:
     return r
 
 
+# ---------------------------------------------------------------------------- the link check
+
+# PLAN.md Workflow, Phase 4's gate: "link check of dist/". Every internal href, src and fragment in
+# every dist page resolves: the page exists under the URL inventory (an extensionless page URL, as
+# Cloudflare Pages serves dist/), the asset exists in dist/, and #<id> is an element's id (or an
+# <a name>) in the target page's own tree (a fragment never reaches into a shadow root). CSS url()s
+# and @imports in dist CSS and the web app manifest's icons are internal links too. External links are
+# listed; with --external each one is fetched once (HEAD, then GET when HEAD fails; redirects
+# followed) and a failure fails the check, except the URLs that only work once femto is published
+# (PLAN.md Risks), which are listed. The check proves itself on every run: LINK_CONTROLS plant a broken
+# link of each kind in a copy of dist/, and each must fail with exactly its planted link.
+LINK_ATTRS = {"a": ("href",), "area": ("href",), "link": ("href",), "script": ("src", "href", "xlink:href"),
+              "img": ("src", "srcset"), "source": ("src", "srcset"), "video": ("src", "poster"), "audio": ("src",),
+              "track": ("src",), "iframe": ("src",), "embed": ("src",), "object": ("data",), "form": ("action",),
+              "button": ("formaction",), "input": ("src", "formaction"), "use": ("href", "xlink:href"),
+              "image": ("href", "xlink:href"), "q": ("cite",), "blockquote": ("cite",), "ins": ("cite",), "del": ("cite",)}
+META_URL_PROPS = {"og:url", "og:image", "og:image:url", "og:image:secure_url", "twitter:image", "twitter:url"}
+NOT_LINKS = ("mailto:", "tel:", "data:", "blob:", "javascript:", "about:", "sms:")
+# External URLs that answer only once femto's npm package is published (PLAN.md Risks: "npm/@leoherzog/femto@3
+# URLs 404 until the first publish"): listed, never failed.
+AWAITS_PUBLISH = re.compile(r"^https://(?:cdn\.jsdelivr\.net/(?:npm|combine)/(?:[^\s]*,)?npm/@leoherzog/femto|"
+                            r"cdn\.jsdelivr\.net/npm/@leoherzog/femto|(?:www\.)?npmjs\.com/package/@leoherzog/femto|"
+                            r"data\.jsdelivr\.com/v1/packages?/npm/@leoherzog/femto|www\.jsdelivr\.com/package/npm/@leoherzog/femto)")
+LINK_CONTROLS = (  # (name, page, planted markup, the link the failure must name)
+    ("a missing asset", "index.html", '<a href="/assets/no-such-file.css">x</a>', "/assets/no-such-file.css"),
+    ("a missing page", "index.html", '<a href="/no-such-page">x</a>', "/no-such-page"),
+    ("a missing fragment on another page", "index.html", '<a href="/docs#no-such-section">x</a>', "/docs#no-such-section"),
+    ("a missing fragment on the page itself", "docs.html", '<a href="#no-such-id">x</a>', "#no-such-id"),
+    ("a redirecting page name", "index.html", '<a href="/examples.html">x</a>', "/examples.html"),
+    ("an unknown ?theme=", "index.html", '<a href="/docs?theme=bogus#grid">x</a>', "/docs?theme=bogus#grid"),
+)
+
+
+def json_strings(data) -> list[str]:
+    if isinstance(data, str):
+        return [data]
+    if isinstance(data, dict):
+        return [s for v in data.values() for s in json_strings(v)]
+    if isinstance(data, list):
+        return [s for v in data for s in json_strings(v)]
+    return []
+
+
+def page_links(doc: Node) -> list[tuple[int, str, str]]:
+    """(line, what, url) of every URL a page links to or loads: LINK_ATTRS, the og: and twitter: URL
+    metas, and the absolute site URLs in JSON-LD. Declarative shadow roots and other templates
+    included; code samples are text, not links."""
+    out = []
+    for n in doc.iter():
+        if n.tag == "#document":
+            continue
+        for a in LINK_ATTRS.get(n.tag, ()):
+            if a in n.attrs:
+                v = n.attrs[a]
+                for u in (srcset_urls(v) if a == "srcset" else [v]):
+                    out.append((n.line, f"<{n.tag} {a}>", u))
+        key = n.attrs.get("property") or n.attrs.get("name") or ""
+        if n.tag == "meta" and key.lower() in META_URL_PROPS:
+            out.append((n.line, f"<meta {key}>", n.attrs.get("content", "")))
+        if n.tag == "script" and n.attrs.get("type", "").lower() == "application/ld+json":
+            try:
+                data = json.loads(n.text())
+            except ValueError:
+                continue
+            out += [(n.line, "JSON-LD", s) for s in json_strings(data) if re.match(r"^https?://", s)]
+    return out
+
+
+def fragment_targets(doc: Node) -> set[str]:
+    """The ids and <a name>s a fragment can scroll to: the page's own tree, outside every template
+    (a declarative shadow root's ids are not the document's)."""
+    out = set()
+    for n in doc.iter():
+        if n.tag == "#document" or any(a.tag == "template" for a in n.ancestors()):
+            continue
+        if "id" in n.attrs:
+            out.add(n.attrs["id"])
+        if n.tag == "a" and "name" in n.attrs:
+            out.add(n.attrs["name"])
+    return out
+
+
+def link_check(dist: Path, shown_root: Path, colors: list[str]) -> tuple[list[str], list[str], dict[str, list[str]], int]:
+    """Check every internal link of dist/: (failures, evidence, {external URL: [where]}, links checked)."""
+    pages = {page_url(dist, p): p for p in files_under(dist, (".html",)) if p.relative_to(dist).as_posix() != "404.html"}
+    docs: dict[Path, Node] = {}
+    targets: dict[Path, set[str]] = {}
+
+    def doc_of(p: Path) -> Node:
+        if p not in docs:
+            docs[p] = parse_html(p.read_text(encoding="utf-8", errors="replace"))
+        return docs[p]
+
+    def ids_of(p: Path) -> set[str]:
+        if p not in targets:
+            targets[p] = fragment_targets(doc_of(p))
+        return targets[p]
+
+    def all_ids_of(p: Path | None) -> set[str]:
+        return {n.attrs["id"] for n in doc_of(p).iter() if "id" in n.attrs} if p is not None else set()
+
+    failures: list[str] = []
+    external: dict[str, list[str]] = {}
+    checked = 0
+
+    def check(where: str, what: str, url: str, base: str, page: Path | None):
+        nonlocal checked
+        raw = re.sub(r"[\t\n\r]", "", url.strip(URL_STRIP))
+        if not raw or raw.lower().startswith(NOT_LINKS):
+            return
+        if what in ("<use href>", "<use xlink:href>", "<image href>", "<image xlink:href>") and raw.startswith("#"):
+            # An SVG reference to an element of its own tree (a shadow root's included), not a link.
+            checked += 1
+            if raw[1:] not in all_ids_of(page):
+                failures.append(f"{where}: {what} {raw}: no element with id {raw[1:]!r} on the page")
+            return
+        if raw.startswith("#") and page is not None:
+            # A fragment of the document itself: 404.html is served at every missing URL, so its own
+            # links (the skip link) name no path to look up.
+            checked += 1
+            frag = unquote(raw[1:])
+            if frag and frag != "top" and not frag.startswith(":~:") and frag not in ids_of(page):
+                failures.append(f"{where}: {what} {raw}: {rel(shown_root, page)} has no element with id {frag!r}")
+            return
+        full = urljoin(base, raw.replace("\\", "/"))
+        u = urlsplit(full)
+        if u.scheme not in ("http", "https"):
+            return
+        if f"{u.scheme}://{u.netloc}" != SITE_ORIGIN:
+            external.setdefault(urlunsplit((u.scheme, u.netloc, u.path, u.query, "")), []).append(where)
+            return
+        checked += 1
+        shown = raw if len(raw) <= 90 else raw[:87] + "..."
+        path = unquote(u.path) or "/"
+        target = pages.get(path)
+        if target is None:
+            file = dist / path.lstrip("/")
+            if path.endswith("/") and pages.get(path.rstrip("/")):
+                failures.append(f"{where}: {what} {shown}: Cloudflare Pages redirects {path} (308) to {path.rstrip('/')}; "
+                                "link the clean URL")
+            elif file.is_file() and file.suffix == ".html":
+                failures.append(f"{where}: {what} {shown}: Cloudflare Pages redirects {path} (308) to "
+                                f"{page_url(dist, file)}; link the clean URL")
+            elif not file.is_file():
+                failures.append(f"{where}: {what} {shown}: no page or file at {path} in dist/")
+            elif u.fragment and file.suffix != ".svg":
+                failures.append(f"{where}: {what} {shown}: a fragment on a file that has none ({path})")
+            return
+        if u.query:
+            q = {k: v for k, v in [kv.partition("=")[::2] for kv in u.query.split("&")]}
+            if path == "/docs" and set(q) <= {"theme"} and q.get("theme") in colors:
+                pass
+            else:
+                failures.append(f"{where}: {what} {shown}: the query ?{u.query} is not one {path} reads"
+                                + (" (/docs reads only ?theme= with one of femto's 20 colors)" if path == "/docs" else ""))
+        frag = unquote(u.fragment)
+        if frag and frag != "top" and not frag.startswith(":~:") and frag not in ids_of(target):
+            failures.append(f"{where}: {what} {shown}: {rel(shown_root, target)} has no element with id {frag!r}")
+
+    for path, p in sorted(pages.items()) + [("/404", dist / "404.html")]:
+        if not p.is_file():
+            continue
+        where_file = rel(shown_root, p)
+        base = SITE_ORIGIN + path
+        doc = doc_of(p)
+        bases = [n.attrs["href"] for n in doc.find_all("base") if "href" in n.attrs]
+        if bases:
+            base = urljoin(base, bases[0])
+        for line, what, url in page_links(doc):
+            check(f"{where_file}:{line}", what, url, base, p)
+    for p in files_under(dist, (".css",)):
+        code, _, _ = scan_css(p.read_text(encoding="utf-8", errors="replace"))
+        base = SITE_ORIGIN + "/" + p.relative_to(dist).as_posix()
+        for o, url in css_urls(code):
+            check(f"{rel(shown_root, p)}:{line_of(code, o)}", "url()", url, base, None)
+    for p in files_under(dist, (".webmanifest",)):
+        try:
+            data = json.loads(p.read_text(encoding="utf-8"))
+        except ValueError:
+            failures.append(f"{rel(shown_root, p)}: not valid JSON")
+            continue
+        base = SITE_ORIGIN + "/" + p.relative_to(dist).as_posix()
+        for url in manifest_urls(data) + ([data["start_url"]] if isinstance(data, dict) and isinstance(data.get("start_url"), str) else []):
+            check(rel(shown_root, p), "manifest", url, base, None)
+    evidence = [f"{checked} internal links in {len(pages) + 1} pages, the dist CSS and the web app manifest resolve"] if not failures else []
+    return failures, evidence, external, checked
+
+
+def fetch_external(url: str, timeout: float = 20.0) -> tuple[bool, str]:
+    """HEAD, then GET when HEAD fails, following redirects: (answered below 400, what happened)."""
+    import urllib.error
+    import urllib.request
+    # A browser's User-Agent: some hosts (Figma, npm behind Cloudflare) answer 403 to a script's.
+    headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) "
+                             "Chrome/140.0.0.0 Safari/537.36 (femto.style link check)",
+               "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "en"}
+    last = ""
+    for method in ("HEAD", "GET"):
+        req = urllib.request.Request(url, method=method, headers=headers)
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as res:
+                if method == "GET":
+                    res.read(1024)
+                final = res.geturl()
+                return True, f"{method} {res.status}" + (f" via {final}" if final != url else "")
+        except urllib.error.HTTPError as e:
+            last = f"{method} {e.code}"
+        except (urllib.error.URLError, OSError, http.client.HTTPException, ValueError) as e:
+            last = f"{method} {type(e).__name__}: {getattr(e, 'reason', e)}"
+    return False, last
+
+
+def check_links(ctx: Context) -> Result:
+    r = Result("links", "Link check of dist/: internal links, assets and fragments resolve; external links listed")
+    dist = ctx.dist
+    if not (dist / "index.html").is_file():
+        r.not_yet("no dist/ (npm run build writes it)")
+        return r
+    colors = sorted(p.stem for p in (ctx.site / "vendor/femto/css/themes").glob("*.css")) or list(COLORS)
+    colors = sorted(set(colors) | {"azure"})
+    failures, evidence, external, checked = link_check(dist, ctx.root, colors)
+    r.fails(f"{len(failures)} internal link(s) do not resolve:", failures, "more links")
+    for line in evidence:
+        r.ok(line)
+    # The controls: each planted link must fail, alone, in a copy of dist/.
+    tmp = Path(tempfile.mkdtemp(prefix="femto-style-links-"))
+    try:
+        base = tmp / "clean"
+        shutil.copytree(dist, base, symlinks=True)
+        clean = set(link_check(base, base, colors)[0])
+        passed = []
+        for name, page, markup, link in LINK_CONTROLS:
+            copy = tmp / re.sub(r"\W+", "-", name)
+            shutil.copytree(base, copy, symlinks=True)
+            f = copy / page
+            text = f.read_text(encoding="utf-8")
+            f.write_text(text.replace("</body>", markup + "</body>", 1), encoding="utf-8")
+            new = [x for x in link_check(copy, copy, colors)[0] if x.split(": ", 1)[-1] not in {c.split(": ", 1)[-1] for c in clean}]
+            if len(new) == 1 and f" {link}:" in new[0]:
+                passed.append(name)
+            else:
+                r.fail(f"control '{name}' ({markup} in {page}) did not fail with exactly its link: {new[:3]}")
+        if len(passed) == len(LINK_CONTROLS):
+            r.ok(f"controls: {len(passed)} of {len(LINK_CONTROLS)} planted links fail as intended in a copy of dist/ "
+                 f"({', '.join(passed)})")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    ext = sorted(external)
+    hosts = sorted({urlsplit(u).netloc for u in ext})
+    r.ok(f"{len(ext)} distinct external URLs on {len(hosts)} hosts ({', '.join(hosts[:10])}" + (" ..." if len(hosts) > 10 else "") + ")")
+    if not ctx.external:
+        r.note("external links not fetched (--external fetches each once): " + "; ".join(ext[:MAX_LINES])
+               + (f"; ... {len(ext) - MAX_LINES} more" if len(ext) > MAX_LINES else ""))
+        return r
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        answers = dict(zip(ext, pool.map(fetch_external, ext)))
+    bad, pending, good = [], [], 0
+    for u in ext:
+        ok, what = answers[u]
+        if ok:
+            good += 1
+        elif AWAITS_PUBLISH.match(u):
+            pending.append(f"{u}: {what} (first seen {external[u][0]}): awaits femto's first publish to npm (PLAN.md Risks)")
+        elif (m := re.match(r"^https://github\.com/leoherzog/femto\.style/blob/main/(.+)$", u)) and (ctx.root / unquote(m.group(1))).is_file():
+            # An edit link to a file this working tree has and the repository's main branch does not
+            # yet: it answers once the owner merges and pushes (Decision 15: agents never push).
+            pending.append(f"{u}: {what}: {unquote(m.group(1))} is in this working tree, not yet on GitHub's main")
+        else:
+            bad.append(f"{u}: {what} (linked from {external[u][0]}" + (f" and {len(external[u]) - 1} more" if len(external[u]) > 1 else "") + ")")
+    r.fails(f"{len(bad)} external link(s) fail (HEAD, then GET, redirects followed):", bad, "more")
+    r.ok(f"{good} of {len(ext)} external URLs answer below 400")
+    if pending:
+        r.note(f"{len(pending)} external URL(s) answer only once femto is published or this branch is on GitHub's main, "
+               "not judged:")
+        for line in capped(pending):
+            r.note("  " + line)
+    return r
+
+
 # ---------------------------------------------------------------------------- main
 
 
 CHECKS = {1: criterion_1, 2: criterion_2, 3: criterion_3, 4: criterion_4, 5: criterion_5, 6: criterion_6,
           7: criterion_7, 8: criterion_8, 9: criterion_9, 10: criterion_10, 11: criterion_11, 12: criterion_12,
-          13: criterion_13, 14: criterion_14, 15: criterion_15}
+          13: criterion_13, 14: criterion_14, 15: criterion_15, "links": check_links}
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="static_checks.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--criteria", help="comma-separated criterion numbers, 1 to 15 (default: all)")
+    parser.add_argument("--criteria", help="comma-separated criterion numbers, 1 to 15, and 'links' for the link check "
+                                           "(default: all of them)")
+    parser.add_argument("--external", action="store_true", help="the link check also fetches every external URL once")
     parser.add_argument("--json", metavar="FILE", help="also write the results to FILE as JSON")
     parser.add_argument("--strict", action="store_true", help="count NOT-YET as a failure")
     parser.add_argument("--phase", type=int, choices=range(0, 7), help="check as of this phase (default: inferred)")
     parser.add_argument("--femto", metavar="DIR", help="femto checkout for criteria 12 and 13")
     parser.add_argument("--root", default=str(Path(__file__).resolve().parents[1]), help="repository root")
+    parser.add_argument("--dist", metavar="DIR", help="the built site to check instead of ROOT/dist (node build.mjs --out DIR); "
+                                                       "criterion 5 then builds into DIR")
     try:  # argparse exits on --help and usage errors; return its code instead, for run.py
         args = parser.parse_args(argv)
         try:
-            ids = sorted({int(x) for x in args.criteria.split(",") if x.strip()}) if args.criteria else sorted(CHECKS)
+            ids = ([int(x) if x.strip() != "links" else "links" for x in dict.fromkeys(args.criteria.split(",")) if x.strip()]
+                   if args.criteria else list(CHECKS))
+            ids = sorted((i for i in ids if i != "links"), key=int) + (["links"] if "links" in ids else [])
         except ValueError:
-            parser.error(f"--criteria takes numbers: {args.criteria!r}")
+            parser.error(f"--criteria takes numbers and 'links': {args.criteria!r}")
         unknown = [i for i in ids if i not in CHECKS]
         if unknown:
             parser.error(f"unknown criteria: {unknown}")
@@ -3618,14 +3978,15 @@ def main(argv: list[str] | None = None) -> int:
         return exc.code if isinstance(exc.code, int) else 2
     root = Path(args.root).resolve()
     phase, why = (args.phase, "--phase") if args.phase is not None else infer_phase(root)
-    ctx = Context(root, phase, why, args.femto)
-    print(f"femto.style static checks: {root}, phase {phase} ({why})")
+    ctx = Context(root, phase, why, args.femto, Path(args.dist).resolve() if args.dist else None)
+    ctx.external = args.external
+    print(f"femto.style static checks: {root}, phase {phase} ({why})" + (f", dist {ctx.dist}" if args.dist else ""))
     results = []
     for i in ids:
         try:
             res = CHECKS[i](ctx)
         except Exception as exc:  # a crashed check is a failed check
-            res = Result(i, f"Criterion {i}")
+            res = Result(i, f"Criterion {i}" if isinstance(i, int) else f"The {i} check")
             res.fail(f"check crashed: {type(exc).__name__}: {exc}")
         results.append(res)
         res.print()

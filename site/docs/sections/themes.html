@@ -1,0 +1,122 @@
+<hgroup>
+  <p class="chapter">Customization</p>
+  <h1 id="themes">Themes</h1>
+  <p>femto's built-in color is azure, and each of the 19 others is one file in <code>css/themes/</code>.</p>
+</hgroup>
+<section>
+  <p>Load a theme right after femto and before your own stylesheets, and in femto's <a href="/docs#cascade-layer">cascade layer</a> if you use one:</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/themes/jade.css"&gt;
+&lt;link rel="stylesheet" href="styles.css"&gt;</code></pre></div>
+  <p>To see a color on this page and copy the links that load it, use the <a href="/docs#theme-picker">Theme picker</a>.</p>
+</section>
+<section>
+  <h2>The 20 colors</h2>
+  <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
+  <div class="overflow-auto" tabindex="0" role="region" aria-label="The 20 theme colors">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th scope="col">Color</th>
+          <th scope="col">File</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="femto-background-amber" aria-hidden="true"></span> Amber</td>
+          <td><code>css/themes/amber.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-azure" aria-hidden="true"></span> Azure</td>
+          <td>Built in</td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-blue" aria-hidden="true"></span> Blue</td>
+          <td><code>css/themes/blue.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-cyan" aria-hidden="true"></span> Cyan</td>
+          <td><code>css/themes/cyan.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-fuchsia" aria-hidden="true"></span> Fuchsia</td>
+          <td><code>css/themes/fuchsia.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-green" aria-hidden="true"></span> Green</td>
+          <td><code>css/themes/green.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-grey" aria-hidden="true"></span> Grey</td>
+          <td><code>css/themes/grey.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-indigo" aria-hidden="true"></span> Indigo</td>
+          <td><code>css/themes/indigo.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-jade" aria-hidden="true"></span> Jade</td>
+          <td><code>css/themes/jade.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-lime" aria-hidden="true"></span> Lime</td>
+          <td><code>css/themes/lime.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-orange" aria-hidden="true"></span> Orange</td>
+          <td><code>css/themes/orange.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-pink" aria-hidden="true"></span> Pink</td>
+          <td><code>css/themes/pink.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-pumpkin" aria-hidden="true"></span> Pumpkin</td>
+          <td><code>css/themes/pumpkin.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-purple" aria-hidden="true"></span> Purple</td>
+          <td><code>css/themes/purple.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-red" aria-hidden="true"></span> Red</td>
+          <td><code>css/themes/red.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-sand" aria-hidden="true"></span> Sand</td>
+          <td><code>css/themes/sand.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-slate" aria-hidden="true"></span> Slate</td>
+          <td><code>css/themes/slate.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-violet" aria-hidden="true"></span> Violet</td>
+          <td><code>css/themes/violet.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-yellow" aria-hidden="true"></span> Yellow</td>
+          <td><code>css/themes/yellow.css</code></td>
+        </tr>
+        <tr>
+          <td><span class="femto-background-zinc" aria-hidden="true"></span> Zinc</td>
+          <td><code>css/themes/zinc.css</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+<section>
+  <h2>A color of your own</h2>
+  <p>A theme file is one <code>:root, :host</code> rule that sets ten theme tokens: <code>--femto-primary</code>, <code>--femto-primary-background</code>, <code>--femto-primary-underline</code>, <code>--femto-primary-hover</code>, <code>--femto-primary-hover-background</code>, <code>--femto-primary-focus</code>, <code>--femto-primary-inverse</code>, <code>--femto-primary-inverse-filter</code>, <code>--femto-text-selection-color</code> and <code>--femto-switch-thumb-box-shadow</code>. That is the same specificity as your own overrides on <code>:root</code>, so a theme loaded after your stylesheet would replace them.</p>
+  <p>For a color of your own, copy a theme file, such as <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/css/themes/jade.css" target="_blank"><code>css/themes/jade.css</code></a>, and change its values. Where its <code>--femto-primary-inverse</code> is dark, set <code>--femto-primary-inverse-filter</code> to <code>brightness(0) invert(0)</code>, so the loading spinner on primary buttons is dark too. Keep the text readable: a primary button's <code>--femto-primary-inverse</code> text sits on <code>--femto-primary-background</code>, and on <code>--femto-primary-hover-background</code> when it is hovered, pressed, focused or current, so give each at least 4.5:1 contrast with it in both schemes.</p>
+</section>
+<section>
+  <h2>One request</h2>
+  <p>femto ships no prebuilt themed copies. To fetch femto and a theme in one request, join them in a jsDelivr combine URL:</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@leoherzog/femto@3/dist/femto.min.css,npm/@leoherzog/femto@3/css/themes/jade.css"&gt;</code></pre></div>
+  <p>This should work once femto is published, because neither file has an <code>@import</code> and every <code>url()</code> in them is a <code>data:</code> URI, but it is not yet confirmed. It does not work with <code>css/femto.css</code>: jsDelivr does not rewrite relative paths in combined files, so the entry's <code>@import</code>s would not resolve.</p>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/themes.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>

@@ -1,18 +1,21 @@
 <hgroup>
   <p class="chapter">Getting started</p>
   <h1 id="rtl">RTL</h1>
-  <p>Support for Right-To-Left text.</p>
+  <p>Set <code>dir="rtl"</code> for right-to-left text, and femto mirrors the parts of its components that have a direction.</p>
 </hgroup>
 <section>
-  <p>To enable RTL (Right-To-Left) with femto, you need to set <code>dir="rtl"</code> on the <code class="language-html">&lt;html&gt;</code> element.</p>
-  <div class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
-&lt;html dir="rtl" lang="ar"&gt;
+  <p>For a right-to-left page, set <code>dir="rtl"</code> on the <code>&lt;html&gt;</code> element, with the page's language in <code>lang</code>:</p>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;html dir="rtl" lang="ar"&gt;
   ...
 &lt;/html&gt;</code></pre></div>
-  <p>RTL can also be enabled on a per-element basis:</p>
+  <p>femto then mirrors the form field icons, chevrons, breadcrumb separators, group and search corners, progress animation, modal close button and modal footer.</p>
+</section>
+<section>
+  <h2>On an element</h2>
+  <p><code>dir="rtl"</code> also works on one element, for a part of a page in a right-to-left language:</p>
   <article aria-label="RTL example" class="component">
     <blockquote dir="rtl" lang="ar">“كُنْ كالطير، الذي إذا اعتاد القفز على الأغصان لا يحس بالخطر وليس في ذلك أي تردد، ولكنه لو فقد الثقة بجناحيه فإنه يسقط أرضًا. كذلك، إذا اعتاد الإنسان على العمل الصالح فإنه يستطيع فعله بلا جهد وليس في ذلك أي عناء، ولكنه إذا فقد الثقة بنفسه فإنه يفشل.”<footer><cite>— خليل جبران</cite></footer></blockquote>
-    <footer class="code" data-theme="dark"><a class="copy-to-clipboard" tabindex="-1" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-discover="true" href="/docs" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></a><pre class="prismjs"><code class="language-html">&lt;blockquote dir="rtl" lang="ar"&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="clipboard"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><pre class="prismjs"><code class="language-html">&lt;blockquote dir="rtl" lang="ar"&gt;
   “كُنْ كالطير، الذي إذا اعتاد القفز على الأغصان لا يحس بالخطر وليس في ذلك أي تردد،
   ولكنه لو فقد الثقة بجناحيه فإنه يسقط أرضًا. كذلك، إذا اعتاد الإنسان على العمل الصالح
   فإنه يستطيع فعله بلا جهد وليس في ذلك أي عناء، ولكنه إذا فقد الثقة بنفسه فإنه يفشل.”
@@ -21,7 +24,8 @@
   &lt;/footer&gt;
 &lt;/blockquote&gt;</code></pre></footer>
   </article>
+  <p>Set the attribute itself, not only the CSS <code>direction</code> property: femto mirrors its icons, chevrons and progress animation under <code>[dir="rtl"]</code>.</p>
 </section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/app/routes/docs.rtl.jsx" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/rtl.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
 </section>

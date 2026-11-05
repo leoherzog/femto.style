@@ -7,16 +7,15 @@
 //    dotfiles: vendor/femto/ included, whose stylesheets every page links.
 // 2. Include. A line `<!-- include partials/<file> -->` is replaced by the partial, indented to the
 //    marker (so partials hold no <pre> or <textarea>); partials may include partials. The placeholders
-//    are {{version}} (femto's, from vendor/femto/SOURCE), {{title}} and {{description}} (a page's own
-//    <title> and description).
+//    are {{version}} and {{commit}} (femto's, from vendor/femto/SOURCE), {{title}} and {{description}}
+//    (a page's own <title> and description).
 //    Links in an included header or footer partial whose href is the page's own path (the oracle's
-//    rule: the path without its trailing slash, so "/" never matches) get aria-current="page", and
-//    the header's theme toggle (href="#" in the partial) links to the page itself, as the oracle's
-//    server HTML did (site.js sets it again on load, for the 404 page).
+//    rule: the path without its trailing slash, so "/" never matches) get aria-current="page".
 // 3. Assemble the docs page (02 §6), written to docs.html and served at /docs (never docs/index.html,
 //    Decision 11). From docs/menu.json, the build fills docs.html's two empty elements: the side nav
 //    (nav.is-sticky-above-lg) gets one open <details> per category, with its summary and one link to
-//    #<id> per section (its label, else its title), and #content every docs/sections/<id>.html in
+//    #<id> per section (its label, else its title, else its h1's content: the migration section's,
+//    whose title criterion 14 keeps out of menu.json), and #content every docs/sections/<id>.html in
 //    menu order, each wrapped in a <section>. A missing file, or one that does not begin with its
 //    hgroup (the chapter, then <h1 id="<id>">), fails the build. It also writes the Colors section's
 //    palette download, assets/femto-color-palette.json: colors.js's PALETTE hex values by family and
@@ -28,6 +27,11 @@
 //    split at newlines exactly as its processLines() does (wrapLines off). The oracle's "html" was
 //    refractor's html, which is Prism's markup grammar with CSS and JavaScript inlined (prism-light's
 //    registerLanguage("html", jsx) ignores the name, so jsx was registered as jsx and never used).
+//    The <pre class="prismjs"> around such a code block gets tabindex="0" and the hook
+//    data-scroll-focus: a block whose code is wider than it scrolls sideways, and the keyboard can
+//    scroll it only once it takes focus (axe's scrollable-region-focusable, criterion 10). Which
+//    blocks scroll depends on the viewport, so without JavaScript every one takes focus; site.js then
+//    keeps tabindex="0" only on the blocks that overflow, and names those.
 // 5. Sitemap. sitemap.xml lists the canonical URL of every page except 404.html and noindex pages.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -88,9 +92,9 @@ export function highlight(code, language) {
   return splitLines(flatten(hast(env.tokens))).map((r) => typeof r === "string" ? esc(r)
     : `<span class="${r.cls.join(" ")}">${esc(r.text)}</span>`).join("");
 }
-export const highlightAll = (html, where) => html.replace(/<code class="language-([\w-]+)">([\s\S]*?)<\/code>/g, (m, lang, body) =>
+export const highlightAll = (html, where) => html.replace(/(<pre class="prismjs">)?<code class="language-([\w-]+)">([\s\S]*?)<\/code>/g, (m, pre, lang, body) =>
   body.includes("<") ? fail(`${where}: <code class="language-${lang}"> must hold escaped text only`)
-    : `<code class="language-${lang}">${highlight(unesc(body), lang)}</code>`);
+    : `${pre ? '<pre class="prismjs" tabindex="0" data-scroll-focus>' : ""}<code class="language-${lang}">${highlight(unesc(body), lang)}</code>`);
 
 // --- 2. Includes, placeholders and the header and footer links to the page itself.
 function expand(html, page, depth = 0) {
@@ -102,7 +106,6 @@ function expand(html, page, depth = 0) {
       text = text.replace(/<a\s[^>]*>/g, (a) => /\saria-current=/.test(a) || a.match(/\shref="([^"]*)"/)?.[1] !== page.path ? a
         : a.replace("<a ", '<a aria-current="page" '));
     }
-    if (/header/.test(file) && page.path != null) text = text.replace(/(<a [^>]*aria-label="Turn on dark mode"[^>]*href=)"#"/, `$1"${page.path || "/"}"`);
     return text;
   });
 }
@@ -110,7 +113,7 @@ function render(html, page) {
   html = expand(html, page);
   if (html.includes("<!-- include ")) fail(`${page.file}: an include marker must be alone on its line`);
   if (/<code(?! class="language-[\w-]+">)[^>]*language-/.test(html)) fail(`${page.file}: write code as <code class="language-X"> exactly`);
-  const values = { version: page.version, title: page.title, description: page.description };
+  const values = { version: page.version, commit: page.commit, title: page.title, description: page.description };
   html = html.replace(/\{\{(\w+)\}\}/g, (m, key) => values[key] != null ? esc(values[key]) : fail(`${page.file}: no value for ${m}`));
   return highlightAll(html, page.file);
 }
@@ -119,20 +122,20 @@ const swap = (html, from, to, where) => html.split(from).length === 2 ? html.rep
 
 // --- 3. The docs page and its palette file.
 function docsPage(menu) {
-  const nav = menu.categories.map((c) => {
-    const links = c.sections.map((s) => `\n            <li><a class="secondary" data-discover="true" href="#${s.id}">${s.label ?? esc(s.title)}</a></li>`);
-    return `<details open><summary>${esc(c.title)}</summary><ul>${links.join("")}\n          </ul></details>`;
-  });
-  const sections = menu.categories.flatMap((c) => c.sections).map(({ id }) => {
+  const files = menu.categories.flatMap((c) => c.sections).map(({ id }) => {
     const file = `docs/sections/${id}.html`;
     if (!existsSync(join(SITE, file))) fail(`docs/menu.json: no section file ${file}`);
     const text = read(file).trim();
-    const heading = new RegExp(`^<hgroup>\\n[ \\t]*<p class="chapter">[^<]*</p>\\n[ \\t]*<h1 id="${id}">`);
-    if (!heading.test(text)) fail(`${file}: must begin with <hgroup>, its chapter, then <h1 id="${id}">`);
-    return `<section>\n${text}\n</section>\n`;
+    const heading = new RegExp(`^<hgroup>\\n[ \\t]*<p class="chapter">[^<]*</p>\\n[ \\t]*<h1 id="${id}">([\\s\\S]*?)</h1>`);
+    return { id, text, h1: text.match(heading)?.[1] ?? fail(`${file}: must begin with <hgroup>, its chapter, then <h1 id="${id}">`) };
   });
+  const nav = menu.categories.map((c) => {
+    const links = c.sections.map((s) => `\n            <li><a class="secondary" data-discover="true" href="#${s.id}">${s.label ?? (s.title == null ? files.find((f) => f.id === s.id).h1 : esc(s.title))}</a></li>`);
+    return `<details open><summary>${esc(c.title)}</summary><ul>${links.join("")}\n          </ul></details>`;
+  });
+  const sections = files.map(({ text }) => `<section>\n${text}\n</section>\n`);
   let html = read("docs.html");
-  html = swap(html, '<nav class="is-sticky-above-lg"></nav>', `<nav class="is-sticky-above-lg">\n          ${nav.join("\n          ")}\n        </nav>`, "docs.html");
+  html = swap(html, '<nav class="is-sticky-above-lg" aria-label="Documentation"></nav>', `<nav class="is-sticky-above-lg" aria-label="Documentation">\n          ${nav.join("\n          ")}\n        </nav>`, "docs.html");
   return swap(html, '<div id="content" role="document"></div>', `<div id="content" role="document">\n${sections.join("")}      </div>`, "docs.html");
 }
 function palette() {
@@ -158,6 +161,7 @@ function walk(dir, base = dir) {
 export function build() {
   const source = read("vendor/femto/SOURCE");
   const version = source.match(/^version: (\S+)$/m)?.[1] ?? fail("site/vendor/femto/SOURCE has no version");
+  const commit = source.match(/^commit: ([0-9a-f]{40})$/m)?.[1] ?? fail("site/vendor/femto/SOURCE has no commit");
   const files = new Map();
   const pages = [];
   for (const file of walk(SITE)) {
@@ -167,7 +171,7 @@ export function build() {
     const title = html.match(/<title>([^<{]*)<\/title>/)?.[1];
     const description = html.match(/<meta name="description" content="([^"{]*)">/)?.[1];
     const url = file === "index.html" ? "/" : `/${file.replace(/\.html$/, "")}`;
-    pages.push({ out: file, html, file, path: file === "404.html" ? null : ownPath(url), version,
+    pages.push({ out: file, html, file, path: file === "404.html" ? null : ownPath(url), version, commit,
       title: title && unesc(title), description: description && unesc(description) });
   }
   files.set("assets/femto-color-palette.json", Buffer.from(palette()));

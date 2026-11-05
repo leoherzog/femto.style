@@ -1,0 +1,60 @@
+<hgroup>
+  <p class="chapter">Getting started</p>
+  <h1 id="browser-support">Browser support</h1>
+  <p>femto targets Baseline Widely Available on its release date: Chrome and Edge 125, Firefox 128, Safari 17.5 and Samsung Internet 27.</p>
+</hgroup>
+<section>
+  <p>Its release date is no earlier than 2026-11-13, when <code>light-dark()</code> becomes Widely Available. The minimum versions are:</p>
+  <div class="overflow-auto">
+    <table class="striped">
+      <thead>
+        <tr>
+          <th scope="col">Browser</th>
+          <th scope="col">Minimum version</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Chrome and Edge</td>
+          <td>125</td>
+        </tr>
+        <tr>
+          <td>Firefox</td>
+          <td>128</td>
+        </tr>
+        <tr>
+          <td>Safari, macOS and iOS</td>
+          <td>17.5</td>
+        </tr>
+        <tr>
+          <td>Samsung Internet</td>
+          <td>27</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Each minimum version is at or above what Baseline Widely Available maps to on 2026-11-13, Safari 17.5 being the first Safari with <code>light-dark()</code>. femto's parity tests run in recent Chrome, Firefox and Safari, not in these versions.</p>
+</section>
+<section>
+  <h2>Prefixed and ignored features</h2>
+  <p>A few features femto uses are missing or partial in some of these versions, and each is either covered by a vendor-prefixed form or ignored harmlessly:</p>
+  <ul>
+    <li>Safari 17.5 reads <code>backdrop-filter</code> and <code>user-select</code> only with their <code>-webkit-</code> prefix, and iOS Safari reads <code>text-size-adjust</code> only that way.</li>
+    <li>Browsers that lack <code>resize</code>, <code>::selection</code>, the <code>ui-monospace</code> font or some <code>cursor</code> keywords ignore them.</li>
+    <li><code>accent-color</code>, partial in some, has no visible effect on femto's own controls.</li>
+  </ul>
+  <p>femto also has vendor-only rules, such as <code>-webkit-tap-highlight-color</code>, <code>@-moz-document</code> and the <code>::-webkit-</code> and <code>::-moz-</code> form control pseudo-elements, which other browsers ignore.</p>
+</section>
+<section>
+  <h2>How femto checks its CSS</h2>
+  <p>In femto's repository, <code>npm run lint</code> runs the <code>use-baseline</code> rule of @eslint/css over every file in <code>css/</code>, with the Baseline data of web-features 3.42.0 from October 2026. It checks property names, at-rule names, <code>@media</code> features, pseudo-classes and pseudo-elements, and the keywords, functions and units of ordinary declarations.</p>
+  <p>It does not check custom property values, which is where <code>light-dark()</code> and the font stacks live, values nested inside other functions, vendor-prefixed names or browser versions. Its exceptions are listed and explained in <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/eslint.config.mjs" target="_blank"><code>eslint.config.mjs</code></a>.</p>
+</section>
+<section>
+  <h2>Older browsers</h2>
+  <p>Browsers without <code>light-dark()</code>, which means Chrome and Edge before 123, Firefox before 120, Safari before 17.5 and Samsung Internet before 27, do not get a plainer femto: they get a broken one. Every color token whose light and dark values differ fails where it is used, so form fields lose their borders and backgrounds and some button labels disappear.</p>
+  <p>Tools that rewrite <code>light-dark()</code> for those browsers cause a narrower break in supported ones: <code>data-theme</code> on an element stops changing its colors. To keep a bundler from doing that, set its CSS targets as <a href="/docs#quick-start">Quick start</a> shows under npm.</p>
+</section>
+<section class="edit-on-github">
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/browser-support.html" target="_blank"><small><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-edit"><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z"></path><path d="M16 5l3 3"></path></svg>Edit this page on GitHub</small></a></p>
+</section>
