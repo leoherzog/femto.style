@@ -1,5 +1,7 @@
 femto.style is adapted from the [Pico CSS documentation](https://github.com/picocss/picocss.com) by [Lucas Larroche](https://lucaslarroche.com/), licensed under [CC BY-SA 4.0](https://github.com/picocss/picocss.com/blob/main/LICENSE.md), and has been changed to document [femto](https://github.com/leoherzog/femto). This adaptation is also licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/), summarized below.
 
+Some parts keep their own licenses. femto itself, in `site/vendor/femto/`, is under the MIT license ([LICENSE.md](site/vendor/femto/LICENSE.md)). The fonts in `site/assets/fonts/` (Figtree, Fira Code and Pacifico) are under the SIL Open Font License 1.1 ([OFL.txt](site/assets/fonts/OFL.txt), which carries each family's copyright notice). The GitHub and npm icons in `site/partials/` and the X icon in the Nav section (`site/docs/sections/nav.html`) are [Font Awesome Free](https://fontawesome.com) icons by Fonticons, Inc., under [CC BY 4.0](https://fontawesome.com/license/free). The line icons, such as the copy and edit icons, come from [Tabler Icons](https://tabler.io/icons) by Paweł Kuna, under the MIT license, except the plus and minus circles in the Grid section (`site/docs/sections/grid.html`), which come from [Feather](https://feathericons.com) by Cole Bemis, also under the MIT license.
+
 # Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 
 This is a human-readable summary of (and not a substitute for) the [license](https://creativecommons.org/licenses/by-sa/4.0/legalcode).

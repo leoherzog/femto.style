@@ -1,0 +1,52 @@
+# Builds the site and runs the lint and the static checks (tests/static_checks.py) on every push and
+# pull request. It never deploys: deploying is the owner's step, npm run deploy (PLAN.md Decisions
+# 11 and 15), so the run has no secrets and only reads the repository. The checkout holds the whole
+# history, since static_checks.py infers the phase from the Workflow table's commit subjects. femto
+# is fetched at the commit site/vendor/femto/SOURCE names into ../femto, beside the checkout: that
+# is the folder SOURCE's source line names, so criteria 12 and 13 find it there with no --femto.
+# Criteria 1, 2, 7 and 10, and 15's run-time parts, need the macOS browser rig and report NOT-YET
+# here; any FAIL fails the run.
+name: Check
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels an older run; the newer run checks everything.
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # One commit with its files is enough: criteria 12 and 13 read them with git, never from a
+      # working tree. A commit that was never pushed to femto's GitHub repository fails here.
+      - name: Fetch femto at the vendored commit
+        run: |
+          commit=$(sed -n 's/^commit: //p' site/vendor/femto/SOURCE)
+          git init --quiet ../femto
+          git -C ../femto fetch --quiet --depth 1 https://github.com/leoherzog/femto "$commit"
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      # setup-uv has published no major-version tag since v7, so this names its latest release. The
+      # static checks have no Python dependencies, so there is nothing to cache.
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: false
+      - run: npm ci
+      - run: npm run build
+      - run: npm run lint
+      - run: uv run tests/static_checks.py

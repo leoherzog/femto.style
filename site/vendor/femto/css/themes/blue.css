@@ -10,7 +10,6 @@
   --femto-primary-background: #2060df;
   --femto-primary-underline: light-dark(rgba(32, 96, 223, 0.5), rgba(137, 153, 249, 0.5));
   --femto-primary-hover: light-dark(#184eb8, #aeb5fb);
-  /* One value for both schemes: white text on 2.1.1's lighter dark-scheme value had less than 4.5:1 contrast. */
   --femto-primary-hover-background: #1d59d0;
   --femto-primary-focus: light-dark(rgba(116, 139, 248, 0.5), rgba(137, 153, 249, 0.375));
   --femto-primary-inverse: #fff;

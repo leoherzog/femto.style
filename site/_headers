@@ -1,2 +1,9 @@
-/build/*
-  Cache-Control: public, max-age=31536000, s-maxage=31536000
+# Cloudflare Pages header rules. The build copies this file into dist/, and Pages applies its rules
+# instead of serving it as a file (PLAN.md Decision 11).
+#
+# Only the fonts, the .woff2 files in /assets/fonts/, are cached for long. They are pinned files
+# whose names never change, so a changed font needs a new file name, and fonts.css a new url().
+# Everything else, OFL.txt beside them included, keeps Pages' default,
+# "public, max-age=0, must-revalidate", so a deploy shows at once.
+/assets/fonts/*.woff2
+  Cache-Control: public, max-age=31536000, immutable

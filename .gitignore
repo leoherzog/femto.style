@@ -1,7 +1,7 @@
 node_modules
-.env
 
-# Cloudflare
+# Cloudflare: wrangler's local secrets files and its state folder
+.env
 .dev.vars
 .wrangler
 

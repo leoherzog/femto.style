@@ -207,8 +207,8 @@ from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, unquote_to_bytes, urljoin, urlsplit, urlunsplit
 
-WRANGLER = "4.156.0"  # latest on npm, checked 2026-10-30; package.json's exact pin wins once it has one
-HTML_VALIDATE = "11.17.0"  # latest on npm, checked 2026-10-30; same rule
+WRANGLER = "4.158.0"  # latest on npm, checked 2026-11-05; package.json's exact pin wins once it has one
+HTML_VALIDATE = "11.18.0"  # latest on npm, checked 2026-11-05; same rule
 MAX_LINES = 12
 SITE_ORIGIN = "https://femto.style"
 DOCS_URL = "https://femto.style/docs"
@@ -229,7 +229,7 @@ PICO_SPEC = ["--", ".", ":!docs/research", ":!tests", ":!PLAN.md", ":!PROMPT.md"
 SCRIPTS = {"build", "dev", "deploy", "vendor", "lint"}
 REQUIRED_DEV = {"prismjs", "wrangler"}
 CHECK_TOOLS = {"eslint", "@eslint/css", "html-validate", "axe-core"}
-COMPAT_LINT = "eslint-plugin-baseline-js"  # Phase 0's choice (docstring, 4); 0.7.6 on 2026-10-30
+COMPAT_LINT = "eslint-plugin-baseline-js"  # Phase 0's choice (docstring, 4); 0.7.7 on 2026-11-05
 LINT_SUPPORT = {"@eslint/js", "globals", COMPAT_LINT}
 SVG_NS = re.compile(r"^https?://www\.w3\.org/(2000/svg|1999/xhtml|1999/xlink|1998/Math/MathML|XML/1998/namespace)$")
 EXACT_VERSION = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$")
@@ -1100,10 +1100,22 @@ def criterion_6(ctx: Context) -> Result:
         if name not in pages:
             r.note(f"{name} is not in dist/ (PLAN: per the Open questions), so it is not expected to answer 200")
     version = ctx.pinned("wrangler", WRANGLER)
+    # The wrangler that npm ci or npm install put in node_modules, when it is the pinned version, so the
+    # GitHub check runs the tree package-lock.json pins. npx, run from the temporary folder below, never
+    # sees node_modules and would resolve its own tree into ~/.npm/_npx.
+    local = ctx.root / "node_modules/.bin/wrangler"
+    try:
+        local_version = json.loads((ctx.root / "node_modules/wrangler/package.json").read_text(encoding="utf-8")).get("version")
+    except (OSError, ValueError, AttributeError):
+        local_version = None
+    if local.is_file() and local_version == version:
+        wrangler, label = [str(local)], f"node_modules' wrangler {version}"
+    else:
+        wrangler, label = ["npx", "--yes", f"wrangler@{version}"], f"npx wrangler@{version}"
     tmp = Path(tempfile.mkdtemp(prefix="femto-style-wrangler-"))
     port, inspector = free_port(), free_port()
     log_path = tmp / "wrangler.log"
-    cmd = ["npx", "--yes", f"wrangler@{version}", "pages", "dev", str(dist), "--ip", "127.0.0.1", "--port", str(port),
+    cmd = [*wrangler, "pages", "dev", str(dist), "--ip", "127.0.0.1", "--port", str(port),
            "--inspector-port", str(inspector), "--persist-to", str(tmp / "state"), "--log-level", "warn",
            "--show-interactive-dev-session=false"]
     # WRANGLER_LOG_PATH keeps wrangler's debug log in the temporary folder (removed below) instead of
@@ -1123,9 +1135,9 @@ def criterion_6(ctx: Context) -> Result:
                 time.sleep(0.5)
         if not ready:
             tail = log_path.read_text(errors="replace")[-600:] if log_path.exists() else ""
-            r.fail(f"wrangler@{version} pages dev did not start within 180 s: {tail.strip()}")
+            r.fail(f"{label} pages dev did not start within 180 s: {tail.strip()}")
             return r
-        r.ok(f"served dist/ with npx wrangler@{version} pages dev on 127.0.0.1:{port}")
+        r.ok(f"served dist/ with {label} pages dev on 127.0.0.1:{port}")
         body_404 = not_found.read_bytes() if not_found.is_file() else None
         bad200, bad308, bad404 = [], [], []
         for path in sorted(ok_200):
@@ -1771,7 +1783,7 @@ def inline_rule_names(rules: str) -> list[str]:
 
 
 # Criterion 11's planted-violation probe. Each probe is Baseline newly available but not widely
-# available (in @eslint/css 2.0.1 and eslint-plugin-baseline-js 0.7.6 on 2026-10-30). Every run first
+# available (in @eslint/css 2.0.1 and eslint-plugin-baseline-js 0.7.7 on 2026-11-05). Every run first
 # calibrates them against the installed tools with a reference config, at "widely" and at "newly", and
 # keeps those reported at the first and not the second, so a data update that makes one widely
 # available only drops it. Both JS lists parse in any script or module, and the plugin reports the

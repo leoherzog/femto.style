@@ -1347,7 +1347,8 @@ Phase 4's gate (`p4-gate-a11y-2`, the 40 cells, and `p4-gate-a11y-widths-2`, the
 320, 768 and 1024: 100 cells, Chrome Beta 158 and Firefox 160, 0 errors) **passes: no serious or
 critical violation**. Phase 4 fixed all five rules. Their last target, Group's
 `button[aria-current="true"]` in dark (white on `#017fc0`, 4.37:1; jade's `#00895a`, 4.44:1), was
-femto's own hover background, which femto's c608ee06 fixed (owner decision 15). Listed (moderate):
+femto's own hover background, which femto's c608ee06 fixed (owner decision 15; amended into
+33d4dc6f, the vendored commit, owner decision 2). Listed (moderate):
 `landmark-unique` on the breadcrumb examples and the docs breadcrumb (femto styles breadcrumbs
 through `nav[aria-label="breadcrumb"]`, so they share the name) and on the Dropdown section's nav
 example.
@@ -3222,6 +3223,59 @@ both roots at 20 px and every compared value equal (355 elements and pseudo-elem
 `pre`, none canceled, and it scrolled to 234 px; `font-size-restored-switch` ended at the px table.
 With Chrome and Firefox's runs above, criterion 7 passes in all three browsers.
 
+### Phase 5: cleanup (2026-11-05)
+
+PLAN's Phase 5: packaging, hosting files, docs and a GitHub check. `package.json` pins the latest of
+each tool on npm (eslint-plugin-baseline-js 0.7.7, html-validate 11.18.0 and wrangler 4.158.0
+moved; the other four and Node 26.13.0 were current), and `package-lock.json` follows.
+`.prettierrc` keeps only `printWidth`, and `.gitignore` keeps every line, with `.env` under the
+Cloudflare heading. `site/_headers` gives the 15 `.woff2` files in `/assets/fonts/` a year
+(`immutable`) in place of the dead `/build/*` rule; `OFL.txt` beside them keeps Pages' default. The
+new `site/robots.txt` names the sitemap, and `404.html` has `noindex` in place of its canonical and
+`og:url`. README describes the GitHub check, the headers and robots.txt, says axe-core runs in
+Chrome and Firefox, and says another host needs Pages' rules. `LICENSE.md` keeps CC BY-SA and names
+the parts under their own licenses: femto (MIT), the fonts (OFL), the GitHub, npm and X icons (Font
+Awesome Free, CC BY 4.0) and the line icons (Tabler Icons and, for Grid's plus and minus, Feather;
+both MIT). PLAN.md's File tree adds `.github/workflows/check.yml` and catches up with Phase 4
+(`examples.css`, `examples.js`, `{{commit}}`). `check.yml` fetches femto at `SOURCE`'s commit into
+`../femto`, then runs `npm ci`, `npm run build`, `npm run lint` and `uv run tests/static_checks.py`
+on Linux, and never deploys. Criterion 6 now serves `dist/` with the wrangler in `node_modules` when
+its version is `package.json`'s pin, so the check runs the lockfile's, and with `npx wrangler@<pin>`
+otherwise. During the phase the owner amended femto's `c608ee06` into `33d4dc6f`, on femto's `dev`
+and `main` and on GitHub, and `npm run vendor` moved the site to it: one comment line goes from each
+of nine files in `css/themes/` and from `css/tokens/schemes.css`, and femto's `dist/` is unchanged
+(owner decision 2). Its gate: criteria 4, 5, 6, 11, 12 and 14.
+
+**How it ran.** Two writers, one on packaging and the hosting files and one on the check and the
+docs; a review and a first gate run; a fix round (the `.woff2` rule, README's browsers, the File
+tree, the icons' licenses, a comment in `check.yml`); a second gate run; a second review and fix
+round (Feather for Grid's two icons, criterion 6's wrangler, README's sentence on Pages' rules);
+then this third gate run.
+
+| Run | Command | Result | Wall clock |
+|---|---|---|---|
+| Static checks | `uv run tests/static_checks.py --json <scratch>` (phase 5, inferred from "Describe femto 3") | **4, 5, 6, 11, 12 and 14 PASS**; 3, 8, 9, 13 and the link check PASS (449 internal links; its six controls fail as intended); 15's static part passes (806,978 bytes raw, 63,164 gzipped, 42,073 with Brotli); 1, 2, 7, 10 and 15 NOT-YET; exit 0. Criterion 6 ran `node_modules`' wrangler 4.158.0: 23 URLs answer 200, two 308 and 84 paths 404 with the 404 body. A first run on Python 3.12.2 (the cached environment in the next row) gave the same | 18 s |
+| External links | `static_checks.py --criteria links --external` | **PASS: 67 of 67 outside URLs answer below 400**, the 11 links to femto's files at `33d4dc6f` among them (at Phase 4's gate, those 11 failed at `c608ee06`) and the 41 edit links on this repository's `main`; none pending. Run first on a script environment that uv had cached on python.org's Python 3.12.2, which has no CA certificates, it failed all 67 with `CERTIFICATE_VERIFY_FAILED`; `uv run --python 3.15` rebuilt the environment on uv's 3.15.2, and the same command then passed | 3 s |
+| Hosting | `node build.mjs --out <scratch>` (119 files, equal to `dist/`), `wrangler pages dev` 4.158.0 from `node_modules`, `curl` | The 15 `.woff2` files answer `public, max-age=31536000, immutable`. `OFL.txt`, `/`, `/docs`, `/examples`, `/404`, `common.css`, `fonts.css`, `site.js`, `femto.min.css`, `sitemap.xml`, `robots.txt`, `site.webmanifest` and `favicon.svg` answer Pages' `public, max-age=0, must-revalidate`. `/robots.txt` is 200 `text/plain`, the source file byte for byte, and names `https://femto.style/sitemap.xml`. `/no-such-page` is 404 with the 404 body (one `noindex` in its head, no canonical or `og:url`). The sitemap lists `/`, `/docs` and `/examples`, each 200. **`/_headers` answers 502, not 404**: wrangler's dev server looks up `dist/_headers/index.html` and fails with `ENOTDIR`, and its body is only that error. A build of `e03815b`, before Phase 5, answers the same, and so do `/robots.txt/x` and `/favicon.svg/x`; `/_redirects`, `/_routes.json` and `/_worker.js`, which `dist/` lacks, answer 404 | — |
+| GitHub check, simulated | check.yml's steps in a clone of the working tree, committed there as "Finish Static Site", with the three local-only tags removed (GitHub's `femto.style` has no tags, and its `dev` and `main` are at `e03815b`); each `run:` as written, under GitHub's default `bash --noprofile --norc -eo pipefail`, with no global git config and an empty npm cache; femto fetched from GitHub into the clone's `../femto` (one commit); Node 26.13.0, as `.node-version` says (Homebrew's `node@26`, npm 11.20.0; the machine's default is 24.22.0), and uv 0.13.6 | Fetch, `npm ci` (132 packages), build, lint and `static_checks.py` all exit 0. Phase 6 (commit "Finish Static Site"); **11 PASS, 0 FAIL, 5 NOT-YET**, with 12 (66 files equal the fetched commit) and 13 PASS, and criterion 6 on `node_modules`' wrangler 4.158.0 | 0.5 s, 2.8 s, 0.3 s, 0.9 s, 22 s |
+| actionlint | `uvx --from actionlint-py --with shellcheck-py actionlint .github/workflows/check.yml` (1.7.12) | Exit 0, no errors; the three action tags exist on GitHub (`checkout@v7`, `setup-node@v7`, `setup-uv@v10.3.3`) | 0 s |
+
+**Not verified here.**
+- `/_headers` on Cloudflare Pages itself: `wrangler pages deploy` leaves `_headers` out of the
+  uploaded files and sends it as configuration, so Pages should answer 404. Only the owner's deploy
+  can show it.
+- The check on GitHub's own runner: `ubuntu-latest`, the latest uv and the Python it picks there,
+  and `@cloudflare/workerd-linux-64` and `@esbuild/linux-x64` (both in the lockfile) for
+  criterion 6. A `pull_request` run checks out GitHub's merge commit, which the simulation did not.
+  The runner user owns the checkout and `../femto`, so git's `safe.directory` should not apply.
+  Linux file names are case-sensitive, and macOS's are not; no root-relative link in the build
+  differs from its file in case (315 checked).
+- The check runs only once the owner pushes the commit that adds it.
+- Criteria 7 and 10 were not rerun. Phase 5 changed the 404 page's head and comments in femto's
+  CSS, and no other markup, CSS or script.
+- `npm ci` reports 4 vulnerabilities in dev dependencies: 3 moderate, from `minimatch` under
+  eslint, and 1 high, `source-map-js` under `@eslint/css`. No criterion covers them.
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -3237,7 +3291,7 @@ rest, and the registered ones with a consequence a later phase owns.
 | React text separators | Two section files keep React's `<!-- -->` separator (`color-schemes.html`, `version-picker.html` and its 19 colors: 22 copies in `dist/`), for a sub-pixel label width (tests/convert/README.md). PLAN.md's Conversion rules strip them. | Kept through Phase 3: removing them brought the sub-pixel width back in Chrome only (196 unregistered records in 46 of 1,368 cells, `p3-review-behavior-3-sections-full-1`: color-schemes' two "Remember me" labels at 1100 and 1300, 180.359 against 180.375 px, and "I agree to the" on the version picker and its 19 color routes at 1300, 299.859 against 299.875 px), which no category covers. `color-schemes.html` (two) and `version-picker.html` (one) carry the explained separator again, as at `static-femto` (`p3-registry-separator-probe-1` passes with them); `dist/docs.html` has three. Settled in Phase 4, where parity no longer binds: removed, and `dist/docs.html` has none |
 | Per-route build scaffolding | In per-route mode `build.mjs` also swaps literal markup in `docs.html` per route (the `<main>` class, the breadcrumb's chapter, the Close link, canonical, `og:url`), fills two slot comments (`<!-- docs:menu -->`, `<!-- docs:sections -->`) and adds route stylesheets; `menu.json` carries `route`, `label`, `routeTitle`, `toc`, `styles` and `variants` beyond the File tree's id, title, description. PLAN.md allows only the include markers and three placeholders. | Settled 2026-10-31, accepted as scaffolding for Phases 1 and 2 (PLAN.md File tree, Per-route scaffolding). Settled in Phase 3: `build.mjs` has no slot comments or per-route swaps, and `menu.json` keeps only id, title, description and label |
 | The palette download | 01 §2 and 03 §5 plan a static JSON file written by the build; Phase 1's `colors.js` makes an on-load `blob:` URL, for parity with the oracle's (normalized by the `blob:` value rule). No phase owns the switch. | Settled 2026-10-31: Phase 3 switches to the build's static JSON file (PLAN.md Workflow) and registers the URL as `asset-path`. Done in Phase 3: `build.mjs` writes `assets/femto-color-palette.json`, the Download link points at it, registered as p3-colors-palette-download |
-| File tree extras | `site/partials/` holds `docs-header.html`, `logo.html`, `nav-icons.html` and `structured-data.html` beyond head, header and footer; the root holds `vendor.mjs` and `eslint.config.js`; `site/docs/sections/version-picker/<color>.html` are 19 per-route files. `.prettierrc` names a plugin no longer installed, `robots.txt` is absent, and `site/_headers` still caches `/build/*`. | Settled 2026-10-31: PLAN.md's File tree lists the extra partials, `vendor.mjs`, `eslint.config.js` and the color files; Phase 3 deletes the color files (done: `site/docs/sections/version-picker/` is gone), Phase 5 the rest |
+| File tree extras | `site/partials/` holds `docs-header.html`, `logo.html`, `nav-icons.html` and `structured-data.html` beyond head, header and footer; the root holds `vendor.mjs` and `eslint.config.js`; `site/docs/sections/version-picker/<color>.html` are 19 per-route files. `.prettierrc` names a plugin no longer installed, `robots.txt` is absent, and `site/_headers` still caches `/build/*`. | Settled 2026-10-31: PLAN.md's File tree lists the extra partials, `vendor.mjs`, `eslint.config.js` and the color files; Phase 3 deletes the color files (done: `site/docs/sections/version-picker/` is gone), Phase 5 the rest. Settled in Phase 5: `.prettierrc` keeps only `printWidth` 100, `site/robots.txt` allows every crawler and names `https://femto.style/sitemap.xml`, and `site/_headers` caches only `/assets/fonts/*.woff2`, for a year (`immutable`); the `/build/*` rule is gone |
 | Pages-inherent paths | `/404` answers 200 (the 404 page), and `/404.html`, `/index`, `/index.html`, `/docs/index` and a page's `.html` name redirect (Cloudflare Pages' pretty URLs). Criterion 6 says any other path answers 404; `static_checks.py` probes these and lists them as notes (`PAGES_INHERENT`). | Settled 2026-10-31: accepted in PLAN.md Risks (Cloudflare), and criterion 6 exempts them |
 | Early widget fixes | The color modal's focus and Tab handling, the swatch focus and the restored font-size switch (Behavior, Expected failures). | Settled 2026-10-31: confirmed (PLAN.md, Conversion rules, JavaScript) |
 | `<body style="min-height:100vh">` | The oracle's server HTML had it, so the static pages do (round 1 of the fixes, PH-7); site.js still sets innerHeight in px. html-validate's `no-inline-style` reports it on every page (criterion 9). | Settled in Phase 3: no page's `<body>` carries the attribute, and dropping it changed nothing on the five pages (p3-validate-pages-body-1: 64 cells, 0 differences) |
@@ -3310,7 +3364,13 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    (`css/components/modal.css` and `dist/femto.css` and `femto.min.css`). Moved 2026-11-05, during
    Phase 4: c608ee06 ("Darken Dark Hover Backgrounds For Contrast", on femto's `dev`, still
    3.0.0-alpha.1), vendored with `npm run vendor`. It changes `css/tokens/schemes.css`, nine theme
-   files and `dist/femto.css` and `femto.min.css` (owner decision 15).
+   files and `dist/femto.css` and `femto.min.css` (owner decision 15). Moved 2026-11-05, during
+   Phase 5: the owner amended c608ee06 into 33d4dc6f ("Darken Dark Hover Backgrounds For Contrast",
+   on femto's `dev` and `main` and pushed to GitHub, still 3.0.0-alpha.1), so c608ee06 is on no
+   branch, and the site was vendored at 33d4dc6f with `npm run vendor`. Its only change to the
+   vendored files drops the one-line comment above `--femto-primary-hover-background` in
+   `css/tokens/schemes.css` and the same nine theme files; `dist/` is unchanged. The GitHub check
+   fetches this commit (PLAN.md Risks, femto's working tree).
 3. **`.gitignore`**: settled 2026-10-30. It reads `/dist/`, so `site/vendor/femto/dist/` is no
    longer ignored.
 4. **PLAN and its sources disagree** in four places the static checks had settled silently. All
@@ -3392,4 +3452,4 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    on every hovered, focused, pressed or current button. The owner chose to fix it in femto, rather
    than record an exception or change the example. femto's c608ee06 gives those nine themes their
    light value in both schemes (5.41:1 to 6.54:1), registered in femto's own divergences, and the
-   site vendors it (owner decision 2).
+   site vendors it (owner decision 2), since 2026-11-05 as 33d4dc6f, the amended commit.

@@ -1,6 +1,6 @@
 # femto Documentation
 
-[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`. Nothing from npm ships: `dist/` is static files that any web server can host, and Node and npm are only needed to build, preview, check and deploy it.
+[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`. Nothing from npm ships: `dist/` is static files, and Node and npm are only needed to build, preview, check and deploy it.
 
 The site was converted from the Remix site it replaces, and [PLAN.md](PLAN.md) is the plan, with its research in `docs/research/`. Its text is written for femto 3 from femto's README.
 
@@ -44,7 +44,7 @@ Or name another checkout and a commit: `npm run vendor -- <checkout> [<commit>]`
 
 ## Tests
 
-`tests/` holds the parity harness, which compared the static site with the Remix site it replaces (tag `remix-final`) through the conversion, and the checks that hold the site now: the behavior suite, axe-core accessibility, the static checks and a link check, in real Chrome, Firefox and Safari on macOS. It runs with [uv](https://docs.astral.sh/uv/); [tests/README.md](tests/README.md) has the setup and every mode. For example, the static checks, the behavior suite and the accessibility check against `dist/`:
+`tests/` holds the parity harness, which compared the static site with the Remix site it replaces (tag `remix-final`) through the conversion, and the checks that hold the site now: the behavior suite, in real Chrome, Firefox and Safari on macOS; axe-core accessibility, in Chrome and Firefox; and the static checks and a link check, which need no browser. It runs with [uv](https://docs.astral.sh/uv/); [tests/README.md](tests/README.md) has the setup and every mode. For example, the static checks, the behavior suite and the accessibility check against `dist/`:
 
 ```bash
 uv run tests/run.py static
@@ -58,12 +58,14 @@ uv run tests/run.py behavior --target dist
 uv run tests/run.py a11y --target dist
 ```
 
+On every push and pull request, GitHub runs `.github/workflows/check.yml` on Linux: `npm ci`, `npm run build`, `npm run lint` and `uv run tests/static_checks.py`. It fetches femto at the commit `SOURCE` names into `../femto`, beside the checkout, so the vendored copy and the docs are checked against that commit. The criteria that need the browsers report NOT-YET there, and any failing criterion fails the run. It never deploys.
+
 ## Deploy
 
-`npm run deploy` builds the site and uploads `dist/` to Cloudflare Pages with `wrangler pages deploy`, which needs a Cloudflare account signed in with `npx wrangler login`.
+`npm run deploy` builds the site and uploads `dist/` to Cloudflare Pages with `wrangler pages deploy`, which needs a Cloudflare account signed in with `npx wrangler login`. The site relies on Pages' own rules (PLAN.md Decision 11): Pages serves `docs.html` at `/docs` and `examples.html` at `/examples`, answers unknown paths with `404.html` and applies `_headers`, so another host needs the same rules. `site/_headers` gives the fonts in `/assets/fonts/` a year of caching; everything else keeps Pages' default, which revalidates on every request. `site/robots.txt` names the sitemap that the build writes, `https://femto.style/sitemap.xml`.
 
 ## License
 
 femto.style is adapted from the [Pico CSS documentation](https://github.com/picocss/picocss.com) by [Lucas Larroche](https://lucaslarroche.com/), licensed under [CC BY-SA 4.0](https://github.com/picocss/picocss.com/blob/main/LICENSE.md), and has been changed to document [femto](https://github.com/leoherzog/femto). This adaptation is also licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); see [LICENSE.md](LICENSE.md).
 
-Two parts keep their own licenses: femto itself, in `site/vendor/femto/`, is MIT-licensed (its [LICENSE.md](site/vendor/femto/LICENSE.md)), and the fonts in `site/assets/fonts/` (Figtree, Fira Code and Pacifico) are under the SIL Open Font License 1.1 ([OFL.txt](site/assets/fonts/OFL.txt)).
+Some parts keep their own licenses: femto itself, in `site/vendor/femto/`, is MIT-licensed (its [LICENSE.md](site/vendor/femto/LICENSE.md)); the fonts in `site/assets/fonts/` (Figtree, Fira Code and Pacifico) are under the SIL Open Font License 1.1 ([OFL.txt](site/assets/fonts/OFL.txt)); the GitHub, npm and X icons are Font Awesome Free icons, under [CC BY 4.0](https://fontawesome.com/license/free); and the line icons come from [Tabler Icons](https://tabler.io/icons) and, in the Grid section, [Feather](https://feathericons.com), both under the MIT license.
