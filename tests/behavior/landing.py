@@ -208,7 +208,7 @@ def demo_variant(page):
                     and st["role"] is None and st["invalid"] is None, **st)
 
 
-TOGGLE = "body > header nav ul.icons :is(a, button)[aria-label$='dark mode']"   # a button from Phase 4
+TOGGLE = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # a button from Phase 4
 COMPARISON = "[...document.querySelectorAll('main > section.comparison div.code[data-theme]')].map(d => d.getAttribute('data-theme'))"
 
 

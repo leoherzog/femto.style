@@ -367,16 +367,17 @@ widgets("breadcrumb", breadcrumb);
 widgets("getting-started", () => {
   // The Color schemes section: its own theme switcher (docs.color-schemes.jsx),
   // button[data-scheme-switcher], which switches the page's scheme as the header toggle does, its
-  // icon's class and its label following the scheme: "icon-theme-toggle theme-toggle" (" moon" added
-  // when dark; the emoji of Decision 16) and "Turn on dark mode" or "Turn off dark mode", the text
-  // after the icon. The Theme picker is picker.js's.
+  // icon and its label following the scheme: the icon a decorative span[role=img] (Decision 18)
+  // holding the header toggle's sun or moon emoji (Decision 16), and "Turn on dark mode" or "Turn off
+  // dark mode", the text after the icon. The Theme picker is picker.js's.
   const button = document.querySelector("button[data-scheme-switcher]");
-  const icon = button?.querySelector(":scope > .icon-theme-toggle");
+  const icon = button?.querySelector(":scope > span[role=img]");
   const label = button && [...button.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
   if (!icon || !label) return;
   const show = (theme) => {
     const dark = theme === "dark";
-    setAttr(icon, "class", dark ? "icon-theme-toggle theme-toggle moon" : "icon-theme-toggle theme-toggle");
+    const emoji = site.SCHEME_EMOJI[dark ? "dark" : "light"];
+    if (icon.textContent !== emoji) icon.textContent = emoji;
     const text = dark ? "Turn off dark mode" : "Turn on dark mode";
     if (label.data !== text) label.data = text;
   };

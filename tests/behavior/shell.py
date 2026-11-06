@@ -16,14 +16,13 @@ from behavior import COPY_SPY, HEADING_LINE, check, nav_href
 
 GROUP = "shell"
 
-TOGGLE = "body > header nav ul.icons :is(a, button)[aria-label$='dark mode']"   # a button from Phase 4, the oracle's link
+TOGGLE = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # a button named by its icon (Decision 18), the oracle's link
 KEY = "femtoColorScheme"
 
 THEME_STATE = """
-const a = document.querySelector(arguments[0]);
+const a = document.querySelector(arguments[0]), i = a && a.querySelector(":scope > span[role=img]");
 return {theme: document.documentElement.getAttribute("data-theme"), stored: localStorage.getItem(arguments[1]),
-        label: a && a.getAttribute("aria-label"), moon: !!(a && a.querySelector(".icon-theme-toggle.moon")),
-        icon: !!(a && a.querySelector(".icon-theme-toggle"))};
+        label: i && i.getAttribute("aria-label"), moon: !!i && i.textContent === "\\u{1F319}", icon: !!i};
 """
 
 
@@ -35,8 +34,9 @@ def wait_label(page, label):
     """The toggle's label and icon settle within 1 s of a load or a change (the oracle relabels it in
     a React effect after the attribute changes)."""
     page.wait(f"toggle reads {label!r}", "(() => { const a = document.querySelector(arguments[0]);"
-              " return a && a.getAttribute('aria-label') === arguments[1]"
-              " && !!a.querySelector('.icon-theme-toggle.moon') === (arguments[1] === 'Turn off dark mode'); })()",
+              " const i = a && a.querySelector(':scope > span[role=img]');"
+              " return !!i && i.getAttribute('aria-label') === arguments[1]"
+              " && (i.textContent === '\\u{1F319}') === (arguments[1] === 'Turn off dark mode'); })()",
               1, args=(TOGGLE, label))
 
 
@@ -47,17 +47,18 @@ def toggle_and_expect(page, theme_after, label_after):
               "document.documentElement.getAttribute('data-theme') === arguments[0]", 2, args=(theme_after,))
     page.eq(f"{KEY} stores {theme_after!r} as JSON", theme(page)["stored"], f'"{theme_after}"')
     wait_label(page, label_after)
-    page.eq(f"toggle icon {'has' if theme_after == 'dark' else 'lacks'} the moon class", theme(page)["moon"], theme_after == "dark")
+    page.eq(f"toggle icon is {'the moon' if theme_after == 'dark' else 'the sun'}", theme(page)["moon"], theme_after == "dark")
     page.url_kept("the toggle does not navigate (no #)", url)
 
 
 @check("theme-toggle", ("/", "/docs#typography"))
 def theme_toggle(page):
     """With a light OS scheme and nothing stored: <html> has no data-theme, the header toggle
-    (`ul.icons button`, the oracle's `ul.icons a`; its icon `.icon-theme-toggle`: the oracle's SVG, the site's emoji of Decision
-    16) reads "Turn on dark mode" without the `moon` class. A click sets data-theme="dark" on
-    <html>, stores localStorage femtoColorScheme = '"dark"' (JSON), relabels the toggle "Turn off
-    dark mode" and adds `moon`; the URL is unchanged (no `#`).
+    (`ul.icons button`, the oracle's `ul.icons a`; its icon, the oracle's SVG, is the site's
+    `span[role=img]` of Decision 18 holding the emoji of Decision 16, and names the button) reads
+    "Turn on dark mode" with the sun ☀️. A click sets data-theme="dark" on <html>, stores
+    localStorage femtoColorScheme = '"dark"' (JSON), relabels the toggle "Turn off dark mode" and
+    shows the moon 🌙; the URL is unchanged (no `#`).
     A second click stores '"light"', sets data-theme="light" and restores the label and icon."""
     s = theme(page)
     page.eq("no data-theme before any choice", s["theme"], None)
@@ -270,8 +271,9 @@ def header_landing(page):
 
 COPY_STATE = """
 const a = arguments[0];
-return {tooltip: a.getAttribute("data-tooltip"), check: !!a.querySelector(".icon-check"), clipboard: !!a.querySelector(".icon-copy"),
-        focused: document.activeElement === a, copied: window.__bhCopied};
+const i = a.querySelector(":scope > span[role=img]"), glyph = i && i.textContent;
+return {tooltip: a.getAttribute("data-tooltip"), check: glyph === "\\u2713", clipboard: glyph === "\\u29C9",
+        label: i && i.getAttribute("aria-label"), focused: document.activeElement === a, copied: window.__bhCopied};
 """
 
 # Records the copy link's tooltip and icon on every change, and the click, with performance.now()
@@ -280,7 +282,8 @@ COPY_TIMELINE = """
 const a = arguments[0];
 window.__bhCopy = [];
 const t = () => Math.round(performance.now());
-const state = () => [a.getAttribute("data-tooltip"), a.querySelector(".icon-check") ? "check" : a.querySelector(".icon-copy") ? "clipboard" : "none"];
+const glyph = () => a.querySelector(":scope > span[role=img]")?.textContent;
+const state = () => [a.getAttribute("data-tooltip"), glyph() === "\\u2713" ? "check" : glyph() === "\\u29C9" ? "clipboard" : "none"];
 let last = JSON.stringify(state());
 new MutationObserver(() => { const s = state(), j = JSON.stringify(s); if (j !== last) { __bhCopy.push([t(), ...s]); last = j; } })
   .observe(a, {attributes: true, childList: true, subtree: true});
@@ -291,13 +294,14 @@ a.addEventListener("click", () => __bhCopy.push([t(), "click"]), true);
 @check("copy-button", ("/docs", "/docs#modal"))
 def copy_button(page):
     """Each code block's copy control of the route's content (`.copy-to-clipboard`: a button from
-    Phase 4, the oracle's link; data-tooltip "Copy to clipboard", icon
-    `.icon-copy`): a click copies exactly that block's code text (its `pre code` textContent; the
+    Phase 4, the oracle's link; data-tooltip "Copy to clipboard", its icon a `span[role=img]` holding
+    ⧉ that names it, Decision 18): a click copies exactly that block's code text (its `pre code`
+    textContent; the
     copy is recorded in the page, the machine's clipboard is never touched) and leaves the URL as it
     was. Timed in the page: within 100 ms of the click the tooltip reads "Copied" with the animated
-    `.icon-check` icon, and 1 s later (900 to 1500 ms) "Copy to clipboard" with `.icon-copy` again,
-    with no other step; the control then does not hold focus (a pointer click blurs it). A second
-    block's control copies its own code."""
+    check ✓, named as the copy icon was, and 1 s later (900 to 1500 ms) "Copy to clipboard" with ⧉
+    again, with no other step; the control then does not hold focus (a pointer click blurs it). A
+    second block's control copies its own code."""
     page.js(COPY_SPY)
     links = page.find_all(".copy-to-clipboard")
     page.expect("at least two copy links", len(links) >= 2, count=len(links))
@@ -306,17 +310,20 @@ def copy_button(page):
         s = page.js(COPY_STATE, link)
         page.eq(f"link {n}: tooltip 'Copy to clipboard' before", s["tooltip"], "Copy to clipboard")
         page.expect(f"link {n}: clipboard icon before", s["clipboard"] and not s["check"], **s)
+        name = s["label"]
+        page.expect(f"link {n}: the icon names the button", bool(name), **s)
         url = page.url()
         page.js("window.__bhCopied.length = 0")
         page.js(COPY_TIMELINE, link)
         page.click(link)
         page.wait(f"link {n}: copied", "window.__bhCopied.length > 0", 1)
         s = page.js(COPY_STATE, link)
+        page.eq(f"link {n}: the check keeps the button's name", [s["check"], s["label"]], [True, name], **s)
         page.eq(f"link {n}: copied once", len(s["copied"]), 1, copied=s["copied"])
         page.eq(f"link {n}: copied the block's code", s["copied"][0]["text"], code, via=s["copied"][0]["via"])
         page.url_kept(f"link {n}: URL unchanged", url)
         page.wait(f"link {n}: reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && "
-                  "!!arguments[0].querySelector('.icon-copy') && window.__bhCopy.length >= 3", 2.5, args=(link,))
+                  "arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9' && window.__bhCopy.length >= 3", 2.5, args=(link,))
         tl = page.js("return window.__bhCopy")
         page.eq(f"link {n}: the steps", [x[1:] for x in tl], [["click"], ["Copied", "check"], ["Copy to clipboard", "clipboard"]],
                 timeline=tl)
@@ -329,7 +336,7 @@ def copy_button(page):
 def copy_button_repeat(page):
     """Repeated use of a copy control, as Code.jsx behaves (every click schedules its own 1 s revert,
     and the first one to fire reverts): two clicks 500 ms apart copy the block's code twice, and
-    "Copied" reverts to "Copy to clipboard" with `.icon-copy` once, 1 s after the FIRST click (900
+    "Copied" reverts to "Copy to clipboard" with ⧉ once, 1 s after the FIRST click (900
     to 1200 ms), with no other step; the control then does not hold focus."""
     page.js(COPY_SPY)
     link = page.find_all(".copy-to-clipboard")[0]
@@ -338,7 +345,7 @@ def copy_button_repeat(page):
     page.click(link)
     page.sleep(0.5)
     page.click(link)
-    page.wait("reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && !!arguments[0].querySelector('.icon-copy')",
+    page.wait("reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9'",
               3, args=(link,))
     page.sleep(0.8)   # a later, wrong revert or step would show by now
     tl = page.js("return window.__bhCopy")
@@ -599,7 +606,7 @@ return {open: m.classList.contains("is-open-on-mobile"), overflowY: getComputedS
         focusInside: m.contains(document.activeElement)};
 """
 OPENER = "nav[aria-label=breadcrumb] ul li:first-child :is(a, button)"   # buttons from Phase 4, the oracle's links
-CLOSE = "#documentation-menu header :is(a, button)[aria-label=Close]"
+CLOSE = "#documentation-menu header button:has(> span[role=img][aria-label=Close])"   # named by its icon (Decision 18)
 IS_OPEN = "document.querySelector('#documentation-menu').classList.contains('is-open-on-mobile')"
 
 
@@ -608,7 +615,8 @@ def mobile_menu(page):
     """At 375 px the breadcrumb's "Documentation" control (a button; the oracle's a link) opens the
     off-canvas menu: a click adds `is-open-on-mobile` to `aside#documentation-menu`, <html> stops
     scrolling (overflow-y hidden) and the URL is unchanged; the menu's own Close control (`header
-    [aria-label=Close]`) removes the class, scrolling returns and the URL is still unchanged."""
+    button`, named "Close" by its icon) removes the class, scrolling returns and the URL is still
+    unchanged."""
     s = page.js(MOBILE)
     page.eq("closed on load", s["open"], False)
     url = page.url()
@@ -779,7 +787,8 @@ def breadcrumb_chapter(page):
               got=page.js("return document.querySelector('nav[aria-label=breadcrumb] ul li:last-child').textContent.trim()"))
     r = page.js("""const n = document.querySelector('nav[aria-label=breadcrumb]');
       const a = n.querySelector('ul li:first-child > :is(a, button)');
-      return a && {tag: a.localName, text: a.textContent.trim(), href: a.getAttribute('href'), type: a.getAttribute('type'),
+      const text = a && [...a.childNodes].filter(c => !(c.nodeType === 1 && c.matches('[role=img]'))).map(c => c.textContent).join('');
+      return a && {tag: a.localName, text: text.trim(), href: a.getAttribute('href'), type: a.getAttribute('type'),
                    controls: a.getAttribute('aria-controls')}""")
     page.expect("the first item is a link or a button", r is not None)
     page.eq("the first item is Documentation", r["text"], "Documentation")
@@ -1031,7 +1040,7 @@ def copy_keyboard(page):
     page.eq("Enter: the block's code", s["copied"][0]["text"], code)
     page.eq("Enter: the tooltip reads Copied", s["tooltip"], "Copied")
     page.eq("the status line says Copied", page.js(STATUS), "Copied")
-    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && !!arguments[0].querySelector('.icon-copy')",
+    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9'",
               2, args=(btn,))
     page.sleep(0.2)
     page.eq("keyboard focus stays on the button", page.js(COPY_INFO, btn)["focused"], True)

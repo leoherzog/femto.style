@@ -230,10 +230,12 @@ main > [aria-label=breadcrumb] ul li:last-child {
   }
 }
 
-main > [aria-label=breadcrumb] .icon {
+/* The Documentation button's menu character ☰ (Decision 18), which is small for its em, so it is
+   drawn larger without changing the line */
+main > [aria-label=breadcrumb] span[role=img] {
   margin-right: var(--femto-nav-link-spacing-horizontal);
   font-size: 1.125rem;
-  transform: translateY(-0.0625rem);
+  transform: translateY(-0.0625rem) scale(1.25);
 }
 
 main > [aria-label=breadcrumb] a[aria-current] {
@@ -370,7 +372,7 @@ main > aside#documentation-menu header button:focus-visible {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
-main > aside#documentation-menu header button .icon {
+main > aside#documentation-menu header button > span[role=img] {
   display: block;
   font-size: 1.125rem;
 }
@@ -526,7 +528,7 @@ main > [role=document] article form > *:last-child:not(footer, .grid) {
   margin-bottom: 0;
 }
 
-main > [role=document] .edit-on-github .icon {
+main > [role=document] .edit-on-github span[role=img] {
   margin-right: calc(var(--femto-spacing) * 0.25);
   font-size: 1rem;
   transform: translateY(-0.0625rem);
@@ -573,7 +575,7 @@ main > [role=document] .edit-on-github .icon {
   margin-bottom: var(--femto-spacing);
 }
 
-[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button .icon {
+[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button > span[role=img] {
   margin-right: 0.5em;
 }
 
@@ -633,6 +635,12 @@ main > [role=document] .edit-on-github .icon {
 [role=document] > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav ul li a.focused {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
   color: var(--femto-primary-hover);
+}
+
+/* The icon links example's Menu link: its menu character ☰ (Decision 18) is small for its em, so it
+   is drawn larger without changing the line, as the breadcrumb's is */
+[role=document] > section:where(:has(> hgroup > h1[id=nav])) nav[data-nav-example] a > span[role=img] {
+  transform: scale(1.25);
 }
 
 /**
@@ -716,11 +724,13 @@ article.color-picker > header a {
   border-radius: 50%;
 }
 
-/* The picked swatch's check (Decision 17): half the swatch's width, at most 1.5rem, as the SVG it
-   replaced was */
-article.color-picker > header a .icon {
+/* The picked swatch's check ✓ (Decision 18): half the swatch's width, at most 1.5rem, as the SVG it
+   replaced was, in bold and drawn in with common.css's icon-check */
+article.color-picker > header a > span[role=img] {
+  font-weight: bold;
   font-size: min(1.5rem, 50cqi);
   opacity: 0.875;
+  animation: icon-check 0.2s ease-out;
 }
 
 /* The focused swatch draws its ring inside: a contrast ring with an inverse ring within it, which
@@ -909,7 +919,7 @@ dialog.color > article header {
   transition: color var(--femto-transition), background-color var(--femto-transition);
 }
 
-/* The close button: the header's own close icon (Decision 17's character) in its text color,
+/* The close button: the header's own close icon (Decision 18's ✕) in its text color,
    without femto's background icon, and a focus ring on keyboard focus only, as the link it replaced
    had */
 dialog.color > article header button.close {
@@ -929,7 +939,7 @@ dialog.color > article header button.close {
 
 /* Its icon at about the size of the 24px SVG it replaced (20px at the root's base size), which
    overflowed femto's 1rem button as this does */
-dialog.color > article header button.close .icon {
+dialog.color > article header button.close > span[role=img] {
   font-size: 1.25rem;
 }
 

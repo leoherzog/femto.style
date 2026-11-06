@@ -208,15 +208,15 @@ function step({ family, shade }, key) {
 }
 
 // --- Color modal (ColorModal.jsx) -----------------------------------------------------------------
-// The markup is ColorModal.jsx's as React renders it, with Decision 17's character icons for its
-// close and copy icons (span.icon-close, span.icon-copy), and each value is Code.jsx's block
-// (className "small", language html), its copy button carrying data-copy-link as the docs' own do,
-// so site.js's copy handler takes it. Prism's markup grammar finds no token in any
-// of the five values, so each is one plain text run, which react-syntax-highlighter writes as
+// The markup is ColorModal.jsx's as React renders it, with Decision 18's icons for its close and
+// copy icons (a span[role=img] holding ✕ or ⧉, which names its button), and each value is
+// Code.jsx's block (className "small", language html), its copy button carrying data-copy-link as
+// the docs' own do, so site.js's copy handler takes it. Prism's markup grammar finds no token in
+// any of the five values, so each is one plain text run, which react-syntax-highlighter writes as
 // <span class="">.
 
-const CLOSE_ICON = '<span class="icon icon-close" aria-hidden="true"></span>';
-const COPY_ICON = '<span class="icon icon-copy" aria-hidden="true"></span>';
+const CLOSE_ICON = '<span role="img" aria-label="Close">\u2715</span>';
+const COPY_ICON = (label) => `<span role="img" aria-label="${label}">\u29C9</span>`;
 
 // The five rows: label, and the value shown for a color.
 const ROWS = [
@@ -245,9 +245,9 @@ if (families) {
   dialog.setAttribute("aria-labelledby", "color-dialog-title");
   dialog.setAttribute("aria-modal", "true");
   // Each copy button is named by its row ("Copy hexadecimal color", "Copy RGB color"), so a screen
-  // reader can tell the five apart; the row's label is a separate <p>.
-  const copyButton = (label) => `<button type="button" class="copy-to-clipboard" aria-label="Copy ${label.replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase())}" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link>${COPY_ICON}</button>`;
-  dialog.innerHTML = `<article><header><button type="button" aria-label="Close" class="close">${CLOSE_ICON}</button>`
+  // reader can tell the five apart; the row's label is a separate <p>. The name is its icon's.
+  const copyButton = (label) => `<button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link>${COPY_ICON(`Copy ${label.replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase())}`)}</button>`;
+  dialog.innerHTML = `<article><header><button type="button" class="close">${CLOSE_ICON}</button>`
     + '<hgroup aria-live="polite" aria-atomic="true"><h3 class="color-family" id="color-dialog-title"></h3>'
     + '<p class="color-shade"></p></hgroup></header><div class="grid">'
     + ROWS.map(([label]) => `<p>${label}</p><div class="code small" data-theme="dark">${copyButton(label)}`

@@ -74,8 +74,10 @@ export function onThemeChange(fn) {
 }
 
 // The header toggle (button[data-scheme-toggle] in the header nav, a link in the oracle's Nav.jsx
-// until Phase 4): its label and the icon's moon class follow the scheme. The icon is the owner's sun
-// or moon emoji (Decision 16), not the oracle's animated SVG.
+// until Phase 4): its icon, the button's one child, a span[role=img] (Decision 18), is the owner's
+// sun or moon emoji (Decision 16), not the oracle's animated SVG, and names the button. Its emoji
+// and its aria-label follow the scheme. docs.js's Color schemes switcher shows the same emoji.
+export const SCHEME_EMOJI = { light: "\u2600\uFE0F", dark: "\u{1F319}" };
 const toggles = [...document.querySelectorAll("button[data-scheme-toggle]")];
 
 function applyTheme() {
@@ -86,8 +88,12 @@ function applyTheme() {
   const theme = pageTheme();
   const dark = theme === "dark";
   for (const toggle of toggles) {
-    toggle.setAttribute("aria-label", dark ? "Turn off dark mode" : "Turn on dark mode");
-    toggle.querySelector(".icon-theme-toggle")?.classList.toggle("moon", dark);
+    const icon = toggle.querySelector(":scope > span[role=img]");
+    if (!icon) continue;
+    const label = dark ? "Turn off dark mode" : "Turn on dark mode";
+    if (icon.getAttribute("aria-label") !== label) icon.setAttribute("aria-label", label);
+    const emoji = SCHEME_EMOJI[dark ? "dark" : "light"];
+    if (icon.textContent !== emoji) icon.textContent = emoji;
   }
   for (const fn of themeListeners) fn(theme);
 }
@@ -144,17 +150,19 @@ if (fixedHeader) {
 // reverts a "Copied" a still later click showed. A screen reader hears "Copied" too, which the
 // tooltip alone does not say: it is written into one visually hidden status region (p.visually-hidden
 // role="status", the last child of <body>, added once a page has a copy button) and cleared again at
-// the revert, so the next copy is announced again. The icons are Decision 17's characters: the
-// clipboard is span.icon-copy, and the check, span.icon-check, is drawn in with common.css's
-// icon-check animation each time it is added.
+// the revert, so the next copy is announced again. The icons are Decision 18's: the button's one
+// child, a span[role=img] holding the copy character ⧉ and naming the button (aria-label "Copy
+// code"), which gives way to a check ✓ with the same name, since the button still copies; the
+// status region says "Copied". code.css draws the check in, by the "Copied" tooltip.
 
 const COPIED_FOR = 1000;
 const copied = new WeakMap(); // button -> {icon, check} while it shows "Copied"
 
-function checkIcon() {
+function checkIcon(label) {
   const check = document.createElement("span");
-  check.className = "icon icon-check";
-  check.setAttribute("aria-hidden", "true");
+  check.setAttribute("role", "img");
+  if (label) check.setAttribute("aria-label", label);
+  check.textContent = "\u2713";
   return check;
 }
 
@@ -177,9 +185,9 @@ document.addEventListener("click", (event) => {
   const code = button.parentElement.querySelector("pre code");
   if (code) navigator.clipboard?.writeText(code.textContent).catch(() => {});
   if (!copied.has(button)) {
-    const icon = button.querySelector(".icon-copy");
+    const icon = button.querySelector(":scope > span[role=img]");
     if (!icon) return;
-    const check = checkIcon();
+    const check = checkIcon(icon.getAttribute("aria-label"));
     icon.replaceWith(check);
     button.setAttribute("data-tooltip", "Copied");
     copied.set(button, { icon, check });

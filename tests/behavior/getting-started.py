@@ -508,24 +508,28 @@ def picker_links(page):
 
 SWITCHER = """
 const b = document.querySelector("#theme-switcher button"), a = document.querySelector(arguments[0]);
-return {text: b.textContent.trim(), moon: !!b.querySelector(".theme-toggle.moon"), icon: !!b.querySelector(".icon-theme-toggle.theme-toggle"),
+const i = b.querySelector(":scope > span[role=img]"), hi = a && a.querySelector(":scope > span[role=img]");
+return {text: [...b.childNodes].filter(n => n.nodeType === 3).map(n => n.data).join("").trim(),
+        moon: !!i && i.textContent === "\\u{1F319}", icon: !!i && i.getAttribute("aria-hidden") === "true",
         theme: document.documentElement.getAttribute("data-theme"), stored: localStorage.getItem("femtoColorScheme"),
-        header: a && a.getAttribute("aria-label")};
+        header: hi && hi.getAttribute("aria-label")};
 """
-HEADER_TOGGLE = "body > header nav ul.icons :is(a, button)[aria-label$='dark mode']"   # a button from Phase 4
+HEADER_TOGGLE = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # a button named by its icon (Decision 18)
 
 
 @check("color-schemes-toggle", "/docs#color-schemes")
 def color_schemes_toggle(page):
-    """The Color schemes section's own switcher (`#theme-switcher button`, icon `.icon-theme-toggle.
-    theme-toggle`: the oracle's SVG, the site's emoji of Decision 16) reads "Turn on dark mode" on a
-    light OS; a click sets data-theme="dark", stores '"dark"', and both it ("Turn off dark mode",
-    icon with `moon`) and the header toggle relabel; a second click returns to light. The header
-    toggle drives it too."""
+    """The Color schemes section's own switcher (`#theme-switcher button`; its icon, the oracle's
+    SVG, is a decorative `span[role=img]` of Decision 18 holding the emoji of Decision 16) reads
+    "Turn on dark mode" with the sun on a light OS; a click sets data-theme="dark", stores
+    '"dark"', and both it ("Turn off dark mode", with the moon) and the header toggle relabel; a
+    second click returns to light. The header toggle drives it too."""
     def expect_switcher(theme, label):
         page.wait(f"switcher reads {label!r}", "(() => { const b = document.querySelector('#theme-switcher button');"
-                  " return b.textContent.trim() === arguments[0] && !!b.querySelector('.theme-toggle.moon') === (arguments[0] === 'Turn off dark mode')"
-                  " && document.querySelector(arguments[1]).getAttribute('aria-label') === arguments[0]; })()", 1,
+                  " const i = b.querySelector(':scope > span[role=img]'), h = document.querySelector(arguments[1]);"
+                  " const text = [...b.childNodes].filter(n => n.nodeType === 3).map(n => n.data).join('').trim();"
+                  " return text === arguments[0] && (i.textContent === '\\u{1F319}') === (arguments[0] === 'Turn off dark mode')"
+                  " && !!h && h.querySelector(':scope > span[role=img]').getAttribute('aria-label') === arguments[0]; })()", 1,
                   args=(label, HEADER_TOGGLE))
         s = page.js(SWITCHER, HEADER_TOGGLE)
         page.eq(f"data-theme {theme}", s["theme"], theme)

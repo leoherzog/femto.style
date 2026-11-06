@@ -119,7 +119,7 @@ function picker(article) {
   const colorOf = (swatch) => swatch.className.slice("femto-background-".length);
   const colors = swatches.map(colorOf);
   const current = swatches.find((swatch) => swatch.getAttribute("aria-current") === "page");
-  const check = current?.querySelector(":scope > .icon-check")?.cloneNode(true);
+  const check = current?.querySelector(":scope > span[role=img]")?.cloneNode(true);
   const heading = article.querySelector(":scope > hgroup > h2");
   const sentence = article.querySelector(":scope > hgroup > p");
   const form = article.querySelector(":scope > form");

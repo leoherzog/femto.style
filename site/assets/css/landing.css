@@ -189,7 +189,7 @@ body > main.homepage > .hero .hook .grid.ctas {
   }
 }
 
-body > main.homepage > .hero .hook .grid.ctas a[role=button] .icon {
+body > main.homepage > .hero .hook .grid.ctas a[role=button] > span[role=img] {
   margin-left: calc(var(--femto-spacing) * 0.25);
   font-size: 1rem;
 }
@@ -462,14 +462,34 @@ body > main.homepage > .features > .grid article > svg {
   color: var(--femto-features-icon-color);
 }
 
-/* The features' character icons (Decision 17), in the box and color of the SVG icons they replaced,
-   femto's own mark beside them; the two emoji take the color as their silhouette's */
-body > main.homepage > .features > .grid article > .icon {
-  --femto-emoji-color: var(--femto-features-icon-color);
+/* The features' character icons (Decision 18), in the box and color of the SVG icons they replaced,
+   femto's own mark beside them. Each is a one-color silhouette, a transparent glyph and its shadow,
+   as Decision 16's toggle is, so the two emoji (⚙️ and ⚡) take the color as the text characters
+   do. The shadow's color is explicit: a shadow in currentColor takes the transparent color, and
+   Firefox draws no shadow for a glyph whose -webkit-text-fill-color is transparent (checked in
+   Chrome 158 and Firefox 160, and the silhouettes seen in Safari, 2026-11-05) */
+body > main.homepage > .features > .grid article > span[role=img] {
   display: block;
+  width: fit-content;
   margin-bottom: calc(var(--femto-spacing) * 0.75);
-  color: var(--femto-features-icon-color);
+  color: transparent;
   font-size: 1.125rem;
+  text-shadow: 0 0 0 var(--femto-features-icon-color);
+}
+
+/* The Responsive feature's expand character ⤢ is small for its em, so it is drawn larger without
+   changing the line. A character has no hook of its own, so the feature is found by its link */
+body > main.homepage > .features > .grid article:has(a[href="/docs#typography"]) > span[role=img] {
+  transform: scale(1.25);
+}
+
+/* The first feature's </> is code: in the code font at 0.75em, without femto's code box */
+body > main.homepage > .features > .grid article > span[role=img] > code {
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 0.75em;
+  line-height: inherit;
 }
 
 body > main.homepage > .features > .grid article > svg.femto-icon path {
@@ -492,7 +512,7 @@ body > main.homepage > .features > .grid article p:last-child {
   margin-bottom: 0;
 }
 
-body > main.homepage > .features > .grid article p:last-child a .icon {
+body > main.homepage > .features > .grid article p:last-child a > span[role=img] {
   margin-left: calc(var(--femto-spacing) * 0.25);
   font-size: 1rem;
 }
@@ -697,13 +717,14 @@ h6 {
  * Components
  */
 
-/* Arrow right icon (Decision 17): the arrow moves right on its link's hover, as the oracle's
-   animated SVG arrow did (its head moved 5 of its 24 units) */
-a .icon-arrow-right::before {
+/* Arrow right icon (Decision 18): on the homepage, a link's span[role=img] is its arrow →, which
+   moves right on the link's hover, as the oracle's animated SVG arrow did (its head moved 5 of its
+   24 units) */
+body > main.homepage a > span[role=img] {
   transition: transform 0.2s ease-in-out;
 }
 
-a:hover .icon-arrow-right::before {
+body > main.homepage a:hover > span[role=img] {
   transform: translateX(0.2em);
 }
 

@@ -1054,8 +1054,8 @@ checks over 48 routes are skipped
 
 | Group | Check | Routes | Asserts |
 |---|---|---|---|
-| shell | `theme-toggle` | `/`, `/docs#typography` | No `data-theme` and nothing stored at first; the header toggle (a button from Phase 4; `:is(a, button)`) reads "Turn on dark mode" without `moon`. A click sets `data-theme="dark"`, stores `femtoColorScheme` `'"dark"'`, relabels "Turn off dark mode" with `moon`, URL unchanged; a second click gives `light` the same way. |
-| shell | `theme-toggle-dark-os` | `/docs` (dark OS) | The toggle follows the OS ("Turn off dark mode", `moon`) with no `data-theme`; a click stores `'"light"'`, the next `'"dark"'`. |
+| shell | `theme-toggle` | `/`, `/docs#typography` | No `data-theme` and nothing stored at first; the header toggle (a button from Phase 4, named by its `span[role=img]` icon since Decision 18) reads "Turn on dark mode" with ☀️ (`moon` before Decision 18). A click sets `data-theme="dark"`, stores `femtoColorScheme` `'"dark"'`, relabels "Turn off dark mode" with 🌙, URL unchanged; a second click gives `light` the same way. |
+| shell | `theme-toggle-dark-os` | `/docs` (dark OS) | The toggle follows the OS ("Turn off dark mode", 🌙) with no `data-theme`; a click stores `'"light"'`, the next `'"dark"'`. |
 | shell | `theme-toggle-keyboard` | `/`, `/docs#typography` | The toggle focused, Enter gives dark (data-theme, storage, label) and Enter again light, with no navigation and the document kept. |
 | shell | `theme-toggle-button` | `/`, `/does-not-exist` (one page) | The toggle is a `<button type="button">` with no href; Tab from the GitHub link reaches it; Space gives dark and Enter light, no navigation. |
 | shell | `theme-os-live` | `/`, `/docs#table` | With nothing stored, a live switch of `prefers-color-scheme` to dark and back relabels the toggle, turns the homepage comparison samples dark (`/`) or the inverse thead light (`/docs/table`) and back; no `data-theme` written, nothing stored. Skipped in Safari (`safari`). |
@@ -1066,7 +1066,7 @@ checks over 48 routes are skipped
 | shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Once a paint entry exists (Chrome can record it a few hundred ms after load), seen from a preload script, `data-theme` appears while the head is parsed (no `<body>` yet), before the first paint, and the first animation frame sees it. **XFAIL on the oracle** at "set while the head is parsed": it sets the attribute during hydration (the flash; whether that still precedes the first paint is a race). Skipped in Safari (`preload`). |
 | shell | `header-fixed` | `/docs#modal` | Scrolled to the top first, `body > header` has `is-fixed-above-lg`; `is-fixed` exactly while `scrollY > 20` (off at 20, on at 21, off again at 20 and 0). |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled. |
-| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with `.icon-check` within 100 ms, back to "Copy to clipboard" with `.icon-copy` 900 to 1500 ms later (Decision 17; `svg.check` and `svg.clipboard` before it), no other step, focus not on the control after a pointer click. |
+| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with the check ✓ within 100 ms, named as the copy icon ⧉ was, back to "Copy to clipboard" with ⧉ 900 to 1500 ms later (Decision 18's `span[role=img]`; `.icon-check` and `.icon-copy` at Decision 17, `svg.check` and `svg.clipboard` before it), no other step, focus not on the control after a pointer click. |
 | shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice; "Copied" reverts once, 900 to 1200 ms after the first click (Code.jsx: every click schedules its own revert), no other step, not focused. |
 | shell | `copy-keyboard` | `/docs#button`, `/examples` (one page) | Tab reaches the first copy button; Enter copies its block, the tooltip and the visually hidden `role=status` line read "Copied", 1 s later they revert with keyboard focus kept; Space copies again. The block's `<pre>` is a tab stop only when its code overflows (site.js, Code block focus): one that does not has no `tabindex`, `role` or `aria-label` and Tab moves past it to the next control after it (both routes' first blocks, in both browsers); one that overflows has `tabindex="0"`, `role="figure"` and `aria-label` "HTML code" (or its language's) and Tab moves to it. |
 | shell | `pre-scroll-keyboard` | `/docs` (375 × 812; one page) | Quick start's first code block that overflows is a figure in the tab order (`tabindex="0"`, `role="figure"`, `aria-label` "HTML code"), takes focus with Tab from its copy button, matches `:focus-visible` with an inset ring, and Right arrow scrolls it (each press held 0.1 s; the scroll waited for up to 2 s; the note gives the keydown events the `pre` saw). |
@@ -2794,8 +2794,10 @@ decisions, 8; PLAN.md Decision 16): `site/partials/nav-icons.html` and
 shadow in the SVG's own box, and `site.js` and `docs.js` toggle `moon` with `classList`. The
 harness masks the oracle icon's animated longhands (Masks, `oracle-theme-toggle`), and the freeze
 counts an animation a mask fully covers apart (Collection), so the oracle's self comparison no
-longer depends on when Safari starts that transition. The behavior checks find the icon by its
-class, not its tag, so they hold for both. `eslint.config.js` allows femto's tokens as unknown
+longer depends on when Safari starts that transition. The behavior checks found the icon by its
+class, not its tag, so they held for both. Since PLAN.md Decision 18 (2026-11-06) the icon is a
+`span[role=img]` holding the emoji, which `site.js` and `docs.js` rewrite, and the checks read its
+emoji and label. `eslint.config.js` allows femto's tokens as unknown
 variables, as femto's own config does.
 
 **The closed shadow root control in Safari.** `cross-origin-closed-shadow` failed in both full
@@ -3308,6 +3310,47 @@ sides, so the copy button's check and the picked swatch's check were not seen th
 suite and the owner's dark pass were not run in Safari. Other platforms draw these characters
 with their own fonts (Windows' Segoe UI Symbol, Android's Noto), which this Mac-only rig cannot
 show.
+
+### Decision 18: icon markup (2026-11-06)
+
+On branch `unicode-icon-swap`, the owner chose markup over classes for the icons (PLAN.md Decision
+18). Each of Decision 17's characters, and Decision 16's emoji, is now the text of a
+`<span role="img">` with no class, and `span[role=img]` is the stylesheets' hook. An icon that is a
+control's only content took the control's `aria-label`: the 146 copy buttons, the menu's Close
+button, the header's theme toggle and the Nav example's Menu link, and in `colors.js` the color
+modal's close button and five copy buttons. Every other icon is `aria-hidden="true"`: the 40 edit
+links, the 8 arrows, the homepage's five feature icons, the breadcrumb's ☰, Grid's ⊕ and ⊖, the
+picked swatch's ✓ and the Color schemes switcher's emoji. `site.js` writes the copy button's ✓ with
+the ⧉ icon's name (the button still copies; the status region still says "Copied"), and the
+toggle's emoji and label; `docs.js` writes the switcher's emoji; `picker.js` clones the swatch's
+`span[role=img]`; `code.css` styles the check by the "Copied" tooltip. Two glyphs keep a hook of
+their own: ⤢'s `scale(1.25)`, found by its feature's link (`article:has(a[href="/docs#typography"])`),
+and the first feature's `</>`, marked up as `<code>` for its font. The checks read each icon's text
+and label: `copy-button` its ⧉ or ✓, and that the ✓ keeps the button's name; the toggle checks the
+🌙 and the label on the icon; the breadcrumb check the text beside the ☰; and the toggle and Close
+selectors find their buttons by their icon's label. `/docs` dropped from 747,008 to 742,723 bytes
+raw. The characters are now page text, so a reader who copies a link's text copies its arrow too.
+
+axe now reads the characters as text. Its `color-contrast` rule lists each symbol-only icon on `/`
+and `/docs` as needing review ("only non-text characters"; each is in its link's or button's own
+color), and on `/docs` `label-content-name-mismatch` lists the picked swatch, named "Azure" and
+showing an `aria-hidden` ✓. Both are incomplete results, not violations.
+
+| Run | Command | Result | Wall clock |
+|---|---|---|---|
+| Static checks | `uv run tests/static_checks.py` | **11 PASS, 0 FAIL**, 5 NOT-YET (browsers); 9 (html-validate) and 11 (lint, `width: fit-content` and `:has()` at widely) included | 20 s |
+| Behavior | `uv run tests/run.py behavior --target dist --browsers chrome,firefox` (`20261106-080028-behavior-22995`; Chrome 158.0.8127.18, Firefox 160.0) | **PASS: 232/232** | 6 min |
+| Behavior, after the last edit (the JS's characters written as escapes) | the same with `--checks` for the 14 copy, toggle, picker and color modal checks (`20261106-080647-behavior-23976`) | **PASS: 42/42** | 31 s |
+| Accessibility | `uv run tests/run.py a11y --target dist` (`20261106-080742-a11y-24599`) | **PASS: 0 serious or critical**; 1 moderate on `/docs` per cell (`landmark-unique`, as at Phase 4) | 41 s |
+| Before and after | element screenshots of every icon's context, the build of `f8f065f` against this one, in Chrome and Firefox, light and dark, and in Safari, light | Each icon in its place, size and color, ⤢ with its scale; the arrow moves on hover | — |
+| Safari, in the page | the swatch's and the copy button's icons read through WebDriver, before a click, after it and after the revert, and the toggle after a click | The check is ✓, bold, in `--femto-code-copied`, named "Copy code", and reverts to ⧉; the toggle shows 🌙 and is named "Turn off dark mode" | — |
+
+**Not verified here.** Safari's automation window is hidden (`document.visibilityState` is
+"hidden"): its document timeline stood at 111 ms after 1.5 s and no animation frame ran, so the
+check's pop-in sat at its first frame (half size) and the element screenshots of the copy button and
+the swatches came back blank, on both builds. Whether the check finishes popping in, in a visible
+Safari window, was not seen. Safari's behavior suite and the owner's dark pass were not run, and iOS
+and Linux fonts were not checked, as for Decision 17.
 
 ### Known Phase 1 deviations
 

@@ -15,7 +15,7 @@
       <a class="femto-background-violet" aria-label="Violet" data-discover="true" href="/docs?theme=violet#theme-picker"></a>
       <a class="femto-background-indigo" aria-label="Indigo" data-discover="true" href="/docs?theme=indigo#theme-picker"></a>
       <a class="femto-background-blue" aria-label="Blue" data-discover="true" href="/docs?theme=blue#theme-picker"></a>
-      <a aria-current="page" class="femto-background-azure" aria-label="Azure" data-discover="true" href="/docs#theme-picker"><span class="icon icon-check" aria-hidden="true"></span></a>
+      <a aria-current="page" class="femto-background-azure" aria-label="Azure" data-discover="true" href="/docs#theme-picker"><span role="img" aria-hidden="true">✓</span></a>
       <a class="femto-background-cyan" aria-label="Cyan" data-discover="true" href="/docs?theme=cyan#theme-picker"></a>
       <a class="femto-background-jade" aria-label="Jade" data-discover="true" href="/docs?theme=jade#theme-picker"></a>
       <a class="femto-background-green" aria-label="Green" data-discover="true" href="/docs?theme=green#theme-picker"></a>
@@ -59,19 +59,19 @@
 <section data-picker-usage="cdn">
   <h2>Links to copy</h2>
   <p>Link these in the <code>&lt;head&gt;</code> of your page, in this order: femto, the theme, the options, then your own stylesheets. Azure is built in, so it needs no theme file.</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span class="icon icon-copy" aria-hidden="true"></span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
 &lt;link rel="stylesheet" href="styles.css"&gt;</code></pre></div>
   <p>femto 3.0 is in alpha, and links with <code>@3</code> work once 3.0.0 is released. Until then, write <code>@{{version}}</code> or <code>@alpha</code> in place of <code>@3</code>, as <a href="/docs#quick-start">Quick start</a> explains.</p>
 </section>
 <section data-picker-usage="combine">
   <h2>One request</h2>
   <p>femto ships no prebuilt themed copies. To fetch femto, the theme and the options in one request, join them in a jsDelivr combine URL. When there is only femto's file to load, as with azure and no options, the code is its plain link.</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span class="icon icon-copy" aria-hidden="true"></span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
   <p>This should work once femto is published, because none of these files has an <code>@import</code> and every <code>url()</code> in them is a <code>data:</code> URI, but it is not yet confirmed.</p>
 </section>
 <section data-picker-usage="template">
   <h2>Starter template</h2>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" aria-label="Copy code" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span class="icon icon-copy" aria-hidden="true"></span></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
 &lt;html lang="en"&gt;
   &lt;head&gt;
     &lt;meta charset="utf-8"&gt;
@@ -88,5 +88,5 @@
 &lt;/html&gt;</code></pre></div>
 </section>
 <section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/theme-picker.html" target="_blank"><small><span class="icon icon-edit" aria-hidden="true"></span>Edit this page on GitHub</small></a></p>
+  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/theme-picker.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
 </section>

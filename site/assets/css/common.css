@@ -527,169 +527,66 @@ svg.femto-icon.animated path:nth-of-type(2) {
  * Theme toggle
  */
 
-/* Theme toggle icon (Decision 16): a sun emoji while the page is light, a moon while it is dark
-   (site.js and docs.js add "moon"). The glyph is transparent and its shadow is drawn in the
-   element's text color, so the emoji shows as a one-color silhouette that follows the link's and
-   the button's hover colors through --femto-color. The box is the oracle's SVG icon box (1.125rem
+/* Theme toggle icon (Decision 16): a sun emoji while the page is light, a moon while it is dark,
+   which site.js and docs.js write into the button's span[role=img] (Decision 18). The glyph is
+   transparent and its shadow is drawn in --femto-color, so the emoji shows as a one-color
+   silhouette that follows the button's hover colors. The box is the oracle's SVG icon box (1.125rem
    in the header, 1.25rem in the Color schemes section, vertical-align: middle), and the glyph is
-   drawn out of flow over it, so nothing around the icon moves. It replaces the oracle's animated
-   toggles.dev SVG, and that SVG's rules with it. */
-.icon-theme-toggle {
-  display: inline-block;
-  position: relative;
-  width: 1.125rem;
-  height: 1.125rem;
-  color: transparent;
-  text-shadow: 0 0 0 var(--femto-color);
-  vertical-align: middle;
-}
-
-.icon-theme-toggle::before {
-  display: flex;
-  position: absolute;
-  inset: 0;
+   centered in it and overflows it evenly, so nothing around the icon moves when sun and moon swap.
+   It replaces the oracle's animated toggles.dev SVG, and that SVG's rules with it. */
+:is(button[data-scheme-toggle], button[data-scheme-switcher]) > span[role=img] {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 1.125rem;
+  min-width: 0;
+  height: 1.125rem;
+  color: transparent;
   font-size: 1.25rem;
-  line-height: 1;
-  content: "\2600\FE0F";
-}
-
-.icon-theme-toggle.moon::before {
-  content: "\1F319";
+  text-shadow: 0 0 0 var(--femto-color);
+  vertical-align: middle;
 }
 
 /* The header's toggle: the glyph is the GitHub icon's size and sits where it does. The GitHub mark
    (Simple Icons', Decision 17) fills 23.4 of its 24-unit viewBox's height, and each glyph's
    silhouette is about its font size (sun 0.99, moon 1.01, in Chrome and Firefox); the box is nudged
    up as the header's SVGs are */
-body > header .container nav .icon-theme-toggle {
+body > header .container nav button[data-scheme-toggle] > span[role=img] {
+  font-size: calc(1.125rem * 23.4 / 24);
   transform: translateY(-0.0625rem);
 }
 
-body > header .container nav .icon-theme-toggle::before {
-  font-size: calc(1.125rem * 23.4 / 24);
-}
-
 /* The Color schemes section: the switcher button's icon, before its label */
-#theme-switcher .icon-theme-toggle {
+#theme-switcher button > span[role=img] {
   width: 1.25rem;
   height: 1.25rem;
   margin-right: calc(var(--femto-spacing) * 0.5);
 }
 
 /**
- * Icons (Decision 17)
+ * Icons (Decision 18)
  */
 
-/* Every icon but the brand marks and femto's own logo is a character: an empty
-   <span class="icon icon-<name>" aria-hidden="true">, whose ::before draws it, centered in a box
-   1em wide and one 1em line tall. A context sizes an icon with font-size, as it sized the SVG it
-   replaced with height. The character sits on its line's baseline, as text does; centered in a box
-   whose bottom was the baseline, as a first draft drew it, it sat about 0.2em high. The text
-   characters have no emoji form, so every platform draws them with its own text fonts, in the
-   element's color. The ::before is an inline-block so that a transform applies to it. */
-.icon {
+/* Every icon but the brand marks and femto's own logo is a character in a <span role="img">, an
+   image made of text: named by its aria-label when it is a control's only content (a copy or close
+   button, the theme toggle), and hidden by aria-hidden="true" beside a label of its own, as an
+   <img> takes alt text or alt="". The role is the hook, so the markup needs no class. Each icon is
+   an inline-block at least 1em wide and one 1em line tall, its characters centered in it and on
+   their line's baseline, as text is. A context sizes an icon with font-size, as it sized the SVG it
+   replaced with height, and draws one glyph larger, bolder or in another font where it needs to.
+   The text characters (check ✓, close ✕, copy ⧉, edit ✎, menu ☰, arrow →, Grid's ⊕ and ⊖, the
+   homepage's ⤢, ◐ and </>) have no emoji form, so every platform draws them with its own text
+   fonts, in the element's color; the emoji (the theme toggle's, the homepage's ⚙️ and ⚡) are drawn
+   in one color by their contexts, as a transparent glyph and its shadow. */
+span[role=img] {
   display: inline-block;
-  width: 1em;
+  min-width: 1em;
   line-height: 1;
   text-align: center;
 }
 
-.icon::before {
-  display: inline-block;
-}
-
-/* The text characters: check U+2713, close U+2715, copy U+29C9 (two joined squares), edit U+270E
-   (a pencil), menu U+2630, arrow right U+2192, plus and minus U+2295 and U+2296 (circled), expand
-   U+2922, brightness U+25D0 (a half-black circle) and code, "</>" in the code font */
-.icon-check::before {
-  font-weight: bold;
-  content: "\2713";
-  animation: icon-check 0.2s ease-out;
-}
-
-.icon-close::before {
-  content: "\2715";
-}
-
-.icon-copy::before {
-  content: "\29C9";
-}
-
-.icon-edit::before {
-  content: "\270E";
-}
-
-.icon-menu::before {
-  content: "\2630";
-}
-
-.icon-arrow-right::before {
-  content: "\2192";
-}
-
-.icon-plus::before {
-  content: "\2295";
-}
-
-.icon-minus::before {
-  content: "\2296";
-}
-
-.icon-expand::before {
-  content: "\2922";
-}
-
-.icon-brightness::before {
-  content: "\25D0";
-}
-
-.icon-code {
-  width: 1.75em;
-}
-
-.icon-code::before {
-  font-size: 0.75em;
-  font-family: "Fira Code", var(--femto-font-family-monospace);
-  white-space: nowrap;
-  content: "</>";
-}
-
-/* The menu and expand characters are small for their em, so they are drawn larger, without
-   changing the line */
-.icon-menu::before,
-.icon-expand::before {
-  transform: scale(1.25);
-}
-
-/* Two are emoji, drawn as the theme toggle is: the glyph transparent and its shadow a one-color
-   silhouette, in --femto-emoji-color where a context sets it, else in --femto-color, which femto
-   sets to a link's or a button's color in each state. The shadow is the span's, with that color
-   resolved there, and the ::before inherits it, so a context's color on the span leaves the glyph
-   transparent. An explicit color is the one that works in Chrome, Firefox and Safari: a shadow in
-   currentColor takes the transparent color, and Firefox draws no shadow for a glyph whose
-   -webkit-text-fill-color is transparent (checked in Chrome 158 and Firefox 160, and the
-   silhouettes seen in Safari, 2026-11-05) */
-.icon-adjustments,
-.icon-speedtest {
-  text-shadow: 0 0 0 var(--femto-emoji-color, var(--femto-color));
-}
-
-.icon-adjustments::before,
-.icon-speedtest::before {
-  color: transparent;
-}
-
-.icon-adjustments::before {
-  content: "\2699\FE0F";
-}
-
-.icon-speedtest::before {
-  content: "\26A1";
-}
-
-/* The check is drawn in each time it is added: a copy button's "Copied", a picked theme swatch */
+/* The check pops in each time it is added: a copy button's "Copied" (code.css) and the picked theme
+   swatch's (docs.css) */
 @keyframes icon-check {
   from {
     transform: scale(0.5);

@@ -147,7 +147,7 @@ def table_inverse_thead(page):
     the sample reads <thead data-theme="dark">; after the header toggle makes the page dark, both
     say "light"; toggled back, "dark" again."""
     expect_thead(page, "dark", "light OS")
-    toggle = "body > header nav ul.icons :is(a, button)[aria-label$='dark mode']"   # a button from Phase 4
+    toggle = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # a button from Phase 4
     page.click(toggle)
     expect_thead(page, "light", "page made dark")
     page.click(toggle)
