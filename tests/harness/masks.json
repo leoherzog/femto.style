@@ -78,6 +78,15 @@
       ],
       "pixels": true,
       "reason": "The link in the oracle's maintenance banner: the banner takes the inverse theme, and React sets its data-theme after hydration, so on a dark page it flips from dark to light and the link's color and text-decoration-color then transition over 0.2 s. Safari 27.2 once read it mid-transition without the freeze seeing the transition (p0-self-safari-dark, 2026-11-01: 16 records in /docs/link dark 375, side A rgb(93, 107, 137), side B rgb(135, 145, 165), no harness error). The site drops the banner (Decision 5), so only its color and the longhands that follow currentColor are not compared; the banner, its data-theme, the link's text and its other styles still are."
+    },
+    {
+      "id": "oracle-check-icon",
+      "selector": "svg.icon-check > path#check-icon",
+      "properties": [
+        "stroke-dashoffset"
+      ],
+      "pixels": true,
+      "reason": "The oracle's animated check (Check.jsx with isAnimated, the current color's check in the header's version picker on the /docs/version-picker routes): its stroke draws in with animation: check 0.2s ease-out forwards, stroke-dashoffset from 22px to 0. Safari 27.2 can still be running it when the page is read, so the oracle differed from itself (p6-self-safari-dark-2, 2026-11-07: 1 record in each of /docs/version-picker/fuchsia dark 1600 and /docs/version-picker/jade theme-dark 1300, 0px against 0.049004px, one per side). The site has no such icon (Decision 17's character), so only that one animated longhand is not compared; the path's d, stroke, dasharray and every other style of the check still are."
     }
   ]
 }

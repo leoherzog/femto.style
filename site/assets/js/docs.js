@@ -313,16 +313,34 @@ function sideMenu() {
     menu.inert = offCanvas.matches && !open;
     cover(offCanvas.matches && open);
   };
-  // The opener sits in the sticky breadcrumb, always on screen below lg, and Chrome scrolls the page
-  // to the breadcrumb's place in the flow to show it when it takes focus. focus()'s preventScroll
-  // option is outside Decision 12's target (Samsung Internet 27 and Chrome Android ignore it), so the
-  // page's position is saved and put back in the same task, before the next paint.
-  const refocus = () => {
-    if (!opener) return;
+  // The opener sits in the sticky breadcrumb, always on screen below lg, and the browser scrolls the
+  // page to the breadcrumb's place in the flow to show it when it takes focus. focus()'s
+  // preventScroll option is outside Decision 12's target (Samsung Internet 27 and Chrome Android
+  // ignore it), so the page's position is saved and put back: at once, for the scroll Chrome makes
+  // inside focus(), and at each scroll for the next 250 ms, for the one Safari makes after the task
+  // (p6-behavior-safari-light-2 found the page 66 px up). The reader's own wheel, key or pointer
+  // ends the wait early.
+  const focusInPlace = (element) => {
     const x = scrollX;
     const y = scrollY;
-    opener.focus();
-    if (scrollX !== x || scrollY !== y) scrollTo(x, y);
+    const keep = () => {
+      if (scrollX !== x || scrollY !== y) scrollTo(x, y);
+    };
+    const input = ["wheel", "keydown", "pointerdown"];
+    let timer = 0;
+    const done = () => {
+      clearTimeout(timer);
+      removeEventListener("scroll", keep);
+      for (const type of input) removeEventListener(type, done, true);
+    };
+    element.focus();
+    keep();
+    addEventListener("scroll", keep, { passive: true });
+    for (const type of input) addEventListener(type, done, { capture: true, passive: true });
+    timer = setTimeout(done, 250);
+  };
+  const refocus = () => {
+    if (opener) focusInPlace(opener);
   };
   const onKeydown = (event) => {
     if (event.key !== "Escape") return;
@@ -338,7 +356,7 @@ function sideMenu() {
     if (open) {
       document.addEventListener("keydown", onKeydown);
       sync();
-      close?.focus(); // in the fixed panel, on screen: focusing it scrolls nothing
+      if (close) focusInPlace(close); // in the fixed panel, on screen: kept in place all the same
     } else {
       document.removeEventListener("keydown", onKeydown);
       cover(false);

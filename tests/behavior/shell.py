@@ -676,6 +676,22 @@ if (!window.__bhFocusNoOptions) {
 }
 return true;
 """
+# Makes focusing the element arguments[0] matches also scroll the page 66 px up one frame later, as
+# Safari 27 scrolls to a focused sticky element after the task (p6-behavior-safari-light-2: the
+# page 66 px up once Escape had returned focus to the opener): a page that puts its position back
+# only within focus()'s own task moves here as it does there. Installed after FOCUS_NO_OPTIONS.
+FOCUS_LATE_SCROLL = """
+if (!window.__bhFocusLateScroll) {
+  const selector = arguments[0], focus = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function (...options) {
+    const result = focus.apply(this, options);
+    if (this.matches(selector)) requestAnimationFrame(() => scrollBy(0, -66));
+    return result;
+  };
+  window.__bhFocusLateScroll = true;
+}
+return true;
+"""
 # scrollY once two animation frames have passed (a scroll the focus caused has been applied).
 SCROLL_Y = """
 const frame = () => new Promise(r => requestAnimationFrame(() => r()));
@@ -703,12 +719,16 @@ def mobile_menu_focus(page):
     with the menu closed changes nothing. Then the same again with focus() made to ignore its options
     (FOCUS_NO_OPTIONS), as Chrome Android and Samsung Internet ignore preventScroll: the opener sits in
     the sticky breadcrumb, which Chrome scrolls the page to show when it takes focus, so the
-    position must be kept without the option. That focus stays inside while the menu is open is
+    position must be kept without the option. Then once more with focusing the opener also scrolling
+    the page 66 px up a frame later (FOCUS_LATE_SCROLL), as Safari 27 does, so the position must be
+    kept after focus()'s task too (Phase 6). That focus stays inside while the menu is open is
     mobile-menu-inert's."""
     url = page.url()
-    for prefix in ("", "focus() without options: "):
+    for prefix in ("", "focus() without options: ", "focus() scrolling after the task: "):
         if prefix:
             page.js(FOCUS_NO_OPTIONS)
+        if prefix.startswith("focus() scrolling"):
+            page.js(FOCUS_LATE_SCROLL, OPENER)
         page.expect(f"{prefix}the Documentation control takes focus", page.focus(OPENER))
         y0 = page.ajs(SCROLL_Y)
         page.key("ENTER")

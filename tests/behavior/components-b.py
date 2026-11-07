@@ -464,8 +464,14 @@ def tooltip_link(page):
 # the class is-scrolling-to-link (docs.js, Decision 10), in performance.now() ms.
 LINK_SCROLL = """
 const html = document.documentElement, t = () => Math.round(performance.now());
-window.__bhLink = {click: null, added: null, removed: null, scrolls: []};
-addEventListener("click", () => { __bhLink.click = t(); }, true);
+window.__bhLink = {click: null, before: null, after: null, added: null, removed: null, scrolls: []};
+// The click's own dispatch: the class before any handler (capture on window, first) and once every
+// handler has run (bubble on window, last).
+addEventListener("click", () => {
+  __bhLink.click = t();
+  __bhLink.before = html.classList.contains("is-scrolling-to-link");
+}, true);
+addEventListener("click", () => { __bhLink.after = html.classList.contains("is-scrolling-to-link"); });
 addEventListener("scroll", () => __bhLink.scrolls.push(t()), {passive: true});
 new MutationObserver(() => {
   const on = html.classList.contains("is-scrolling-to-link");
@@ -487,9 +493,12 @@ def tooltip_link_same_hash(page):
     already the URL's (the hash setter would do nothing): within 3 s Tooltip's heading is on the
     scroll-padding line (within 2 px), the URL is still /docs?theme=jade#tooltip with
     history.length as it was, in the same document (a marker set on window survives) with jade's
-    stylesheet kept. <html> gains is-scrolling-to-link from the click and loses it when the
-    scroll arrives: within 250 ms of the scroll's last event, not after SCROLL_STALL's 1 s without
-    one, which ends a link's scroll that never arrives."""
+    stylesheet kept. <html> gains is-scrolling-to-link from the click (absent as the click's dispatch
+    begins, present once its handlers have run) and loses it when the scroll arrives: within 250 ms
+    of the scroll's last event, not after SCROLL_STALL's 1 s without one, which ends a link's scroll
+    that never arrives. The MutationObserver's time for the class can trail the click: its callback
+    runs only after the handler, whose location.assign() Safari 27 spends about 160 ms in
+    (p6-behavior-safari-light-2), so that time is reported, not judged."""
     link = page.find(TOOLTIP_LINK)
     page.eq("the link points at /docs#tooltip", page.js("return arguments[0].getAttribute('href')", link), "/docs#tooltip")
     page.wait("the deep link puts Tooltip's heading on its line", f"Math.abs(({HEADING_LINE})('tooltip')) <= 2", 3)
@@ -518,7 +527,7 @@ def tooltip_link_same_hash(page):
     after = [s for s in r["scrolls"] if s >= r["click"]]
     page.note(f"is-scrolling-to-link from {r['added'] - r['click']} to {r['removed'] - r['click']} ms after the click; "
               f"{len(after)} scroll events, the last {after[-1] - r['click'] if after else None} ms after it")
-    page.expect("the click sets is-scrolling-to-link", r["added"] is not None and 0 <= r["added"] - r["click"] <= 100, **r)
+    page.expect("the click sets is-scrolling-to-link", r["before"] is False and r["after"] is True and r["added"] is not None, **r)
     page.expect("the page scrolls after the click", bool(after), **r)
     page.expect("is-scrolling-to-link goes within 250 ms of the scroll's last event", r["removed"] - after[-1] <= 250,
                 ms_after_last_scroll=r["removed"] - after[-1], ms_after_click=r["removed"] - r["click"])
