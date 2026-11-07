@@ -3778,12 +3778,12 @@ subjects outside the Workflow table, among them the owner's Decision 16, 17 and 
 
 | Criterion | Chrome and Firefox | Safari |
 |---|---|---|
-| 1 | PASS, `p6-final-self-full-1` | waits on `final` (`p6-self-safari-*-1`); the last passes ran on the harness of `161053b` and `a393112` (critic-6) |
+| 1 | PASS, `p6-final-self-full-1` | Light PASS (`p6-self-safari-light-2`). Dark not clean: `p6-self-safari-dark-2` and `-3` each had oracle-side mid-animation reads in 2 of 420 cells, different cells each time; the first is masked (`oracle-check-icon`), and the second's two cells pass on rerun (`p6-self-safari-dark-cells-1`). The owner decides (Safari's Phase 6 passes) |
 | 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | waits on `parity`; Phases 2 and 3 never passed in Safari (critic-1) |
 | 3, 4, 5, 6, 8, 9, 11, 12, 13 and 14 | PASS, `static_checks.py` | — |
-| 7 | PASS, `p6-final-behavior-1` | waits on `final` and `reduced`; the last passes, `p4-behavior-safari-*-2`, predate Decisions 17 and 18 (critic-2) |
+| 7 | PASS, `p6-final-behavior-1` | PASS on 06c0837: `p6-behavior-safari-light-3` (103 of 103 run) and `p6-behavior-safari-dark-3` (5 of 5). The Reduce Motion checks wait on `reduced` |
 | 10 | PASS, `p6-final-a11y-1` and `-widths-1` | not in the criterion |
-| 15 | PASS: the static part, `p6-final-loads-1`, and `deep-link-cold` in Chrome | waits on `final`'s loads; production fails it while Web Analytics injects its beacon (the owner's step 5 below) |
+| 15 | PASS: the static part, `p6-final-loads-1`, and `deep-link-cold` in Chrome | PASS on 6378a3e: `p6-loads-safari-light-2` and `-dark-2`, 0 cross-origin loads (06c0837 changes only docs.js's focus handling, the checks and a mask); production fails it while Web Analytics injects its beacon (the owner's step 5 below) |
 
 **The owner's steps outside the repository** (the Cloudflare dashboard). No agent logged in, used the
 dashboard or changed the live site; these are recorded here, in README's Deploy section and in
@@ -3945,6 +3945,30 @@ Both need the light behavior pass again in Safari. The rest of `final 2` (6378a3
 | `p6-loads-safari-dark-2` | 84 (54 run) | PASS: 0 differences, 0 cross-origin loads | 425 s |
 
 The two differences are the oracle against itself: its `Check.jsx` draws the check with `animation: check 0.2s ease-out forwards`, which Safari can still be running when the page is read, as it was for the two oracle animations already masked (`oracle-theme-toggle`, `oracle-maintenance-notice`). The site has no such icon (Decision 17's ✓). The owner chose to mask it (2026-11-07): mask `oracle-check-icon` (Masks), in PLAN.md's Masked line.
+
+**Safari on 06c0837** ("Phase 6 Safari Test Fixes": the two fixes and the mask), 2026-11-07, 11:40
+to 12:16, run by the agent with the owner's leave (the appearance switched as `owner-safari.sh` does
+and put back):
+
+| Run | Cells or runs | Result | Time |
+|---|---|---|---|
+| `p6-behavior-safari-light-3` | 119 (103 run, 16 skipped) | PASS: 103 of 103, `mobile-menu-focus` and `tooltip-link-same-hash` among them | 441 s |
+| `p6-behavior-safari-dark-3` | 119 (5 run, 114 skipped) | PASS: 5 of 5 | 12 s |
+| `p6-self-safari-dark-3` | 744 (420 run, 324 `media:light`) | **FAIL: 143 unregistered in 2 cells**, 0 harness errors; `oracle-check-icon` masked 1,032 elements | 1,662 s |
+| `p6-self-safari-dark-cells-1` | 8: `/docs/button` and `/docs/forms/checkboxes`, dark and theme-light, 375 and 1300 | PASS: 0 differences, the two failing cells among them | 14 s |
+
+`p6-self-safari-dark-3`'s differences are the oracle against itself read mid-transition, on one side
+of each cell: in `/docs/button` theme-light 375 (12) the header's version menu at `opacity`
+`0.001724` against `0`, the side menu at `translateX(-390.33px)` against `-391px`, the breadcrumb's
+border color between transparent black and transparent white; in `/docs/forms/checkboxes` dark 1300
+(131) the version picker's borders and the skip link's shadow, the same way. The harness finishes
+every animation `getAnimations()` returns, and Safari 27.2 did not return these, as with the two
+oracle masks of 2026-11-01. The cells differ from pass to pass (`-dark-2`: the version picker's check
+on two other routes), and a rerun of both is clean, so this is Safari's read timing on the oracle, not
+a difference in it. Criterion 1's Safari dark leg has no full pass with 0 differences on this harness;
+whether that stands as is, another full pass is run, or the self mode rereads a differing Safari
+cell once, is the owner's call. Still not run in Safari: `reduced` (Reduce Motion on, which only the
+owner sets) and `parity`.
 
 **The owner's open questions.**
 - The Cloudflare steps above, and whether Web Analytics stays (criterion 15).
