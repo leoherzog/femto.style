@@ -13,20 +13,20 @@
   <p>The heading's font, Pacifico, is a web font that this page loads. Load it on your page too, or the heading falls back to a cursive system font.</p>
   <article aria-label="CSS variables example" class="component" id="css-var-example">
     <style>
-      #css-var-example h1,
-      #css-var-example p,
-      #css-var-example button {
+      #css-var-example > h1,
+      #css-var-example > p,
+      #css-var-example > button {
         --femto-border-radius: 2rem;
         --femto-typography-spacing-vertical: 1.5rem;
         --femto-form-element-spacing-vertical: 1rem;
         --femto-form-element-spacing-horizontal: 1.5rem;
       }
-      #css-var-example h1 {
+      #css-var-example > h1 {
         --femto-font-family: Pacifico, cursive;
         --femto-font-weight: 400;
         --femto-typography-spacing-vertical: 0.5rem;
       }
-      #css-var-example button {
+      #css-var-example > button {
         --femto-font-weight: 700;
         margin-bottom: 0;
       }
@@ -46,7 +46,7 @@
     --femto-font-weight: 400;
     --femto-typography-spacing-vertical: 0.5rem;
   }
-  button {
+  button[type=button] {
     --femto-font-weight: 700;
     margin-bottom: 0;
   }
@@ -82,7 +82,7 @@
 </section>
 <section>
   <h2>Where each token is declared</h2>
-  <p>femto declares each token, with its default value, in one of these files:</p>
+  <p>femto declares its tokens' defaults in these files:</p>
   <ul>
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/tokens/base.css" target="_blank" rel="noopener noreferrer">css/tokens/base.css</a>: the tokens that do not depend on the color scheme, such as the font families, font size and weight, line height, borders, outlines, transitions, spacing, component settings, and the icons that are the same in both schemes.</li>
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/tokens/schemes.css" target="_blank" rel="noopener noreferrer">css/tokens/schemes.css</a>: the color tokens, with their light and dark values, and the validation icons of each scheme.</li>
@@ -90,6 +90,7 @@
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/layout/elements.css" target="_blank" rel="noopener noreferrer">css/layout/elements.css</a>: the values some elements set for themselves, such as each heading's font size, line height and weight.</li>
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/components/modal.css" target="_blank" rel="noopener noreferrer">css/components/modal.css</a>: <code>--femto-scrollbar-width</code>, which your modal script can set (see <a href="/docs#modal">Modal</a>).</li>
   </ul>
+  <p>A few per-component values, such as <code>--femto-underline</code> and <code>--femto-border-color</code>, are set only in their own modules, with no default in these files.</p>
 </section>
 <section class="edit-on-github">
   <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/css-variables.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>

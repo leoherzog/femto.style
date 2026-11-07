@@ -216,7 +216,10 @@ main > [aria-label=breadcrumb] ul li:first-child button:hover {
   text-decoration-color: var(--femto-secondary-hover-underline);
 }
 
+/* The transparent outline beside the ring is for forced colors, which drop box-shadow and draw an
+   outline in a system color */
 main > [aria-label=breadcrumb] ul li:first-child button:focus-visible {
+  outline: var(--femto-outline-width) solid transparent;
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
@@ -368,7 +371,9 @@ main > aside#documentation-menu header button:is(:hover, :active, :focus) {
   --femto-color: var(--femto-secondary-hover);
 }
 
+/* The transparent outline beside the ring is for forced colors, as the breadcrumb's button has */
 main > aside#documentation-menu header button:focus-visible {
+  outline: var(--femto-outline-width) solid transparent;
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
@@ -528,6 +533,14 @@ main > [role=document] article form > *:last-child:not(footer, .grid) {
   margin-bottom: 0;
 }
 
+/* Inline code in the text breaks anywhere once it is wider than its line. femto draws code as an
+   inline-block, so in Chrome a long path such as Quick start's @leoherzog/femto/css/themes/jade.css
+   would run past a 320px viewport, where html's overflow-x: hidden (common.css) cuts it off (WCAG
+   1.4.10) */
+[role=document] p > code {
+  overflow-wrap: anywhere;
+}
+
 main > [role=document] .edit-on-github span[role=img] {
   margin-right: calc(var(--femto-spacing) * 0.25);
   font-size: 1rem;
@@ -589,11 +602,14 @@ main > [role=document] .edit-on-github span[role=img] {
   }
 }
 
+/* The example's cells: their text is --femto-code-color (common.css), 5.5:1 on the code background
+   in light and 6.1:1 in dark (WCAG 1.4.3), where the oracle's --femto-muted-color has 4.39:1 in
+   dark */
 [role=document] > section:where(:has(> hgroup > h1[id=grid])) .grid > div {
   padding: calc(var(--femto-spacing) / 2) 0;
   border-radius: var(--femto-border-radius);
   background-color: var(--femto-code-background-color);
-  color: var(--femto-muted-color);
+  color: var(--femto-code-color);
   font-size: 0.875rem;
   text-align: center;
 }
@@ -641,6 +657,24 @@ main > [role=document] .edit-on-github span[role=img] {
    is drawn larger without changing the line, as the breadcrumb's is */
 [role=document] > section:where(:has(> hgroup > h1[id=nav])) nav[data-nav-example] a > span[role=img] {
   transform: scale(1.25);
+}
+
+/**
+ * Section: Progress
+ */
+
+/* The example's pause button (docs.js) is hidden in the markup, so it takes no space without
+   JavaScript, where nothing changes. Where scripts run, its box is laid out, invisible, from the
+   first paint, so docs.js showing it moves nothing below it. A cold load of /docs#progress, or of a
+   later section, recorded a layout shift of 0.04 to 0.07 in Chrome 158 while the hidden button took
+   no space, and records none for it now (Phase 6). femto's [hidden] rule sets display: none with
+   !important */
+@media (scripting: enabled) {
+  [role=document] button[data-progress-pause][hidden] {
+    /* eslint-disable-next-line css/no-important -- only an !important display overrides femto's [hidden] { display: none !important } */
+    display: inline-block !important;
+    visibility: hidden;
+  }
 }
 
 /**
@@ -714,8 +748,13 @@ article.color-picker > header {
   border-top-left-radius: var(--femto-border-radius);
 }
 
-/* Each swatch is a size container, whose width the grid sets, for its check's size */
+/* Each swatch is a size container, whose width the grid sets, for its check's size. A swatch is a
+   link with no text, drawn only by its .femto-background-<color> class, so it keeps its colors in
+   forced colors, which would paint it as the page's background and drop its focus ring (a
+   box-shadow). Firefox still paints a visited swatch there as the page's background, so it has a
+   border in forced colors (below) */
 article.color-picker > header a {
+  forced-color-adjust: none;
   container-type: inline-size;
   display: flex;
   align-items: center;
@@ -741,6 +780,18 @@ article.color-picker > header a:focus-visible {
   box-shadow:
     inset 0 0 0 var(--femto-outline-width) var(--femto-contrast-inverse),
     inset 0 0 0 calc(var(--femto-outline-width) * 2) var(--femto-contrast);
+}
+
+/* In forced colors an unvisited swatch keeps its colors, but Firefox paints a swatch whose URL is in
+   the history as the page's background, with its check in the visited link color (Firefox 160 with
+   browser.display.document_color_use=2). Every swatch the reader has picked is one, the current one
+   among them, since the picker's replaceState marks each URL it writes as visited. The border in the
+   page's text color keeps each swatch's box there; a visited swatch keeps only its border and its
+   focus ring */
+@media (forced-colors: active) {
+  article.color-picker > header a {
+    border: var(--femto-border-width) solid CanvasText;
+  }
 }
 
 @media (min-width: 768px) {
@@ -943,7 +994,9 @@ dialog.color > article header button.close > span[role=img] {
   font-size: 1.25rem;
 }
 
+/* The transparent outline beside the ring is for forced colors, as the breadcrumb's button has */
 dialog.color > article header button.close:focus-visible {
+  outline: var(--femto-outline-width) solid transparent;
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 

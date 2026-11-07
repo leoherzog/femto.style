@@ -95,13 +95,34 @@ export function colorOfQuery(search, colors) {
   const theme = new URLSearchParams(search).get("theme");
   return colors.includes(theme) ? theme : "azure";
 }
-// The query with ?theme= set to the color, or removed for azure; the other parameters stay.
+// The query with ?theme= set to the color, or removed for azure. Only the theme pair changes: every
+// other item of the search string stays as it was written, byte for byte (URLSearchParams.toString()
+// would respell them: %20 as +, a bare ref as ref=). An item is a theme item when its name decodes,
+// as URLSearchParams decodes it ('+' as a space, then percent-decoding), to "theme". The first one
+// is replaced and later ones dropped, so get("theme"), the value the ?theme= head script reads,
+// gives the color; theme=<color> is appended when there was none. Empty items (&&) are dropped, as
+// URLSearchParams drops them.
+const isThemeItem = (item) => {
+  const name = item.split("=", 1)[0];
+  try {
+    return decodeURIComponent(name.replace(/\+/g, " ")) === "theme";
+  } catch {
+    return false; // a malformed escape, which URLSearchParams keeps as text: not "theme"
+  }
+};
 export function queryOf(search, color) {
-  const params = new URLSearchParams(search);
-  if (color === "azure") params.delete("theme");
-  else params.set("theme", color);
-  const query = params.toString();
-  return query ? `?${query}` : "";
+  const items = [];
+  let placed = color === "azure";
+  for (const item of search.replace(/^\?/, "").split("&")) {
+    if (!item) continue;
+    if (!isThemeItem(item)) items.push(item);
+    else if (!placed) {
+      items.push(`theme=${color}`);
+      placed = true;
+    }
+  }
+  if (!placed) items.push(`theme=${color}`);
+  return items.length ? `?${items.join("&")}` : "";
 }
 const named = (color) => color.charAt(0).toUpperCase() + color.slice(1);
 // "an azure", "a jade".
@@ -225,7 +246,12 @@ function picker(article) {
       if (next !== color) show(next, true);
       const query = queryOf(location.search, next);
       if (toUrl && query !== location.search) {
-        history.replaceState(history.state, "", location.pathname + query + location.hash);
+        try {
+          history.replaceState(history.state, "", location.pathname + query + location.hash);
+        } catch {
+          // WebKit's history limit (a SecurityError), as the spy's in docs.js: the color is shown,
+          // and the URL keeps its old ?theme= until a later swap writes one.
+        }
       }
     }, () => {
       link?.remove();
@@ -252,8 +278,10 @@ function picker(article) {
   });
 
   // The URL's color, whose stylesheet the ?theme= head script wrote: the newest swap's target from
-  // the start.
-  const start = colorOfQuery(location.search, colors);
+  // the start. The head script writes it only at the path /docs (partials/head.html), so at another
+  // spelling of the path that serves this page (/DOCS, /%64ocs) the page is azure, and so is the
+  // section.
+  const start = location.pathname === "/docs" ? colorOfQuery(location.search, colors) : "azure";
   target = start;
   if (start !== color) show(start, false);
   else render();

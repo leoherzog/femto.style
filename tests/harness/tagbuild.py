@@ -3,7 +3,10 @@
 The styles mode compares the Phase 2 site against tag static-multipage (PLAN.md Workflow, 2 Styles):
 the static site with the oracle's compiled CSS frozen in site/assets/legacy/. targets.json names it as
 a command target with "build_tag": the harness builds the tag here, then serves the folder exactly as
-it serves dist/ (wrangler pages dev, readiness static, same_origin).
+it serves dist/ (wrangler pages dev, readiness static, same_origin). static-femto (the Phase 2 commit)
+and static-one-page (the Phase 3 commit) are built the same way: Phase 3's gate compared the one page
+against static-femto, and from Phase 6 criterion 2's Safari legs are rerun between the three tags
+(tests/owner-safari.sh parity).
 
 Build. A detached worktree of the tag's commit in a temporary folder (git worktree add --detach),
 the repository's node_modules linked into it (the tag's build.mjs needs prismjs only, and the

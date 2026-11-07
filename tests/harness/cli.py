@@ -24,9 +24,10 @@ MODES_HELP = """modes:
             Fast axes; --full runs the PLAN.md matrix (Chrome, Firefox, Safari; light, dark; six
             widths; data-theme legs on the theme routes; kept routes only).
   pages     side A against side B, document against document: --a and --b are named targets
-            (oracle, dist, static-femto, fixture[:control]; tests/harness/targets.json) or base URLs.
-            The same target on both sides is a self comparison; side A static-femto makes it a
-            one-page comparison (Phase 3). Fast axes; --full runs the PLAN.md matrix.
+            (oracle, dist, static-multipage, static-femto, static-one-page, fixture[:control];
+            tests/harness/targets.json) or base URLs. The same target on both sides is a self
+            comparison; side A static-femto makes it a one-page comparison (Phase 3). Fast axes;
+            --full runs the PLAN.md matrix.
   fast      the agents' check: Chrome and Firefox at 375 and 1300, every leg the matrix gives a
             route. --self, or --a and --b.
   selftest  negative controls on the fixture site (tests/fixtures/) that prove detection.
@@ -39,13 +40,15 @@ MODES_HELP = """modes:
             real input (tests/harness/states.json, or --states FILE). Fast axes; --full runs the
             PLAN.md matrix. The same target on both sides is a self comparison.
   sections  the Phase 3 gate: each old docs route of --a (default static-femto, the tag built by the
-            harness) against its section of the one docs page of --b (default dist): side A's
+            harness) against its section of the one docs page of --b (default dist; static-one-page,
+            the Phase 3 commit, for the rerun between the tags): side A's
             [role=document] against the <section> around the element with the section's id, loaded
             at /docs#<id> (a color route: /docs?theme=<color>#version-picker). The routes and their
             sections come from side A's menu.json at the tag. Everything else is the pages mode's.
             Fast axes; --full runs the PLAN.md matrix.
   behavior  scripted checks of every widget (tests/behavior/; harness/behavior.py) against one target:
-            --target oracle, dist, dist:<path> or a base URL; --groups, --checks, --browsers, --list.
+            --target oracle, dist, dist:<path> or a base URL; --groups, --checks, --browsers, --list;
+            --expect-os-motion stops a Safari session whose OS prefers-reduced-motion is another.
   a11y      axe-core (node_modules/axe-core) in every page of one target (--target, default dist):
             /, /examples, the 404 page, /docs and /docs?theme=jade, in Chrome and Firefox,
             light and dark, at 375 and 1300 (criterion 10). A serious or critical violation fails.

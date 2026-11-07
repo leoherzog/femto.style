@@ -10,7 +10,8 @@ Side A is <base A><path> and side B is <base B><path>. A side is one of:
   process group and stops with every child when the run ends. `dist:<path>` serves any built
   folder exactly as `dist` serves dist/ (the same wrangler, options, readiness and same-origin
   rule), so several agents can compare their own builds at once.
-* a command target with `build_tag`, such as `static-multipage` or `static-femto`: the harness first builds that tag
+* a command target with `build_tag`, such as `static-multipage`, `static-femto` or
+  `static-one-page`: the harness first builds that tag
   of this repository into the target's folder (harness.tagbuild: a temporary git worktree, node
   build.mjs --out), rebuilding when the folder's index.html or build.json is missing, the tag's
   commit or the prismjs version differs from the one build.json records, or the folder no longer

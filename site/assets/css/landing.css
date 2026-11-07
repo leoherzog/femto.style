@@ -733,7 +733,23 @@ mark {
   padding: 0;
   background: var(--femto-mark-gradient);
   -webkit-background-clip: text;
-  /* eslint-disable-next-line css/use-baseline -- Baseline lists the unprefixed text value as limited, for Safari, where the -webkit- form above clips; prefixed first, as femto writes its pairs */
+  /* eslint-disable-next-line css/use-baseline -- Limited in Baseline because Firefox's support is partial (not with background-attachment: fixed or several background layers, neither used here); the -webkit- form above is kept as femto writes its pairs */
   background-clip: text;
   color: transparent;
+}
+
+/* Forced colors drop the features' glyph shadows and the mark's gradient, and Firefox keeps their
+   transparent color, so the icons and the marked words would disappear there (Chrome forces an
+   opaque color). In forced colors they are drawn in the page's system text color, and the mark has
+   no background to clip to its text */
+@media (forced-colors: active) {
+  body > main.homepage > .features > .grid article > span[role=img],
+  mark {
+    color: CanvasText;
+    text-shadow: none;
+  }
+
+  mark {
+    background: none;
+  }
 }

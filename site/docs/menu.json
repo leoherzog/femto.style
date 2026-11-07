@@ -141,12 +141,12 @@
           "id": "forms",
           "title": "Forms overview",
           "label": "Overview",
-          "description": "Inputs, selects and textareas are styled from their elements alone: each is as wide as its container, and inputs and selects are as tall as a button."
+          "description": "Inputs, selects and textareas are styled from their elements alone: text inputs, selects and textareas fill their container, and text inputs and drop-down selects are as tall as a button."
         },
         {
           "id": "input",
           "title": "Input",
-          "description": "Every input type shares one style, with valid and invalid states."
+          "description": "Text, date, search and color inputs share one field style, with valid and invalid states. File inputs, checkboxes, radios, switches and range have their own look."
         },
         {
           "id": "textarea",

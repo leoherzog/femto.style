@@ -25,6 +25,8 @@ def start_session(browser, proxy, log):
     try:
         rig = {"browser": browser, "version": sess.version, "driver": sess.driver_version, "launch_s": sess.launch_s,
                "os_scheme": sess.os_scheme, "host": sess.host}
+        if sess.os_motion:
+            rig["os_motion"] = sess.os_motion
         ld = sess.ajs("load", PROBE, 1300, FRAME_HEIGHT, {})
         if ld.get("errors"):
             rig["probe_errors"] = ld["errors"]
@@ -158,7 +160,9 @@ class Pool:
                     with self.lock:
                         self.rigs.append(sess.rig)
                     self.log(f"{label}: {browser} {sess.version} ({sess.driver_version}), launch {sess.launch_s}s, "
-                             f"OS scheme {sess.os_scheme}, pseudo-elements {sess.pseudos}, proxy {proxy.base}")
+                             f"OS scheme {sess.os_scheme}"
+                             + (f", OS motion {sess.os_motion}" if sess.os_motion else "")
+                             + f", pseudo-elements {sess.pseudos}, proxy {proxy.base}")
                 shot = self.run_dir / "shots" / shot_name(cell) if self.opts.shots else None
                 try:
                     r = run_cell(sess, cell, self.registry, self.opts, self.sides, shot)

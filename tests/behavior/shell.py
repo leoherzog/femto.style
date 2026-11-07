@@ -12,7 +12,7 @@ import json
 import math
 import time
 
-from behavior import COPY_SPY, HEADING_LINE, check, nav_href
+from behavior import COPY_SPY, HEADING_LINE, check, expect_name, nav_href
 
 GROUP = "shell"
 
@@ -275,6 +275,7 @@ const i = a.querySelector(":scope > span[role=img]"), glyph = i && i.textContent
 return {tooltip: a.getAttribute("data-tooltip"), check: glyph === "\\u2713", clipboard: glyph === "\\u29C9",
         label: i && i.getAttribute("aria-label"), focused: document.activeElement === a, copied: window.__bhCopied};
 """
+COPY_LABEL = "Copy code"   # a code block's copy icon's aria-label (Decision 18), which names its button
 
 # Records the copy link's tooltip and icon on every change, and the click, with performance.now()
 # times, so the check measures the 1 s revert in the page.
@@ -299,8 +300,10 @@ def copy_button(page):
     textContent; the
     copy is recorded in the page, the machine's clipboard is never touched) and leaves the URL as it
     was. Timed in the page: within 100 ms of the click the tooltip reads "Copied" with the animated
-    check ✓, named as the copy icon was, and 1 s later (900 to 1500 ms) "Copy to clipboard" with ⧉
-    again, with no other step; the control then does not hold focus (a pointer click blurs it). A
+    check ✓, and 1 s later (900 to 1500 ms) "Copy to clipboard" with ⧉ again, with no other step;
+    the control then does not hold focus (a pointer click blurs it). The button's computed name (the
+    browser's, WebDriver Get Computed Label) is its icon's label, "Copy code", and nothing else:
+    before the click, while the check shows and after the revert (neither tooltip's text joins it). A
     second block's control copies its own code."""
     page.js(COPY_SPY)
     links = page.find_all(".copy-to-clipboard")
@@ -310,15 +313,17 @@ def copy_button(page):
         s = page.js(COPY_STATE, link)
         page.eq(f"link {n}: tooltip 'Copy to clipboard' before", s["tooltip"], "Copy to clipboard")
         page.expect(f"link {n}: clipboard icon before", s["clipboard"] and not s["check"], **s)
-        name = s["label"]
-        page.expect(f"link {n}: the icon names the button", bool(name), **s)
+        page.eq(f"link {n}: the icon's label", s["label"], COPY_LABEL, **s)
+        expect_name(page, f"link {n}: the button's computed name is the icon's label before", link, COPY_LABEL)
         url = page.url()
         page.js("window.__bhCopied.length = 0")
         page.js(COPY_TIMELINE, link)
         page.click(link)
         page.wait(f"link {n}: copied", "window.__bhCopied.length > 0", 1)
         s = page.js(COPY_STATE, link)
-        page.eq(f"link {n}: the check keeps the button's name", [s["check"], s["label"]], [True, name], **s)
+        page.expect(f"link {n}: the check shows", s["check"], **s)
+        expect_name(page, f"link {n}: the check keeps the button's computed name", link, COPY_LABEL)
+        page.expect(f"link {n}: the check still shows (the name was read while it did)", page.js(COPY_STATE, link)["check"])
         page.eq(f"link {n}: copied once", len(s["copied"]), 1, copied=s["copied"])
         page.eq(f"link {n}: copied the block's code", s["copied"][0]["text"], code, via=s["copied"][0]["via"])
         page.url_kept(f"link {n}: URL unchanged", url)
@@ -330,6 +335,7 @@ def copy_button(page):
         page.expect(f"link {n}: 'Copied' within 100 ms", tl[1][0] - tl[0][0] <= 100, timeline=tl)
         page.expect(f"link {n}: reverts 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
         page.eq(f"link {n}: blurred after reverting", page.js(COPY_STATE, link)["focused"], False)
+        expect_name(page, f"link {n}: the button's computed name is the icon's label after", link, COPY_LABEL)
 
 
 @check("copy-button-repeat", "/docs#modal")
@@ -658,42 +664,81 @@ MENU_FOCUS_BUG = {"fails": "opening moves focus into the menu",
                             "(01 §2, DocumentationMenu.jsx); PLAN.md criterion 7 asks for both on the one page"}
 
 
+# Makes focus() ignore its options in this document, as Chrome Android, Samsung Internet and
+# Firefox Android ignore its preventScroll option (BCD, api.HTMLElement.focus,
+# options_preventScroll_parameter: version_added false; outside Decision 12's target): a page that
+# relies on the option to keep its position scrolls here as it would there.
+FOCUS_NO_OPTIONS = """
+if (!window.__bhFocusNoOptions) {
+  const focus = HTMLElement.prototype.focus;
+  HTMLElement.prototype.focus = function () { return focus.call(this); };
+  window.__bhFocusNoOptions = true;
+}
+return true;
+"""
+# scrollY once two animation frames have passed (a scroll the focus caused has been applied).
+SCROLL_Y = """
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+await frame();
+await frame();
+return scrollY;
+"""
+
+
+def expect_scroll_kept(page, label, y0):
+    """The page is where it was before the menu opened (within 1 px)."""
+    y = page.ajs(SCROLL_Y)
+    page.expect(label, abs(y - y0) <= 1, scrollY=y, before=y0, moved=y - y0)
+
+
 @check("mobile-menu-focus", "/docs#modal", width=375, height=812, oracle_bug=MENU_FOCUS_BUG)
 def mobile_menu_focus(page):
-    """At 375 px the off-canvas menu takes focus and gives it back (criterion 7): Enter on the
-    breadcrumb's focused "Documentation" control opens the menu with focus inside
-    `aside#documentation-menu`; Escape closes it (no `is-open-on-mobile`, the page scrolls again, the
-    URL unchanged) and focus returns to the Documentation control. Opened again with a pointer click,
-    focus is inside the menu again; Enter on its focused Close control closes it and focus returns to
-    the Documentation control. Escape with the menu closed changes nothing. That focus stays inside
-    while the menu is open is mobile-menu-inert's."""
+    """At 375 px the off-canvas menu takes focus and gives it back (criterion 7), and the page keeps
+    its scroll position: Enter on the breadcrumb's focused "Documentation" control opens the menu with
+    focus inside `aside#documentation-menu`; Escape closes it (no `is-open-on-mobile`, the page
+    scrolls again, the URL unchanged), focus returns to the Documentation control, and scrollY is
+    within 1 px of where it was before the menu opened. Opened again with a pointer click, focus is
+    inside the menu again; Enter on its focused Close control closes it, focus returns to the
+    Documentation control, and scrollY is within 1 px of where it was before that opening. Escape
+    with the menu closed changes nothing. Then the same again with focus() made to ignore its options
+    (FOCUS_NO_OPTIONS), as Chrome Android and Samsung Internet ignore preventScroll: the opener sits in
+    the sticky breadcrumb, which Chrome scrolls the page to show when it takes focus, so the
+    position must be kept without the option. That focus stays inside while the menu is open is
+    mobile-menu-inert's."""
     url = page.url()
-    page.expect("the Documentation control takes focus", page.focus(OPENER))
-    page.key("ENTER")
-    page.wait("Enter on Documentation opens the menu", IS_OPEN, 1.5)
-    page.wait("opening moves focus into the menu", "document.querySelector('#documentation-menu').contains(document.activeElement)",
-              1, got=page.js(MOBILE))
-    page.key("ESCAPE")
-    page.wait("Escape closes the menu", f"!{IS_OPEN}", 1.5)
-    s = page.js(MOBILE)
-    page.expect("Escape: the page scrolls again", s["overflowY"] != "hidden", **s)
-    page.url_kept("Escape: no navigation", url)
-    page.wait("Escape: focus returns to the Documentation control", "document.activeElement === document.querySelector(arguments[0])",
-              1, args=(OPENER,), got=page.js(MOBILE))
-    page.click(OPENER)
-    page.wait("a click on Documentation opens the menu", IS_OPEN, 1)
-    page.wait("clicked open: focus is inside the menu", "document.querySelector('#documentation-menu').contains(document.activeElement)",
-              1, got=page.js(MOBILE))
-    page.sleep(0.5)   # the menu slides in
-    page.expect("the Close control takes focus", page.focus(CLOSE))
-    page.key("ENTER")
-    page.wait("Enter on the Close control closes the menu", f"!{IS_OPEN}", 1.5)
-    page.wait("closed: focus returns to the Documentation control", "document.activeElement === document.querySelector(arguments[0])",
-              1, args=(OPENER,), got=page.js(MOBILE))
-    page.key("ESCAPE")
-    page.sleep(0.3)
-    page.eq("Escape with the menu closed changes nothing", page.js(MOBILE)["open"], False)
-    page.url_kept("and leaves the URL", url)
+    for prefix in ("", "focus() without options: "):
+        if prefix:
+            page.js(FOCUS_NO_OPTIONS)
+        page.expect(f"{prefix}the Documentation control takes focus", page.focus(OPENER))
+        y0 = page.ajs(SCROLL_Y)
+        page.key("ENTER")
+        page.wait(f"{prefix}Enter on Documentation opens the menu", IS_OPEN, 1.5)
+        page.wait(f"{prefix}opening moves focus into the menu",
+                  "document.querySelector('#documentation-menu').contains(document.activeElement)", 1, got=page.js(MOBILE))
+        page.key("ESCAPE")
+        page.wait(f"{prefix}Escape closes the menu", f"!{IS_OPEN}", 1.5)
+        s = page.js(MOBILE)
+        page.expect(f"{prefix}Escape: the page scrolls again", s["overflowY"] != "hidden", **s)
+        page.url_kept(f"{prefix}Escape: no navigation", url)
+        page.wait(f"{prefix}Escape: focus returns to the Documentation control",
+                  "document.activeElement === document.querySelector(arguments[0])", 1, args=(OPENER,), got=page.js(MOBILE))
+        expect_scroll_kept(page, f"{prefix}Escape: the page keeps its scroll position", y0)
+        y0 = page.ajs(SCROLL_Y)
+        page.click(OPENER)
+        page.wait(f"{prefix}a click on Documentation opens the menu", IS_OPEN, 1)
+        page.wait(f"{prefix}clicked open: focus is inside the menu",
+                  "document.querySelector('#documentation-menu').contains(document.activeElement)", 1, got=page.js(MOBILE))
+        page.sleep(0.5)   # the menu slides in
+        page.expect(f"{prefix}the Close control takes focus", page.focus(CLOSE))
+        page.key("ENTER")
+        page.wait(f"{prefix}Enter on the Close control closes the menu", f"!{IS_OPEN}", 1.5)
+        page.wait(f"{prefix}closed: focus returns to the Documentation control",
+                  "document.activeElement === document.querySelector(arguments[0])", 1, args=(OPENER,), got=page.js(MOBILE))
+        expect_scroll_kept(page, f"{prefix}closed: the page keeps its scroll position", y0)
+        page.key("ESCAPE")
+        page.sleep(0.3)
+        page.eq(f"{prefix}Escape with the menu closed changes nothing", page.js(MOBILE)["open"], False)
+        page.url_kept(f"{prefix}and leaves the URL", url)
 
 
 @check("mobile-menu-link", "/docs#modal", width=375, height=812)

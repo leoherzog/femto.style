@@ -130,7 +130,7 @@ function docsPage(menu) {
     return { id, text, h1: text.match(heading)?.[1] ?? fail(`${file}: must begin with <hgroup>, its chapter, then <h1 id="${id}">`) };
   });
   const nav = menu.categories.map((c) => {
-    const links = c.sections.map((s) => `\n            <li><a class="secondary" data-discover="true" href="#${s.id}">${s.label ?? (s.title == null ? files.find((f) => f.id === s.id).h1 : esc(s.title))}</a></li>`);
+    const links = c.sections.map((s) => `\n            <li><a class="secondary" href="#${s.id}">${s.label ?? (s.title == null ? files.find((f) => f.id === s.id).h1 : esc(s.title))}</a></li>`);
     return `<details open><summary>${esc(c.title)}</summary><ul>${links.join("")}\n          </ul></details>`;
   });
   const sections = files.map(({ text }) => `<section>\n${text}\n</section>\n`);

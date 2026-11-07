@@ -12,7 +12,14 @@
 //      the oracle's LargeWidthCode.jsx and SmallWidthCode.jsx queue them (counts are in characters, a
 //      line break counts as one), then run the step's form change. From Phase 4 a void element ends
 //      in ">" (the oracle's JSX wrote " />"), as in the docs' samples, so the counts that cross one
-//      are 1 or 2 smaller than the oracle's.
+//      are 1 or 2 smaller than the oracle's. The small layout types its date input's type="date"
+//      without the space after it that SmallWidthCode.jsx typed, so its next three counts (the move
+//      back over it, the move to the Next button's line and the select phase's delete) are 1 smaller.
+//      From Phase 6 the busy step first types the disabled attribute that phase.busy gives the search
+//      input (the oracle's code had none): it moves back to the input's ">" (the large layout) or to
+//      the end of its placeholder line (the small one), types it, and moves on to the button, and
+//      the date step's delete over the input's attributes takes it too (38 characters in place of
+//      29, and 59 in place of 46).
 //    - The form follows the code: one state object with DemoContext.jsx's fields, rendered as Form.jsx
 //      renders it (one render per change, as React batches them). The email input has type="email"
 //      from the start, as the code shows it (the oracle's had no type for its first 1.75 s).
@@ -120,8 +127,9 @@ function setAttr(element, name, v) {
 const parts = form && {
   input: form.querySelector("input"),
   helper: el("small", {}),
-  select: el("select", { name: "select-demo", tabindex: "-1", required: "" },
-    el("option", { disabled: "", value: "", selected: "" }, "Select...")),
+  // The select is as the code shows it, <select><option>Select...</option></select>: no required
+  // and no disabled placeholder option, which femto draws in its placeholder color (select:invalid).
+  select: el("select", { name: "select-demo", tabindex: "-1" }, el("option", {}, "Select...")),
   checkboxLabel: el("label", { class: "" }),
   checkbox: el("input", { name: "checkbox-demo", tabindex: "-1", type: "checkbox", class: "" }),
   rangeLabel: el("label", { class: "" }, "Brightness"),
@@ -302,7 +310,9 @@ const phase = {
       buttonIsBusy: false, inputType: "date", inputClass: "fade-in", displayedInputValue: day, inputValue: day,
       inputPlaceholder: null, inputIsDisabled: false });
   },
-  next: () => set({ inputClass: "", displayButton: true, buttonLabel: "Next", buttonClass: "fade-in" }),
+  // The code's <button>Next</button> has no type, and femto makes only a button[type=submit] full
+  // width: the type the subscribe phase set goes (setAttr removes it), until the next loop's.
+  next: () => set({ inputClass: "", displayButton: true, buttonType: null, buttonLabel: "Next", buttonClass: "fade-in" }),
   select: () => set({ displayInput: false, displaySelect: true }),
   checkbox: () => set({ displaySelect: false, displayButton: false, displayCheckbox: true, checkboxClass: "fade-in" }),
   check: (checked) => () => {
@@ -386,7 +396,9 @@ const large = queue()
   .exec(phase.search)
   // Search input and button submitted
   .pause(SHOW)
-  .move(-7, moveOpts)
+  .move(-32, moveOpts)
+  .type(` ${attr("disabled")}`)
+  .move(25, moveOpts)
   .type(` ${attr("aria-busy")}=${value('"true"')}`)
   .move(7, moveOpts)
   .type("...")
@@ -396,7 +408,7 @@ const large = queue()
   .move(9, moveOpts)
   .delete(60, delOpts)
   .move(-1, moveOpts)
-  .delete(29, delOpts)
+  .delete(38, delOpts)
   .type(value('"date"'))
   .move(-22, moveOpts)
   .delete(14, delOpts)
@@ -567,7 +579,9 @@ const small = queue()
   .exec(phase.search)
   // Search input and button submitted
   .pause(SHOW)
-  .move(-26, moveOpts)
+  .move(-40, moveOpts)
+  .type(`<br />    ${attr("disabled")}`)
+  .move(14, moveOpts)
   .type("<br />   ", moveOpts)
   .move(14, moveOpts)
   .type("<br />    <br />  ", moveOpts)
@@ -581,21 +595,21 @@ const small = queue()
   .move(12, moveOpts)
   .delete(79, delOpts)
   .move(-1, moveOpts)
-  .delete(46, delOpts)
-  .type(` ${attr("type")}=${value('"date"')} `)
-  .move(-23, moveOpts)
+  .delete(59, delOpts)
+  .type(` ${attr("type")}=${value('"date"')}`)
+  .move(-22, moveOpts)
   .delete(14, delOpts)
   .exec(phase.date)
   // Date input with Next button
   .pause(SHOW)
-  .move(24, moveOpts)
+  .move(23, moveOpts)
   .type("<br />  ", moveOpts)
   .type(`&lt;${tag("button")}&gt;Next&lt;/${tag("button")}&gt;`)
   .exec(phase.next)
   // Select
   .pause(SHOW)
   .move(-24, moveOpts)
-  .delete(20, delOpts)
+  .delete(19, delOpts)
   .type(`&lt;${tag("select")}&gt;&lt;/${tag("select")}&gt;`)
   .move(-9, moveOpts)
   .type("<br />    <br />  ", moveOpts)

@@ -1,6 +1,8 @@
 """Components: Modal's demo modal and its static examples, Nav's example links and Progress' random
 value (01 §2, ModalContext with docs.modal.jsx; small widgets: docs.nav.jsx, docs.progress.jsx), and
-Tooltip's example link.
+Tooltip's example link. Phase 6 added Progress' pause button and its paused start under reduced
+motion (WCAG 2.2.2), which the oracle lacks: progress-pause and progress-reduced-motion hold them on
+the one page only, as tooltip-link-same-hash holds the one page's ?theme= URL.
 
 The Tooltip example's link (docs.tooltip.jsx: Link to="#" with no onClick) renders the route's own
 path, href="/docs/tooltip". In the oracle a click is a client-side navigation to the same URL: the
@@ -11,7 +13,7 @@ it, but the two are not the same behavior: the static click is a full load. Do n
 to hide the load, which would also drop the scroll to the top. On the one page the link points at
 the section, /docs#tooltip, and a click is a fragment navigation in the same document to the
 section's heading."""
-from behavior import HEADING_LINE, check, self_href
+from behavior import HEADING_LINE, check, expect_name, self_href
 
 GROUP = "components-b"
 
@@ -138,13 +140,16 @@ return r.top >= innerHeight ? "below" : r.bottom <= 0 ? "above" : "on";
 """
 
 # Records every change of the example's value (and the value its code sample prints) from now on,
-# with performance.now() times; returns the time it started.
+# with performance.now() times; returns the time it started. A later call starts a new record and
+# stops the earlier observer, so no change is recorded twice.
 WATCH = """
 const p = S.querySelector('article[aria-label="Progress example"] > progress');
 const code = p.parentElement.querySelector("footer pre code");
+window.__bhProgressObserver?.disconnect();
 window.__bhProgress = [];
-new MutationObserver(() => __bhProgress.push([Math.round(performance.now()), p.getAttribute("value"),
-  (code.textContent.match(/value="([^"]*)"/) || [])[1]])).observe(p, {attributes: true, attributeFilter: ["value"]});
+window.__bhProgressObserver = new MutationObserver(() => __bhProgress.push([Math.round(performance.now()), p.getAttribute("value"),
+  (code.textContent.match(/value="([^"]*)"/) || [])[1]]));
+window.__bhProgressObserver.observe(p, {attributes: true, attributeFilter: ["value"]});
 return Math.round(performance.now());
 """
 
@@ -194,6 +199,116 @@ def progress_offscreen(page):
     page.js(WATCH)
     page.sleep(10.5)
     page.eq("no change for 10.5 s while the example is above the viewport", page.js("return window.__bhProgress"), [])
+
+
+# The Progress example's pause button (docs.js, Phase 6: WCAG 2.2.2, the redraw every 5 s is
+# auto-updating content), as the homepage demo's button[data-demo-pause] (landing.py).
+PROGRESS_PAUSE = "button[data-progress-pause]"
+PROGRESS_PAUSE_WHY = ("the Progress example's pause button and its paused start under reduced motion are new in Phase 6 "
+                      "(WCAG 2.2.2, Pause, Stop, Hide); the oracle's example has neither")
+PROGRESS_PAUSE_STATE = """
+const b = S.querySelector(arguments[0]);
+return b && {hidden: b.hidden, shown: b.getClientRects().length > 0 && getComputedStyle(b).visibility !== "hidden",
+             type: b.getAttribute("type"), text: b.textContent.trim(), pressed: b.getAttribute("aria-pressed"),
+             label: b.getAttribute("aria-label")};
+"""
+# Records each click on the pause button, with its performance.now() time (after docs.js's own
+# listener, which was added first, has run).
+PROGRESS_CLICKS = """
+const b = S.querySelector(arguments[0]);
+window.__bhPauseClicks = [];
+b.addEventListener("click", () => __bhPauseClicks.push(Math.round(performance.now())));
+"""
+# The example scrolled to the middle of the viewport, so it stays on screen while the check watches.
+PROGRESS_CENTER = """
+S.querySelector('article[aria-label="Progress example"] > progress').scrollIntoView({block: "center", behavior: "instant"});
+"""
+
+
+def expect_progress_button(page, label, text):
+    """The pause button reads `text` (within 1 s), its computed name is the same text, and the bar
+    is on screen."""
+    page.wait(f"{label}: the button reads {text}", "S.querySelector(arguments[0]).textContent.trim() === arguments[1]", 1,
+              args=(PROGRESS_PAUSE, text))
+    expect_name(page, f"{label}: the button's computed name is {text}", page.find(PROGRESS_PAUSE), text)
+    page.eq(f"{label}: the example is on screen", page.js(WHERE), "on")
+
+
+def expect_values(page, log):
+    for _, v, code_v in log:
+        page.expect(f"value {v} is an integer from 5 to 94", v is not None and v.isdigit() and 5 <= int(v) <= 94, value=v)
+        page.eq(f"the sample prints {v}", code_v, v)
+
+
+def expect_play(page, label):
+    """A click on the button (reading Play) relabels it Pause, and the value changes 5 s after the
+    click, or 10 s when that draw repeated the value (within 400 ms), as the 5 s interval starts
+    again from the click."""
+    page.js(WATCH)
+    page.click(page.find(PROGRESS_PAUSE))
+    expect_progress_button(page, f"{label}: Play clicked", "Pause")
+    page.wait(f"{label}: a change within 10.4 s of Play", "window.__bhProgress.length >= 1", 10.6)
+    log = page.js("return window.__bhProgress")
+    clicked = page.js("return window.__bhPauseClicks.at(-1)")
+    ms = log[0][0] - clicked
+    page.note(f"{label}: the first change {ms} ms after Play, value {log[0][1]}")
+    k = round(ms / 5000)
+    page.expect(f"{label}: the first change is 5 s after Play, or 10 s when a draw repeated the value (within 400 ms)",
+                k in (1, 2) and abs(ms - 5000 * k) <= 400, ms=ms)
+    expect_values(page, log)
+
+
+@check("progress-pause", "/docs#progress", layouts=("one-page",), layout_reason=PROGRESS_PAUSE_WHY)
+def progress_pause(page):
+    """The Progress example's `button[data-progress-pause]` (in its section, before the example),
+    hidden in the markup (nothing changes without JavaScript), is shown once docs.js runs: rendered,
+    type="button", reading "Pause", with no aria-pressed and no aria-label, its computed name the same
+    text. With the example kept on screen its value changes within 10.4 s (the 5 s redraw, or 10 s
+    when a draw repeated the value). A click relabels the button "Play" (its computed name too) and
+    stops the redraw: no change for 10.5 s. A second click relabels it "Pause" and resumes it: the
+    value changes 5 s after that click, or 10 s when that draw repeated the value (within 400 ms),
+    each value a whole number from 5 to 94 that the code sample prints too."""
+    s = page.js(PROGRESS_PAUSE_STATE, PROGRESS_PAUSE)
+    page.expect("the Progress section has a pause button", s is not None)
+    page.eq("the script shows it: not hidden, rendered, type=button, reading Pause, no aria-pressed or aria-label",
+            [s["hidden"], s["shown"], s["type"], s["text"], s["pressed"], s["label"]],
+            [False, True, "button", "Pause", None, None])
+    page.js(PROGRESS_CENTER)
+    page.js(PROGRESS_CLICKS, PROGRESS_PAUSE)
+    expect_progress_button(page, "playing", "Pause")
+    page.js(WATCH)
+    page.wait("playing: the value changes within 10.4 s", "window.__bhProgress.length >= 1", 10.6)
+    expect_values(page, page.js("return window.__bhProgress"))
+    page.click(page.find(PROGRESS_PAUSE))
+    expect_progress_button(page, "Pause clicked", "Play")
+    page.js(WATCH)   # record from here
+    page.sleep(10.5)
+    page.eq("paused: no change for 10.5 s", page.js("return window.__bhProgress"), [])
+    expect_progress_button(page, "still paused", "Play")
+    expect_play(page, "resumed")
+
+
+@check("progress-reduced-motion", "/docs#progress", motion="reduce", layouts=("one-page",), layout_reason=PROGRESS_PAUSE_WHY)
+def progress_reduced_motion(page):
+    """Under prefers-reduced-motion: reduce the Progress example starts paused: once docs.js runs,
+    its `button[data-progress-pause]` is shown reading "Play" (its computed name too), the value drawn
+    on load is a whole number from 5 to 94 that the code sample prints, and with the example kept on
+    screen the value does not change for 10.5 s. A click on Play relabels the button "Pause", and the
+    value changes 5 s after the click, or 10 s when that draw repeated the value (within 400 ms): the
+    reader can still start it."""
+    s = page.js(PROGRESS_PAUSE_STATE, PROGRESS_PAUSE)
+    page.expect("the Progress section has a pause button", s is not None)
+    page.eq("the script shows it reading Play", [s["hidden"], s["shown"], s["type"], s["text"]], [False, True, "button", "Play"])
+    page.js(PROGRESS_CENTER)
+    page.js(PROGRESS_CLICKS, PROGRESS_PAUSE)
+    expect_progress_button(page, "reduced motion", "Play")
+    first = page.js("""const p = S.querySelector('article[aria-label="Progress example"] > progress');
+      return [0, p.getAttribute("value"), (p.parentElement.querySelector("footer pre code").textContent.match(/value="([^"]*)"/) || [])[1]];""")
+    expect_values(page, [first])
+    page.js(WATCH)
+    page.sleep(10.5)
+    page.eq("paused from the start: no change for 10.5 s", page.js("return window.__bhProgress"), [])
+    expect_play(page, "started")
 
 
 # /docs/nav's example links, in document order: on routes those of the nav[aria-label=overflow-with-focus]
@@ -342,3 +457,68 @@ def tooltip_link(page):
     page.eq("no new history entry", st["history"], history)
     page.eq("at the top of the page", st["scroll"], 0)
     page.note(f"scrolled {before} px before the click; the document was {'kept' if st['kept'] else 'loaded again'}")
+
+
+# Records, from now on, the time of every click (in the capture phase on window, before docs.js's
+# own listener on document), of every scroll event, and of the first time <html> gains and then loses
+# the class is-scrolling-to-link (docs.js, Decision 10), in performance.now() ms.
+LINK_SCROLL = """
+const html = document.documentElement, t = () => Math.round(performance.now());
+window.__bhLink = {click: null, added: null, removed: null, scrolls: []};
+addEventListener("click", () => { __bhLink.click = t(); }, true);
+addEventListener("scroll", () => __bhLink.scrolls.push(t()), {passive: true});
+new MutationObserver(() => {
+  const on = html.classList.contains("is-scrolling-to-link");
+  if (on && __bhLink.added === null) __bhLink.added = t();
+  if (!on && __bhLink.added !== null && __bhLink.removed === null) __bhLink.removed = t();
+}).observe(html, {attributes: true, attributeFilter: ["class"]});
+return true;
+"""
+SAME_HASH = "/docs?theme=jade#tooltip"
+
+
+@check("tooltip-link-same-hash", SAME_HASH, height=700, layouts=("one-page",),
+       layout_reason="?theme= exists only on the one page (Decision 8); no old route shows /docs?theme=jade#tooltip")
+def tooltip_link_same_hash(page):
+    """On /docs?theme=jade#tooltip at 1300 x 700, scrolled 200 px past where the deep link put
+    Tooltip's heading (the URL still /docs?theme=jade#tooltip once the spy has settled), a real
+    click on the example link (`href="/docs#tooltip"`: the URL's own hash, without its query) is
+    the fragment navigation docs.js makes of it to keep the query, which runs although the hash is
+    already the URL's (the hash setter would do nothing): within 3 s Tooltip's heading is on the
+    scroll-padding line (within 2 px), the URL is still /docs?theme=jade#tooltip with
+    history.length as it was, in the same document (a marker set on window survives) with jade's
+    stylesheet kept. <html> gains is-scrolling-to-link from the click and loses it when the
+    scroll arrives: within 250 ms of the scroll's last event, not after SCROLL_STALL's 1 s without
+    one, which ends a link's scroll that never arrives."""
+    link = page.find(TOOLTIP_LINK)
+    page.eq("the link points at /docs#tooltip", page.js("return arguments[0].getAttribute('href')", link), "/docs#tooltip")
+    page.wait("the deep link puts Tooltip's heading on its line", f"Math.abs(({HEADING_LINE})('tooltip')) <= 2", 3)
+    y = page.scroll_to(page.js(f"return scrollY + ({HEADING_LINE})('tooltip') + 200"))
+    page.sleep(0.5)   # past the spy's URL_DELAY (200 ms): a hash it would write is written
+    offset = page.js(f"return ({HEADING_LINE})('tooltip')")
+    page.expect("scrolled 200 px past the heading's line", abs(offset + 200) <= 2, offset=offset, y=y)
+    url = page.url()
+    page.eq("scrolled: the URL is still the deep link's", str(url), SAME_HASH)
+    clear = page.js("""const r = arguments[0].getBoundingClientRect(), h = document.querySelector('body > header');
+      const top = Math.max(h ? h.getBoundingClientRect().bottom : 0, 0);
+      return {clear: r.top >= top && r.bottom <= innerHeight, top: r.top, header: top};""", link)
+    page.expect("the link is in view, clear of the fixed header", clear["clear"], **clear)
+    page.js("window.__bhMarker = 'kept'")
+    page.js(LINK_SCROLL)
+    page.click(link, scroll=False)
+    page.wait("Tooltip's heading is on the scroll-padding line", f"Math.abs(({HEADING_LINE})('tooltip')) <= 2", 3,
+              offset=page.js(f"return ({HEADING_LINE})('tooltip')"))
+    page.wait("html loses is-scrolling-to-link", "window.__bhLink.removed !== null", 2, record=page.js("return window.__bhLink"))
+    page.url_kept("the same URL, and no new history entry", url)
+    page.eq("the URL is still /docs?theme=jade#tooltip", str(page.url()), SAME_HASH)
+    page.eq("the same document", page.js("return window.__bhMarker || null"), "kept")
+    page.eq("jade's stylesheet is kept", page.js("""return [...document.querySelectorAll("link[rel=stylesheet]")]
+      .map(l => l.getAttribute("href")).filter(h => h.includes("/css/themes/")).map(h => h.replace(/^.*\\//, ""))"""), ["jade.css"])
+    r = page.js("return window.__bhLink")
+    after = [s for s in r["scrolls"] if s >= r["click"]]
+    page.note(f"is-scrolling-to-link from {r['added'] - r['click']} to {r['removed'] - r['click']} ms after the click; "
+              f"{len(after)} scroll events, the last {after[-1] - r['click'] if after else None} ms after it")
+    page.expect("the click sets is-scrolling-to-link", r["added"] is not None and 0 <= r["added"] - r["click"] <= 100, **r)
+    page.expect("the page scrolls after the click", bool(after), **r)
+    page.expect("is-scrolling-to-link goes within 250 ms of the scroll's last event", r["removed"] - after[-1] <= 250,
+                ms_after_last_scroll=r["removed"] - after[-1], ms_after_click=r["removed"] - r["click"])

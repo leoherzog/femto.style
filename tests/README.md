@@ -23,14 +23,10 @@ uv run tests/run.py selftest                              # prove detection with
 uv run tests/run.py self                                  # the oracle against itself, fast axes
 uv run tests/run.py self --full --plan                    # print the full matrix's cells; starts nothing
 uv run tests/run.py self --full                           # criterion 1: the full matrix, three browsers
-uv run tests/run.py fast --a oracle --b dist --routes /docs/forms,/docs/forms/input   # a route group agent's check
-uv run tests/run.py fast --a oracle --b dist:build/forms --routes /docs/forms   # an agent's own build folder
-uv run tests/run.py pages --a oracle --b dist --full      # a parity gate (criterion 2)
-uv run tests/run.py styles --full                         # the Phase 2 gate: static-multipage against dist, tokens and states
-uv run tests/run.py styles --b dist:build/p2 --routes /docs/button   # an agent's own build, fast axes
-uv run tests/run.py sections --full                       # the Phase 3 gate: each section of the one page against its old route at static-femto
-uv run tests/run.py sections --b dist:build/p3 --routes /docs/button,/docs/version-picker/jade   # an agent's own build, fast axes
-uv run tests/run.py pages --a static-femto --b dist --full --routes /,/examples,/demo,/does-not-exist   # Phase 3's whole pages
+uv run tests/run.py pages --a dist --b dist --full --routes '/,/docs,/docs?theme=jade,/examples,/does-not-exist'   # criterion 15's run-time loads
+uv run tests/run.py styles --full --a static-multipage --b static-femto   # criterion 2, Phase 2's comparison between the tags (Phase 6)
+uv run tests/run.py sections --full --a static-femto --b static-one-page  # criterion 2, Phase 3's sections between the tags (Phase 6)
+uv run tests/run.py pages --full --a static-femto --b static-one-page --routes /,/examples,/demo,/does-not-exist   # and its whole pages
 uv run tests/run.py a11y --target dist                    # criterion 10: axe-core on every page, Chrome and Firefox
 uv run tests/run.py a11y --target dist:/path/to/build     # criterion 10 on an agent's own build
 uv run tests/run.py registry                              # validate tests/divergences/
@@ -40,8 +36,26 @@ uv run tests/static_checks.py --phase 4 --dist /path/to/build              # eve
 uv run tests/static_checks.py --criteria links --external --dist /path/to/build   # the link check, external links fetched once
 uv run tests/run.py behavior --target oracle              # the behavior suite (tests/behavior/), Chrome and Firefox
 uv run tests/run.py behavior --target dist --groups shell # one group against the static site
-uv run tests/run.py behavior --target dist --browsers safari   # Safari, serialized, on an unlocked screen (the owner's)
+uv run tests/run.py behavior --target dist --browsers safari   # Safari, serialized, on an unlocked screen (the owner's: tests/owner-safari.sh)
 uv run tests/run.py behavior --target dist:/path/to/build --browsers chrome,firefox   # criterion 7 on an agent's own build
+```
+
+The parity gates of Phases 1 to 3 compared each phase's own build, `dist/` then, with the oracle or
+a tag. They are historical: from Phase 4 `dist/` describes femto 3 (PLAN.md Decision 6) and has no
+per-route pages, `/demo` or version-picker routes, so it matches neither the oracle nor the tags,
+and these commands cannot pass on today's site. They are kept for the record (Harness proof), and
+Phase 6 reruns criterion 2's comparisons between the tags instead (above):
+
+```sh
+# Historical: dist/ was the phase's own build.
+uv run tests/run.py fast --a oracle --b dist --routes /docs/forms,/docs/forms/input   # a Phase 1 route group agent's check
+uv run tests/run.py fast --a oracle --b dist:build/forms --routes /docs/forms   # an agent's own build folder
+uv run tests/run.py pages --a oracle --b dist --full      # the Phase 1 gate (criterion 2)
+uv run tests/run.py styles --full                         # the Phase 2 gate: static-multipage against dist, tokens and states
+uv run tests/run.py styles --b dist:build/p2 --routes /docs/button   # an agent's own build, fast axes
+uv run tests/run.py sections --full                       # the Phase 3 gate: each section of the one page against its old route at static-femto
+uv run tests/run.py sections --b dist:build/p3 --routes /docs/button,/docs/version-picker/jade   # an agent's own build, fast axes
+uv run tests/run.py pages --a static-femto --b dist --full --routes /,/examples,/demo,/does-not-exist   # Phase 3's whole pages
 ```
 
 Every comparison run writes `tests/results/<run-id>/result.json`, `summary.txt` and `log.txt`,
@@ -67,6 +81,8 @@ chromedriver and geckodriver into `~/.cache/selenium`; Safari uses `/usr/bin/saf
 | `harness/states.json` | harness | the styles mode's interactive state targets (Tokens and states) |
 | `behavior/` | behavior | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per route group (`shell.py`, `getting-started.py`, `customization.py`, `layout.py`, `content.py`, `forms.py`, `components-a.py`, `components-b.py`, `landing.py`, `one-page.py`, and from Phase 4 `examples.py`); see Behavior |
 | `harness/behavior.py` | behavior | the `behavior` mode: its subcommand, the page API checks drive, sessions, runner and report |
+| `convert/` | conversion | Phase 1's one-time route converter, which ships nothing (PLAN.md Conversion rules): `convert.py` (an oracle route's captured hydrated DOM into its section file), `highlight-check.mjs` (build.mjs's Prism highlighting against every highlighted code block of the oracle; PLAN.md Risks, Highlighting parity) and its own `README.md` |
+| `owner-safari.sh` | owner | the owner's Safari steps (Owner's Safari steps). Only the owner runs it, since it switches macOS's appearance |
 | `oracle/`, `results/`, `builds/` | generated | gitignored; `builds/<tag>/` holds a tag's build (`harness/tagbuild.py`) |
 
 Python modules in `harness/`: `cli.py` (modes and the planner), `matrix.py` (legs, widths, routes,
@@ -76,7 +92,7 @@ proxy), `server.py` (the fixture server), `runner.py` (worker pool and session s
 mechanisms), `registry.py`, `report.py`, `negative.py` (selftest), `rig.py`, `locks.py` (femto's,
 unchanged), `paths.py`, `behavior.py` (the behavior mode; Behavior), `styles.py` (the styles mode's
 tokens and state replay; Tokens and states), `tagbuild.py` (a tag of this repository built for a
-target such as `static-multipage` or `static-femto`), `sections.py` (the sections mode's route map and
+target such as `static-multipage`, `static-femto` or `static-one-page`), `sections.py` (the sections mode's route map and
 cells; Sections), `a11y.py` (the a11y mode; Accessibility).
 
 ## How one comparison works
@@ -335,7 +351,8 @@ like any other, with `via` naming the report's directive and document in `cross_
 
 ### Masks
 
-`harness/masks.json` holds the only masked areas, PLAN's five, and every run copies them into
+`harness/masks.json` holds the only masked areas, PLAN's five (the random progress value in three
+entries), and every run copies them into
 `result.json` (`masks`) with the number of elements each covered (`masked_elements`, and per cell
 under `sides`). A mask applies to an aligned element when its selector matches it on either side.
 Masked parts are also left out of the alignment's subtree signatures.
@@ -346,6 +363,7 @@ Masked parts are also left out of the alignment's subtree signatures.
 | `typing-demo` | `.demo > article.component` | its contents: descendants and own text are not collected; the article's own attributes and styles (its height is fixed) stay compared; pixels covered |
 | `progress-value` | `article[aria-label="Progress example"] > progress` | the `value` attribute; pixels covered |
 | `progress-value-code` | `article[aria-label="Progress example"] > footer > pre > code > :nth-child(1 of .attr-value:not(.punctuation))` | the one token that prints the value (`value="NN"` comes before `max="100"`): its text, and the `transform-origin` and `perspective-origin` Firefox derives from its size. Every other token, its classes, the `pre` and the copy button stay compared. The screenshot covers the whole `pre`, since the digits shift the rest of the line |
+| `progress-value-code-width` | `article[aria-label="Progress example"] > footer > pre > code` | the code's `width` and `inline-size`, and the `transform-origin` and `perspective-origin` that follow them (Phase 6). From Phase 4 the sample is longer than its `pre` at 375 px, and femto's `pre > code { min-width: min-content }` (`css/content/code.css:47-50`) makes the code as wide as its line, so a one-digit value makes it one character narrower than a two-digit one: 344.5 against 352.906 px in Chrome (`p4-gate-loads-1`, `p6-gate-loads-1`). Its height, its other styles and every token but the value stay compared; no pixels key, since `progress-value-code` covers the `pre` |
 | `oracle-theme-toggle` | `svg.icon-theme-toggle *` | `transform` and `d` on the parts of the oracle's animated toggle icon; pixels covered. React adds `moon` after hydration when the page is dark, and the circle and rays then scale over 260 ms; in Safari 27.2 the transition can start after the freeze, so the oracle differed from itself (`p0-self-safari-light-locked`, 2026-11-01: 36 records in 18 theme-dark cells on a light OS, and 6 harness errors on `/docs/forms/input`). The site has an emoji instead (PLAN Decision 16); everything else about the SVG stays compared, and in `pages` its parts are registered `owner-change` records |
 | `oracle-maintenance-notice` | `div.maintenance-notice > a` | `color` and the 15 longhands that follow `currentColor` (`caret-color`, `column-rule-color`, `outline-color`, `text-decoration-color`, `text-emphasis-color`, `-webkit-text-fill-color`, `-webkit-text-stroke-color` and the 8 border colors) on the link in the oracle's maintenance banner; pixels covered. The banner takes the inverse theme, and React sets its `data-theme` after hydration, so on a dark page it flips from dark to light and the link's colors transition over 0.2 s. Safari 27.2 once read it mid-transition without the freeze seeing a transition (`p0-self-safari-dark`, 2026-11-01: 16 records in `/docs/link` dark 375, no harness error). The site drops the banner (PLAN Decision 5, `p1-shell-maintenance-notice`); the banner, its `data-theme`, the link's text and its other styles stay compared |
 
@@ -424,7 +442,7 @@ registry, Comparisons).
 | `static` | `tests/static_checks.py`'s `main(argv)`: every criterion it can check without a browser, and the link check (Link check). `--dist DIR` reads a built folder instead of `dist/` (criterion 5 then builds into it, never into `dist/`), `--criteria 9,13,links` some of them, `--external` fetches the external links. |
 | `styles` | The Phase 2 gate (criterion 2), femto's native mode ported to this site: one document, two stylesheet lists. `--a` (default `static-multipage`, the tag's build: the frozen legacy CSS) against `--b` (default `dist`: vendored femto, the responsive-spacings option and the site CSS). Phase 2 changes no markup apart from the stylesheet links, so the two documents align element for element, and everything `pages` compares is compared (tree, attributes, text, computed styles, head, status, same-origin loads, with the same routes, legs, widths, masks, value rules, chunking, Safari handling and `--full` matrix), plus femto's tokens and interactive states (Tokens and states). `--states FILE` replaces `harness/states.json`, `--no-states` replays none (a `cap:` line). The same target on both sides (`--a static-multipage --b static-multipage`) is a self comparison: no registry entry but a skipped check applies, the mode's criterion-1 check. A styles comparison applies only the registry entries that name it (Divergence registry). Fast axes; `--full` runs the full matrix. |
 | `sections` | The Phase 3 gate (criterion 2; Sections): each old docs route of `--a` (default `static-femto`) against its section of the one page of `--b` (default `dist`), side A's `[role=document]` (`--root-a`) against the `<section>` around the element with the section's id, loaded at `/docs#<id>` (a color route at `/docs?theme=<color>#version-picker`). Its routes and their sections come from side A's `menu.json` at the tag. A `one-page` comparison; everything else is the pages mode's (legs, widths, masks, value rules, chunking, Safari handling, same-origin rule, `--full` matrix). Fast axes; `--full` runs the full matrix. |
-| `behavior` | Scripted checks of every widget in 01 §2 that Phase 1 rebuilds, against one target (`--target oracle`, `dist`, `dist:<path>` or a base URL), in headless Chrome and Firefox, and in Safari with `--browsers safari` (serialized, the OS scheme only, on an unlocked screen: the owner's); see Behavior. Phase 3 adds the docs spy, `#hash` and history behavior and `?theme=` (criterion 7), growing from the spike's `test_spike.py`. |
+| `behavior` | Scripted checks of every widget in 01 §2 that Phase 1 rebuilds, against one target (`--target oracle`, `dist`, `dist:<path>` or a base URL), in headless Chrome and Firefox, and in Safari with `--browsers safari` (serialized, the OS scheme and, from Phase 6, the OS motion only, on an unlocked screen: the owner's); see Behavior. Phase 3 adds the docs spy, `#hash` and history behavior and `?theme=` (criterion 7), growing from the spike's `test_spike.py`. |
 | `a11y` | Criterion 10 (Accessibility): axe-core from `node_modules/axe-core` run in every page of one target (`--target`, default `dist`): `/`, `/examples`, the 404 page, `/docs` and `/docs?theme=jade` (until Phase 4 also `/demo`), in headless Chrome and Firefox, light and dark, at 375 and 1300. A serious or critical violation fails the run; moderate and minor ones are listed. `--pages`, `--browsers`, `--schemes`, `--widths`, `--plan`. |
 
 Named targets (`harness/targets.json`):
@@ -436,6 +454,7 @@ Named targets (`harness/targets.json`):
 | `dist:<path>` | any built folder, served exactly as `dist` serves `dist/`: the same wrangler, options, readiness and same-origin rule; `<path>` is absolute or relative to the repository root, and needs `<path>/index.html`. Several agents can each compare their own build at once (`fast --a oracle --b dist:build/forms`), since every server has its own ports, log and state folder. The folder's pages are also reference documents for the registry's breadth rule, like `dist/`'s | `static` |
 | `static-multipage` | the static site at tag `static-multipage` (the Phase 1 commit), built by the harness into `tests/builds/static-multipage/dist` (gitignored) and served exactly as `dist` serves `dist/`; `same_origin`. The build (`harness/tagbuild.py`): a detached `git worktree add` of the tag's commit in a temporary folder, the repository's `node_modules` linked into it, `node build.mjs --out <folder>`, then `git worktree remove --force` and `git worktree prune`. `build.json` beside the folder records the tag, commit, Node version, the prismjs version the build highlighted with (`node_modules/prismjs/package.json`, 1.30.0), file count, a SHA-256 of the built tree (every file's path and content) and seconds (0.3 s on 2026-11-02: 187 files). A run rebuilds when the folder's `index.html` or `build.json` is missing, the tag's commit is not the recorded one, the repository's prismjs is another version, or the folder no longer hashes to the recorded tree (a file under it edited, added or removed); the server start checks all of it again; `tests/builds/static-multipage.lock` is held exclusively by a build and shared by every server of the folder, so two runs never build at once and none rebuilds under a running server. `result.json` records `sides.<a|b>.build` | `static` |
 | `static-femto` | the static site at tag `static-femto` (the Phase 2 commit, 7587a7e: one page per oracle route, styled by vendored femto), built by `tagbuild.py` into `tests/builds/static-femto/dist` (gitignored) exactly as `static-multipage` is (the same worktree build, `build.json`, rebuild rules and `tests/builds/static-femto.lock`) and served exactly as `dist` serves `dist/`; `same_origin`. Side A of Phase 3's comparisons: the sections mode reads its routes from the tag's `site/docs/menu.json` (`menu`, read with `git show`), and its `comparison` is `one-page`. 0.3 s, 166 files on 2026-11-04 | `static` |
+| `static-one-page` | the static site at tag `static-one-page` (the Phase 3 commit, 7b90883, "Merge Docs Into One Page": the one docs page before Phase 4 rewrote it), built by `tagbuild.py` into `tests/builds/static-one-page/dist` (gitignored) exactly as `static-femto` is, and served exactly as `dist` serves `dist/`; `same_origin`. Its `one_page` is `/docs` (no `menu`, no `comparison`). Side B of Phase 3's comparisons when Phase 6 reruns them between the tags (owner decision 18): `sections --a static-femto --b static-one-page` and `pages --a static-femto --b static-one-page`. 118 files on 2026-11-06 | `static` |
 | `fixture`, `fixture:<control>` | the selftest site, optionally changed by a control from `fixtures/controls.json`; `same_origin`; its `menu` and `one_page` are the sections fixture's (`fixtures/site/sections/menu.json`, `/sections/docs.html`) | `static` |
 | a base URL | a server someone else runs (`http://127.0.0.1:8788`); nothing is started or stopped | `static` unless `--ready-a`/`--ready-b` |
 
@@ -617,7 +636,9 @@ uv run tests/run.py sections --plan                                # the planned
 
 The whole pages whose links into the docs change are compared as pages, with the same comparison:
 `pages --a static-femto --b dist --full --routes /,/examples,/demo,/does-not-exist` (the 404 page is
-the kept route `/does-not-exist`, which answers 404 with `404.html` on both sides).
+the kept route `/does-not-exist`, which answers 404 with `404.html` on both sides). From Phase 4
+`dist/` is no longer the Phase 3 site, so Phase 6 reruns both comparisons between the tags, with
+`--b static-one-page`, the Phase 3 commit (Harness proof, Phase 6; owner decision 18).
 
 Planned with the harness's planner on 2026-11-04 (`--plan`, no server or browser started):
 
@@ -842,6 +863,23 @@ hold, and the suite follows the Phase 4 site; parity with the oracle no longer b
 What Phase 4 reworked or added runs on the one page only (`layouts`, with the reason; on the oracle a
 `SKIP`); the rest still runs against the oracle, whose own markup each branch asserts.
 
+**Phase 6** (PLAN.md Workflow, 6 Final review) added three checks, all on the one page only:
+`progress-pause` and `progress-reduced-motion` (the Progress example's new Pause button, a11y-8) and
+`tooltip-link-same-hash` (a link to the URL's own hash on a `?theme=` URL, urls-1). It made five
+assert more:
+- `copy-button` and `color-modal-tab-cycle` read each button's computed name (WebDriver Get
+  Computed Label, `computed_name()` and `expect_name()` in `__init__.py`), not the icon's
+  `aria-label` attribute (a11y-1).
+- `mobile-menu-focus` holds the page's scroll position when the menu closes, also with `focus()`
+  made to ignore its options (verify-css-1).
+- `spy-categories` holds that the spy scrolls the side nav, not the page, to show the current link
+  (critic-8).
+- `demo-loop` holds the Next button's missing `type` and the busy input's `disabled` in the code
+  (content-c-3, content-c-4).
+
+In Safari the checks whose `motion` is `reduce` now run in the owner's pass with Reduce Motion on
+(Safari, below).
+
 ```sh
 uv run tests/run.py behavior --target oracle                         # every check, Chrome and Firefox (routes layout)
 uv run tests/run.py behavior --target dist --groups shell,landing    # some groups against the static site (one page)
@@ -857,7 +895,9 @@ Options: `--target` (`oracle`, `dist`, `dist:<path>`, a base URL; the named targ
 `--ready oracle|static|none` (the target's hook by default; `static` for a base URL), `--layout
 one-page|routes` (the target's by default, below), `--workers
 chrome=2,firefox=2` (sessions per browser, 1 by default), `--expect-oracle-bugs` (a base URL that
-serves the oracle), `--run-id`, `--label`, `--no-shots`, `--list`.
+serves the oracle), `--expect-os-motion no-preference|reduce` (Safari: a session that reads another OS
+motion stops before its first check, and the run fails; Phase 6), `--run-id`, `--label`,
+`--no-shots`, `--list`.
 
 **Layouts.** A target is `one-page` (the static site from Phase 3: a target whose `targets.json`
 entry names its `one_page`, `dist`; and a base URL) or `routes` (one page per old docs route: the
@@ -960,11 +1000,12 @@ the run fails. Against any other target it is an ordinary check. Eleven checks c
 shows each with the assertion it fails): `color-scheme-flash` (two routes), `theme-stored-invalid`,
 `mobile-menu-focus`, `picker-swatch-focus`, `color-modal-close-url`, `color-modal-focus`,
 `color-modal-tab`, `color-modal-focus-small`, `font-size-restored-switch`, `progress-offscreen` and
-`demo-offscreen`, so a full run against the oracle expects 12 `XFAIL` per browser, and 48 `SKIP`
-(`layout:routes`: the `one-page` group's 15 checks over 19 routes, `modal-two-dialogs`, and the 25
+`demo-offscreen`, so a full run against the oracle expects 12 `XFAIL` per browser, and 51 `SKIP`
+(`layout:routes`: the `one-page` group's 15 checks over 19 routes, `modal-two-dialogs`, the 25
 checks over 28 routes of what Phase 4 reworked or added: `theme-toggle-button`, `mobile-menu-inert`,
 `copy-keyboard`, `pre-scroll-keyboard`, `color-modal-tab-cycle`, six of the picker's, `demo-pause`,
-`demo-reduced-motion` and the 12 of the `examples` group). `mobile-menu-focus` is Phase 3's:
+`demo-reduced-motion` and the 12 of the `examples` group, and Phase 6's `progress-pause`,
+`progress-reduced-motion` and `tooltip-link-same-hash`, one route each). `mobile-menu-focus` is Phase 3's:
 the oracle's off-canvas menu has no Escape and no focus handling (01 §2), which criterion 7 asks for.
 Two kinds of fix are among the others.
 The color-scheme flash, the invalid stored theme and the two off-screen intervals are what the
@@ -974,7 +1015,13 @@ switch are deliberate early fixes of 03 §5's widget plan (`<dialog>`-native foc
 that PLAN.md's Workflow lists under Phase 3's per-dialog modal and widget fixes; Phase 1 landed them
 with their widgets instead of porting the bugs first, and the owner confirmed that on 2026-10-31
 (PLAN.md, Conversion rules, JavaScript). None of these is a pages-mode difference, so no registry entry records them. Nothing else is expected to fail, and nothing is
-masked: the parity masks and the `blob:` rule belong to the pages mode. These expected failures
+masked: the parity masks and the `blob:` rule belong to the pages mode. One check does fail there,
+and it is no oracle bug: `copy-button` looks for the site's own icon (Decision 18's
+`span[role=img]`), which the oracle's SVG is not, and fails at "link 1: clipboard icon before" in
+both browsers (`p6-record-oracle-1`, 2026-11-07, with `mobile-menu-focus` an `XFAIL` and
+`demo-loop` a `PASS` as expected). No full run against the oracle has been made since Decision 17,
+so another check that looks for the icons may fail there too. Parity with the oracle stopped
+binding at Phase 4. These expected failures
 live in the checks, not in `tests/divergences/`, whose entries type pages-mode records; each
 carries the same PLAN category, `oracle-bug`, and its reason.
 
@@ -984,9 +1031,17 @@ while the user's own Safari is open, and only on an unlocked screen (a locked on
 exit 2: real input never reaches a hidden page); visible, not headless, with one worker. Safari cannot
 emulate `prefers-color-scheme`, so a check whose `media` is not the OS scheme is not run: it is
 recorded as `skip` (`media:<scheme>`, in the summary's SKIPPED list), and the owner's pass in the
-other appearance runs it. For the same reason `spy-nav-click-reduced` (`motion:reduce`) is skipped
-there, and `nojs-deep-link` (`javascript:off`: WebDriver cannot turn JavaScript off in Safari, as in
-05). Safari has no WebDriver BiDi: the viewport is sized through the window (a size Safari's window
+other appearance runs it. Nor can it emulate `prefers-reduced-motion`. From Phase 6 the session reads
+the OS motion with `matchMedia`, as it reads the scheme: `log.txt`'s session line ends `OS scheme
+<scheme>, OS motion reduce` or `OS motion no-preference`, `result.json`'s `sessions[]` keep
+`os_motion`, and a check whose `motion` is not the OS's is skipped (`motion:<motion>`). With Reduce
+Motion off that skips the three `reduce` checks (`demo-reduced-motion`, `spy-nav-click-reduced` and
+`progress-reduced-motion`, all light ones); with it on, every other check. `--expect-os-motion`
+stops a session that read the wrong one before its first check: its jobs are reported as never
+run, and the run fails. Until Phase 6 the `reduce` checks were skipped in Safari whatever macOS
+said, so `spy-nav-click-reduced`, a criterion 7 item, had never run there (critic-3; owner decision
+19). `nojs-deep-link` (`javascript:off`: WebDriver cannot turn JavaScript off in Safari, as in
+05) is skipped there. Safari has no WebDriver BiDi: the viewport is sized through the window (a size Safari's window
 cannot give fails the check), and a check that needs a preload script is skipped there (`preload`:
 `color-scheme-flash`, `examples-first-frame` and `examples-first-frame-cold`), except
 `theme-first-frame`, whose preload is optional (it reads paint timing in Safari) and whose held theme
@@ -1002,8 +1057,11 @@ layout-shift entries, so `deep-link-cold` asserts the position only. Safari's Ta
 links and buttons, so the harness presses Option+Tab there (`page.tab()`, and `page.key("TAB")`
 through it), as the styles mode does. Every other check
 uses only real input, page scripts and the history API, as the spike's Safari run did. The harness's
-own proof is `--list` and argument parsing only; the Safari runs are the owner's
-(`tests/owner-safari.sh one-page`, and `content` from Phase 4).
+own proof is `--list`, argument parsing and, in Phase 6, `run_one` with stand-in Safari page and
+session objects; the Safari runs are the owner's (`tests/owner-safari.sh final` and `reduced` from
+Phase 6; `one-page` and `content` before it). `copy-button`, `color-modal-tab-cycle`,
+`progress-pause` and `progress-reduced-motion` read computed names through WebDriver Get Computed
+Label, which no Safari run of these checks has used yet.
 
 **Output.** `tests/results/<run-id>/` (run id `YYYYMMDD-HHMMSS-behavior-<pid>` unless `--run-id`):
 `result.json` (the run, the target and its side, the sessions' versions, totals per browser, every
@@ -1013,7 +1071,7 @@ failures with their reasons, then one line per check run) and `log.txt` (one lin
 finishes); `shots/<browser>__<check>__<route>.png`, the viewport of every failed, errored or XPASS
 check. Statuses: `PASS`, `XFAIL`, `FAIL`, `XPASS`, `ERROR` (an exception outside an assertion: a
 covered click target, a WebDriver error, after which the session is restarted), and in Safari `SKIP`
-(the other scheme's checks). Exit status: 0 when every check run is `PASS`, `XFAIL` or `SKIP`; 1
+(the other scheme's checks, or from Phase 6 the other motion's). Exit status: 0 when every check run is `PASS`, `XFAIL` or `SKIP`; 1
 otherwise or after a harness error; 2 for a setup error (an unknown group, check, browser or target, a
 missing `dist/`, the user's Safari open or the screen locked for a Safari run).
 
@@ -1042,14 +1100,16 @@ label names the failure, so labels say what should hold.
 
 Each check's docstring (`--list`) is its full statement; this is the summary. Viewport 1300 × 900,
 light OS and nothing stored unless the table says otherwise. Routes are the one page's URLs (Layouts;
-on routes, `/docs#modal` is `/docs/modal`, and so on). 94 checks over 116 check-routes, 232 runs in
-Chrome and Firefox (`--list` prints the count): Phase 3's 74 checks over 94 check-routes, less
+on routes, `/docs#modal` is `/docs/modal`, and so on). 97 checks over 119 check-routes, 238 runs in
+Chrome and Firefox (`--list` prints the count): Phase 4's 94 checks over 116 check-routes, plus
+Phase 6's `progress-pause`, `progress-reduced-motion` and `tooltip-link-same-hash`, one route each.
+Phase 4's 94 are Phase 3's 74 checks over 94 check-routes, less
 `picker-configuration`, `demo-page` and `example-forms`' `/docs#input` (whose forms Phase 4
 removed), plus Phase 4's 22 checks over 25 routes (`theme-toggle-button`, `mobile-menu-inert`,
 `copy-keyboard`, `pre-scroll-keyboard`, `color-modal-tab-cycle`, `picker-options`,
 `picker-unknown-theme`, `picker-popstate`, `demo-pause`, `demo-reduced-motion` and the `examples`
-group's 12), with `picker-code-highlight` and `modal-two-dialogs` rewritten. Against the oracle 41
-checks over 48 routes are skipped
+group's 12), with `picker-code-highlight` and `modal-two-dialogs` rewritten. Against the oracle 44
+checks over 51 routes are skipped
 (`layout:routes`, Expected failures).
 
 | Group | Check | Routes | Asserts |
@@ -1066,7 +1126,7 @@ checks over 48 routes are skipped
 | shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Once a paint entry exists (Chrome can record it a few hundred ms after load), seen from a preload script, `data-theme` appears while the head is parsed (no `<body>` yet), before the first paint, and the first animation frame sees it. **XFAIL on the oracle** at "set while the head is parsed": it sets the attribute during hydration (the flash; whether that still precedes the first paint is a race). Skipped in Safari (`preload`). |
 | shell | `header-fixed` | `/docs#modal` | Scrolled to the top first, `body > header` has `is-fixed-above-lg`; `is-fixed` exactly while `scrollY > 20` (off at 20, on at 21, off again at 20 and 0). |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled. |
-| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with the check ✓ within 100 ms, named as the copy icon ⧉ was, back to "Copy to clipboard" with ⧉ 900 to 1500 ms later (Decision 18's `span[role=img]`; `.icon-check` and `.icon-copy` at Decision 17, `svg.check` and `svg.clipboard` before it), no other step, focus not on the control after a pointer click. |
+| shell | `copy-button` | `/docs`, `/docs#modal` | The route's first and last copy controls (in `S`; buttons from Phase 4) each copy their own block's `pre code` textContent (copy spy), URL unchanged; in the page: "Copied" with the check ✓ within 100 ms, named as the copy icon ⧉ was, back to "Copy to clipboard" with ⧉ 900 to 1500 ms later (Decision 18's `span[role=img]`; `.icon-check` and `.icon-copy` at Decision 17, `svg.check` and `svg.clipboard` before it), no other step, focus not on the control after a pointer click. From Phase 6 the button's computed name (WebDriver Get Computed Label) is the icon's label, "Copy code", alone, before the click, while the ✓ shows and after the revert: site.js names it with `aria-labelledby` (owner decision 17), and neither tooltip's text joins it. The name is polled for up to 0.5 s, since Firefox 160 names the button "✓" for a few milliseconds after the swap, and the ✓ is checked to be still showing after the read. Fails on the oracle (Expected failures). |
 | shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice; "Copied" reverts once, 900 to 1200 ms after the first click (Code.jsx: every click schedules its own revert), no other step, not focused. |
 | shell | `copy-keyboard` | `/docs#button`, `/examples` (one page) | Tab reaches the first copy button; Enter copies its block, the tooltip and the visually hidden `role=status` line read "Copied", 1 s later they revert with keyboard focus kept; Space copies again. The block's `<pre>` is a tab stop only when its code overflows (site.js, Code block focus): one that does not has no `tabindex`, `role` or `aria-label` and Tab moves past it to the next control after it (both routes' first blocks, in both browsers); one that overflows has `tabindex="0"`, `role="figure"` and `aria-label` "HTML code" (or its language's) and Tab moves to it. |
 | shell | `pre-scroll-keyboard` | `/docs` (375 × 812; one page) | Quick start's first code block that overflows is a figure in the tab order (`tabindex="0"`, `role="figure"`, `aria-label` "HTML code"), takes focus with Tab from its copy button, matches `:focus-visible` with an inset ring, and Right arrow scrolls it (each press held 0.1 s; the scroll waited for up to 2 s; the note gives the keydown events the `pre` saw). |
@@ -1076,7 +1136,7 @@ checks over 48 routes are skipped
 | shell | `side-menu-max-height` | `/docs#grid` (375 × 812) | The menu nav's `--max-height` is `innerHeight` minus its top (within 0.5 px) on load and after resizes to 375 × 600, 1300 × 900 and, scrolled 500 px, 1300 × 700; each time `<body>`'s inline `min-height` is `innerHeight` px. |
 | shell | `mobile-menu` | `/docs#modal` (375 × 812) | The breadcrumb's "Documentation" control (a button from Phase 4) adds `is-open-on-mobile` to `aside#documentation-menu`, `<html>` stops scrolling, URL unchanged; the menu's Close reverses all three. |
 | shell | `mobile-menu-keyboard` | `/docs#modal` (375 × 812) | Enter on the focused "Documentation" control opens the menu, Enter on its focused Close closes it; no navigation either time. |
-| shell | `mobile-menu-focus` | `/docs#modal` (375 × 812) | Criterion 7's Escape and focus: Enter on "Documentation" opens the menu with focus inside `aside#documentation-menu`; Escape closes it (scrolling back, URL kept) and returns focus to the Documentation link; opened by a click, focus is inside again, and Enter on the close link closes it with focus back on Documentation; Escape with it closed does nothing. **XFAIL on the oracle** at "opening moves focus into the menu" (no Escape, no focus handling, 01 §2). |
+| shell | `mobile-menu-focus` | `/docs#modal` (375 × 812) | Criterion 7's Escape and focus: Enter on "Documentation" opens the menu with focus inside `aside#documentation-menu`; Escape closes it (scrolling back, URL kept) and returns focus to the Documentation link; opened by a click, focus is inside again, and Enter on the close link closes it with focus back on Documentation; Escape with it closed does nothing. From Phase 6 both closes leave `scrollY` within 1 px of where it was before that opening, and the whole sequence runs again with `focus()` made to drop its options (`FOCUS_NO_OPTIONS`), as Chrome Android and Samsung Internet ignore `preventScroll` (verify-css-1, css-1): Chrome scrolls the page to show the sticky breadcrumb's opener when it takes focus, 415 px with a bare `focus()` (`p6-f-checks-4`). Firefox never scrolls a sticky element on focus, so only Chrome can catch that. **XFAIL on the oracle** at "opening moves focus into the menu" (no Escape, no focus handling, 01 §2). |
 | shell | `mobile-menu-inert` | `/docs#modal` (375 × 812; one page) | Criterion 7's mobile menu focus: opened with Enter, focus on Close, `aria-expanded="true"`, every sibling of the menu and of its ancestors inert and the menu not; 60 Tabs and 10 Shift+Tabs stay in the menu; Escape: nothing inert outside, the menu inert, `aria-expanded="false"`, focus on the opener; a nav link (Grid) closes it with nothing left inert; resized to 1300 nothing is inert, back at 375 the page is inert again. |
 | shell | `mobile-menu-link` | `/docs#modal` (375 × 812) | With the menu open ("Layout" opened if closed), following "Grid" closes the menu: on routes it lands on `/docs/grid`, and back returns to the same `/docs/modal` document (client-side history, or the back-forward cache); on the one page the URL becomes `/docs#grid` with one new entry and Grid's heading on its line, and back returns to `/docs#modal` in the same document; the menu closed both times. |
 | shell | `breadcrumb-sticky` | `/docs#modal` (375 × 812) | Scrolled to the top first; relative to the breadcrumb's own natural top t (the static site's sits about 37 px higher, with no banner): `is-sticky` within 1 s at 400 px and at ceil(t) + 2, gone at floor(t) - 1, floor(t) - 20 and the top. |
@@ -1087,10 +1147,10 @@ checks over 48 routes are skipped
 | one-page | `nojs-deep-link` | `/docs#forms` (JavaScript off) | Forms' heading on its line, scrolled down, the title unchanged (no script ran). Chrome and Firefox; skipped in Safari. |
 | one-page | `spy-scroll` | `/docs` | Grid's heading 40 px past its line: the nav marks `#grid` and the title is "Grid • femto" at once, and one `replaceState` writes `/docs#grid` 180 ms or more after the jump, no new entry; at the top plain `/docs`, "Documentation • femto", `#quick-start`; at the bottom `/docs#tooltip`. |
 | one-page | `spy-fast-scroll` | `/docs` | 200 px every 16 ms, top to bottom, in the page: at most 3 `replaceState` calls, ending on `/docs#tooltip`. |
-| one-page | `spy-categories` | `/docs` | The nav's links are menu.json's 40 sections in order; for each, the section's heading on its line: its link alone current, its category's summary alone current and open, the chapter its category, the title its own; a closed Forms opens again when Input becomes current. |
+| one-page | `spy-categories` | `/docs` | The nav's links are menu.json's 40 sections in order; for each, the section's heading on its line: its link alone current, its category's summary alone current and open, the chapter its category, the title its own, and (Phase 6, critic-8) two frames later the current link's box inside the side nav's (1 px slack) with the page where the check scrolled it, every scroll event since then reporting that `scrollY` within 1 px (docs.js `revealInNav` scrolls the side nav, never the page); a closed Forms opens again when Input becomes current. |
 | one-page | `spy-chapter-small` | `/docs` (375 × 812) | The breadcrumb's chapter follows the spy: Customization, Layout, Content, Forms, Components, and Getting started at the top. |
 | one-page | `spy-nav-click` | `/docs#modal` | From 200 px into Modal, a real click on Container: `/docs#container`, one new entry, the heading on its line, the nav straight to `#container` (never a section in between), Layout current, the title; the scroll animated with `html` smooth during it, `auto` after. |
-| one-page | `spy-nav-click-reduced` | `/docs#modal` (reduced motion) | The same click under `prefers-reduced-motion: reduce` jumps: at most 2 scroll positions, never smooth. Skipped in Safari. |
+| one-page | `spy-nav-click-reduced` | `/docs#modal` (reduced motion) | The same click under `prefers-reduced-motion: reduce` jumps: at most 2 scroll positions, never smooth. In Safari it runs only in the owner's pass with macOS's Reduce Motion on (`tests/owner-safari.sh reduced`); skipped as `motion:reduce` otherwise. |
 | one-page | `spy-back-forward` | `/docs#modal` | After that click, back: `/docs#modal` at the exact position or with Modal's heading on its line (Chrome), the nav `#modal`; forward: `/docs#container`; neither animated. |
 | one-page | `spy-reload` | `/docs#css-variables` | 900 px into the section, `location.reload()` keeps the URL and the exact position or the heading on its line, the nav `#css-variables`; WebDriver's refresh keeps the URL and the section. |
 | one-page | `theme-first-frame` | `/docs?theme=jade#grid` (cold cache, jade's file held 300 ms) | One theme stylesheet, jade's, in `<head>`, held (resource timing; not in Safari); `DOMContentLoaded` after it arrived (parser-inserted: it holds back the deferred scripts, a script-added `<link>` does not); `--femto-primary` not azure's. In Chrome and Firefox a first-contentful-paint entry within 3 s, the first contentful paint after the file arrived and the first animation frame already jade's; in Chrome also `renderBlockingStatus` `blocking`. Firefox holds its paint because the color-scheme head script, parser-blocking, comes after the `?theme=` one and waits for the stylesheet (Decisions 8 and 14): `p3f-head-tff-1` to `-3` paint at 492 to 498 ms, after the file's 355 to 359; with the two merged into one script, `p3f-head-neg-merged-1` paints at 181 ms, before it, and fails. Safari's paint asserted as Chrome's when it has the entries. |
@@ -1115,7 +1175,7 @@ checks over 48 routes are skipped
 | customization | `color-modal-arrows-small` | `/docs#colors` (375 × 480) | Where the open modal's article overflows, the arrow keys step colors without scrolling the article or the page. |
 | customization | `color-modal-focus-small` | `/docs#colors` (375 × 480) | Enter opens the modal with focus on its close control (`header .close`), not the scrollable article; Escape returns focus to the button. **XFAIL on the oracle** at "focus moves to the close link". |
 | customization | `color-modal-resize` | `/docs#colors` | The open modal's article has `max-height: calc(<innerHeight>px - 2rem)` at 1300 × 900 and after resizes to 1300 × 600 and 1300 × 760. |
-| customization | `color-modal-tab-cycle` | `/docs#colors` (one page) | In the open modal focus starts on the close button; Tab steps through the five copy buttons and wraps to it; Shift+Tab goes back to the last; Enter there copies `var(--femto-color-red-500)`; Escape returns focus to the shade button. In Safari each Tab is Option+Tab, which colors.js treats as Tab. |
+| customization | `color-modal-tab-cycle` | `/docs#colors` (one page) | In the open modal focus starts on the close button; Tab steps through the five copy buttons and wraps to it; Shift+Tab goes back to the last; Enter there copies `var(--femto-color-red-500)`; Escape returns focus to the shade button. From Phase 6 each button's computed name is its icon's label alone (a11y-1): "Close", then "Copy hexadecimal color", "Copy RGB color", "Copy color utility class", "Copy background utility class" and "Copy custom property", the last also while its ✓ shows after the copy. In Safari each Tab is Option+Tab, which colors.js treats as Tab. |
 | customization | `palette-download` | `/docs#colors` | The Download link (text "Download the palette (JSON)"; on routes the oracle's "Download") points at a same-origin resource that holds the 20 × 19 palette as two-space JSON, with the SHA-256 of the oracle's download. |
 | layout | `grid-columns` | `/docs#grid` | Add and Remove column from 4 up to 10 and down to 1 (clamped both ways): the columns, the code text and its highlighted tokens follow every click. |
 | content | `font-size-units` | `/docs#typography` | The "Display in rem" switch turns the px table (values and formula tooltips) into percentages and multipliers without tooltips, and back to the exact load-time tree. |
@@ -1128,14 +1188,17 @@ checks over 48 routes are skipped
 | components-b | `modal-demo` | `/docs#modal` | "Open modal" opens the demo dialog ("Confirm your membership"; on routes the oracle's "Confirm Your Membership"); once its opening animation ends, Cancel, Confirm and the backdrop close it and a click inside does not; the two example dialogs stay open and their buttons do nothing. |
 | components-b | `progress-value` | `/docs#progress` | Watched 16 s on screen: an integer 5 to 94 with `max="100"`, the sample printing the same value (`<progress value="N" max="100"></progress>`; on routes the oracle's `/>`), at least two changes, each a whole number of 5 s periods (± 400 ms) after the last. |
 | components-b | `progress-offscreen` | `/docs#progress` (1300 × 300) | No change for 10.5 s while the bar is below the viewport; on screen, changes 5 s and 10 s later; above the viewport, none for 10.5 s (intervals run only on screen). **XFAIL on the oracle** at "no change for 10.5 s while the example is below the viewport". |
+| components-b | `progress-pause` | `/docs#progress` (one page) | Phase 6 (a11y-8, WCAG 2.2.2): `button[data-progress-pause]`, before the example in its section and hidden in the markup, is shown once docs.js runs: rendered, `type="button"`, "Pause", no `aria-pressed` or `aria-label`, its computed name its text. On screen the value changes within 10.4 s; a click gives "Play" and no change for 10.5 s; a second click gives "Pause" and a change 5 s after it (10 s when a draw repeated the value, ± 400 ms), the sample printing each value. |
+| components-b | `progress-reduced-motion` | `/docs#progress` (`prefers-reduced-motion: reduce`; one page) | The example starts paused: the button reads "Play", the value drawn on load is a whole number from 5 to 94 that the sample prints, and nothing changes for 10.5 s on screen; Play gives "Pause" and a change 5 s after the click. In Safari, the owner's Reduce Motion pass. |
 | components-b | `nav-example-links` | `/docs#nav` | The 28 example links of the examples' navs, dropdown items included (on routes 31, with the oracle's `overflow-with-focus` nav's 3, which Phase 4 removed from the section), go nowhere, clicked and with Enter: document, URL, history and scroll kept, dropdowns open, every click canceled. |
 | components-b | `tooltip-link` | `/docs#tooltip` (1300 × 500) | On routes the example link (`href="/docs/tooltip"`), clicked scrolled down, ends at `/docs/tooltip` at scrollY 0 with no new history entry; on the one page it points at `/docs#tooltip`, and the click, in the same document, ends there with Tooltip's heading on its line and a new entry only for a new URL. The oracle keeps the document (Remix's client-side navigation); the static site's plain link loads it again, which the check notes and does not assert (PLAN.md Conversion rules: plain `<a>` replaces Link). |
-| landing | `demo-loop` | `/` | Up to 100 s: the form's phases are exactly the demo's 15 (email ... range-50) and then email and invalid again; each phase's markup shows in the code while the form is in it; the fields carry each phase's values; at least 50 typed characters. |
+| components-b | `tooltip-link-same-hash` | `/docs?theme=jade#tooltip` (1300 × 700; one page) | Phase 6 (urls-1): scrolled 200 px past the heading's line, with the URL still the deep link's, a real click on the example link (`/docs#tooltip`, the URL's own hash) puts Tooltip's heading on its line within 3 s, keeps the URL and `history.length`, the document and jade's stylesheet; `<html>` gains `is-scrolling-to-link` within 100 ms of the click and loses it within 250 ms of the last scroll event, not after the 1 s `SCROLL_STALL`. Before the fix, docs.js cancelled the click and set the same hash, which does nothing. |
+| landing | `demo-loop` | `/` | Up to 100 s: the form's phases are exactly the demo's 15 (email ... range-50) and then email and invalid again; each phase's markup shows in the code while the form is in it; the fields carry each phase's values; at least 50 typed characters. From Phase 6, on the one page only (the oracle's form differs): the date-next phase's Next button has no `type`, as the code's `<button>Next</button>` has none, and during search-busy the code holds `placeholder="Search" disabled`, as the form's input is disabled (content-c-3, content-c-4). |
 | landing | `demo-variant` | `/` (1280 × 800) | The large code layout at 1280, the small one at 1279 and 375 and the large again at 1280, each within 3 s and each time started over at the first phase. |
 | landing | `comparison-toggle` | `/` | The comparison's code samples read `light`, then `dark` and `light` after header-toggle clicks. |
 | landing | `demo-offscreen` | `/` | The demo changes on screen; above the viewport (after 2 s to settle) no change for 7 s; back on screen it changes within 5 s. **XFAIL on the oracle** at "no change for 7 s while the demo is above the viewport" (TypeIt runs off screen). |
 | landing | `demo-pause` | `/` (one page) | `button[data-demo-pause]`, hidden in the markup, is shown once demo.js runs (rendered, `type="button"`, "Pause", the cursor's blink running) and the demo changes within 4 s. A click relabels it "Play": the code and the form (markup and values) do not change for 6 s and the blink is paused. A second click relabels it "Pause", the blink runs and the demo changes within 4 s. |
-| landing | `demo-reduced-motion` | `/` (`prefers-reduced-motion: reduce`; one page) | The demo starts paused: the button reads "Play", the blink is paused, the code shows the first phase's markup and the form its one empty, valid email input, and nothing changes for 6 s (unpaused, the first phase would start at 1.75 s). A click on Play relabels it "Pause", the blink runs and the demo changes within 4 s. |
+| landing | `demo-reduced-motion` | `/` (`prefers-reduced-motion: reduce`; one page) | The demo starts paused: the button reads "Play", the blink is paused, the code shows the first phase's markup and the form its one empty, valid email input, and nothing changes for 6 s (unpaused, the first phase would start at 1.75 s). A click on Play relabels it "Pause", the blink runs and the demo changes within 4 s. In Safari, the owner's Reduce Motion pass (Phase 6). |
 | examples | `examples-structure` | `/examples` | Each `section.example` has one `div[data-example]` whose shadow root holds only a div with its own shadow root: there femto's `dist/femto.min.css` link (loaded, nothing else styled) and then exactly the Markup sample's markup; no id repeats on the page, shadow roots included. |
 | examples | `examples-isolation` | `/examples` | Every element of every mockup (host and pseudo-elements included) has the computed style, every property and every custom property femto names, of a document that loads femto alone around the same markup: no site CSS reaches in. |
 | examples | `examples-isolation-dark` | `/examples` (dark OS) | The same with the OS dark. |
@@ -1150,6 +1213,9 @@ checks over 48 routes are skipped
 | examples | `examples-first-frame-cold` | `/examples` (cold cache) | With the cache emptied, the first frame that has the mockups already has femto applied in every root; no transition after load. Skipped in Safari (`preload`). |
 
 ### Proof
+
+Phase 6's runs, and the runs that show each new assertion failing where it should, are in Harness
+proof, Phase 6.
 
 Phase 4 (2026-11-05, the same rig: Chrome Beta 158.0.8127.18, Firefox 160.0, Selenium 4.52.0; the
 working tree after the Phase 4 writers and the a11y agent, built by the checks agent into its scratch
@@ -1282,8 +1348,12 @@ the file's header in round 1 of the Phase 1 fixes (it had shipped in `dist/`):
   (content), `article[data-indeterminate-example]` (forms; on the example, since
   `checkbox-indeterminate` holds the checkbox to its own two attributes),
   `article[data-dropdown-example]` (components-a), `nav[data-nav-example]` and
-  `article[data-progress-example]` (components-b); and beside them site.js's `button[data-copy-link]`
-  (a link until Phase 4), the header's `button[data-scheme-toggle]`, `data-modal`, `data-modal-open`
+  `article[data-progress-example]` (components-b), with the Progress section's
+  `button[data-progress-pause]` (Phase 6: hidden in the markup and shown by docs.js, its box laid
+  out invisibly by docs.css under `(scripting: enabled)` until then; `progress-pause`,
+  `progress-reduced-motion`); and beside them site.js's `button[data-copy-link]`
+  (a link until Phase 4; from Phase 6 named by `aria-labelledby` its icon's `copy-icon-<n>` id, which
+  site.js assigns), the header's `button[data-scheme-toggle]`, `data-modal`, `data-modal-open`
   and `data-modal-close`, colors.js's `data-color-modal`, picker.js's `article[data-version-picker]`
   (the Theme picker's swatches; the hook keeps its Phase 3 name), `section[data-picker-options]` and
   `section[data-picker-usage]` (`cdn`, `combine`, `template`; Phase 4 removed
@@ -1353,6 +1423,14 @@ femto's own hover background, which femto's c608ee06 fixed (owner decision 15; a
 through `nav[aria-label="breadcrumb"]`, so they share the name) and on the Dropdown section's nav
 example.
 
+axe reads each document once, as loaded, in the default color mode, so it says nothing about
+forced colors, WCAG 1.4.12's text spacing, reflow at 320 px, computed names after a script changes
+them, or content that updates on its own. Phase 6's accessibility review measured those by hand,
+with WebDriver's computed labels, Firefox's `browser.display.document_color_use` and Chrome's CDP
+forced-colors emulation (Harness proof, Phase 6). Its gate (`p6-final-a11y-1` and
+`p6-final-a11y-widths-1`, 40 and 60 cells) passes as Phase 4's did, with the same 16 and 24
+moderate `landmark-unique` cell findings.
+
 ## Link check
 
 Phase 4's gate includes a link check of `dist/` (PLAN.md Workflow, 4 femto 3 content). It is part of
@@ -1388,6 +1466,48 @@ uv run tests/run.py static --criteria links                                     
   asset, a missing page, a missing fragment on another page, a missing fragment on the page itself,
   a page's `.html` name, an unknown `?theme=`); each copy must fail with exactly its planted link and
   nothing else new, or the check fails (`LINK_CONTROLS`).
+
+## Lint
+
+`npm run lint` is criterion 11's lint (`eslint.config.js`): `@eslint/css`'s `use-baseline` at
+`widely` on `site/**/*.css`, and on `site/**/*.js` eslint-plugin-baseline-js's `use-baseline` at
+`widely` (`COMPAT_LINT`, owner decision 5) with a never-list of `no-restricted-syntax` and
+`no-restricted-globals` rules for what Decision 12 names. `site/vendor/` is ignored (criterion 12).
+`static_checks.py`'s criterion 11 proves what the lint reads, in a temporary copy of the tree, never
+the repository:
+- a feature that is Baseline newly but not widely available, planted in each site CSS and JS file
+  in turn, must fail the lint at `widely` (`CSS_PROBES`, `JS_PROBES`, calibrated against the
+  installed tools first);
+- each of the 12 `NEVER_PROBES`, planted alone, must draw a `no-restricted-*` report: the
+  `navigation` global; `scrollend` as a string, as a template literal and as `onscrollend`;
+  `content-visibility`; `blocking="render"` as an attribute and as a member;
+  `scrollIntoView({container})` inline and through a variable; `focus({preventScroll})` with a name
+  key and with a string key; and FontFaceSet's `loadingdone`;
+- the two inline head scripts, written to files, lint clean as site JS (`sourceType` script) and
+  report the first never-list probe planted in each.
+
+**What the lint cannot see** (css-3, css-4; Phase 6). eslint-plugin-baseline-js 0.7.7 checks syntax
+and the globals and static members of JavaScript's built-ins and the Web APIs (`Promise.try`,
+`navigator.clipboard`). It does not see instance members (`Set.prototype.union`,
+`element.moveBefore()`), event names passed as strings (`"loadingdone"`) or members of an options
+object (`focus()`'s `preventScroll`). Its README leaves instance members to a type-aware preset that
+needs TypeScript type information, from tools beyond PLAN.md's Repo changes. So `JS_PROBES` are
+static members, the only kind the plugin reports, and that is how css-1's `preventScroll` and
+css-2's `loadingdone` passed the lint until Phase 6. The never-list catches the Decision 12 cases by
+spelling, not by meaning:
+- an event name anywhere as a string or a template literal, and as an `on<event>` property;
+- an option (`container`, `preventScroll`) as a key of any object, a name or a string, so an options
+  object built ahead of the call is caught too, and also an unrelated object with such a key
+  (`site/assets/js` has none);
+- `blocking` as a string and as a member.
+
+An event name built from parts (`"scroll" + "end"`), or an option key computed at run time, still
+passes. The lint never reads the site's other CSS: the `<style>` in
+`site/docs/sections/css-variables.html` and `style=""` in `site/docs/sections/nav.html`, which only
+the forbidden-syntax scans read, and the CSS that site JS writes (six places, listed by criterion
+11's note). Phase 6's review checked all of these, and the site's JS for instance members, event
+names and options, by hand against @mdn/browser-compat-data 8.1.8 and web-features 3.45.0
+(2026-11-06), and criterion 11's note says so on every run.
 
 ## Divergence registry: `tests/divergences/`
 
@@ -1805,6 +1925,12 @@ they still apply, plus this harness's own.
   matters.
 - No `prefers-color-scheme` emulation. The OS scheme is read with `matchMedia` in the host page at
   session start. The other media leg is a registered skipped check.
+- No `prefers-reduced-motion` emulation either. From Phase 6 the OS motion is read the same way and
+  logged beside the scheme: the behavior mode runs only the checks of that motion
+  (`--expect-os-motion` stops a session that read the other one), and the comparison modes refuse
+  `reduce` (Known limits). The harness reads the setting only through Safari's `matchMedia` and
+  never changes it; the shell cannot read it reliably (`defaults read com.apple.universalaccess
+  reduceMotion` found no key on this Mac).
 - While your own Safari is open, a new WebDriver session never starts (Safari 27.2): the harness
   refuses to start one and exits 2. Quit Safari (Cmd-Q) before every Safari run. Before each session
   the harness terminates leftover `Safari ... --automation` processes (only safaridriver starts
@@ -1864,6 +1990,21 @@ they still apply, plus this harness's own.
   was stopped; it is kept when wrangler exited on its own. The `dist` target writes its log into
   the run's folder and static check 6 into its temporary folder, so no harness run writes to
   `~/Library/Preferences/.wrangler/logs/` any more.
+
+**The site's server (`wrangler pages dev` 4.158.0 from `node_modules`, on macOS).** Two answers
+differ from what criterion 6 says of "any other path", and both come from looking files up on this
+Mac's disk; `static_checks.py` probes neither:
+- A path below a file answers 502, with only `[wrangler] Could not serve static asset: Error:
+  ENOTDIR` as its body: `/_headers` (wrangler looks up `dist/_headers/index.html`; Phase 5, Hosting),
+  `/robots.txt/x`, `/favicon.svg/x`, `/docs.html/`, `/docs.html/x`, `/examples.html/`,
+  `/index.html/`, `/404.html/`, `/favicon.svg/` and `/sitemap.xml/`, and also `/docs%00`.
+- A page path in other letter case answers 200 with the page, since APFS is case-insensitive and
+  `dist/DOCS.html` resolves: `/DOCS`, `/Docs`, `/docs.HTML` and `/EXAMPLES` (`/Docs.html` answers
+  308 to `/Docs`). The GitHub check serves `dist/` on Linux, where these should be 404; that was not
+  run (urls-6, Phase 6). Whether Cloudflare Pages itself matches paths in a case-sensitive way was
+  not checked either (Harness proof, Phase 6, Not verified here). The `?theme=` head script and,
+  from Phase 6, picker.js apply a theme only on the exact path `/docs` (urls-5), so such a spelling
+  shows azure.
 
 **The styles mode (Chrome Beta 158, Firefox 160, 2026-11-02).**
 - Both browsers make a scroller with no focusable content a Tab stop: at 375 px a code block's `pre`
@@ -2114,7 +2255,12 @@ of `sections-missing` and the registry errors of the controls that expect them a
   compared. The typing demo is not compared at all; the behavior suite checks it.
 - Screenshots cover the iframe viewport (the top 800 px after scrolling to the top), not the full
   page, and never gate.
-- `prefers-reduced-motion` is not an axis; both sides run with the OS setting (no preference).
+- `prefers-reduced-motion` is not an axis; both sides run with the OS setting (no preference). From
+  Phase 6 a Safari session of a comparison mode reads the OS motion through `differ.js`
+  `H.hostStatus()`, logs `OS motion <value>` after `OS scheme` in `log.txt`, and refuses to start
+  under Reduce Motion with a rig error ("Safari's OS motion is reduce, but the comparison modes run
+  with no preference: turn macOS's Reduce Motion off ..."), since femto's reduce rule would flatten
+  every transition and animation on both sides alike and hide their differences (rr-tests-2).
 - The documents run in an iframe: a script that compares `window.top` with `window`, or that frames
   itself, would behave differently; neither the oracle nor the static site does.
 - The proxy forwards HTTP only, not WebSocket.
@@ -3161,8 +3307,9 @@ criterion:
 - CSS-only tooltips cannot be dismissed with Escape (WCAG 1.4.13), and on a copy button the
   tooltip covers the code next to it.
 - The focus-ring tokens are 1.4:1 to 2.0:1 against the page background.
-- femto's README says `dist/femto.min.css` is "about 74 KB"; the vendored file is 78,280 bytes, and
-  Files repeats the README's number.
+- femto's README says `dist/femto.min.css` is "about 74 KB"; the vendored file is 78,259 bytes
+  (78,280 at 8cd05767, as this item first said; corrected in Phase 6, content-a-4), and Files repeats
+  the README's number.
 - femto's README says `.femto-background-*` gives "a readable text color", but 31 shades set white
   text below 4.5:1.
 
@@ -3265,18 +3412,27 @@ then this third gate run.
 **Not verified here.**
 - `/_headers` on Cloudflare Pages itself: `wrangler pages deploy` leaves `_headers` out of the
   uploaded files and sends it as configuration, so Pages should answer 404. Only the owner's deploy
-  can show it.
+  can show it. Answered in Phase 6: it answers 404 on `femto.style` and `femto-style.pages.dev`, and
+  the fonts carry the year's caching, from the Git integration's deploy of `76d0e92`.
 - The check on GitHub's own runner: `ubuntu-latest`, the latest uv and the Python it picks there,
   and `@cloudflare/workerd-linux-64` and `@esbuild/linux-x64` (both in the lockfile) for
   criterion 6. A `pull_request` run checks out GitHub's merge commit, which the simulation did not.
   The runner user owns the checkout and `../femto`, so git's `safe.directory` should not apply.
   Linux file names are case-sensitive, and macOS's are not; no root-relative link in the build
   differs from its file in case (315 checked).
-- The check runs only once the owner pushes the commit that adds it.
+- The check runs only once the owner pushes the commit that adds it. Answered in Phase 6: the
+  owner pushed `76d0e92` to `dev` and `main`, and the workflow Check passed on GitHub's runner on
+  both (`gh run list`: `dev` at 22:26:14Z and `main` at 22:33:50Z, 2026-11-06).
 - Criteria 7 and 10 were not rerun. Phase 5 changed the 404 page's head and comments in femto's
   CSS, and no other markup, CSS or script.
 - `npm ci` reports 4 vulnerabilities in dev dependencies: 3 moderate, from `minimatch` under
-  eslint, and 1 high, `source-map-js` under `@eslint/css`. No criterion covers them.
+  eslint, and 1 high, `source-map-js` under `@eslint/css`. No criterion covers them. Corrected in
+  Phase 6 (repo-7): the high one had a fix inside `@eslint/css-tree`'s `^1.2.1` range before Phase
+  5's gate, and a lockfile-only `npm audit fix` now moves `source-map-js` from 1.2.1 to 1.2.2, which
+  closes it (GHSA-68fv-2mgg-jv7q). The 3 moderate `minimatch` advisories (GHSA-g3hv-75wg-m249)
+  remain: the first patched `minimatch` is 11.0.1, outside eslint 10.14.0's `^10.2.6` and
+  `@eslint/config-array` 0.23.5's `^10.2.4`, so npm's only fix is `--force` down to eslint 9.39.5.
+  An `overrides` entry forcing `minimatch` 11 would also clear them, untested with eslint 10.14.0.
 
 ### Decision 17: character icons (2026-11-05)
 
@@ -3352,6 +3508,478 @@ the swatches came back blank, on both builds. Whether the check finishes popping
 Safari window, was not seen. Safari's behavior suite and the owner's dark pass were not run, and iOS
 and Linux fonts were not checked, as for Decision 17.
 
+### Phase 6: final review (2026-11-06)
+
+PLAN's Phase 6. PLAN.md's Workflow table names it "Final review": a completeness critic and
+adversarial reviewers, every gate a fix touched rerun, then the full matrix in all three browsers,
+with all criteria as the gate and "Address Final Review" as the commit. The owner asked for "Phase
+6, the cleanup", but the cleanup was Phase 5 ("Finish Static Site"), so this record follows the
+table. Rig as in Decision 18's record: Chrome Beta 158.0.8127.18 (chromedriver 158.0.8127.18),
+Firefox 160.0 (geckodriver 0.37.1), Selenium 4.52.0, axe-core 4.14.0, wrangler 4.158.0 and, from
+this phase, html-validate 11.19.0. Every run below is on `dev` at `76d0e92` with Phase 6's work
+uncommitted. No agent ran Safari, changed a macOS setting, pushed or deployed.
+
+**How it ran.**
+1. A baseline of every gate on `76d0e92`, before any change (`p6-base-*`): all passed.
+2. A review in eight lenses, each by one reviewer and checked by one verifier:
+   - `critic`: completeness, against 01 §2's behavior list and every criterion;
+   - `a11y`: accessibility and keyboard;
+   - `urls`: URL and history behavior across browsers;
+   - `content-a`, `content-b` and `content-c`: content accuracy against femto's README and CSS,
+     in three parts;
+   - `css`: CSS and JavaScript against Decision 12's target;
+   - `repo`: packaging, hosting and the live site.
+
+   The reviewers made 74 findings. The verifiers confirmed 60 and partly confirmed 14, refuted
+   none, and added 9 of their own (`verify-*`). Of the 83, 6 are blockers, 15 major, 31 minor and 31
+   nits (the reviewers' 74: 5, 13, 26 and 30; the verifiers' 9: 1, 2, 5 and 1). The baseline added
+   two notes of its own: criterion 2's NOT-YET named Phase 3's gate command with `/demo`, and Phase
+   4's femto item gave a stale file size.
+3. The owner's decisions of 2026-11-06 (owner decisions 16 to 21).
+4. Seven fix agents in parallel, each on its own files: the section files, the pages and partials,
+   the site JS, the site CSS, the behavior checks, the harness and static checks, and the docs and
+   packaging. Then the parity reruns in Chrome and Firefox, and the gate, which added one mask.
+5. A re-review of the fixes in three lenses (site, tests, docs), each checked by a verifier: 13
+   defects (10 found by the reviewers, 3 added by the verifiers; 5 minor and 8 nits) and 2 questions
+   for the owner. One agent, alone in the tree, fixed the 13 (fix 2).
+6. The final runs, one after another with no other agent running (`p6-final-*`), then this record.
+
+**The owner's decisions** (2026-11-06; owner decisions 16 to 21, at the end of this file):
+Decision 11 moves to Cloudflare Pages' Git integration and the `deploy` script goes (16); the copy
+buttons are named by `aria-labelledby` (17); criterion 2's Safari legs are rerun between the tags
+with `owner-safari.sh parity` (18); the harness reads Safari's Reduce Motion and the owner runs a
+`reduced` pass (19); going live before femto's first publish needs no site change (20); and the
+local tags name the gates' commits (21). `remix-final` 507dcda, `static-multipage` 9383e6b and `static-femto` 7587a7e
+were recreated, and `static-one-page` 7b90883 was added. All four are local, not pushed.
+
+**The fixes, by area**, with their finding ids:
+- **Docs sections and menu** (`site/docs/sections/`, `menu.json`):
+  - the CSS variables example: its sample's button rule is `button[type=button]` and its live
+    `<style>` selects `#css-var-example > h1`, `> p` and `> button`, so it no longer reaches the
+    footer's copy button (content-a-2, verify-content-a-2);
+  - the token files named as those that "declare the tokens' defaults", with a sentence on the
+    seven names set only in their own modules (content-a-5);
+  - Classes and attributes' samples match their live examples (content-a-7);
+  - Typography's xxl tooltips open to the left, so the table no longer scrolls into blank space
+    from 768 px (content-b-2), and the sizes in `em` name `<small>`, `<sub>`, `<sup>` and code
+    (content-b-8);
+  - Button's and Link's live examples lose the `.grid` wrappers and `<br>`s their samples lack
+    (content-b-3);
+  - Input's and Forms' descriptions say which inputs share one field style (content-b-4);
+  - Grid no longer says `.grid` "only" makes equal columns (content-b-6);
+  - Select says "a size above 1" (content-b-7);
+  - the six overflowing scroll wrappers at 320 and 375 px are named regions (a11y-13);
+  - the Nav example's X icon is `aria-hidden` (a11y-9);
+  - Remix's `data-discover="true"` is gone from every section (content-b-9).
+- **Pages and partials**: `og:title` and `og:description` on `/` and `/examples` (content-c-6),
+  `aria-hidden` on the footer's, logo's, header's and homepage's decorative SVGs (a11y-9), and no
+  `data-discover` (content-b-9; also `build.mjs:133`).
+- **Site JavaScript**:
+  - copy buttons named by `aria-labelledby` (a11y-1, owner decision 17), in `site.js`
+    (`nameCopyButton()`) and in `colors.js`;
+  - the Progress example's Pause button, paused from the start under reduced motion (a11y-8); fix 2
+    lays out its box before docs.js runs, so a cold load of `/docs#progress` or `/docs#tooltip` no
+    longer shifts the page (Chrome's layout shift was 0.041 to 0.073, by route and width, and is 0;
+    rr-site-4);
+  - a link to the URL's own `#hash` on a `?theme=` URL scrolls to the heading (urls-1);
+  - the picker's `replaceState` is wrapped in `try` (urls-2), it keeps the reader's other query
+    items byte for byte (urls-4), and it shows the URL's theme only on the exact path `/docs`, as the
+    head script does (urls-5); `docs.js`'s comments on when the hash is written are corrected
+    (urls-3), and so is `colors.js`'s on Space (a11y-14);
+  - the menu's refocus saves and restores the scroll position in place of `focus({preventScroll})`
+    (css-1), and the code-block refit waits for `document.fonts.load()` in place of `loadingdone`,
+    which Safari never fires (css-2);
+  - the spy's take-over listens to `pointerdown` from touch in place of `touchstart`, and keeps
+    `wheel` (verify-css-2; the owner question rr-site-5 below);
+  - the typing demo's code matches its form: no `type` on Next (content-c-3), a plain select and no
+    space in the small layout's date step (content-c-4 (c), (e)), and `disabled` on the busy search
+    input (content-c-4 (a), rr-site-2).
+- **Site CSS**:
+  - in forced colors, the theme toggle's, the switcher's and the homepage's glyphs and marks are
+    drawn in system colors (a11y-2);
+  - in forced colors, the Theme picker's swatches keep their colors and get a `CanvasText` border,
+    which is all a visited swatch keeps in Firefox (a11y-3, rr-site-1);
+  - the site's own focus rings have a transparent outline beside the box-shadow, which forced colors
+    paints (a11y-5);
+  - the Grid example's cells reach 5.5:1 and 6.1:1 (a11y-6);
+  - inline code in prose wraps at 320 px (a11y-7);
+  - the copy button's icon box keeps its height under WCAG 1.4.12's text spacing (a11y-12,
+    rr-site-3);
+  - backdrop-filter's lint allowance is one disable comment beside its pair, and the text-wrap and
+    background-clip reasons are corrected (css-5, css-6, css-7).
+- **Lint** (`eslint.config.js`): the comment says what eslint-plugin-baseline-js checks, and the
+  never-list covers `loadingdone`, `scrollend` as a template literal and `onscrollend`,
+  `preventScroll` and `container` as any key, and `blocking` as a member (css-1, css-2, css-3,
+  rr-tests-1; Lint).
+- **Behavior checks** (The checks): `copy-button` and `color-modal-tab-cycle` read computed names
+  (a11y-1); `mobile-menu-focus` holds the scroll position (verify-css-1); `progress-pause` and
+  `progress-reduced-motion` are new (a11y-8), and so is `tooltip-link-same-hash` (urls-1);
+  `demo-loop` holds the demo's code (content-c-3, rr-site-2); `spy-categories` holds the side nav's
+  reveal (critic-8); `spy-scroll`'s and `spy-fast-scroll`'s docstrings follow urls-3.
+- **Harness and static checks**:
+  - criterion 4's scripts are `build`, `dev`, `vendor` and `lint`, and a script that runs `wrangler
+    pages deploy` or `publish` fails (owner decision 16, rr-tests-m1);
+  - from Phase 4, criterion 2's NOT-YET calls the Phase 1 to 3 gates historical and names their
+    records, criterion 15 names the loads command, and criterion 7 names the `final` and `reduced`
+    modes (verify-critic-1, critic-7, baseline-1);
+  - criterion 11 plants 12 never-list probes, lints the two inline head scripts, and notes what the
+    lint never reads (css-3, css-4, rr-tests-1);
+  - `tests/owner-safari.sh` has the modes `final`, `reduced`, `parity` and `spike`, a guard against
+    overwriting a result folder, and Reduce Motion checks; its old modes refuse to run (critic-6,
+    critic-7, rr-tests-2, rr-tests-3);
+  - Safari's OS motion is read by the behavior mode (`--expect-os-motion`) and by the comparison
+    modes, which refuse `reduce` (critic-3, owner decision 19, rr-tests-2);
+  - the `static-one-page` target (owner decisions 18 and 21);
+  - at the gate, the mask `progress-value-code-width` (Masks).
+- **Packages, PLAN.md, README.md and `check.yml`**:
+  - Decision 11, criterion 4, Repo changes and Risks (Cloudflare) are rewritten for the Git
+    integration, the `deploy` script is gone, README's Deploy section lists the build settings and
+    the zone settings, and `check.yml`'s header says Pages deploys and the check only checks (owner
+    decision 16);
+  - html-validate 11.19.0 (critic-10, repo-6);
+  - a lockfile-only `npm audit fix` (repo-7);
+  - PLAN's Parity harness lists every mode (critic-13);
+  - its File tree adds `.node-version` and `.prettierrc` and gives `build.mjs` as 212 lines
+    (critic-15, repo-8);
+  - its Conversion rules record the breadcrumb's per-frame check (critic-16, rr-docs-1);
+  - Decision 11's wording, the Tool versions row, the Page size row and the Matrix line are
+    corrected (rr-docs-2, rr-docs-3, rr-docs-m1, rr-docs-m2);
+  - Risks records going live before femto's publish (repo-4, content-c-2, owner decision 20).
+- **This file**: the Layout rows (critic-9), the historical Quick start commands (critic-12),
+  Phase 5's open items answered (critic-14), the wrangler notes (urls-6), the npm audit note
+  (repo-7, rr-docs-2), the Lint section (css-3, css-4), the corrected femto size (content-a-4) and
+  the rows of every changed check.
+
+**Skipped, and why.**
+- content-a-6, Themes' "Built in" for Azure: optional, and the site follows femto's README.
+- content-c-4 (b), the date phase's value, which the code does not show: changing it means
+  changing `phase.date` and `landing.py` together, and the verifier allowed leaving it.
+  content-c-4 (d), `<fieldset role="group">` in the code against `<form role="group">`: wording
+  only, with the same sizes.
+- critic-11's fallback paths get no new checks; they are listed under Not verified here.
+- The optional `wrangler.toml`, which would pin the output directory in the repository: the owner's
+  choice, and not among the decisions of 2026-11-06.
+- PLAN.md's Decision 3 ("`dist/` is generated, gitignored and deployed") and the Workflow's Phase
+  5 row: still true, or historical.
+- The femto-owned findings and femto's other defects (below): nothing in `site/vendor/femto` or
+  `../femto` changed, and the site's text keeps following femto's README.
+- The Cloudflare dashboard findings (below): the owner's steps, outside the repository.
+- rr-site-5 and rr-docs-4: the owner's questions (below).
+
+**Against PLAN's letter, and the lead's calls.**
+- The Workflow row asks for the full matrix in all three browsers. Chrome and Firefox ran it here;
+  Safari is the owner's (Owner's Safari steps), so criteria 1, 2 and 7 are not yet passed in Safari.
+- The Phase 1 to 3 gates compared each phase's own build, so from Phase 4 they cannot be rerun on
+  `dist/` (Decision 6). Criterion 2's Phase 2 and 3 comparisons were rerun between the tags
+  (owner decision 18). Phase 1's gate, in Chrome and Firefox only by PLAN, was not rerun.
+- The mask `progress-value-code-width` is a third masks.json entry for "the random progress value",
+  which PLAN's Masked line already names, so PLAN is unchanged. It is the flake `p4-gate-loads-1`
+  recorded, which `p6-base-loads-1` missed by chance.
+- The copy icons' ids exist only with JavaScript (`site.js`), since the buttons work only with it;
+  owner decision 17 left where they come from open.
+- The Progress button's box is reserved before docs.js runs by `@media (scripting: enabled)`, with
+  one `!important` over femto's `[hidden] { display: none !important }`, not taken out of flow as
+  rr-site-4's verifier preferred: no place out of flow fits at 375 px. Without JavaScript it takes
+  no space.
+- a11y-2 is two `@media (forced-colors: active)` blocks, one in `common.css` and one in
+  `landing.css`, because `landing.css` loads only on `/` and `/examples`.
+- PLAN's Page size sentence gives gzip without the stored file name (`gzip -9 -n`), as its earlier
+  measures did; `gzip -9` with the name gives 61,020.
+- content-c-4 (e) needed three step counts changed in the small layout, not one.
+- The picker's query rewrite drops empty items (`&&`), as `URLSearchParams` did.
+- Owner decision 16 changes no Decision 15 text: Decision 11 now says that, since a push deploys,
+  "Never push" and "Deploying is the owner's step" are one rule.
+
+**Registry.** 246 entries in 28 files, unchanged. The parity reruns registered exactly what the
+gates did. `/docs` is 743,761 bytes raw, 61,010 gzipped and 41,446 with Brotli (PLAN.md Risks, Page
+size: 900 KB, 70 KB and 48 KB).
+
+Baseline, on `76d0e92` before any change:
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p6-base-behavior-1` | `behavior --target dist --browsers chrome,firefox` (criterion 7) | 232 runs | **PASS: 232/232** | 0 | 369 s |
+| `p6-base-a11y-1`, `p6-base-a11y-widths-1` | `a11y --target dist`, then `--widths 320,768,1024` (criterion 10) | 40 and 60 | **PASS: 0 serious or critical**; 16 and 24 moderate cell findings (`landmark-unique`), listed | 0 | 43 s and 65 s |
+| `p6-base-loads-1` | `pages --a dist --b dist --full --routes '/,/docs,/docs?theme=jade,/examples,/does-not-exist' --browsers chrome,firefox` (criterion 15's run-time loads) | 168 (1,230,840 elements) | **PASS: 0 differences, 0 cross-origin loads**; the progress value happened to draw alike | 0 | 151 s |
+| `p6-base-self-1` | `self --browsers chrome,firefox` (criterion 1, fast axes) | 496 (338,544 elements) | **PASS: 0 differences**; the oracle's Google Fonts loads reported | 0 | 242 s |
+| `p6-base-selftest-1` | `selftest --browsers chrome,firefox` | 70 controls × 2 browsers | **70/70** | 0 | 412 s |
+| — | `npm run build`; `static_checks.py`; `registry`; `npm run lint` | 15 criteria and the link check; 246 entries | 119 files; **11 PASS, 0 FAIL, 5 NOT-YET** (1, 2, 7, 10 and 15 need browsers; 449 internal links, the six controls failing as intended); registry valid; lint exit 0 | — | 20.5 s |
+| — | `static_checks.py --criteria links --external` | 67 outside URLs | **PASS**: 66 below 400; npm's package page pending (403, and the package is unpublished) | — | 6 s |
+
+Parity, Chrome and Firefox (owner decision 18), the commands `tests/owner-safari.sh parity` runs in
+Safari:
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p6-parity-styles-1` | `styles --full --a static-multipage --b static-femto --browsers chrome,firefox` (Phase 2's gate) | 1,488 (970,944 elements) | **PASS: 0 unregistered**; 2,258,364 registered and 804,336 inherited, with 7,536 state replays per side, the totals of `p2-gate-styles-full-3` and `p2-sfix2-styles-full-cf`, and the same 43 entries with the same counts | 0 | 587 s |
+| `p6-parity-sections-1` | `sections --full --a static-femto --b static-one-page --browsers chrome,firefox` (Phase 3's gate) | 1,368 (638,520 elements) | **PASS: 0 unregistered**; 48,460 registered, every total and all 141 entries' counts as in `p3-gate-sections-full-1` | 0 | 378 s |
+| `p6-parity-pages-1` | `pages --full --a static-femto --b static-one-page --routes /,/examples,/demo,/does-not-exist --browsers chrome,firefox` | 120 (25,920 elements) | **PASS: 0 unregistered**; 672 registered, all attributes, as in `p3-gate-pages-full-1` (the same 9 entries) | 0 | 37 s |
+
+Only the screenshot diffs, which never gate, differ from the gates' runs: 460 styles cells against
+438 in `p2-sfix2-styles-full-cf`, and 16 pages cells against 4, nearly all with no pixel above
+8/255, on `/`, `/demo` and `/docs` in Chrome. The cells change between runs, so this reads as
+anti-aliasing and the typing demo, not a style or DOM difference, which the records would show.
+The stubbed dry run of `owner-safari.sh parity` runs exactly these three commands with `--browsers
+safari`, Light then Dark, and the Safari `--plan` of each gives 744, 684 and 60 cells.
+
+The gate, after the first fixes:
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p6-gate-behavior-1` | `behavior --target dist --browsers chrome,firefox` (97 checks) | 238 runs | **PASS: 238/238** | 0 | 406 s |
+| `p6-gate-a11y-1`, `p6-gate-a11y-widths-1` | the two a11y runs | 40 and 60 | **PASS: 0 serious or critical**; 16 and 24 moderate, as at the baseline | 0 | 50 s and 71 s |
+| `p6-gate-loads-1` | the loads command | 168 (1,234,800 elements) | FAIL: **4 unregistered** style records in one cell (Chrome, `/docs`, theme-light, 375): the Progress example's `code` is 352.906 px on one side and 344.5 on the other, its `width`, `inline-size`, `transform-origin` and `perspective-origin`; 0 cross-origin loads | 0 | 146 s |
+| `p6-gate-mask-proof-1` | `pages --a dist:<copy drawing 7> --b dist:<copy drawing 72> --routes /docs --widths 375 --schemes light,theme-light --browsers chrome,firefox`, with the new mask | 4 (61,248 elements) | **PASS: 0 differences**; the mask covered 8 elements | 0 | 16 s |
+| `p6-gate-loads-2` | the loads command, with the mask | 168 (1,234,800 elements) | **PASS: 0 differences, 0 cross-origin loads** | 0 | 146 s |
+| `p6-gate-selftest-1`, `p6-gate-selftest-2` | `selftest --browsers chrome,firefox`, before and after the mask | 70 controls × 2 browsers | **70/70** each | 0 | 538 s and 532 s (sharing slots with the loads runs) |
+| — | `npm run build`; `npm run lint`; `static_checks.py`; `registry` | 15 criteria and the link check; 246 entries | 119 files; lint exit 0; **11 PASS, 0 FAIL, 5 NOT-YET** (12: 66 files equal femto 33d4dc6f; 450 internal links); registry valid | — | 25 s |
+
+The new assertions, each shown to fail where it should (`dist:<build>` copies in the fix agents'
+scratch folders):
+
+| Run id | Command | Runs | Result |
+|---|---|---|---|
+| `p6-f-checks-3` | `copy-button`, `color-modal-tab-cycle` and `mobile-menu-focus` against a build of `76d0e92` | 8 | FAIL as intended, 7 of 8: the names read "Copy to clipboard Copy code" and "Copy to clipboard Copy hexadecimal color" in both browsers, and Chrome's `mobile-menu-focus` fails at "focus() without options: Escape: the page keeps its scroll position" (-415 px); Firefox's passes, since Firefox does not scroll on focus |
+| `p6-f-checks-4` | the four mobile-menu checks against a copy whose refocus is a bare `opener?.focus()` | 8 | FAIL as intended in Chrome's `mobile-menu-focus` at "Escape: the page keeps its scroll position" (-415 px); the other 7 pass |
+| `p6-f-checks-6` | `tooltip-link-same-hash`, `progress-pause` and `progress-reduced-motion` against the `76d0e92` build | 6 | FAIL as intended, 6 of 6: the two progress checks at "the Progress section has a pause button", the link check at "Tooltip's heading is on the scroll-padding line" (-199.7 px in Chrome, -200 in Firefox) |
+| `p6-f-checks-8` | `demo-loop` against the `76d0e92` build, Chrome | 1 | FAIL as intended at "date-next at 30875 ms: the Next button has no type, as in the code" (`submit`) |
+| `p6-f-harness-neg-reveal-off-1` | `spy-categories` against a copy with `revealInNav` turned off | 2 | FAIL as intended at "overflow-auto: the current link is inside the side nav's box" |
+| `p6-f-harness-neg-reveal-into-1` | `spy-categories` against a copy whose reveal is `link.scrollIntoView({ block: "center" })` | 2 | FAIL as intended at "classes: the reveal scrolled the side nav, not the page" (scroll events at 3050, 2734 and 3050) |
+| `p6-f-checks-7` | `behavior --target dist:<build>`, every check | 238 | **PASS: 238/238**; 715 s with slot waits |
+| — | `static_checks.py --criteria 11` with `76d0e92`'s `eslint.config.js`, then with only the three selectors before rr-tests-1; `--criteria 4` with a build script running `wrangler pages deploy dist`, `wrangler pages publish dist` or `npx wrangler@4.158.0 pages deploy dist` | — | FAIL as intended each time: 4 never-list probes (the template literal, `onscrollend`, `preventScroll`, `loadingdone`), then exactly the 3 new probes (`blocking` as a member, `container` through a variable, a string-key `preventScroll`), then criterion 4 in all three variants |
+
+Fix 2, after the re-review, alone in the tree:
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p6-fix2-behavior-1` | `behavior --target dist --browsers chrome,firefox` | 238 runs | **PASS: 238/238** | 0 | 417 s |
+| `p6-fix2-a11y-1` | `a11y --target dist` | 40 | **PASS: 0 serious or critical**; 16 moderate | 0 | 57 s |
+| `p6-fix2-loads-1` | the loads command | 168 (1,234,800 elements) | **PASS: 0 differences, 0 cross-origin loads** | 0 | 148 s |
+| `p6-fix2-selftest-1` | `selftest --browsers chrome,firefox` (the runner and `differ.js` changed) | 70 controls × 2 browsers | **70/70** | 0 | 430 s |
+| — | `npm run build`; `npm run lint`; `static_checks.py`; `registry` | 15 criteria and the link check; 246 entries | 119 files; lint exit 0; **11 PASS, 0 FAIL, 5 NOT-YET**, criterion 11 with 12 of 12 never-list probes and its new note; registry valid | — | — |
+
+The final runs, on the final tree, one after another with no other agent running:
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p6-final-self-full-1` | `self --full --browsers chrome,firefox` (criterion 1, on the current harness) | 1,488 (1,015,632 elements), 4 server chunks | **PASS: 0 differences**; one side loaded twice (Chrome, `/docs/progress`, dark, 375, side B: the oracle's `main-DE3LIIRG.css` did not load the first time), then passed; the oracle's Google Fonts loads on `/docs/css-variables` reported, not gating | 0 | 466 s |
+| `p6-final-behavior-1` | `behavior --target dist --browsers chrome,firefox` (criterion 7, and 15's layout shift) | 238 runs (97 checks) | **PASS: 238/238** | 0 | 411 s |
+| `p6-final-a11y-1`, `p6-final-a11y-widths-1` | `a11y --target dist`, then `--widths 320,768,1024` (criterion 10) | 40 and 60 | **PASS: 0 serious or critical**; 16 and 24 moderate cell findings, all `landmark-unique` on `nav[data-docs-breadcrumb]` and the Breadcrumb example's nav, listed | 0 | 43 s and 63 s |
+| `p6-final-loads-1` | `pages --a dist --b dist --full --routes '/,/docs,/docs?theme=jade,/examples,/does-not-exist' --browsers chrome,firefox` (criterion 15) | 168 (1,234,800 elements) | **PASS: 0 differences, 0 cross-origin loads**, no site-origin loads | 0 | 149 s |
+| `p6-final-selftest-1` | `selftest --browsers chrome,firefox` | 70 controls × 2 browsers | **70/70** | 0 | 412 s |
+| — | `npm run build`; `static_checks.py`; `registry`; `npm run lint` | 15 criteria and the link check; 246 entries | 119 files; **3, 4, 5, 6, 8, 9, 11, 12, 13, 14 and the link check PASS** (450 internal links; the six controls fail as intended); 1, 2, 7, 10 and 15 NOT-YET (their browser runs are above); registry valid; lint exit 0 | — | 28 s |
+| — | `static_checks.py --criteria links --external` | 67 outside URLs | **PASS: 67 of 67** below 400, none pending | — | 6 s |
+
+**The criteria at the end of Phase 6**, for the final report (critic-17). The report gives each
+criterion per browser and lists the 18 commits from `remix-final` to `76d0e92`: 12 of them carry
+subjects outside the Workflow table, among them the owner's Decision 16, 17 and 18 commits.
+
+| Criterion | Chrome and Firefox | Safari |
+|---|---|---|
+| 1 | PASS, `p6-final-self-full-1` | waits on `final` (`p6-self-safari-*-1`); the last passes ran on the harness of `161053b` and `a393112` (critic-6) |
+| 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | waits on `parity`; Phases 2 and 3 never passed in Safari (critic-1) |
+| 3, 4, 5, 6, 8, 9, 11, 12, 13 and 14 | PASS, `static_checks.py` | — |
+| 7 | PASS, `p6-final-behavior-1` | waits on `final` and `reduced`; the last passes, `p4-behavior-safari-*-2`, predate Decisions 17 and 18 (critic-2) |
+| 10 | PASS, `p6-final-a11y-1` and `-widths-1` | not in the criterion |
+| 15 | PASS: the static part, `p6-final-loads-1`, and `deep-link-cold` in Chrome | waits on `final`'s loads; production fails it while Web Analytics injects its beacon (the owner's step 5 below) |
+
+**The owner's steps outside the repository** (the Cloudflare dashboard). No agent logged in, used the
+dashboard or changed the live site; these are recorded here, in README's Deploy section and in
+PLAN.md Risks (Cloudflare). On 2026-11-06 the Git integration's deploy of `76d0e92` served the
+unbuilt `site/` folder. 112 of the build's 119 files were the same on both hosts, all of them copied
+assets, and every page was `site/`'s source: `/docs` was 2,540 bytes with raw include markers, an
+empty side nav and an empty `#content`. `/sitemap.xml` and the palette JSON answered 404, while
+`/docs/menu.json`, `/partials/head` and the section files were public. The GitHub check-run
+"Cloudflare Pages" on `76d0e92` said "Deployed successfully".
+1. **The build settings** (repo-1, critic-5, content-c-1). In Workers & Pages > `femto-style` >
+   Settings > Build > Build configuration: Framework preset None, Build command `npm run build`,
+   Build output directory `dist`, Root directory empty, Build system version v3. Node comes from
+   `.node-version`. Then retry the latest production deployment, or push `main` again. Recheck the
+   first build log for Node 26.13.0 and the installed devDependencies, `prismjs` among them. Then
+   compare the live files with a fresh local build, never `dist/` while the harness serves it:
+
+   ```sh
+   out="$TMPDIR/femto-live"; node build.mjs --out "$out"
+   for host in https://femto.style https://femto-style.pages.dev; do
+     for pair in /:index.html /docs:docs.html /examples:examples.html /no-such-page:404.html /sitemap.xml:sitemap.xml; do
+       live=$(curl -sS -H 'Accept: text/html' "$host${pair%%:*}" | shasum -a 256 | cut -c1-64)
+       built=$(shasum -a 256 < "$out/${pair#*:}" | cut -c1-64)
+       echo "$host${pair%%:*} $([ "$live" = "$built" ] && echo same || echo DIFFERENT)"
+     done
+   done
+   curl -sS -o /dev/null -w '%{http_code}\n' https://femto.style/docs/menu.json   # 404 once dist/ is served
+   ```
+
+   `Accept: text/html` matters: the zone injects step 5's beacon only into a response to a request
+   that sends it, as a browser does, and curl's default `Accept: */*` hides it. So on `femto.style`
+   the pages hash the same only once steps 2 (for `/examples`) and 5 are done as well; on
+   `femto-style.pages.dev` they should once this step is.
+2. **Email Address Obfuscation** (repo-2, verify-content-c-1). In the `femto.style` zone, Security >
+   Settings (Scrape Shield) > Email Address Obfuscation: Off, or a Configuration Rule for
+   `femto.style` and `/examples` that turns it off. It rewrites the six addresses on `/examples` and
+   adds a decoder script, which cannot reach the two in the Sign up and Contact mockups' shadow
+   roots, so those show "[email protected]" to every reader. Nothing in the repository fixes it
+   cleanly: `Cache-Control: no-transform` also turns off compression, and `<!--email_off-->` cannot
+   go in a code block (`build.mjs`). Recheck: `/examples` hashes as the build's `examples.html`, and
+   `curl -sS -H 'Accept: text/html' https://femto.style/examples | grep -c __cf_email__` prints 0.
+3. **Browser Cache TTL** (repo-3, verify-content-c-3). In the zone, Caching > Configuration > Browser
+   Cache TTL: Respect Existing Headers, with no Cache Rule that sets a browser TTL. On 2026-11-06 it
+   gave 93 of the 119 files (CSS, JavaScript, PNG, SVG and `robots.txt`) `max-age=14400` in place of
+   Pages' `max-age=0`, so for 4 hours after a deploy a returning reader can get new HTML with old CSS
+   and JavaScript. Recheck: `curl -sSI https://femto.style/assets/css/common.css` shows `public,
+   max-age=0, must-revalidate`, as `femto-style.pages.dev` does, and a `.woff2` font still shows
+   `public, max-age=31536000, immutable`.
+4. **Always Use HTTPS** (repo-5). In the zone, SSL/TLS > Edge Certificates > Always Use HTTPS: On.
+   Or widen the `www` Redirect Rule to match the host over http too. On 2026-11-06
+   `http://www.femto.style/` hung about 20 s and answered Cloudflare's 522, while
+   `https://www.femto.style/` answered 301 to the apex. Recheck: `curl -sS -o /dev/null -w
+   '%{http_code} %{redirect_url}\n' 'http://www.femto.style/docs?x=1'` answers 301 at once.
+5. **Web Analytics' automatic setup** (verify-repo-1, verify-content-c-2). In Analytics & Logs >
+   Web Analytics > the `femto.style` site > Manage site, set the automatic setup to Disable. For
+   every request that sends `Accept: text/html` it injects a script from
+   `static.cloudflareinsights.com` and a beacon to `/cdn-cgi/rum`, a cross-origin load against
+   criterion 15 (`femto-style.pages.dev` has neither). Recheck: `curl -sS -H 'Accept: text/html'
+   https://femto.style/docs | grep -c cloudflareinsights` prints 0. Keeping analytics instead would
+   be a change to criterion 15, for the owner to make.
+6. **Speed Brain** adds a `speculation-rules: "/cdn-cgi/speculation"` header on `femto.style`,
+   same-origin and conservative prefetch: harmless, no step (verify-repo-1).
+
+Pages builds and deploys a push to `main` whether or not `check.yml` passes: it does not wait for
+GitHub's checks. A Git-connected project cannot switch to Direct Upload.
+
+**femto's items.** The site's text follows femto's README at 33d4dc6f, and nothing in
+`site/vendor/femto` or `../femto` changed. Where the README and femto's CSS disagree, the owner
+decides on femto's side, and the site follows its README:
+- **`data-theme` and `.contrast`'s chevron and spinner** (content-a-1, verify-content-a-1, major).
+  README lines 212 and 216: `data-theme` switches the chevron and the loading spinner on
+  `.contrast` buttons, and an element that carries `data-theme` keeps its own colors in that scheme.
+  CSS: the dark filter rules (`css/tokens/schemes.css:137-144`, `:154-161`) use a descendant
+  combinator, and nothing resets them under a nested `[data-theme=light]`. So a light island in a
+  dark page gives its `.contrast` busy button and summary a black spinner and chevron on `#181c25`.
+  And `data-theme="dark"` on the button, the `<details>` or the `<summary>` itself, in a light page,
+  gives a white one on `#eff1f4`: both invisible. Pico 2.1.1 has the same rules. No page of the site
+  has such an element; only `color-schemes.html:59`, `:61` and `:77` repeat the README. Question:
+  fix femto's CSS (for example a scheme token for the filter, set on every `[data-theme]` element),
+  or qualify README lines 212 and 216?
+- **The not-allowed cursor** (content-a-3, content-b-5, minor). README line 113: `disabled` and
+  `aria-disabled="true"` give "A not-allowed cursor". CSS: `cursor: not-allowed` is set
+  (`css/utilities/accessibility.css:11-14`). But disabled buttons (`css/components/button.css:159-163`),
+  and disabled inputs, selects, textareas and `label[aria-disabled=true]`
+  (`css/forms/basics.css:139-146`), get `pointer-events: none`. The pointer then reaches a parent
+  whose cursor is `auto`, so the cursor shows only on aria-disabled links, buttons and
+  `[role=button]`, and over a disabled fieldset. The aria-disabled label computes `cursor: pointer`
+  (`css/forms/checkbox-radio-switch.css:6-9`). Pico 2.1.1 has the same rules, and `classes.html:252`
+  repeats the README. Question: narrow README line 113 to what happens, or change femto so the
+  cursor shows?
+- **Right-to-left form field icons** (content-b-1, major). README line 115: `dir="rtl"` mirrors "the
+  form field icons". CSS: `textarea[aria-invalid] { background-position: top right 0.75rem
+  !important }` (`css/forms/basics.css:226-230`) outranks the RTL rule at `:186-188`. So a textarea's
+  valid or invalid icon stays at the top right, over the text, while the padding kept for it moves
+  to the left. `rtl.html:11` and `classes.html:289` repeat the README. Question: add a
+  `[dir=rtl] textarea[aria-invalid]` rule to femto, or leave textareas out of the README's sentence?
+- **`dist/femto.min.css`'s size** (content-a-4, content-c-5; Phase 4's item). README line 131:
+  "about 74 KB, 11 KB gzipped and 10 KB with Brotli". The vendored file is 78,259 bytes, 11,746 to
+  11,833 gzipped (by tool and level) and 10,301 with Brotli: about 78, 12 and 10 KB. The README's
+  numbers are an earlier commit's (73,627 bytes at 9d4c2610), and `files.html:47` repeats them.
+  Question: should femto's README say about 78 KB and 12 KB gzipped?
+- **A select with `size="1"`** (content-b-7's chevron part, nit). `select:not([multiple], [size])`
+  (`css/forms/basics.css:203`, `:218`) drops the chevron for any select with a `size` attribute.
+  So `<select size="1">`, still a one-row drop-down, has no chevron and, with `appearance: none`, no
+  native arrow either. The site now says "a size above 1" and nothing about `size="1"`. Question:
+  should femto keep the chevron there?
+
+femto's CSS defects that no README sentence describes, for femto's owner:
+- **Focus in forced colors** (a11y-4, major). femto draws focus only as a box-shadow, with `outline:
+  none` on links, buttons, inputs, selects, switches, range, file inputs and dropdown summaries.
+  Forced colors removes box-shadows: in Firefox none of these changes a pixel when focused, and in
+  Chrome links, the switch, range and the dropdown summary show nothing and buttons barely change. A transparent outline beside each ring, which forced colors paints, fixes it; the
+  site's own rules do this from Phase 6 (a11y-5).
+- **Tooltip text in names** (a11y-10, minor). `[data-tooltip]::before { content: attr(data-tooltip) }`
+  joins the accessible name of an element named by its content: a tooltip button "Top" is named
+  "Top Top", and a labelled switch takes its helper text. It was the cause of a11y-1. femto could
+  say so in its README, or use `content: attr(data-tooltip) / ""` once that is Widely Available
+  (January 2027).
+- **The range input's focus** (a11y-11, minor). `[type=range]` draws no ring: focus only switches the
+  thumb and track to their active colors (`css/forms/input-range.css:47-50`), 1.16:1 to 1.32:1
+  against the unfocused pixels. The rest of a11y-11 is Phase 4's item on the focus-ring tokens
+  (1.4:1 to 2.0:1; amber's 1.65:1 lies inside it).
+
+**The owner's Safari steps for Phase 6** (Owner's Safari steps). Criteria 1, 2 and 7's Safari
+results wait on them, on the Phase 6 commit:
+- `tests/owner-safari.sh final`, Reduce Motion off: `p6-behavior-safari-light-1` and `-dark-1`,
+  `p6-self-safari-light-1` and `-dark-1`, `p6-loads-safari-light-1` and `-dark-1`. About 1 h 25 min.
+- `tests/owner-safari.sh reduced`, with Reduce Motion on: `p6-behavior-safari-reduced-light-1`.
+  About 2 minutes. Then turn Reduce Motion off.
+- `tests/owner-safari.sh parity`, Reduce Motion off: `p6-styles-safari-light-1` and `-dark-1`,
+  `p6-sections-safari-light-1` and `-dark-1`, `p6-pages-safari-light-1` and `-dark-1`. About 2 h
+  40 min.
+
+A rerun takes the next number (`final 2`). Each light run's log must say `OS scheme light`, each
+dark one `OS scheme dark`, and the motion as above.
+
+**The owner's open questions.**
+- The Cloudflare steps above, and whether Web Analytics stays (criterion 15).
+- femto's items above.
+- rr-site-5: the spy's take-over keeps a `wheel` listener beside `keydown` and touch `pointerdown`.
+  `wheel` is Baseline limited (Safari on iOS never fires it) and has no Widely Available
+  substitute; its reason is only in `docs.js`'s comment. Does Decision 12's "uses nothing outside
+  the target" allow a listener that complements Widely Available ones? If so, it belongs in
+  PLAN.md once; if not, the listener goes.
+- rr-docs-4: Decision 5 ends "Nothing is live, so nothing needs redirecting", and production has
+  been live since 2026-11-06. The conclusion holds, since none of the dropped pages was ever served
+  at `femto.style`. Leave it as dated text, or reword its last sentence?
+- css-3's optional question: eslint-plugin-baseline-js's type-aware preset would see instance
+  members, but it needs TypeScript, beyond PLAN.md's Repo changes.
+
+**Not verified here.**
+- **Safari.** No Safari run was made in Phase 6. The Safari paths were checked only with stand-ins:
+  - `run_one` with fake Safari page and session objects (the motion skips and the refusal);
+  - `tests/owner-safari.sh` with `osascript`, `caffeinate`, `pgrep`, `sleep`, `uv` and `npm`
+    stubbed (run ids, the folder guard, the motion stops, the restored appearance, the reminder).
+
+  Nor seen in Safari:
+  - whether safaridriver answers WebDriver Get Computed Label, which `copy-button`,
+    `color-modal-tab-cycle` and the two progress checks use;
+  - `document.fonts.load()`'s refit in WebKit (only the review's `race.py` emulation);
+  - whether the copy check's pop-in finishes in a visible window (Decision 18's record).
+
+  Also unseen: `focus()` scrolling on Chrome Android and Samsung Internet (only Chrome's CDP mobile
+  emulation, where a bare `focus()` jumps 415 px and the new refocus does not), real touch input
+  (only synthetic `PointerEvent`s), and forced colors other than Firefox's
+  `browser.display.document_color_use` and Chrome's CDP emulation.
+- **Production after the owner's steps.** Nothing here shows the live site once the build settings
+  are fixed: the hashes, the headers and the beacon are the owner's rechecks above.
+- **Pages' Node.** `.node-version` names 26.13.0, and build system v3 should read it in place of its
+  default, 22.23.4. Only the first build log shows which Node Pages used, and whether the
+  devDependencies, `prismjs` among them, were installed.
+- **`/DOCS` on production** (urls-6). Under `wrangler pages dev` on this Mac, `/DOCS`, `/Docs`,
+  `/docs.HTML` and `/EXAMPLES` answer 200 with the page (Rig notes, the site's server). Whether
+  Cloudflare Pages matches paths in a case-sensitive way was not checked; the head script and the
+  picker show azure there either way (urls-5).
+- **The fallback paths no check reaches** (critic-11):
+  - a theme stylesheet that fails to load, after which the picker loads the swatch's URL instead
+    (`picker.js:233` and `:258`);
+  - the typing demo and the Progress example pausing when reduced motion turns on while the page is
+    open (`demo.js:709`, `docs.js:618`; `demo-reduced-motion` and `progress-reduced-motion` load
+    under it);
+  - a color-scheme choice that storage refuses, which holds for the page (`site.js:106-108`);
+  - a stored value that is not JSON (`partials/head.html:45`, `site.js:58`; `theme-stored-invalid`
+    stores `'"blue"'`, which is JSON);
+  - the code blocks' refit once Fira Code has loaded, when it arrives after the first check
+    (`site.js:273`).
+- **The lint's blind spots** (css-3, css-4; Lint): instance members, event names built at run time
+  and computed option keys; the `<style>` and `style=""` sources, which `use-baseline` never reads;
+  and the six places site JS writes CSS. All were checked by hand in Phase 6, not mechanically.
+- `copy-button` against the oracle fails since the icons changed (Behavior, Expected failures), and
+  no full oracle run of the behavior suite was made after Decision 17.
+- Phase 5's GitHub check items for a `pull_request` run (GitHub's merge commit) still hold.
+
+**Phase 5's "Not verified here", answered** (critic-14). `/_headers` answers 404 on `femto.style`
+and on `femto-style.pages.dev`, and the fonts carry `public, max-age=31536000, immutable`, so Pages
+reads `_headers` as configuration from the Git integration's deploy too (a deploy of `site/`, which
+holds the same `_headers`). The GitHub check ran on GitHub's own runner: the workflow Check passed on
+`76d0e92` on `dev` (22:26:14Z) and `main` (22:33:50Z, 2026-11-06).
+
 ### Known Phase 1 deviations
 
 What Phase 1 ships differently from the oracle or from PLAN.md's letter, each on record here so that a
@@ -3377,47 +4005,101 @@ rest, and the registered ones with a consequence a later phase owns.
 
 `tests/owner-safari.sh` runs them, and only the owner runs it, since it switches macOS's appearance
 (to Light, then Dark) and puts back the one it found, even when stopped with Ctrl-C. Quit Safari
-(Cmd-Q), unlock the screen and leave the Mac alone until it prints `done`:
+(Cmd-Q), unlock the screen and leave the Mac alone until it prints `done`. From Phase 6 it has four
+modes. Each refuses to start when a result folder it would write already exists, and names the
+next free run number, so a rerun never overwrites a pass's evidence; `N` (default 1) numbers the run
+ids, as in `tests/owner-safari.sh final 2`:
 
 ```sh
-tests/owner-safari.sh
-tests/owner-safari.sh dark
-tests/owner-safari.sh spike
-tests/owner-safari.sh styles
-tests/owner-safari.sh one-page
-tests/owner-safari.sh content
+tests/owner-safari.sh final      # criteria 1, 7 and 15's Safari legs at this commit, Reduce Motion off: about 1 h 25 min
+tests/owner-safari.sh reduced    # criterion 7's prefers-reduced-motion checks, Reduce Motion on: about 2 minutes
+tests/owner-safari.sh parity     # criterion 2's Safari legs, rerun between the tags, Reduce Motion off: about 2 h 40 min
+tests/owner-safari.sh spike      # the spike alone, on whichever appearance is set: about a minute
 ```
 
-With no argument it runs the spike (into `results/p0-spike-safari.txt`, for
-`docs/research/05-spike.md`), `rig` with its input checks, the six light `/docs/css-variables` cells,
-the dark self pass over every kept route and the three selftest controls that compare on a dark OS:
-about 70 minutes. `dark` runs only the dark self pass, as `p0-self-safari-dark-masked`: about 26
-minutes. `spike` runs only the spike, into `results/p0-spike-safari-2.txt`, and leaves the
-appearance as it is: about a minute. `styles` is Phase 2's gate (criterion 2) in Safari: it builds
-`dist/`, which the harness serves as it finds it, then runs `styles --full --browsers safari` in
-Light as `p2-styles-safari-light-3` and in Dark as `p2-styles-safari-dark-3`. Each run compares 420
-of Safari's 744 cells, the OS scheme's leg and both theme legs, and the two together cover all 744:
-about 65 minutes. The earlier pairs, kept as Phase 2's record, took 1,936 s and 1,922 s
-(`p2-styles-safari-light` and `-dark`) and 1,935 s and 1,910 s (`-2`). `one-page` is Phase 3's gate in
-Safari (criteria 2 and 7): it builds `dist/`, then in Light and again in Dark runs the behavior suite
-(`behavior --target dist --browsers safari`, as `p3-behavior-safari-light-1` and `-dark-1`; each pass
-runs the checks of its OS scheme and skips the others), the full section comparison (`sections --full
---browsers safari`, as `p3-sections-safari-light-1` and `-dark-1`: 384 of Safari's 684 cells per pass)
-and the whole pages (`pages --a static-femto --b dist --full --browsers safari --routes
+- **`final [N]`** builds `dist/`, then in Light and again in Dark runs three steps. Each pass runs
+  the OS scheme's leg and both theme legs, and skips the other leg as `media:<scheme>`, which the
+  other pass runs.
+  - The behavior suite, `behavior --target dist --browsers safari --expect-os-motion no-preference`,
+    as `p6-behavior-safari-<scheme>-N` (criterion 7). The script stops here unless the run's
+    `log.txt` says `OS motion no-preference`.
+  - The oracle against itself over the full matrix, `self --full --browsers safari`, as
+    `p6-self-safari-<scheme>-N`: 420 of Safari's 744 cells per pass (criterion 1, on the current
+    harness; critic-6).
+  - Criterion 15's run-time loads, `pages --a dist --b dist --full --routes
+    '/,/docs,/docs?theme=jade,/examples,/does-not-exist' --browsers safari`, as
+    `p6-loads-safari-<scheme>-N`: 54 of 84 cells per pass.
+
+  The estimate comes from earlier passes: the behavior suite took 411 s in Light and 12 s in Dark
+  (`p4-behavior-safari-light-2`, `-dark-2`). A dark `self --full` pass took 1,548 s
+  (`p0-self-safari-dark-masked`). A light one took 1,072 s without `/docs/css-variables`
+  (`owner-self-safari-light`), plus 1,178 s for that route's six light cells
+  (`p0-self-safari-light-cssvars`).
+- **`reduced [N]`** is owner decision 19. Turn macOS's Reduce Motion on first (System Settings >
+  Accessibility > Display > Reduce motion). It builds `dist/` and runs the behavior suite in Light
+  only, `behavior --target dist --browsers safari --expect-os-motion reduce`, as
+  `p6-behavior-safari-reduced-light-N`. It runs the checks whose `motion` is `reduce`, which the
+  `final` passes skip: `demo-reduced-motion`, `spy-nav-click-reduced` and
+  `progress-reduced-motion`. Every one of them is a light check, so a Dark pass would run none
+  (rr-tests-3). Every other check is skipped, as `motion:no-preference` (the `final` passes run
+  it) or as `media:dark`. The script stops unless the log says `OS motion reduce`, and it always
+  ends by reminding you to turn Reduce Motion off again.
+- **`parity [N]`** is owner decision 18, criterion 2's Safari legs of the Phase 2 and Phase 3 gates.
+  It reruns them on the current harness between the commits the gates compared, in Light and again
+  in Dark. It builds nothing itself: the harness builds the tags into `tests/builds/`.
+  - Phase 2's gate, `styles --full --a static-multipage --b static-femto --browsers safari`, as
+    `p6-styles-safari-<scheme>-N`: 420 of 744 cells per pass. The script stops after it unless its
+    log says `OS motion no-preference`; a comparison session refuses Reduce Motion anyway (Known
+    limits).
+  - Phase 3's gate, `sections --full --a static-femto --b static-one-page --browsers safari`, as
+    `p6-sections-safari-<scheme>-N` (384 of 684 cells), then `pages --full --a static-femto --b
+    static-one-page --routes /,/examples,/demo,/does-not-exist --browsers safari`, as
+    `p6-pages-safari-<scheme>-N` (36 of 60).
+
+  The styles passes took 1,910 to 1,936 s (`p2-styles-safari-*-2`). The section comparison has
+  never run in Safari: Phase 3 estimated about 45 minutes a pass, the six `/docs/css-variables`
+  cells among them. Chrome and Firefox ran the same three commands in Phase 6 with every total equal
+  to the gates' (Harness proof, Phase 6). In Safari, the styles comparison relies on
+  `p2-safari.json`'s 19 entries, which were replayed offline against `p2-styles-safari-*-2` but
+  never run there, so a Safari-only difference may still need an entry.
+- **`spike [N]`** runs only the spike, into `results/p6-spike-safari-N.txt`, and leaves the
+  appearance as it is.
+
+At the end the script prints, for each run, how often its `log.txt` says `OS scheme light` or
+`OS scheme dark` and `OS motion reduce` or `OS motion no-preference`. The light runs must say light
+and the dark runs dark. `final` and `parity` must say `no-preference`, and `reduced` must say
+`reduce`. A run whose log has no OS motion at all started no Safari session, and the script stops
+saying so, with no Reduce Motion advice: the run's HARNESS ERRORS give the cause (on 2026-11-07
+`p6-behavior-safari-light-1` timed out waiting for safaridriver to launch Safari). A dark run's
+skipped checks are `media:light`. Each step is one command under `caffeinate
+-d -i`, so one can also be run by hand. The behavior suite and the styles mode's state replays need
+the automation window in front the whole time. Criteria 1, 2 and 7's Safari results wait on these
+three modes, and the owner's other steps are outside the repository (Harness proof, Phase 6).
+
+**Historical modes.** The script's earlier modes now refuse to run (exit 2) and say what each ran.
+They compared HEAD's `dist/` with the tags, which cannot pass from Phase 4, or they would write the
+earlier phases' run ids again (critic-7). With no argument it ran the spike (into
+`results/p0-spike-safari.txt`, for `docs/research/05-spike.md`), `rig` with its input checks, the
+six light `/docs/css-variables` cells, the dark self pass over every kept route and the three
+selftest controls that compare on a dark OS: about 70 minutes. `dark` ran only the dark self pass,
+as `p0-self-safari-dark-masked`: about 26 minutes. `spike` wrote `results/p0-spike-safari-2.txt`
+until Phase 6. `styles` was Phase 2's gate (criterion 2) in Safari: it built `dist/`, which the
+harness serves as it finds it, then ran `styles --full --browsers safari` in Light as
+`p2-styles-safari-light-3` and in Dark as `p2-styles-safari-dark-3`, which were never run. Each run
+compares 420 of Safari's 744 cells, the OS scheme's leg and both theme legs, and the two together
+cover all 744. The earlier pairs, kept as Phase 2's record, took 1,936 s and 1,922 s
+(`p2-styles-safari-light` and `-dark`) and 1,935 s and 1,910 s (`-2`). `one-page` was Phase 3's gate
+in Safari (criteria 2 and 7): it built `dist/`, then in Light and again in Dark ran the behavior
+suite (as `p3-behavior-safari-light-1` and `-dark-1`), the full section comparison (`sections
+--full --browsers safari`, as `p3-sections-safari-light-1` and `-dark-1`: 384 of Safari's 684 cells
+per pass) and the whole pages (`pages --a static-femto --b dist --full --browsers safari --routes
 /,/examples,/demo,/does-not-exist`, as `p3-pages-safari-light-1` and `-dark-1`: 36 of 60 cells per
-pass). About 1 h 45 min: Phase 2's styles passes took about 4.6 s a cell with their state replays, so
-about 25 minutes of section cells per pass, plus about 19 minutes for the six `/docs/css-variables`
-cells (about 190 s each on an unlocked screen, below), a few minutes for the behavior suite and two
-for the pages; not measured yet. `content` is Phase 4's gate in Safari (criterion 7): it builds
-`dist/`, then in Light and again in Dark runs only the behavior suite (`behavior --target dist
---browsers safari`, as `p4-behavior-safari-light-2` and `-dark-2`; `-1` was the first pass, Phase 4
-record), since Phase 4 compares nothing against the oracle: 411 s in Light and 12 s in Dark, which
-runs only the dark checks (the second pass). The behavior suite needs the automation
-window in front the whole time. Each step is one command in the script under `caffeinate -d -i`, so one can also be run
-by hand. At the end the script prints how often each self or styles run's `log.txt` says
-`OS scheme light` or `OS scheme dark`: the light run must say light and the dark run dark, and the
-dark run's skipped checks are `media:light`. Measured on an unlocked screen: a full dark pass
-1,555 s, and about 190 s for each `/docs/css-variables` cell (closed `<details>` style recompute).
+pass); it was never run. `content` was Phase 4's gate in Safari (criterion 7): it built `dist/`,
+then in Light and again in Dark ran only the behavior suite, as `p4-behavior-safari-light-2` and
+`-dark-2` (`-1` was the first pass, Phase 4 record): 411 s in Light and 12 s in Dark, which runs only
+the dark checks. Measured on an unlocked screen: dark self passes of 1,555 s and 1,548 s
+(`p0-self-safari-dark`, `p0-self-safari-dark-masked`), and about 190 s for each
+`/docs/css-variables` cell (closed `<details>` style recompute).
 
 ### Owner decisions and questions
 
@@ -3529,3 +4211,32 @@ dark run's skipped checks are `media:light`. Measured on an unlocked screen: a f
    than record an exception or change the example. femto's c608ee06 gives those nine themes their
    light value in both schemes (5.41:1 to 6.54:1), registered in femto's own divergences, and the
    site vendors it (owner decision 2), since 2026-11-05 as 33d4dc6f, the amended commit.
+16. **Decision 11, hosting by Git** (2026-11-06). Cloudflare Pages' Git integration replaces direct
+   upload. The Pages project `femto-style` is connected to GitHub's `leoherzog/femto.style`:
+   pushing `main` deploys production (`https://femto.style` and `https://femto-style.pages.dev`),
+   and pushing any other branch deploys a preview. The `deploy` script is removed, so criterion 4's
+   scripts are `build`, `dev`, `vendor` and `lint`, and `static_checks.py` fails a script that runs
+   `wrangler pages deploy` or `publish` (PLAN.md Decision 11, criterion 4). The build settings live
+   in the dashboard, which is the owner's (Harness proof, Phase 6, the owner's steps outside the
+   repository).
+17. **The copy buttons' names** (2026-11-06). Each copy button is named by `aria-labelledby`
+   pointing at its icon's id, so femto's tooltip text no longer joins its name (a11y-1). Decision
+   18's text stays: the `aria-label` stays on the icon. site.js gives the icons their
+   `copy-icon-<n>` ids, since the buttons work only with JavaScript.
+18. **Criterion 2's Safari legs** (2026-11-06). The owner reruns the Safari legs of the Phase 2 and
+   Phase 3 gates between the commits those gates compared, with a new `tests/owner-safari.sh` mode,
+   `parity`: `static-multipage` against `static-femto`, and `static-femto` against the new
+   `static-one-page` (Owner's Safari steps).
+19. **Reduce Motion in Safari** (2026-11-06). The harness reads Safari's OS `prefers-reduced-motion`,
+   as it reads the OS scheme, and the owner runs one more Safari pass with macOS's Reduce Motion on:
+   `tests/owner-safari.sh reduced` (Behavior, Safari).
+20. **Live before femto's first npm publish** (2026-11-06). Production went live from `main` before
+   `@leoherzog/femto` was published, so the docs' jsDelivr and npm instructions for the alpha fail
+   until then (repo-4, content-c-2). The owner chose no site change: the docs keep following femto's
+   README (PLAN.md Risks, femto is alpha and unpublished).
+21. **Local tags** (2026-11-06). The parity tags name the commits the gates used again, as this file
+   and `tests/harness/targets.json` say: `remix-final` 507dcda, `static-multipage` 9383e6b and
+   `static-femto` 7587a7e, recreated (critic-4 found the last two at de65ccf and f2f2351). A new tag,
+   `static-one-page`, names 7b90883, Phase 3's gate commit ("Merge Docs Into One Page"), for the
+   Safari parity rerun. 7587a7e has the same `site/` as 17ec97d, Phase 2's Safari follow-up; only
+   `README.md` differs. The tags are local and not pushed.

@@ -28,14 +28,18 @@ fails and some part cannot run yet, and passes only when every part ran and pass
 Phase. Some parts depend on the phase (PLAN.md Workflow). The phase is inferred from the Workflow
 table's commit subjects reachable from HEAD and its tags: "Add Oracle And Parity Harness" (Phase 0
 done, so 1), tag static-multipage or "Convert Pages To Static HTML" (2), tag static-femto or "Move
-Styles To femto 3" (3), "Merge Docs Into One Page" (4), "Describe femto 3" (5), "Finish Static Site"
-(6). Before Phase 2, site/assets/legacy/ is allowed in git (the Phase 1 gate's exception to 4) and in
+Styles To femto 3" (3), tag static-one-page or "Merge Docs Into One Page" (4), "Describe femto 3"
+(5), "Finish Static Site" (6), and "Address Final Review" (still 6, the last phase: Phase 6 done).
+Before Phase 2, site/assets/legacy/ is allowed in git (the Phase 1 gate's exception to 4) and in
 dist/ (03 §2 copies it during Phase 1). From Phase 3, dist/ has no per-route docs/ pages, 6 expects
 the old routes to 404, and 9 checks the one page's section ids and side nav. 13 applies from Phase 4,
 and from Phase 4 6 expects /demo to 404 (PLAN.md Open questions 5: not built).
 
 Browser and server criteria (1, 2, 7, 10, and the layout-shift part of 15) are the harness's; this
-script reports them NOT-YET with the harness command. 6 starts `wrangler pages dev dist` itself.
+script reports them NOT-YET with the harness command. From Phase 4, 2's gates are historical (the
+site no longer matches the oracle or the tags), so it names their records in tests/README.md and the
+owner's Safari rerun between the tags, tests/owner-safari.sh parity. 6 starts `wrangler pages dev
+dist` itself.
 
 The link check (PLAN.md Workflow, Phase 4's gate: "link check of dist/") is not a numbered
 criterion; it runs with the others, or alone with --criteria links. Every internal href, src and
@@ -64,7 +68,10 @@ Interpretations, where PLAN's wording leaves a choice:
   accepts COMPAT_LINT, eslint-plugin-baseline-js, because Decision 12's target is Baseline Widely
   Available, the same target @eslint/css's use-baseline checks; @eslint/js and globals are accepted
   as ESLint's own config support. Any other package fails. Pinned means an exact version, and
-  optionalDependencies, peerDependencies and bundleDependencies must be empty.
+  optionalDependencies, peerDependencies and bundleDependencies must be empty. The scripts are
+  exactly build, dev, vendor and lint: Cloudflare Pages' Git integration deploys the pushed commits
+  (Decision 11, the owner, 2026-11-06), so there is no deploy script, and a script that runs
+  `wrangler pages deploy` or its alias `wrangler pages publish` (DIRECT_UPLOAD) fails.
 - 11: the forbidden-syntax scans look at code only (comments removed, strings blanked), as femto's
   own checks do; mentions in comments are notes. Every scan (forbidden syntax, color functions,
   smooth scrolling) covers site/**/*.css outside site/vendor/ and site/assets/legacy/ (the frozen
@@ -73,8 +80,12 @@ Interpretations, where PLAN's wording leaves a choice:
   10's class is the class a rule `html.X`, `:root.X` or `.X` sets `scroll-behavior: smooth` on,
   inside `@media (prefers-reduced-motion: no-preference)`, where X appears in site/assets/js/docs.js.
   The lint part proves coverage, not only an exit status, on site/**/*.css and site/**/*.js outside
-  vendor/ and assets/legacy/ (PLAN names those globs; inline scripts in site HTML are listed as a
-  note, outside the lint). (a) `npm run lint` exits 0, and its script runs eslint without --fix. (b)
+  vendor/ and assets/legacy/ (PLAN names those globs). The site's other CSS and JS sources, which
+  `npm run lint` never reads, are listed in one note: <style> and style="" in site HTML (the
+  forbidden-syntax scans above read them, use-baseline does not), CSS that site JS writes
+  (.style.<property> =, .style.cssText, .style.setProperty(), insertRule(), replaceSync(), a
+  setAttribute("style") call), and inline scripts in site HTML (the two head scripts), which (e)
+  lints in the temporary copy. (a) `npm run lint` exits 0, and its script runs eslint without --fix. (b)
   `eslint --print-config` on every such file: CSS has @eslint/css `css/use-baseline` as an error at
   `available: "widely"`; JS has rules on, among them COMPAT_LINT's `use-baseline` (under whatever
   key the config registers it) as an error at Baseline "widely". Allow lists and ignored features
@@ -85,7 +96,19 @@ Interpretations, where PLAN's wording leaves a choice:
   the clean copy did. The probes (CSS_PROBES, JS_PROBES) are first calibrated against the installed
   tools with a reference config, kept only if reported at "widely" and not at "newly", so the probe
   shows the level of the real run too: a lint script that skips a file, uses another config, or
-  runs at "newly" fails. Before Phase 1 there is no lint script, so the lint part is NOT-YET.
+  runs at "newly" fails. The JS probes are static members only, all that COMPAT_LINT reads besides
+  syntax and globals: it checks no instance member, event name or option member (its README: those
+  need its type-aware preset). (d) Decision 12's never-list, eslint.config.js's no-restricted-syntax
+  and no-restricted-globals, is probed the same way, uncalibrated: each of NEVER_PROBES (a
+  Navigation API global, scrollend as a string, a template literal and an onscrollend property,
+  content-visibility, blocking="render" as an attribute and as a member, scrollIntoView({container})
+  inline and through a variable, focus({preventScroll}) with a name key and a string key, and
+  FontFaceSet's loadingdone event), alone, in the next site JS file in turn, must fail `npm run
+  lint` with one more no-restricted-* report than the clean copy gave. A note says what neither
+  probe set can show: Phase 6's review checked those members in the site's JS by hand. (e) The inline scripts in site HTML are written to files in the copy and
+  linted with the copy's eslint.config.js as site JS (sourceType script, as the browser runs them):
+  no report, and NEVER_PROBES' first planted in each must be reported. Before Phase 1 there is no
+  lint script, so the lint part is NOT-YET.
   Exceptions in the files: an eslint-disable directive needs "-- reason"; an inline rule
   configuration comment (`/* eslint rule: [...] */`, which print-config never shows) needs one too,
   and one that configures a use-baseline rule fails outright (the level and allow lists belong in
@@ -208,7 +231,7 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, unquote_to_bytes, urljoin, urlsplit, urlunsplit
 
 WRANGLER = "4.158.0"  # latest on npm, checked 2026-11-05; package.json's exact pin wins once it has one
-HTML_VALIDATE = "11.18.0"  # latest on npm, checked 2026-11-05; same rule
+HTML_VALIDATE = "11.19.0"  # latest on npm, checked 2026-11-06; same rule
 MAX_LINES = 12
 SITE_ORIGIN = "https://femto.style"
 DOCS_URL = "https://femto.style/docs"
@@ -226,7 +249,10 @@ PICO_ALLOWED = (
 # CSS keep Pico's copyright line (from 74e65f6e on).
 PICO_ALLOWED_DIR = "site/vendor/femto/"
 PICO_SPEC = ["--", ".", ":!docs/research", ":!tests", ":!PLAN.md", ":!PROMPT.md"]
-SCRIPTS = {"build", "dev", "deploy", "vendor", "lint"}
+SCRIPTS = {"build", "dev", "vendor", "lint"}  # criterion 4; no deploy script since Decision 11's change (2026-11-06)
+# wrangler pages deploy, its hidden alias publish (wrangler 4.158.0 still accepts it), and either through
+# a versioned package name (npx wrangler@4.158.0 pages deploy)
+DIRECT_UPLOAD = re.compile(r"(?<![\w-])wrangler(?:@[\w.^~-]+)?\s+pages\s+(?:deploy|publish)(?![\w-])")
 REQUIRED_DEV = {"prismjs", "wrangler"}
 CHECK_TOOLS = {"eslint", "@eslint/css", "html-validate", "axe-core"}
 COMPAT_LINT = "eslint-plugin-baseline-js"  # Phase 0's choice (docstring, 4); 0.7.7 on 2026-11-05
@@ -254,19 +280,31 @@ PHASE_COMMITS = (
     (4, "Merge Docs Into One Page"),
     (5, "Describe femto 3"),
     (6, "Finish Static Site"),
+    (6, "Address Final Review"),  # Phase 6 done: no later phase, so the checks stay at 6
 )
-PHASE_TAGS = ((2, "static-multipage"), (3, "static-femto"))
+PHASE_TAGS = ((2, "static-multipage"), (3, "static-femto"), (4, "static-one-page"))
 
 HARNESS = {  # tests/run.py modes (tests/harness/cli.py) that the criteria below need a browser for
-    1: "uv run tests/run.py self --full (the oracle against itself in the PLAN.md matrix: Chrome, Firefox, then Safari serialized; the owner's dark Safari pass too)",
-    7: "uv run tests/run.py behavior --target dist (Chrome and Firefox; Safari through tests/owner-safari.sh one-page, the owner's light and dark passes)",
+    1: "uv run tests/run.py self --full (the oracle against itself in the PLAN.md matrix: Chrome, Firefox, then Safari serialized, through tests/owner-safari.sh final, the owner's light and dark passes)",
+    7: "uv run tests/run.py behavior --target dist (Chrome and Firefox; Safari through tests/owner-safari.sh final, the owner's light and dark passes, and tests/owner-safari.sh reduced, in Light with Reduce Motion on for the prefers-reduced-motion checks, all of them light ones)",
     10: "uv run tests/run.py a11y --target dist (axe-core from node_modules on /, /examples, the 404 page, /docs and /docs?theme=jade; Chrome and Firefox, light and dark, 375 and 1300; a serious or critical violation fails)",
     15: "uv run tests/run.py behavior --target dist --checks deep-link-cold (a cold load of /docs#input: layout shift < 0.01 in Chrome, Input's heading within 2 px of its scroll-padding line in Chrome and Firefox)",
 }
-HARNESS_15_LOADS = ("uv run tests/run.py sections --full and pages --a static-femto --b dist --full --routes "
-                    "/,/examples,/does-not-exist (Phase 3's gate, then with /demo; pages --a oracle --b dist --full before it): every "
+HARNESS_15_LOADS = ("uv run tests/run.py pages --a dist --b dist --full --routes "
+                    "'/,/docs,/docs?theme=jade,/examples,/does-not-exist' --browsers chrome,firefox (p6-base-loads-1; "
+                    "p4-gate-loads-1 ran it without --full; Phase 3's gate read them in sections --full and pages --a "
+                    "static-femto --b dist, and Phases 1 and 2 in pages --a oracle --b dist --full and styles --full): every "
                     "dist document's Resource Timing entries and the proxy's CSP reports (workers and frames the page "
-                    "cannot read included), where a cross-origin load fails the run whatever code or markup started it")
+                    "cannot read included), where a cross-origin load fails the run whatever code or markup started it; "
+                    "Safari's are in tests/owner-safari.sh final")
+# Criterion 2's Safari legs, rerun on the current harness between the commits each gate compared
+# (tags static-multipage 9383e6b, static-femto 7587a7e, static-one-page 7b90883), once per appearance.
+PARITY_SAFARI = (
+    "uv run tests/run.py styles --full --a static-multipage --b static-femto --browsers safari (Phase 2's gate)",
+    "uv run tests/run.py sections --full --a static-femto --b static-one-page --browsers safari (Phase 3's gate, sections)",
+    "uv run tests/run.py pages --full --a static-femto --b static-one-page --routes /,/examples,/demo,/does-not-exist "
+    "--browsers safari (Phase 3's gate, whole pages)",
+)
 
 FORBIDDEN = [
     ("@layer", re.compile(r"@layer\b", re.I)),
@@ -793,7 +831,8 @@ def infer_phase(root: Path) -> tuple[int, str]:
     tags = set(git(root, "tag", "--merged", "HEAD").stdout.split())
     phase, why = 0, "no Workflow commit or tag yet"
     for n, subject in PHASE_COMMITS:
-        if subject in subjects and n > phase:
+        # >=: of two subjects for one phase, the later one in the table names it ("Address Final Review").
+        if subject in subjects and n >= phase:
             phase, why = n, f'commit "{subject}"'
     for n, tag in PHASE_TAGS:
         if tag in tags and n > phase:
@@ -825,12 +864,26 @@ def criterion_2(ctx: Context) -> Result:
     gates = {
         1: "uv run tests/run.py pages --a oracle --b dist --full (the static routes against the oracle; Chrome and Firefox)",
         2: "uv run tests/run.py styles --full --browsers chrome,firefox (dist against tag static-multipage: everything pages compares, plus femto's tokens and interactive states; tests/README.md, Tokens and states)",
-        3: "uv run tests/run.py sections --full --browsers chrome,firefox (each docs section of dist's one page against its old route's [role=document] at tag static-femto) and uv run tests/run.py pages --a static-femto --b dist --full --browsers chrome,firefox --routes /,/examples,/demo,/does-not-exist (the whole pages whose links into the docs changed); then Safari, light and dark, through tests/owner-safari.sh one-page",
+        3: "uv run tests/run.py sections --full --browsers chrome,firefox (each docs section of dist's one page against its old route's [role=document] at tag static-femto) and uv run tests/run.py pages --a static-femto --b dist --full --browsers chrome,firefox --routes /,/examples,/demo,/does-not-exist (the whole pages whose links into the docs changed); then Safari, light and dark (tests/owner-safari.sh one-page then; tests/owner-safari.sh parity from Phase 6)",
     }
-    current = gates.get(min(max(ctx.phase, 1), 3))
-    r.not_yet(f"needs browsers; the gate for phase {ctx.phase} is: {current}")
+    if ctx.phase < 4:
+        current = gates.get(min(max(ctx.phase, 1), 3))
+        r.not_yet(f"needs browsers; the gate for phase {ctx.phase} is: {current}")
+        for n, cmd in gates.items():
+            r.note(f"Phase {n} gate: {cmd}")
+        return r
+    # From Phase 4 the site describes femto 3 (Decision 6): HEAD's dist/ matches neither the oracle nor
+    # the tags, so the three gates are a record, and only their Safari legs are rerun, between the tags.
+    r.not_yet(f"needs browsers; at phase {ctx.phase} the Phase 1 to 3 gates are historical: from Phase 4 the site describes "
+              "femto 3 (Decision 6), so HEAD's dist/ cannot match the oracle or the tags. Their records are in "
+              "tests/README.md, Harness proof: \"Phase 1 gate after fix round 2\" (p1g3-pages-full-1), \"Phase 2: styles\" "
+              "(p2-gate-styles-full-3) and \"Phase 3: one page\" (p3-gate-sections-full-1 and p3-gate-pages-full-1). "
+              "The Safari legs of Phases 2 and 3 are rerun between the gates' commits by the owner's "
+              "tests/owner-safari.sh parity, light and dark")
     for n, cmd in gates.items():
-        r.note(f"Phase {n} gate: {cmd}")
+        r.note(f"Phase {n} gate (historical; dist was that phase's build): {cmd}")
+    for cmd in PARITY_SAFARI:
+        r.note(f"Safari parity rerun (tests/owner-safari.sh parity): {cmd}")
     return r
 
 
@@ -954,14 +1007,18 @@ def criterion_4(ctx: Context) -> Result:
     scripts = pkg.get("scripts") or {}
     if set(scripts) != SCRIPTS:
         extra, lack = sorted(set(scripts) - SCRIPTS), sorted(SCRIPTS - set(scripts))
-        r.fail(f"scripts are not exactly build, dev, deploy, vendor and lint: missing {lack or 'none'}; "
+        r.fail(f"scripts are not exactly build, dev, vendor and lint: missing {lack or 'none'}; "
                f"extra ({len(extra)}) {', '.join(extra)[:300] or 'none'}")
     else:
         r.ok("scripts: " + ", ".join(sorted(scripts)))
     if "build" in scripts and "build.mjs" not in scripts["build"]:
         r.note(f"the build script does not run build.mjs (Decision 3): {scripts['build']!r}")
-    if "deploy" in scripts and "wrangler pages deploy dist" not in scripts["deploy"]:
-        r.note(f"the deploy script does not run wrangler pages deploy dist (Decision 11): {scripts['deploy']!r}")
+    uploads = [f"{name}: {cmd!r}"[:300] for name, cmd in sorted(scripts.items())
+               if isinstance(cmd, str) and DIRECT_UPLOAD.search(cmd)]
+    r.fails(f"{len(uploads)} script(s) run wrangler pages deploy or publish, a direct upload: Cloudflare Pages' Git integration "
+            "deploys the pushed commits, and the repository has no deploy step (Decision 11, 2026-11-06):", uploads)
+    if not uploads:
+        r.ok("no script runs wrangler pages deploy or publish (Decision 11: Cloudflare Pages' Git integration deploys)")
     return r
 
 
@@ -1601,6 +1658,32 @@ def site_css_sources(ctx: Context) -> list[tuple[str, str, bool]]:
     return out
 
 
+def inline_scripts(ctx: Context) -> list[tuple[str, str, str]]:
+    """(label, kind, text) for every inline classic or module script in site HTML outside vendor/
+    and assets/legacy/ (the two head scripts in site/partials/head.html), which npm run lint never
+    reads (it lints site/**/*.js)."""
+    skip = (ctx.site / "vendor", ctx.site / "assets/legacy")
+    return [(f"{rel(ctx.root, p)}:{n.line}", script_kind(n), n.text()) for p in files_under(ctx.site, (".html",), skip)
+            for n in ctx.page(p).iter()
+            if n.tag == "script" and "src" not in n.attrs and script_kind(n) in ("classic", "module")]
+
+
+# CSS that site JS writes at run time, which no CSS check reads: a style property or cssText set, a
+# custom property set, a rule inserted or a sheet's text replaced, a style attribute written.
+JS_CSS_WRITE = re.compile(r"\.style\s*\.\s*(?:setProperty\s*\(|[A-Za-z]+\s*=(?!=))|\.style\s*\[[^\]]+\]\s*=(?!=)"
+                          r"|\b(?:insertRule|replaceSync)\s*\(|\bsetAttribute\s*\(\s*[\"'`]style[\"'`]")
+
+
+def js_written_css(ctx: Context) -> list[str]:
+    """file:line of every place site JS (outside vendor/ and assets/legacy/) writes CSS (JS_CSS_WRITE)."""
+    skip = (ctx.site / "vendor", ctx.site / "assets/legacy")
+    out = []
+    for p in files_under(ctx.site, (".js", ".mjs"), skip):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        out += [f"{rel(ctx.root, p)}:{line_of(text, m.start())}" for m in JS_CSS_WRITE.finditer(text)]
+    return out
+
+
 def criterion_11(ctx: Context) -> Result:
     r = Result(11, "Lint")
     root, site = ctx.root, ctx.site
@@ -1715,11 +1798,17 @@ def criterion_11(ctx: Context) -> Result:
         r.note(f"{', '.join(configs)}: rules switched off there need a reason in a comment; not checked mechanically")
 
     scripts = (ctx.package() or {}).get("scripts") or {}
-    inline = [f"{rel(root, p)}:{n.line}" for p in files_under(site, (".html",), skip) for n in ctx.page(p).iter()
-              if n.tag == "script" and "src" not in n.attrs and script_kind(n) in ("classic", "module")]
-    if inline:
-        r.note(f"{len(inline)} inline script(s) in site HTML are outside the lint, which PLAN gives as site/**/*.js "
-               f"(Decision 12 still applies to them): {', '.join(inline[:6])}" + (" ..." if len(inline) > 6 else ""))
+    inline = [f"{label} ({kind})" for label, kind, _ in inline_scripts(ctx)]
+    html_css = [label for label, _, _ in sources if label.endswith((" <style>", ' style=""'))]
+    js_css = js_written_css(ctx)
+    unread = [f"{len(html_css)} <style> and style=\"\" source(s) in site HTML, which the forbidden-syntax scans above read: "
+              + (", ".join(html_css[:6]) + (" ..." if len(html_css) > 6 else "") if html_css else "none"),
+              f"{len(js_css)} place(s) where site JS writes CSS: "
+              + (", ".join(js_css[:8]) + (" ..." if len(js_css) > 8 else "") if js_css else "none"),
+              f"{len(inline)} inline script(s) in site HTML, which this check lints in a temporary copy instead: "
+              + (", ".join(inline[:6]) + (" ..." if len(inline) > 6 else "") if inline else "none")]
+    r.note("npm run lint reads site/**/*.css and site/**/*.js only (PLAN.md criterion 11), so use-baseline never sees "
+           "the site's other CSS and JS; Decision 12 still applies to them: " + "; ".join(unread))
     if "lint" not in scripts:
         r.not_yet("package.json has no lint script yet (Phase 1 writes it)")
         return r
@@ -1803,6 +1892,27 @@ JS_PROBES = (
     "void Iterator.from([]);",
 )
 JS_BASELINE_MESSAGE = re.compile(r"is not Baseline Widely available \([\w.-]+\)")
+# Decision 12's never-list: what the site's JavaScript never uses, Widely Available or not, which
+# eslint.config.js bans with no-restricted-syntax and no-restricted-globals. COMPAT_LINT cannot see
+# most of it (an event name, an option member), so each must be caught by those rules: planted alone,
+# it must add a no-restricted-* report (NEVER_REPORT), whatever else use-baseline reports about it.
+# (what, code); every line parses in a script or a module.
+NEVER_PROBES = (
+    ("the Navigation API", "void navigation;"),
+    ("the scrollend event", 'window.addEventListener("scrollend", () => {});'),
+    ("the scrollend event in a template literal", "window.addEventListener(`scrollend`, () => {});"),
+    ("the onscrollend handler property", "window.onscrollend = null;"),
+    ("content-visibility", 'document.body.style.contentVisibility = "auto";'),
+    ('blocking="render"', 'document.createElement("link").setAttribute("blocking", "render");'),
+    ('blocking="render" as a member', 'document.createElement("script").blocking = "render";'),
+    ("scrollIntoView({container})", 'document.body.scrollIntoView({ container: "nearest" });'),
+    ("scrollIntoView({container}) through a variable",
+     'const femtoProbeWhere = { container: "nearest" }; document.body.scrollIntoView(femtoProbeWhere);'),
+    ("focus({preventScroll})", "document.body.focus({ preventScroll: true });"),
+    ("focus({preventScroll}) with a string key", 'document.body.focus({ "preventScroll": true });'),
+    ("FontFaceSet's loadingdone event", 'document.fonts.addEventListener("loadingdone", () => {});'),
+)
+NEVER_REPORT = re.compile(r"(?<![\w-])no-restricted-(?:syntax|globals|properties)(?![\w-])")
 PROBE_TRIES = 3  # probes tried per file before it counts as not linted
 LINT_ENV = {"NO_COLOR": "1", "FORCE_COLOR": "0", "npm_config_update_notifier": "false", "npm_config_fund": "false"}
 
@@ -2022,8 +2132,118 @@ def lint_probe(ctx: Context, r: Result, css: list[Path], js: list[Path]) -> None
             r.ok(f"planted in a temporary copy, one file at a time, a newly but not widely available feature fails npm run lint "
                  f"with its use-baseline message at widely in each of the {len(css)} CSS and {len(js)} JS files "
                  f"(probes: {'; '.join(sorted(used.get('css', set()) | used.get('js', set())))})")
+        if js:
+            r.note(f"{COMPAT_LINT} checks JavaScript syntax, globals and static members only: no instance member "
+                   "(Set.prototype.union, element.moveBefore()), event name or option member, which needs its type-aware "
+                   "preset, so JS_PROBES are static members and NEVER_PROBES test only eslint.config.js's never-list. "
+                   "Phase 6's review checked the site's JS for the rest by hand against @mdn/browser-compat-data 8.1.8 "
+                   "(2026-11-06)")
+        never_probe(r, root, tmp, copy, js, control)
+        lint_inline(ctx, r, copy)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+
+
+def planted_file(root: Path, tmp: Path, copy: Path, p: Path) -> Path | None:
+    """p's file in the temporary copy as a regular file inside it, or None when it cannot be planted."""
+    target = copy / p.relative_to(root)
+    if not target.is_file():
+        return None
+    if target.is_symlink():
+        data = target.read_bytes()
+        target.unlink()
+        target.write_bytes(data)
+    return target if target.resolve().is_relative_to(tmp.resolve()) else None
+
+
+def never_probe(r: Result, root: Path, tmp: Path, copy: Path, js: list[Path], control: str) -> None:
+    """(d): each of NEVER_PROBES, alone, at the end of the next site JS file in turn in the temporary
+    copy, must make npm run lint fail with one more no-restricted-* report than the clean copy."""
+    if not js:
+        return
+    bad, ok = [], []
+    for k, (what, code) in enumerate(NEVER_PROBES):
+        p = js[k % len(js)]
+        where = rel(root, p)
+        target = planted_file(root, tmp, copy, p)
+        if target is None:
+            bad.append(f"{what}: {where} cannot be planted in the copy (missing, or linked outside it)")
+            continue
+        original = target.read_bytes()
+        try:
+            target.write_bytes(original + b"\n/* eslint-enable */\n" + code.encode() + b"\n")
+            got = run_lint(copy)
+        finally:
+            target.write_bytes(original)
+        if got[0] != 0 and len(NEVER_REPORT.findall(got[1])) > len(NEVER_REPORT.findall(control)):
+            ok.append(f"{what} in {where}")
+        else:
+            bad.append(f"{what} ({code}) in {where}: exit {got[0]} with no new no-restricted-* report: "
+                       f"{' '.join(got[1].split())[-160:]}")
+    r.fails(f"{len(bad)} of Decision 12's never-list probe(s) pass npm run lint in a temporary copy (eslint.config.js's "
+            "no-restricted-syntax and no-restricted-globals do not catch them):", bad, "more probes")
+    if not bad:
+        r.ok(f"Decision 12's never-list: each of {len(ok)} probes, planted alone in a temporary copy, fails npm run lint "
+             f"with a no-restricted-* report: {'; '.join(ok)}")
+
+
+def lint_inline(ctx: Context, r: Result, copy: Path) -> None:
+    """(e): the inline scripts in site HTML, written to files in the temporary copy and linted with
+    the copy's eslint config as site JS (a classic script as sourceType script), must draw no report;
+    with NEVER_PROBES' first appended to each, each must draw a no-restricted-* report."""
+    scripts = inline_scripts(ctx)
+    configs = sorted(copy.glob("eslint.config.*"))
+    if not scripts or not configs:
+        return
+    folder = copy / "site" / "femto-inline-scripts"
+    files = []
+    for k, (label, kind, text) in enumerate(scripts, 1):
+        f = folder / kind / f"inline-{k}.js"
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(text + "\n", encoding="utf-8")
+        files.append((label, f))
+    conf = copy / "femto-inline.config.mjs"
+    conf.write_text(f'import base from "./{configs[0].name}";\n'
+                    'export default [...base, { files: ["site/femto-inline-scripts/classic/*.js"], '
+                    'languageOptions: { sourceType: "script" } }];\n', encoding="utf-8")
+
+    def lint():
+        proc = subprocess.run([str(ctx.root / "node_modules/.bin/eslint"), "-c", conf.name, "--format", "json",
+                               *(str(f.relative_to(copy)) for _, f in files)], cwd=copy, capture_output=True, text=True,
+                              timeout=300, env={**os.environ, **LINT_ENV})
+        try:
+            report = {Path(x.get("filePath", "")).resolve(): x.get("messages", []) for x in json.loads(proc.stdout)}
+        except (ValueError, AttributeError):
+            return None, f"eslint gave no JSON report (exit {proc.returncode}): {(proc.stderr or proc.stdout).strip()[-200:]}"
+        return report, None
+
+    report, err = lint()
+    if err:
+        r.fail(f"the inline scripts' lint in a temporary copy failed: {err}")
+        return
+    found = [f"{label}:{m.get('line')}: {m.get('message')} ({m.get('ruleId')})" for label, f in files
+             for m in report.get(f.resolve(), [])]
+    missing = [label for label, f in files if f.resolve() not in report]
+    r.fails(f"{len(missing)} inline script(s) were not linted in the temporary copy:", missing)
+    r.fails(f"{len(found)} report(s) in the inline scripts of site HTML, linted in a temporary copy with eslint.config.js "
+            "as site JS:", found, "more reports")
+    if found or missing:
+        return
+    code = NEVER_PROBES[0][1]
+    for _, f in files:
+        f.write_text(f.read_text(encoding="utf-8") + code + "\n", encoding="utf-8")
+    report, err = lint()
+    if err:
+        r.fail(f"the inline scripts' never-list probe in a temporary copy failed: {err}")
+        return
+    unseen = [label for label, f in files
+              if not any(str(m.get("ruleId") or "").startswith("no-restricted-") for m in report.get(f.resolve(), []))]
+    r.fails(f"{len(unseen)} inline script(s) where the never-list misses {NEVER_PROBES[0][0]} ({code}), planted in a "
+            "temporary copy:", unseen)
+    if not unseen:
+        r.ok(f"the {len(files)} inline script(s) in site HTML ({', '.join(label for label, _ in files)}), linted in a temporary "
+             "copy with eslint.config.js as site JS (a classic script as sourceType script): no report, and "
+             f"{NEVER_PROBES[0][0]} planted in each is reported by the never-list")
 
 
 # ---------------------------------------------------------------------------- criterion 12

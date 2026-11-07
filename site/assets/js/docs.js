@@ -8,9 +8,9 @@
 //   <details> if the reader closed it (the build writes them open, so nothing in the nav moves on
 //   load), scrolls the side nav (never the page) to show the link, and sets the breadcrumb's
 //   chapter to the category and document.title to "<section> • femto" (the page's own title for
-//   the first section). 200 ms after the last change it writes the section's #<id> into the URL
-//   with replaceState (no hash for the first section; the path and ?theme= stay), inside try:
-//   WebKit throws past 100 calls in 10 s.
+//   the first section). 200 ms after scrolling last moved, once the section it settles on differs
+//   from the URL's #hash, it writes the section's #<id> into the URL with replaceState (no hash for
+//   the first section; the path and ?theme= stay), inside try: WebKit throws past 100 calls in 10 s.
 //   Links, deep links, back, forward and reload are the browser's own fragment navigation. A click
 //   on a link to a section marks it at once, locks the spy until the scroll reaches the section's
 //   heading (or 1 s passes without a scroll event, or 150 ms once the reader's wheel, touch or key
@@ -63,7 +63,8 @@ function widgets(group, init) {
 
 // --- The spy (02 §4) -----------------------------------------------------------------------------
 
-// The URL is written this long after the current section last changed, so fast scrolling through
+// The URL is written this long after scrolling last moved (every scroll frame starts the wait
+// again), once the section it settles on differs from the URL's #hash, so fast scrolling through
 // many sections writes it once, well inside the browsers' history API rate limits.
 const URL_DELAY = 200;
 // Without scroll events for this long, a traversal's scroll is over.
@@ -210,12 +211,18 @@ function spy() {
     lockTimer = setTimeout(unlock, until === null ? SCROLL_IDLE : SCROLL_STALL);
   }, { passive: true });
   // The reader's own wheel, touch or key ends a link's scroll early: from then on it is over once
-  // the scroll goes idle.
-  for (const type of ["wheel", "touchstart", "keydown"]) {
-    addEventListener(type, () => {
-      until = null;
-    }, { passive: true });
-  }
+  // the scroll goes idle. A touch is a pointerdown whose pointerType is "touch": Pointer Events are
+  // Widely Available, and touchstart is not (Safari on macOS has no touch events; Decision 12). wheel
+  // has no Widely Available substitute, so it stays: Safari on iOS never fires it, and there touch
+  // pointers and keydown cover the reader's input without it.
+  const takeOver = () => {
+    until = null;
+  };
+  addEventListener("wheel", takeOver, { passive: true });
+  addEventListener("keydown", takeOver, { passive: true });
+  addEventListener("pointerdown", (event) => {
+    if (event.pointerType === "touch") takeOver();
+  }, { passive: true });
 
   // A click on a link to a section: the browser navigates and scrolls, smoothly because of the
   // class; mark the target now and lock until the scroll ends. A link another handler canceled (a
@@ -236,7 +243,10 @@ function spy() {
     page.classList.add("is-scrolling-to-link");
     show(target);
     lock(destination(target), link.hash);
-    if (keepQuery) location.hash = link.hash;
+    // location.assign(), not the hash setter, which does nothing when the hash is already the URL's:
+    // assign() runs the fragment navigation either way, pushing an entry for another #hash and
+    // replacing the entry for the same URL, as the browser's own click does on plain /docs.
+    if (keepQuery) location.assign(location.pathname + location.search + link.hash);
   });
 
   // Back and forward: the browser restores the entry's position; the spy follows once it settles.
@@ -303,9 +313,17 @@ function sideMenu() {
     menu.inert = offCanvas.matches && !open;
     cover(offCanvas.matches && open);
   };
-  // The opener sits in the sticky breadcrumb, always on screen below lg, and Chrome would scroll the
-  // page to the breadcrumb's place in the flow to show it: focus it without scrolling.
-  const refocus = () => opener?.focus({ preventScroll: true });
+  // The opener sits in the sticky breadcrumb, always on screen below lg, and Chrome scrolls the page
+  // to the breadcrumb's place in the flow to show it when it takes focus. focus()'s preventScroll
+  // option is outside Decision 12's target (Samsung Internet 27 and Chrome Android ignore it), so the
+  // page's position is saved and put back in the same task, before the next paint.
+  const refocus = () => {
+    if (!opener) return;
+    const x = scrollX;
+    const y = scrollY;
+    opener.focus();
+    if (scrollX !== x || scrollY !== y) scrollTo(x, y);
+  };
   const onKeydown = (event) => {
     if (event.key !== "Escape") return;
     setOpen(false);
@@ -320,7 +338,7 @@ function sideMenu() {
     if (open) {
       document.addEventListener("keydown", onKeydown);
       sync();
-      close?.focus({ preventScroll: true });
+      close?.focus(); // in the fixed panel, on screen: focusing it scrolls nothing
     } else {
       document.removeEventListener("keydown", onKeydown);
       cover(false);
@@ -554,10 +572,16 @@ widgets("components-b", () => {
   // a random whole number from 5 to 94, drawn again every 5 s, and its code sample prints it: the
   // token right after value=" in <progress value="N" max="100"></progress>. A value is drawn on
   // load (the oracle's client render draws its own), and the interval runs only while the example
-  // is on screen (PLAN.md Conversion rules).
+  // is on screen (PLAN.md Conversion rules) and not paused. button[data-progress-pause], before the
+  // example in its section, pauses and plays it as the homepage demo's button[data-demo-pause] does
+  // (demo.js): hidden in the markup, where nothing changes without JavaScript (docs.css lays its
+  // box out, invisible, where scripts run, so showing it moves nothing), its label says what it
+  // does, "Pause" or "Play", and it starts paused under prefers-reduced-motion: reduce, or pauses
+  // when that setting turns on (WCAG 2.2.2). Play starts the 5 s interval again, from the click.
   const example = document.querySelector("[data-progress-example]");
   const progress = example?.querySelector(":scope > progress");
   const token = example?.querySelector(":scope > footer.code > pre > code > span.attr-value:not(.punctuation)");
+  const toggle = document.querySelector("button[data-progress-pause]");
   if (progress && token) {
     const draw = () => {
       const value = String(Math.floor(Math.random() * 90) + 5);
@@ -566,15 +590,34 @@ widgets("components-b", () => {
     };
     draw();
     let interval = 0;
-    new IntersectionObserver((entries) => {
-      const onScreen = entries.at(-1).isIntersecting;
-      if (onScreen && !interval) {
+    let onScreen = false;
+    let paused = false;
+    const run = () => {
+      const running = onScreen && !paused;
+      if (running && !interval) {
         interval = setInterval(draw, 5000);
-      } else if (!onScreen && interval) {
+      } else if (!running && interval) {
         clearInterval(interval);
         interval = 0;
       }
+    };
+    new IntersectionObserver((entries) => {
+      onScreen = entries.at(-1).isIntersecting;
+      run();
     }).observe(progress);
+    if (toggle) {
+      const pause = (value) => {
+        paused = value;
+        const label = paused ? "Play" : "Pause";
+        if (toggle.textContent !== label) toggle.textContent = label;
+        run();
+      };
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+      if (reduce.matches) pause(true);
+      toggle.hidden = false;
+      reduce.addEventListener("change", () => reduce.matches && pause(true));
+      toggle.addEventListener("click", () => pause(!paused));
+    }
   }
 });
 // endregion:components-b

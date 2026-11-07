@@ -28,11 +28,10 @@
 //   (the oracle's dialog had no name and changed silently). The shade buttons get their color's
 //   name too ("Red 50"), not the shade alone.
 // The arrow keys only change the color, as in the oracle, whose focus stayed behind the dialog:
-// their default action is cancelled, so they never scroll an overflowing article. Space, Page Up,
-// Page Down, Home and End still scroll it from the close button: the keyboard's way to its lower
-// rows.
+// their default action is cancelled, so they never scroll an overflowing article. Page Up, Page
+// Down, Home and End still scroll it from the close button: the keyboard's way to its lower rows.
 
-import { createModal } from "./site.js";
+import { createModal, nameCopyButton } from "./site.js";
 
 // The palette download needs no script since Phase 3: its link points at the static file
 // /assets/femto-color-palette.json, which build.mjs writes from SHADES and PALETTE below (the JSON the
@@ -245,7 +244,8 @@ if (families) {
   dialog.setAttribute("aria-labelledby", "color-dialog-title");
   dialog.setAttribute("aria-modal", "true");
   // Each copy button is named by its row ("Copy hexadecimal color", "Copy RGB color"), so a screen
-  // reader can tell the five apart; the row's label is a separate <p>. The name is its icon's.
+  // reader can tell the five apart; the row's label is a separate <p>. The name is its icon's, through
+  // the button's aria-labelledby, which site.js's nameCopyButton() points at the icon's id below.
   const copyButton = (label) => `<button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link>${COPY_ICON(`Copy ${label.replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase())}`)}</button>`;
   dialog.innerHTML = `<article><header><button type="button" class="close">${CLOSE_ICON}</button>`
     + '<hgroup aria-live="polite" aria-atomic="true"><h3 class="color-family" id="color-dialog-title"></h3>'
@@ -262,6 +262,7 @@ if (families) {
   // The dialog's focus stops, in document order: the close button, then each row's copy button. The
   // values fit their code blocks, so the blocks take no focus.
   const stops = [closeButton, ...article.querySelectorAll(".grid .code > button")];
+  for (const button of stops.slice(1)) nameCopyButton(button);
 
   let current = null; // the color shown, while the dialog is in the page
   let opener = null; // the element that had focus when it opened

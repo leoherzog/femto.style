@@ -1,6 +1,6 @@
 # femto Documentation
 
-[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`. Nothing from npm ships: `dist/` is static files, and Node and npm are only needed to build, preview, check and deploy it.
+[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`. Nothing from npm ships: `dist/` is static files, and Node and npm are only needed to build, preview and check it.
 
 The site was converted from the Remix site it replaces, and [PLAN.md](PLAN.md) is the plan, with its research in `docs/research/`. Its text is written for femto 3 from femto's README.
 
@@ -58,11 +58,25 @@ uv run tests/run.py behavior --target dist
 uv run tests/run.py a11y --target dist
 ```
 
-On every push and pull request, GitHub runs `.github/workflows/check.yml` on Linux: `npm ci`, `npm run build`, `npm run lint` and `uv run tests/static_checks.py`. It fetches femto at the commit `SOURCE` names into `../femto`, beside the checkout, so the vendored copy and the docs are checked against that commit. The criteria that need the browsers report NOT-YET there, and any failing criterion fails the run. It never deploys.
+On every push and pull request, GitHub runs `.github/workflows/check.yml` on Linux: `npm ci`, `npm run build`, `npm run lint` and `uv run tests/static_checks.py`. It fetches femto at the commit `SOURCE` names into `../femto`, beside the checkout, so the vendored copy and the docs are checked against that commit. The criteria that need the browsers report NOT-YET there, and any failing criterion fails the run. It never deploys: Cloudflare Pages deploys the same push separately (Deploy, below), and it does not wait for this check.
 
 ## Deploy
 
-`npm run deploy` builds the site and uploads `dist/` to Cloudflare Pages with `wrangler pages deploy`, which needs a Cloudflare account signed in with `npx wrangler login`. The site relies on Pages' own rules (PLAN.md Decision 11): Pages serves `docs.html` at `/docs` and `examples.html` at `/examples`, answers unknown paths with `404.html` and applies `_headers`, so another host needs the same rules. `site/_headers` gives the fonts in `/assets/fonts/` a year of caching; everything else keeps Pages' default, which revalidates on every request. `site/robots.txt` names the sitemap that the build writes, `https://femto.style/sitemap.xml`.
+Cloudflare Pages builds and deploys the site from this repository on GitHub (PLAN.md Decision 11). Pushing `main` deploys production at <https://femto.style> (also `femto-style.pages.dev`), and pushing any other branch deploys a preview at `<branch>.femto-style.pages.dev`. There is no deploy script.
+
+The build settings live in the Pages project `femto-style` in the Cloudflare dashboard, not in the repository:
+
+- Framework preset: None
+- Build command: `npm run build`
+- Build output directory: `dist` (never `site` or the repository root)
+- Root directory: empty
+- Build system version: v3
+
+Pages takes Node's version from `.node-version`: build system v3 reads the `NODE_VERSION` variable, `.node-version` or `.nvmrc`, never `package.json`'s `engines`. It installs the dependencies itself before the build. The first build log shows which Node it used and whether the devDependencies, `prismjs` among them, were installed; confirm both there.
+
+The site relies on Pages' own rules (PLAN.md Decision 11): Pages serves `docs.html` at `/docs` and `examples.html` at `/examples`, answers unknown paths with `404.html` and applies `_headers`, so another host needs the same rules. `site/_headers` gives the fonts in `/assets/fonts/` a year of caching; everything else keeps Pages' default, which revalidates on every request. On `femto.style` that holds only once the zone's Browser Cache TTL is set to Respect Existing Headers. `site/robots.txt` names the sitemap that the build writes, `https://femto.style/sitemap.xml`.
+
+Some settings of the femto.style zone act on `femto.style` but not on `femto-style.pages.dev`, and each is the owner's step in the dashboard (PLAN.md Risks, Cloudflare): turn Email Address Obfuscation off, since it rewrites the addresses on `/examples` and cannot reach the two in the mockups' shadow roots; set Browser Cache TTL to Respect Existing Headers; turn on Always Use HTTPS, since `http://www.femto.style/` otherwise times out; and disable Web Analytics' automatic setup, whose beacon is a cross-origin script (criterion 15). Speed Brain's `speculation-rules` header is harmless.
 
 ## License
 

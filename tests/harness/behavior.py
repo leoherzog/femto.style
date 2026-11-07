@@ -21,9 +21,15 @@ Rig notes, Safari): one session at a time machine-wide (the Safari lock, held fo
 life), never while the user's own Safari is open, and only on an unlocked screen, since input never
 reaches a hidden page. It is visible, not headless; it has no prefers-color-scheme emulation, so a
 check whose media is not the OS scheme is skipped (status skip, `media:<scheme>`) and runs in the
-owner's pass of the other appearance; it has no WebDriver BiDi, so the viewport is sized through the
-window and a check that needs a preload script is skipped there (`preload`), as is one that says
-what else Safari's WebDriver cannot do (safari_skip: `safari`). Its Tab is Option+Tab (Page.tab).
+owner's pass of the other appearance; nor prefers-reduced-motion emulation, so the session reads the
+OS motion with matchMedia as it reads the OS scheme (logged as `OS motion reduce` or `OS motion
+no-preference`), and a check whose motion is not the OS motion is skipped (`motion:<motion>`): the
+reduce checks run in the owner's pass with macOS's Reduce Motion on (tests/owner-safari.sh reduced),
+every other check in the passes with it off. --expect-os-motion stops a Safari session that reads
+another OS motion before its first check. It has no WebDriver BiDi, so the viewport is sized
+through the window and a check that needs a preload script is skipped there (`preload`), as is one
+that says what else Safari's WebDriver cannot do (safari_skip: `safari`). Its Tab is Option+Tab
+(Page.tab).
 
 The target has one of two layouts (--layout; the target's by default). On `one-page` (the static
 site from Phase 3: targets.json one_page) the docs are the one page /docs, and a check's routes are
@@ -60,6 +66,10 @@ SCRIPT_TIMEOUT = 180     # the longest in-page wait is a few seconds; generous f
 FF_SCHEME_PREF = "layout.css.prefers-color-scheme.content-override"
 FF_SCHEME_VALUES = {"dark": 0, "light": 1}
 FF_MOTION_PREF = "ui.prefersReducedMotion"   # a LookAndFeel int: 1 reduce, 0 no-preference
+MOTIONS = ("no-preference", "reduce")         # prefers-reduced-motion, as behavior.MOTION gives it
+# The owner's Safari pass that runs a check of each motion (Safari reads it from macOS, run_one).
+MOTION_PASS = {"reduce": "the owner's pass with macOS's Reduce Motion on (tests/owner-safari.sh reduced) runs it",
+               "no-preference": "the owner's passes with Reduce Motion off (tests/owner-safari.sh final) run it"}
 FF_JS_PREF = "javascript.enabled"
 RESET_PATH = "/favicon.svg"   # a static same-origin file on every side: storage is emptied from it
 ONE_PAGE = "/docs"            # the one docs page (PLAN.md Decision 2)
@@ -118,6 +128,10 @@ def add_parser(sub):
     p.add_argument("--browsers", default="chrome,firefox",
                    help="comma list of chrome, firefox, safari (default chrome,firefox; Safari serialized, the OS "
                         "scheme only, on an unlocked screen)")
+    p.add_argument("--expect-os-motion", choices=MOTIONS,
+                   help="Safari only: the prefers-reduced-motion macOS must give (Reduce Motion off: no-preference, on: "
+                        "reduce); a Safari session that reads another stops before its first check. Chrome and Firefox "
+                        "emulate each check's motion and ignore it")
     p.add_argument("--ready", help="readiness hook (oracle, static, none; default: the target's)")
     p.add_argument("--layout", choices=LAYOUTS,
                    help="one-page (the docs are /docs; a target with targets.json one_page, and a base URL) or routes "
@@ -672,6 +686,7 @@ class Session:
         self.motion_applied = None
         self.preloads = []
         self.os_scheme = None   # Safari: the OS scheme, read in the page (no emulation)
+        self.os_motion = None   # Safari: the OS prefers-reduced-motion, read the same way
         t0 = time.time()
         with locks.driver_start(f"behavior {browser} session", log):
             if browser == "chrome":
@@ -728,14 +743,19 @@ class Session:
         d = {"browser": self.browser, "version": self.version, "driver": self.driver_version, "launch_s": self.launch_s}
         if self.os_scheme:
             d["os_scheme"] = self.os_scheme
+        if self.os_motion:
+            d["os_motion"] = self.os_motion
         return d
 
-    def read_os_scheme(self, base):
-        """Safari: the OS scheme, read with matchMedia on a same-origin static file of the target."""
+    def read_os_media(self, base):
+        """Safari: the OS scheme and the OS motion (macOS's appearance and its Reduce Motion), read with
+        matchMedia on a same-origin static file of the target. Returns (scheme, motion)."""
         self.driver.get(base + RESET_PATH)
-        dark = self.driver.execute_script("return matchMedia('(prefers-color-scheme: dark)').matches")
+        dark, reduce = self.driver.execute_script("return [matchMedia('(prefers-color-scheme: dark)').matches,"
+                                                  " matchMedia('(prefers-reduced-motion: reduce)').matches]")
         self.os_scheme = "dark" if dark else "light"
-        return self.os_scheme
+        self.os_motion = "reduce" if reduce else "no-preference"
+        return self.os_scheme, self.os_motion
 
     def set_media(self, media, motion=None):
         """Emulate prefers-color-scheme `media` and, when given, prefers-reduced-motion `motion`
@@ -747,8 +767,8 @@ class Session:
             # No emulation: run_one skips a check whose media or motion Safari cannot give first.
             if media != self.os_scheme:
                 raise RuntimeError(f"Safari cannot emulate prefers-color-scheme: {media}; the OS scheme is {self.os_scheme}")
-            if motion != "no-preference":
-                raise RuntimeError(f"Safari cannot emulate prefers-reduced-motion: {motion}")
+            if motion != self.os_motion:
+                raise RuntimeError(f"Safari cannot emulate prefers-reduced-motion: {motion}; the OS motion is {self.os_motion}")
         elif self.browser == "chrome":
             self.driver.execute_cdp_cmd("Emulation.setEmulatedMedia",
                                         {"features": [{"name": "prefers-color-scheme", "value": media},
@@ -825,8 +845,10 @@ def run_one(page, check, route, oracle_side, shots_dir):
         # Safari runs the OS scheme only: the owner's pass of the other appearance runs this check.
         skip = (f"media:{check.media}", f"Safari cannot emulate prefers-color-scheme: {check.media}; the OS scheme is "
                                         f"{page.sess.os_scheme}")
-    elif page.browser == "safari" and check.motion != "no-preference":
-        skip = (f"motion:{check.motion}", f"Safari cannot emulate prefers-reduced-motion: {check.motion}")
+    elif page.browser == "safari" and check.motion != page.sess.os_motion:
+        # Safari runs the OS motion only (macOS's Reduce Motion): the owner's other pass runs this check.
+        skip = (f"motion:{check.motion}", f"Safari cannot emulate prefers-reduced-motion: {check.motion}; the OS motion is "
+                                          f"{page.sess.os_motion}; {MOTION_PASS[check.motion]}")
     elif page.browser == "safari" and not check.javascript:
         skip = ("javascript:off", "WebDriver cannot turn JavaScript off in Safari (05: the JavaScript-off deep link "
                                   "runs in Chrome and Firefox)")
@@ -879,8 +901,10 @@ def run_one(page, check, route, oracle_side, shots_dir):
 
 
 class Runner:
-    def __init__(self, jobs, base, ready, oracle_side, workers, run_dir, shots, log, run_id, layout, routes):
+    def __init__(self, jobs, base, ready, oracle_side, workers, run_dir, shots, log, run_id, layout, routes,
+                 expect_os_motion=None):
         self.base, self.ready, self.oracle_side = base, ready, oracle_side
+        self.expect_os_motion = expect_os_motion
         self.layout, self.routes = layout, routes
         self.run_dir, self.shots, self.log, self.run_id = run_dir, shots, log, run_id
         self.lock = threading.Lock()
@@ -929,11 +953,20 @@ class Runner:
                             sess = Session(browser, self.log)
                             page = Page(sess, self.base, self.ready, self.layout, self.routes)
                             if browser == "safari":
-                                sess.read_os_scheme(self.base)
+                                sess.read_os_media(self.base)
                             with self.lock:
                                 self.sessions.append(sess.describe())
                             self.log(f"{label}: {browser} {sess.version} ({sess.driver_version}), launch {sess.launch_s}s"
-                                     + (f", OS scheme {sess.os_scheme}" if sess.os_scheme else ""))
+                                     + (f", OS scheme {sess.os_scheme}" if sess.os_scheme else "")
+                                     + (f", OS motion {sess.os_motion}" if sess.os_motion else ""))
+                            if sess.os_motion and self.expect_os_motion and sess.os_motion != self.expect_os_motion:
+                                with self.lock:
+                                    self.stopping = True
+                                    self.queues[browser].insert(0, job)
+                                raise RuntimeError(
+                                    f"Safari's OS motion is {sess.os_motion}, but --expect-os-motion is {self.expect_os_motion}: "
+                                    f"turn macOS's Reduce Motion {'on' if self.expect_os_motion == 'reduce' else 'off'} (System "
+                                    "Settings > Accessibility > Display > Reduce motion) and run again; no check ran")
                         check, route = job
                         loads = page.loads
                         rec = run_one(page, check, route, self.oracle_side, self.run_dir / "shots" if self.shots else None)
@@ -1017,9 +1050,9 @@ def summary_text(result):
     sk = [r for r in result["checks"] if r["status"] == "skip"]
     if sk:
         lines.append("")
-        lines.append(f"SKIPPED (a check of the other layout; in Safari, the other appearance's, which the owner's pass "
-                     f"of that appearance runs, or one that needs what Safari's WebDriver cannot do, which Chrome and "
-                     f"Firefox run): {len(sk)}")
+        lines.append(f"SKIPPED (a check of the other layout; in Safari, the other appearance's or the other motion's, "
+                     f"which the owner's pass of that appearance or with Reduce Motion set the other way runs, or one "
+                     f"that needs what Safari's WebDriver cannot do, which Chrome and Firefox run): {len(sk)}")
         for r in sk:
             lines.append(f"  {r['browser']} {r['check']} {r['route']}: {r['skipped']}: {(r.get('notes') or [''])[0]}")
     xf = [r for r in result["checks"] if r["status"] == "xfail"]
@@ -1135,7 +1168,7 @@ def run_behavior(args):
                 return 2
             log(f"target {side.spec} at {side.base} (ready: {side.ready})")
             runner = Runner(jobs, side.base, side.ready, oracle_side, workers, run_dir, not args.no_shots, log, run_id,
-                            layout, routes)
+                            layout, routes, getattr(args, "expect_os_motion", None))
             results = runner.run()
             errors, sessions = runner.errors, runner.sessions
     except KeyboardInterrupt:
@@ -1148,13 +1181,15 @@ def run_behavior(args):
     for b in browsers:
         rs = [r for r in results if r["browser"] == b]
         by_browser[b] = {s: sum(1 for r in rs if r["status"] == s) for s in STATUSES}
-    # A skip is the other layout's check or, in Safari, the other appearance's (the owner's pass of
-    # that appearance runs it) or one Safari's WebDriver cannot run (Chrome and Firefox run it).
+    # A skip is the other layout's check or, in Safari, the other appearance's or the other motion's
+    # (the owner's pass of that appearance, or with Reduce Motion set the other way, runs it) or one
+    # Safari's WebDriver cannot run (Chrome and Firefox run it).
     ok =not errors and len(results) == len(jobs) and all(r["status"] in ("pass", "xfail", "skip") for r in results)
     result = {"run_id": run_id, "mode": "behavior", "status": "PASS" if ok else "FAIL", "argv": sys.argv[1:],
               "label": args.label, "target": args.target, "base": side.base, "ready": side.ready, "side": side.describe(),
               "layout": layout,
               "oracle_bugs_expected": oracle_side, "browsers": browsers,
+              "expect_os_motion": getattr(args, "expect_os_motion", None),
               "groups": sorted({c.group for c in checks}), "checks_selected": [c.describe() for c in checks],
               "started": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(t0)),
               "duration_s": round(time.time() - t0, 1), "git": git_info(), "sessions": sessions,

@@ -1,10 +1,10 @@
 <hgroup>
   <p class="chapter">Forms</p>
   <h1 id="forms">Forms overview</h1>
-  <p>Inputs, selects and textareas are styled from their elements alone: each is as wide as its container, and inputs and selects are as tall as a button.</p>
+  <p>Inputs, selects and textareas are styled from their elements alone: text inputs, selects and textareas fill their container, and text inputs and drop-down selects are as tall as a button.</p>
 </hgroup>
 <section>
-  <p>Fields take the full width of their container. Inputs and selects are as tall as a button, so they line up with the buttons in a form. A textarea is taller: see <a data-discover="true" href="/docs#textarea">Textarea</a>.</p>
+  <p>Text inputs, selects and textareas take the full width of their container. Text inputs and drop-down selects are as tall as a button, so they line up with the buttons in a form. A textarea is taller: see <a href="/docs#textarea">Textarea</a>. So is a select with <code>multiple</code>, or a <code>size</code> above 1: see <a href="/docs#select">Select</a>. Checkboxes, radios, switches and range inputs have sizes of their own.</p>
   <article aria-label="Form example" class="component">
     <form>
       <label>First name<input type="text" placeholder="First name" autocomplete="given-name" name="first_name"></label>
@@ -65,7 +65,7 @@
 </section>
 <section>
   <h2>Helper text</h2>
-  <p>A <code class="language-html">&lt;small&gt;</code> right after a field is its helper text, in the muted color. With <code>aria-invalid</code> on the field, it takes the valid or invalid color: see <a data-discover="true" href="/docs#input">Input</a>.</p>
+  <p>A <code class="language-html">&lt;small&gt;</code> right after a field is its helper text, in the muted color. With <code>aria-invalid</code> on the field, it takes the valid or invalid color: see <a href="/docs#input">Input</a>.</p>
   <article aria-label="Form helpers example" class="component">
     <input type="email" placeholder="Email" autocomplete="email" aria-label="Email" aria-describedby="email-helper" name="forms-email">
     <small id="email-helper">We’ll never share your email with anyone else.</small>
@@ -84,7 +84,7 @@
 </section>
 <section>
   <h2>Usage with grid</h2>
-  <p>With <code>.grid</code> on the element around them, fields sit side by side from 768px, and one below the other on smaller screens. See <a data-discover="true" href="/docs#grid">Grid</a>.</p>
+  <p>With <code>.grid</code> on the element around them, fields sit side by side from 768px, and one below the other on smaller screens. See <a href="/docs#grid">Grid</a>.</p>
   <article aria-label="Form and grid example" class="component">
     <form>
       <div class="grid">
@@ -119,7 +119,7 @@
 </section>
 <section>
   <h2>Usage with group</h2>
-  <p><code>role="group"</code> joins fields and buttons in one row. See <a data-discover="true" href="/docs#group">Group</a>.</p>
+  <p><code>role="group"</code> joins fields and buttons in one row. See <a href="/docs#group">Group</a>.</p>
   <article class="component" aria-label="Form group example">
     <form>
       <div role="group">

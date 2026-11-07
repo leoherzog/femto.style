@@ -123,11 +123,20 @@ def check_fields(page, seg, label):
                 ["search", "Search", "Search"])
     if p == "search-busy":
         page.eq(f"{label}: busy button, disabled input", [f["button"]["text"], f["input"]["disabled"]], ["Search...", True])
+        if page.layout == "one-page":
+            # As the form has it: the code's search input carries the disabled attribute that
+            # phase.busy sets (Phase 6, demo.js). The oracle's code had none.
+            page.expect(f"{label}: the code's input is disabled, as the form's is",
+                        'placeholder="Search" disabled' in (seg["code"] or ""), code=seg["code"])
     if p == "date":
         page.expect(f"{label}: a date value, enabled", bool(f["input"]["value"]) and len(f["input"]["value"]) == 10
                     and f["input"]["value"][4] == "-" and not f["input"]["disabled"], input=f["input"])
     if p == "date-next":
         page.eq(f"{label}: the Next button", f["button"]["text"], "Next")
+        if page.layout == "one-page":
+            # As the code shows it, <button>Next</button>: femto makes only a button[type=submit] full
+            # width (Phase 6, demo.js phase.next). The oracle's kept the Subscribe phase's type="submit".
+            page.eq(f"{label}: the Next button has no type, as in the code", f["button"]["type"], None)
     if p == "select":
         page.eq(f"{label}: the select's option", f["select"], ["Select..."])
     if p in ("checkbox", "checkbox-checked", "switch-on", "switch-off"):
@@ -157,7 +166,9 @@ def demo_loop(page):
     aria-busy="true", type="date", <select>, role="switch", value="50"; tests/behavior/landing.py,
     MARKERS), the form's fields carry the phase's values (the email typed letter by letter to
     invalid@example, the helper text, Subscribe, Search..., Next, Select..., Publish on my profile,
-    Brightness), and the code is typed: at least 50 one-character insertions."""
+    Brightness; on the one page the Next button has no type attribute, as the code's <button>Next</button>
+    has none, and the busy phase's code gives the search input the disabled attribute the form's
+    input has), and the code is typed: at least 50 one-character insertions."""
     page.js(RECORDER, MARKERS)
     want = CYCLE + ["email", "invalid"]
     d = watch(page, lambda segs: len(phases(segs)) >= len(want), 100)

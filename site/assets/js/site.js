@@ -14,6 +14,7 @@
 // It also exports what other modules build on, so no widget keeps page state of its own:
 // - pageTheme(), switchTheme(), onThemeChange(fn): the page's color scheme;
 // - createModal(dialog, options): one modal helper per dialog (ModalContext.jsx);
+// - nameCopyButton(button): names a copy button by its icon, for one a module writes itself;
 // - perFrame(fn): a passive scroll or resize handler that runs fn at most once per frame.
 // Import them with `import { createModal } from "./site.js";` (the same URL, so the same instance as
 // the page's own <script type="module" src="/assets/js/site.js">).
@@ -154,14 +155,40 @@ if (fixedHeader) {
 // child, a span[role=img] holding the copy character ⧉ and naming the button (aria-label "Copy
 // code"), which gives way to a check ✓ with the same name, since the button still copies; the
 // status region says "Copied". code.css draws the check in, by the "Copied" tooltip.
+// The button takes its name from the icon through aria-labelledby, not from its contents: femto's
+// tooltip draws data-tooltip as the button's ::before text, which a name from contents would read
+// first ("Copy to clipboard Copy code", "Copied Copy code"). nameCopyButton() gives the icon an id,
+// copy-icon-<n>, unique on the page, and points the button's aria-labelledby at it; the check that
+// swaps in carries the same id and aria-label, so the name stays the icon's label throughout. It runs
+// on load for the page's buttons, which do nothing without JavaScript, and colors.js calls it for the
+// color modal's.
 
 const COPIED_FOR = 1000;
 const copied = new WeakMap(); // button -> {icon, check} while it shows "Copied"
+let copyIcons = 0; // the last n given to a copy-icon-<n> id
 
-function checkIcon(label) {
+// Names the copy button by its icon (span[role=img], its one child): aria-labelledby, pointing at
+// the icon's id, given one if it has none.
+export function nameCopyButton(button) {
+  const icon = button.querySelector(":scope > span[role=img]");
+  if (!icon) return;
+  if (!icon.id) {
+    let id;
+    do id = `copy-icon-${++copyIcons}`; while (document.getElementById(id));
+    icon.id = id;
+  }
+  if (button.getAttribute("aria-labelledby") !== icon.id) button.setAttribute("aria-labelledby", icon.id);
+}
+
+// The check ✓ that stands in for the icon while the button shows "Copied": the icon's id, so the
+// button's aria-labelledby finds it, and its aria-label. Only one of the two is in the page at a time.
+function checkIcon(icon) {
   const check = document.createElement("span");
   check.setAttribute("role", "img");
-  if (label) check.setAttribute("aria-label", label);
+  for (const name of ["id", "aria-label"]) {
+    const value = icon.getAttribute(name);
+    if (value) check.setAttribute(name, value);
+  }
   check.textContent = "\u2713";
   return check;
 }
@@ -178,6 +205,7 @@ function announceCopy(text) {
   if (copyStatus.textContent !== text) copyStatus.textContent = text;
 }
 if (document.querySelector("button[data-copy-link], [data-color-modal]")) announceCopy("");
+for (const button of document.querySelectorAll("button[data-copy-link]")) nameCopyButton(button);
 
 document.addEventListener("click", (event) => {
   const button = event.target instanceof Element ? event.target.closest("button[data-copy-link]") : null;
@@ -187,7 +215,7 @@ document.addEventListener("click", (event) => {
   if (!copied.has(button)) {
     const icon = button.querySelector(":scope > span[role=img]");
     if (!icon) return;
-    const check = checkIcon(icon.getAttribute("aria-label"));
+    const check = checkIcon(icon);
     icon.replaceWith(check);
     button.setAttribute("data-tooltip", "Copied");
     copied.set(button, { icon, check });
@@ -215,7 +243,10 @@ document.addEventListener("click", (event) => {
 // names that repeat (axe's landmark-unique). The others leave the tab order and carry no role or
 // name, so a screen reader neither stops at nor announces them. A ResizeObserver checks a block
 // whenever its box changes (the viewport, a closed <details> opening), and every block is checked
-// again when a font finishes loading (the code font changes the code's width, not the block's box).
+// again once the code font, Fira Code (fonts.css), has loaded: it changes the code's width, not the
+// block's box. document.fonts.load() says when, in every target browser; Safari never fires the
+// FontFaceSet's loadingdone event (WebKit bug 304091), so it is not used (Decision 12). One load of
+// its latin face is enough: no code block holds text that only another Fira Code face covers.
 // A focused block keeps its tabindex until focus has left it.
 
 const LANGUAGES = { html: "HTML", css: "CSS", scss: "SCSS", bash: "Bash" };
@@ -239,7 +270,7 @@ function fitFocus(pres) {
 if (scrollers.length) {
   const observer = new ResizeObserver((entries) => fitFocus(entries.map((entry) => entry.target)));
   for (const pre of scrollers) observer.observe(pre);
-  document.fonts?.addEventListener("loadingdone", () => fitFocus(scrollers));
+  if (document.fonts) document.fonts.load('1em "Fira Code"').then(() => fitFocus(scrollers), () => {});
   document.addEventListener("focusout", (event) => {
     const pre = event.target instanceof Element && event.target.matches("pre[data-scroll-focus]") ? event.target : null;
     if (pre) setTimeout(() => fitFocus([pre])); // once focus has moved on

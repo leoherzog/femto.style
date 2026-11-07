@@ -7,7 +7,7 @@ femto.colors.css gives the family's unshaded names (550 for red and fuchsia, whe
 colors.json said 500), the shade buttons sit in a div.shades (the oracle's <main>) and the close
 control is a button (the oracle's link). On routes the oracle's own markup and values are asserted,
 so the same checks still hold the oracle."""
-from behavior import COPY_SPY, check
+from behavior import COPY_SPY, check, expect_name
 
 GROUP = "customization"
 
@@ -345,6 +345,10 @@ const a = document.activeElement;
 return {inside: !!d && d.contains(a), close: !!d && a === d.querySelector('header button.close'),
         copy: !!d && [...d.querySelectorAll('.grid .code > button')].indexOf(a)};
 """
+# The color modal's copy buttons in order, each named by its row (colors.js: the icon's aria-label,
+# which the button's aria-labelledby points at).
+MODAL_COPY_NAMES = ["Copy hexadecimal color", "Copy RGB color", "Copy color utility class", "Copy background utility class",
+                    "Copy custom property"]
 
 
 @check("color-modal-tab-cycle", ROUTE, layouts=("one-page",),
@@ -354,7 +358,11 @@ def color_modal_tab_cycle(page):
     """In the open color modal (Enter on red 500's focused shade button), focus starts on the close
     button; Tab moves through the five copy buttons in order and wraps to the close button; Shift+Tab
     goes back to the last copy button; Enter on it copies its value, var(--femto-color-red-500); Escape
-    closes the modal and focus returns to the shade button."""
+    closes the modal and focus returns to the shade button. Each button's computed name (the
+    browser's, WebDriver Get Computed Label) is its icon's label alone, as colors.js writes it: the
+    close button "Close", the copy buttons, in order, "Copy hexadecimal color", "Copy RGB color",
+    "Copy color utility class", "Copy background utility class" and "Copy custom property", the last
+    one also while its check ✓ shows after the copy (no tooltip text joins any of them)."""
     shade = shade_button("red", "500")
     page.js(COPY_SPY)
     page.focus(shade)
@@ -362,9 +370,12 @@ def color_modal_tab_cycle(page):
     page.wait("the modal opens", "!!document.querySelector('dialog.color[open]')", 1.5)
     page.wait("focus is on the close button", "(() => { const d = document.querySelector('dialog.color[open]');"
               " return !!d && document.activeElement === d.querySelector('header button.close'); })()", 1)
+    expect_name(page, "the close button's computed name", page.js("return document.activeElement"), "Close")
     for i in range(5):
         page.key("TAB")
         page.eq(f"Tab {i + 1}: copy button {i + 1}", page.js(MODAL_FOCUS)["copy"], i)
+        expect_name(page, f"Tab {i + 1}: copy button {i + 1}'s computed name", page.js("return document.activeElement"),
+                    MODAL_COPY_NAMES[i])
     page.key("TAB")
     page.eq("Tab wraps to the close button", page.js(MODAL_FOCUS)["close"], True)
     page.tab(shift=True)
@@ -373,6 +384,11 @@ def color_modal_tab_cycle(page):
     page.key("ENTER")
     page.wait("Enter copies", "window.__bhCopied.length === 1", 1)
     page.eq("it copied the custom property", page.js("return window.__bhCopied[0].text"), "var(--femto-color-red-500)")
+    icon = "return document.activeElement.querySelector(':scope > span[role=img]')?.textContent"
+    page.eq("the check shows", page.js(icon), "✓")
+    expect_name(page, "the check keeps the last copy button's computed name", page.js("return document.activeElement"),
+                MODAL_COPY_NAMES[4])
+    page.eq("the check still shows (the name was read while it did)", page.js(icon), "✓")
     page.key("ESCAPE")
     expect_closed(page, "Escape")
     page.wait("focus returns to the shade button", "document.activeElement === document.querySelector(arguments[0])", 1,

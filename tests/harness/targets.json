@@ -118,6 +118,41 @@
       "menu_why": "The sections mode maps each old docs route to its section through side A's menu.json, read from the tag (git show static-femto:site/docs/menu.json): its route and variants fields, which Phase 3 removes from the working tree's menu.json.",
       "comparison": "one-page",
       "comparison_why": "A pages or sections run whose side A is this target is a one-page comparison: only the registry entries whose where.comparisons names one-page apply (and skipped checks), so neither Phase 1's entries (the oracle against the static site) nor Phase 2's (the frozen CSS against femto) hide a difference between the Phase 2 site and the one page (tests/README.md, Divergence registry)."
+    },
+    "static-one-page": {
+      "kind": "command",
+      "ready": "static",
+      "same_origin": true,
+      "same_origin_why": "PLAN.md criterion 15: every page loads only same-origin resources. The harness reads each document's own network log (Resource Timing), so a script that only displays a CDN URL passes and a fetch() or inserted <link> to another origin fails, whatever builds the URL.",
+      "requires": "{dir}/index.html",
+      "command": [
+        "{wrangler}",
+        "pages",
+        "dev",
+        "{dir}",
+        "--ip",
+        "127.0.0.1",
+        "--port",
+        "{port}",
+        "--inspector-port",
+        "{inspector_port}",
+        "--persist-to",
+        "{log_dir}/wrangler-state-{port}",
+        "--show-interactive-dev-session=false"
+      ],
+      "about": "The static site at tag static-one-page (the Phase 3 commit 7b90883, \"Merge Docs Into One Page\": the one docs page, before Phase 4 rewrote the content), built by the harness into tests/builds/static-one-page/dist and served exactly as dist is. Side B of Phase 3's comparisons when they are rerun between the tags (tests/owner-safari.sh parity): the sections mode's one page, and a pages run's whole pages.",
+      "env": {
+        "WRANGLER_SEND_METRICS": "false",
+        "WRANGLER_LOG_PATH": "{log_dir}/wrangler-debug-{port}.log"
+      },
+      "env_why": "wrangler writes a debug log on every run; WRANGLER_LOG_PATH keeps it in the run's result folder instead of ~/Library/Preferences/.wrangler/logs.",
+      "dir": "tests/builds/static-one-page/dist",
+      "dir_why": "Gitignored (.gitignore: tests/builds/). The folder is the harness's own: a run never builds into dist/, and the build is redone only when the tag moves.",
+      "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state.",
+      "build_tag": "static-one-page",
+      "build_tag_why": "PLAN.md Workflow, 3 One page: Phase 3's gate compared the one page at that phase's commit against static-femto. From Phase 4 dist/ describes femto 3 and matches neither, so criterion 2's Safari legs are rerun between the commits the gates compared: static-femto against this tag, the Phase 3 commit (the owner, 2026-11-06). Building the tag, not reading the working tree, keeps side B fixed.",
+      "one_page": "/docs",
+      "one_page_why": "The one docs page at the Phase 3 commit (PLAN.md Decision 2): the sections mode's side B loads each section at /docs#<id>, and a color route's at /docs?theme=<color>#version-picker, as it did from dist at Phase 3's gate."
     }
   }
 }

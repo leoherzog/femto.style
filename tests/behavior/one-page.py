@@ -70,6 +70,29 @@ if (!window.__bhReplace) {
 return __bhTrack.t0;
 """
 
+# Records every scrollY the page's scroll events report into __bhRevealY, which the check empties
+# before each scroll of its own (one listener per document).
+REVEAL_TRACK = """
+window.__bhRevealY = [];
+if (!window.__bhRevealListening) {
+  window.__bhRevealListening = true;
+  addEventListener("scroll", () => window.__bhRevealY.push(Math.round(scrollY)), {passive: true});
+}
+"""
+
+# Two frames after the spy marked the section (a scroll the reveal caused has fired its event by
+# then): the current link's box and the side nav's, scrollY and every scrollY since the check's scroll.
+REVEAL = """
+const frame = () => new Promise(r => requestAnimationFrame(() => r()));
+await frame();
+await frame();
+const nav = document.querySelector("#documentation-menu nav"), a = nav.querySelector("a[aria-current]");
+const n = nav.getBoundingClientRect(), l = a.getBoundingClientRect();
+return {link: [Math.round(l.top), Math.round(l.bottom)], nav: [Math.round(n.top), Math.round(n.bottom)],
+        inside: l.top >= n.top - 1 && l.bottom <= n.bottom + 1, navScrollTop: Math.round(nav.scrollTop),
+        y: Math.round(scrollY), scrolls: window.__bhRevealY.slice(0, 20)};
+"""
+
 # The scroll position once it has held for 250 ms (at most 4 s).
 SETTLE = """
 const frame = () => new Promise(r => requestAnimationFrame(() => r()));
@@ -254,12 +277,13 @@ def nojs_deep_link(page):
 
 @check("spy-scroll", "/docs", layouts=ONLY, layout_reason=WHY)
 def spy_scroll(page):
-    """Scrolling writes the section into the URL once it has been current for 200 ms: from the top,
-    a jump so Grid's heading is 40 px above its line makes the nav mark #grid and the title "Grid •
-    femto" at once, and the URL /docs#grid by replaceState (no new history entry) 180 ms or more
-    after the jump. Back at the top the URL is plain /docs (no hash), the title the page's own
-    ("Documentation • femto") and the nav marks #quick-start. At the very bottom the short last
-    section is current: the URL is /docs#tooltip and the nav marks #tooltip."""
+    """Scrolling writes the section into the URL 200 ms after scrolling last moved, once the section
+    it settles on differs from the hash (docs.js syncUrl restarts its timer on every scroll frame):
+    from the top, a jump so Grid's heading is 40 px above its line makes the nav mark #grid and the
+    title "Grid • femto" at once, and the URL /docs#grid by replaceState (no new history entry)
+    180 ms or more after the jump. Back at the top the URL is plain /docs (no hash), the title the
+    page's own ("Documentation • femto") and the nav marks #quick-start. At the very bottom the short
+    last section is current: the URL is /docs#tooltip and the nav marks #tooltip."""
     s0 = state(page)
     page.eq("plain /docs at the top", s0["url"], "/docs")
     page.js(TRACK)
@@ -303,8 +327,8 @@ return {height, steps, scrollMs, replace: __bhTrack.replace, url: location.pathn
 @check("spy-fast-scroll", "/docs", layouts=ONLY, layout_reason=WHY)
 def spy_fast_scroll(page):
     """A fast scroll from the top to the bottom, 200 px every 16 ms in the page, makes at most 3
-    replaceState calls (the URL waits for 200 ms of stability) and ends on /docs#tooltip with the nav
-    marking #tooltip."""
+    replaceState calls (the URL is written 200 ms after scrolling last moved) and ends on
+    /docs#tooltip with the nav marking #tooltip."""
     page.js(TRACK)
     r = page.ajs(FAST_SCROLL)
     page.note(f"{r['steps']} steps over {r['scrollMs']} ms, {len(r['replace'])} replaceState calls")
@@ -321,15 +345,20 @@ def spy_categories(page):
     that section's heading is on its line (or as far as the page goes, for the last), the one current
     link is its own (aria-current="true"), its category's summary alone is current and that category
     is open, the breadcrumb's chapter names the category, and the title is "<the section's h1> •
-    femto" (the page's own for Quick start). A category the reader closes opens again when one of its
-    sections becomes current: Forms closed (a click on its summary) while Quick start is read opens,
-    with its summary current, once the page is scrolled to Input."""
+    femto" (the page's own for Quick start). The spy scrolls the side nav, never the page, to show
+    the current link (docs.js revealInNav): at 1300 px, two frames after the mark, the current link's
+    box lies within the side nav's (1 px slack), and the page is still where the check scrolled it,
+    every scroll event since then reporting that scrollY (within 1 px). A category the reader closes
+    opens again when one of its sections becomes current: Forms closed (a click on its summary) while
+    Quick start is read opens, with its summary current, once the page is scrolled to Input."""
     sections = page.js(SECTIONS)
     page.eq(f"{len(MENU_IDS)} sections in the nav, in menu.json's order", [s[0] for s in sections], MENU_IDS)
     page.expect("every nav link has its section", all(s[1] for s in sections), missing=[s[0] for s in sections if not s[1]])
+    page.js(REVEAL_TRACK)
     last = sections[-1]
     for sid, h1, category in sections:
-        scroll_into(page, sid)
+        page.js("window.__bhRevealY = []")
+        y = scroll_into(page, sid)
         if sid != last[0] and page.js(SHORT_OF_LINE, sid):
             # The page ends before this heading reaches its line: there the last section is current
             # once its top is on screen (02 §4), which the last step checks.
@@ -337,6 +366,10 @@ def spy_categories(page):
             continue
         wait_current(page, sid, sid)
         expect_section(page, sid, section_title(sid, h1), category, sid)
+        r = page.ajs(REVEAL)
+        page.expect(f"{sid}: the current link is inside the side nav's box", r["inside"], **r)
+        page.expect(f"{sid}: the reveal scrolled the side nav, not the page",
+                    all(abs(v - y) <= 1 for v in [r["y"], *r["scrolls"]]), scrolled_to=y, **r)
     page.scroll_to(0)
     wait_current(page, "quick-start", "top")
     forms = page.js("""return [...document.querySelectorAll('#documentation-menu nav details > summary')]
@@ -415,8 +448,9 @@ def spy_nav_click(page):
 
 @check("spy-nav-click-reduced", "/docs#modal", motion="reduce", layouts=ONLY, layout_reason=WHY)
 def spy_nav_click_reduced(page):
-    """Under prefers-reduced-motion: reduce (emulated; Safari cannot, so it is skipped there), the
-    same nav click jumps without animation: the URL /docs#container with one new history entry,
+    """Under prefers-reduced-motion: reduce (emulated in Chrome and Firefox; Safari reads macOS's
+    Reduce Motion, so it runs there in the owner's pass with it on, tests/owner-safari.sh reduced),
+    the same nav click jumps without animation: the URL /docs#container with one new history entry,
     Container's heading on its line, the nav straight to #container, and the scroll one jump (not
     animated), html's scroll-behavior never smooth."""
     before, track = nav_click(page, "click")

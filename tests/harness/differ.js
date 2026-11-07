@@ -102,6 +102,7 @@
       visibility: document.visibilityState,
       hasFocus: document.hasFocus(),
       dark: matchMedia("(prefers-color-scheme: dark)").matches,
+      reduce: matchMedia("(prefers-reduced-motion: reduce)").matches,
       inner: [innerWidth, innerHeight],
       dpr: devicePixelRatio,
       ua: navigator.userAgent,

@@ -1,9 +1,10 @@
 # Builds the site and runs the lint and the static checks (tests/static_checks.py) on every push and
-# pull request. It never deploys: deploying is the owner's step, npm run deploy (PLAN.md Decisions
-# 11 and 15), so the run has no secrets and only reads the repository. The checkout holds the whole
-# history, since static_checks.py infers the phase from the Workflow table's commit subjects. femto
-# is fetched at the commit site/vendor/femto/SOURCE names into ../femto, beside the checkout: that
-# is the folder SOURCE's source line names, so criteria 12 and 13 find it there with no --femto.
+# pull request. It never deploys: Cloudflare Pages' Git integration deploys pushes (main to
+# production, other branches to previews; PLAN.md Decision 11), and this workflow only checks, so
+# the run has no secrets and only reads the repository. The checkout holds the whole history, since
+# static_checks.py infers the phase from the Workflow table's commit subjects. femto is fetched at
+# the commit site/vendor/femto/SOURCE names into ../femto, beside the checkout: that is the folder
+# SOURCE's source line names, so criteria 12 and 13 find it there with no --femto.
 # Criteria 1, 2, 7 and 10, and 15's run-time parts, need the macOS browser rig and report NOT-YET
 # here; any FAIL fails the run.
 name: Check

@@ -68,14 +68,18 @@
       <a href="/docs#classes" role="button">A link as a button</a>
     </p>
     <p><a href="/docs#classes" class="secondary">A secondary link</a> and <a href="/docs#classes" class="contrast">a contrast link</a></p>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button"&gt;Primary&lt;/button&gt;
-&lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
-&lt;button type="button" class="contrast"&gt;Contrast&lt;/button&gt;
-&lt;button type="button" class="outline"&gt;Outline&lt;/button&gt;
-&lt;a href="#" role="button"&gt;A link as a button&lt;/a&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;
+  &lt;button type="button"&gt;Primary&lt;/button&gt;
+  &lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
+  &lt;button type="button" class="contrast"&gt;Contrast&lt;/button&gt;
+  &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt;
+  &lt;a href="#" role="button"&gt;A link as a button&lt;/a&gt;
+&lt;/p&gt;
 
-&lt;a href="#" class="secondary"&gt;A secondary link&lt;/a&gt;
-&lt;a href="#" class="contrast"&gt;a contrast link&lt;/a&gt;</code></pre></footer>
+&lt;p&gt;
+  &lt;a href="#" class="secondary"&gt;A secondary link&lt;/a&gt; and
+  &lt;a href="#" class="contrast"&gt;a contrast link&lt;/a&gt;
+&lt;/p&gt;</code></pre></footer>
   </article>
 </section>
 <section>
@@ -178,11 +182,11 @@
       <input type="submit" value="Search">
     </form>
     <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;label for="name"&gt;Name&lt;/label&gt;
-&lt;input type="text" id="name" name="name" value="Ada Lovelace" aria-invalid="false" aria-describedby="name-helper"&gt;
+&lt;input type="text" id="name" name="name" value="Ada Lovelace" autocomplete="name" aria-invalid="false" aria-describedby="name-helper"&gt;
 &lt;small id="name-helper"&gt;Looks good.&lt;/small&gt;
 
 &lt;label for="email"&gt;Email&lt;/label&gt;
-&lt;input type="email" id="email" name="email" value="ada" aria-invalid="true" aria-describedby="email-helper"&gt;
+&lt;input type="email" id="email" name="email" value="ada" autocomplete="email" aria-invalid="true" aria-describedby="email-helper"&gt;
 &lt;small id="email-helper"&gt;Enter a full email address.&lt;/small&gt;
 
 &lt;label&gt;&lt;input type="checkbox" role="switch" name="updates" checked&gt; Send me updates&lt;/label&gt;
@@ -195,7 +199,8 @@
 </section>
 <section>
   <h2>Components</h2>
-  <div class="overflow-auto">
+  <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
+  <div class="overflow-auto" tabindex="0" role="region" aria-label="Component classes and attributes">
     <table class="striped">
       <thead>
         <tr>
@@ -234,7 +239,8 @@
 </section>
 <section>
   <h2>States</h2>
-  <div class="overflow-auto">
+  <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
+  <div class="overflow-auto" tabindex="0" role="region" aria-label="State attributes">
     <table class="striped">
       <thead>
         <tr>
@@ -262,10 +268,12 @@
     <p><a href="/docs#classes" aria-current="page">The current page</a> and <a href="/docs#link">another page</a></p>
     <p><button type="button" disabled>Disabled</button></p>
     <label aria-disabled="true"><input type="checkbox" name="unavailable" disabled> Not available</label>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;a href="#" aria-current="page"&gt;The current page&lt;/a&gt;
-&lt;a href="#"&gt;another page&lt;/a&gt;
+    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;
+  &lt;a href="#" aria-current="page"&gt;The current page&lt;/a&gt; and
+  &lt;a href="#"&gt;another page&lt;/a&gt;
+&lt;/p&gt;
 
-&lt;button type="button" disabled&gt;Disabled&lt;/button&gt;
+&lt;p&gt;&lt;button type="button" disabled&gt;Disabled&lt;/button&gt;&lt;/p&gt;
 
 &lt;label aria-disabled="true"&gt;
   &lt;input type="checkbox" name="unavailable" disabled&gt;

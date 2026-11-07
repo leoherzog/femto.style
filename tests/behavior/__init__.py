@@ -31,6 +31,7 @@ reworked: the Theme picker, the /examples mockups.
 import dataclasses
 import inspect
 import textwrap
+import time
 
 GROUPS = ("shell", "one-page", "getting-started", "customization", "layout", "content", "forms", "components-a",
           "components-b", "landing", "examples")
@@ -199,6 +200,28 @@ HEADING_LINE = r"""(id) => {
   const off = h.getBoundingClientRect().top - line;
   return off > 0 && Math.ceil(scrollY + innerHeight) >= root.scrollHeight - 1 ? 0 : off;
 }"""
+
+
+def computed_name(el):
+    """An element's accessible name as the browser computes it (WebDriver Get Computed Label,
+    Selenium's WebElement.accessible_name), not an attribute read from the DOM. A button named by its
+    contents reads all of them: a copy button's also include femto's tooltip, the ::before text that
+    its data-tooltip draws ("Copy to clipboard Copy code"), which its icon's aria-label alone does not
+    show."""
+    return el.accessible_name
+
+
+def expect_name(page, label, el, want, timeout=0.5, /, **detail):
+    """Assert that the element's computed name (computed_name) is `want` within `timeout` seconds.
+    The browser's accessibility tree follows a DOM change a little later than the DOM: in the first
+    milliseconds after a copy button's ⧉ gave way to its ✓, Firefox 160 still named the button by the
+    ✓'s text, and by its label once the tree had caught up."""
+    t0 = time.time()
+    while True:
+        name = computed_name(el)
+        if name == want or time.time() > t0 + timeout:
+            return page.eq(label, name, want, after_s=round(time.time() - t0, 3), **detail)
+        time.sleep(0.05)
 
 
 def nav_href(page, sid):

@@ -187,6 +187,17 @@ class Session:
         st = self.host_status()
         self.os_scheme = "dark" if st["dark"] else "light"
         self.host = st
+        # The comparison modes run both sides with prefers-reduced-motion at no preference
+        # (tests/README.md, Known limits): Chrome and Firefox never emulate it, and Safari reads macOS's
+        # Reduce Motion, which flattens every transition and animation on both sides through femto's
+        # reduce rule. So a Safari session refuses to start under reduce, before it runs a cell.
+        self.os_motion = None
+        if self.browser == "safari":
+            self.os_motion = "reduce" if st.get("reduce") else "no-preference"
+            if self.os_motion == "reduce":
+                raise RigError("Safari's OS motion is reduce, but the comparison modes run with no preference: turn "
+                               "macOS's Reduce Motion off (System Settings > Accessibility > Display > Reduce motion) "
+                               "and run again")
 
     # -- host page and scripts ------------------------------------------------------------
     def open_host(self):

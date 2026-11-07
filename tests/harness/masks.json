@@ -35,6 +35,17 @@
       "reason": "The highlighted code under the /docs/progress example prints the same random value in one token: the first attr-value token that is not punctuation (value=\"NN\" comes before max=\"100\"). Only that token's text, and the transform-origin and perspective-origin Firefox derives from its size, are not compared; every other token, its classes and the pre stay compared. Its digits shift the rest of the line, so the screenshot covers the whole pre (pixels never gate)."
     },
     {
+      "id": "progress-value-code-width",
+      "selector": "article[aria-label=\"Progress example\"] > footer > pre > code",
+      "properties": [
+        "width",
+        "inline-size",
+        "transform-origin",
+        "perspective-origin"
+      ],
+      "reason": "From Phase 4 the code under the /docs progress example is longer than its pre at 375 px, and femto's pre > code min-width: min-content (site/vendor/femto/css/content/code.css:47-50) makes the code as wide as that line. A one-digit value then makes it one character narrower than a two-digit one: 344.5 against 352.906 px in Chrome at 375 (p4-gate-loads-1 and p6-gate-loads-1, /docs and /docs?theme=jade). Only the code's width and inline-size, and the transform-origin and perspective-origin derived from them, are not compared; its height, its other styles and every token but the value stay compared."
+    },
+    {
       "id": "oracle-theme-toggle",
       "selector": "svg.icon-theme-toggle *",
       "properties": [
