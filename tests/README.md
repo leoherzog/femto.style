@@ -3876,7 +3876,7 @@ subjects outside the Workflow table, among them the owner's Decision 16, 17 and 
 | 1 | PASS, `p6-final-self-full-1` | Light PASS (`p6-self-safari-light-2`). Dark not clean: `p6-self-safari-dark-2` and `-3` each had oracle-side mid-animation reads in 2 of 420 cells, different cells each time; the first is masked (`oracle-check-icon`), and the second's two cells pass on rerun (`p6-self-safari-dark-cells-1`). The owner chose the reread (owner decision 22), and on it the full Dark pass passes: `p6-self-safari-dark-4` (60f6b47), 0 differences, one cell reread with all 114 of its first read's records forgiven |
 | 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | waits on `parity`; Phases 2 and 3 never passed in Safari (critic-1) |
 | 3, 4, 5, 6, 8, 9, 11, 12, 13 and 14 | PASS, `static_checks.py` | — |
-| 7 | PASS, `p6-final-behavior-1` | PASS on 06c0837: `p6-behavior-safari-light-3` (103 of 103 run) and `p6-behavior-safari-dark-3` (5 of 5). The Reduce Motion checks wait on `reduced` |
+| 7 | PASS, `p6-final-behavior-1` | PASS on 06c0837: `p6-behavior-safari-light-3` (103 of 103 run) and `p6-behavior-safari-dark-3` (5 of 5); with Reduce Motion on, `p6-behavior-safari-reduced-light-2` (5308ab4, 3 of 3) |
 | 10 | PASS, `p6-final-a11y-1` and `-widths-1` | not in the criterion |
 | 15 | PASS: the static part, `p6-final-loads-1`, and `deep-link-cold` in Chrome | PASS on 6378a3e: `p6-loads-safari-light-2` and `-dark-2`, 0 cross-origin loads (06c0837 changes only docs.js's focus handling, the checks and a mask); production fails it while Web Analytics injects its beacon (the owner's step 5 below) |
 
@@ -4072,8 +4072,17 @@ appearance switched and put back, by the agent with the owner's leave).
 | `p6-self-safari-dark-4` (60f6b47, 2026-11-07, 13:57 to 14:25) | 744 (420 run, 324 `media:light`) | **PASS: 0 differences**, 0 harness errors, 0 readiness reloads; `oracle-check-icon` masked 1,032 elements. One cell reread: `/docs/table` dark 800, 114 unregistered on its first read, 0 on the reread, 0 repeated, so all 114 forgiven (REREAD CELLS lists them: the skip link's shadow, the logo link's `text-decoration-color` at `rgba(3, 170, 255, 0.506)` against `rgba(1, 170, 255, 0.5)`, the version picker's borders at alpha `0.004`, all mid-transition on one side) | 1,660 s |
 
 So criterion 1 passes in Safari's dark leg on the reread, and its light leg on `p6-self-safari-light-2`
-(6378a3e, before the reread, 0 differences without it). Still not run in Safari: `reduced` (Reduce
-Motion on, which only the owner sets) and `parity`.
+(6378a3e, before the reread, 0 differences without it).
+
+The owner's `reduced` pass, on 5308ab4 (2026-11-07):
+
+| Run | Runs | Result | Time |
+|---|---|---|---|
+| `p6-behavior-safari-reduced-light-1` | 119 planned | refused before any check: Safari's OS motion was `no-preference` (Reduce Motion off), so the `--expect-os-motion reduce` guard stopped the run, as designed | 6 s |
+| `p6-behavior-safari-reduced-light-2` | 119 (3 run, 116 skipped as `motion:no-preference` or `media:dark`) | **PASS: 3 of 3**, `demo-reduced-motion`, `spy-nav-click-reduced` and `progress-reduced-motion`; log `OS scheme light`, `OS motion reduce` | 31 s |
+
+So criterion 7 passes in Safari: Light and Dark with Reduce Motion off (`p6-behavior-safari-light-3`,
+`-dark-3`) and its reduced-motion checks with it on. Still not run in Safari: `parity`.
 
 **The reread** (owner decision 22, 2026-11-07; Modes, The reread). `compare.py` (`reread`,
 `reread_failed`, `record_key`) and `runner.py` read a cell of the reread set once more; `cli.py` adds
