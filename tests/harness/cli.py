@@ -22,7 +22,9 @@ MODES_HELP = """modes:
             schemes, pseudo-elements, screenshots, input); writes results/<run>/rig.json.
   self      the oracle against itself, two separate oracle servers (acceptance criterion 1).
             Fast axes; --full runs the PLAN.md matrix (Chrome, Firefox, Safari; light, dark; six
-            widths; data-theme legs on the theme routes; kept routes only).
+            widths; data-theme legs on the theme routes; kept routes only). A Safari cell with
+            unregistered differences is read once more, and only the records that repeat count
+            (owner decision 22; --reread names other browsers, or none).
   pages     side A against side B, document against document: --a and --b are named targets
             (oracle, dist, static-multipage, static-femto, static-one-page, fixture[:control];
             tests/harness/targets.json) or base URLs. The same target on both sides is a self
@@ -74,6 +76,11 @@ def add_common(p):
     p.add_argument("--no-shots", action="store_true", help="skip screenshots (the secondary pixel diff)")
     p.add_argument("--workers", help="sessions per browser, e.g. chrome=2,firefox=2 (Safari is always 1)")
     p.add_argument("--max-records", type=int, default=300, help="unregistered records kept per cell")
+    p.add_argument("--reread", metavar="BROWSERS",
+                   help="comma list of chrome, firefox, safari, or none: a cell of these browsers whose read has "
+                        "unregistered differences is read once more in the same session, and only the records that "
+                        "repeat count (owner decision 22, tests/README.md Modes; default safari in the self mode, "
+                        "none in the others)")
     p.add_argument("--run-id", help="name of the results folder (default: timestamp-mode-pid)")
     p.add_argument("--label", help="free text stored in result.json")
     p.add_argument("--registry", help="registry directory (default tests/divergences)")
@@ -192,7 +199,39 @@ def make_opts(args, mode, full):
                            max_records=getattr(args, "max_records", 300), masks=load_masks(), conf=matrix.load_config(),
                            blob_uuid=bool(getattr(args, "blob_uuid_placeholder", True)),
                            minified=bool(getattr(args, "minified", True)),
-                           styles=getattr(args, "styles_mode", None))
+                           styles=getattr(args, "styles_mode", None),
+                           reread=tuple(getattr(args, "reread_set", None) or ()))
+
+
+BROWSERS = ("chrome", "firefox", "safari")
+
+
+def reread_set(args, mode, caps):
+    """The browsers whose differing cells are read once more (owner decision 22, 2026-11-07): --reread,
+    by default Safari in the self mode and none in the other modes. The set goes in a cap line, and
+    in result.json as `reread`."""
+    raw = getattr(args, "reread", None)
+    if raw is None:
+        browsers = ["safari"] if mode == "self" else []
+        how = "the self mode's default" if mode == "self" else f"the {mode} mode's default"
+    elif raw.strip().lower() == "none":
+        browsers, how = [], "--reread none"
+    else:
+        browsers = csv(raw)
+        unknown = [b for b in browsers if b not in BROWSERS]
+        if unknown or not browsers:
+            raise SystemExit(f"--reread takes a comma list of {', '.join(BROWSERS)}, or none: {raw!r}")
+        how = f"--reread {raw}"
+    browsers = sorted(set(browsers), key=BROWSERS.index)
+    if browsers:
+        caps.append(f"reread {','.join(browsers)} ({how}): a {' or '.join(browsers)} cell whose read has "
+                    "unregistered differences is read once more in the same session, and only the records that "
+                    "repeat count, whatever their values (owner decision 22, tests/README.md Modes); each reread "
+                    "cell's reread in result.json lists the records it forgave (of those each read kept), and "
+                    "summary.txt's REREAD CELLS the first 5 of each read")
+    else:
+        caps.append(f"reread none ({how}): every cell is read once")
+    return browsers
 
 
 def styles_describe(st):
@@ -357,6 +396,7 @@ def run_compare(args, mode):
     caps = []
     try:
         cells, sides, comparison, full = plan(args, mode, caps)
+        args.reread_set = reread_set(args, mode, caps)
         if mode == "styles":
             from .styles import StatesError
             try:
@@ -454,6 +494,8 @@ def run_compare(args, mode):
            "server_chunks": {"cells_per_server_life": size, "chunks": [len(p) for p in parts]},
            "value_rules": getattr(opts, "value_rules", None),
            "styles": styles_describe(opts.styles),
+           # owner decision 22: the browsers whose cells with unregistered differences are read once more
+           "reread": list(opts.reread),
            "planned": {b: {k: v for k, v in d.items()} for b, d in matrix.counts(cells).items()}}
     results.sort(key=lambda r: (r["browser"], r["route"], r["width"], r["scheme"]))
     result = build_result(run, results, registry, pool_errors, rigs, caps)

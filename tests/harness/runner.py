@@ -11,7 +11,7 @@ from urllib3.exceptions import HTTPError as Urllib3Error
 
 from . import locks
 from .browsers import FRAME_HEIGHT, Session
-from .compare import attach_late_reports, run_cell
+from .compare import attach_late_reports, reread, reread_failed, run_cell, wants_reread
 from .paths import HARNESS_PREFIX
 from .proxy import Proxy
 
@@ -42,6 +42,22 @@ def start_session(browser, proxy, log):
     except Exception:
         sess.quit()
         raise
+
+
+def reread_note(rr):
+    """The log's note for a reread cell: "reread: 12 then 0, 0 repeated"; "reread: 34 then 34, repeats
+    not told (truncated): 34 count"; "reread: 2 then 1, nothing forgiven (the reread's errors): 2 count"."""
+    second = "-" if rr.get("second_unregistered") is None else rr["second_unregistered"]
+    s = f"reread: {rr['first_unregistered']} then {second}"
+    if rr.get("forgives_nothing"):
+        return s + f", nothing forgiven ({rr['forgives_nothing']}): {rr.get('counted')} count"
+    if rr.get("untold"):
+        s += f", repeats not told ({rr['untold']}): {rr.get('counted')} count"
+        if rr.get("forgiven_first"):
+            s += (f", {'at least ' if rr.get('forgiven_first_at_least') else ''}{rr['forgiven_first']} of the first "
+                  "read's do not")
+        return s
+    return s + f", {rr['repeated']} repeated"
 
 
 def shot_name(cell):
@@ -89,6 +105,7 @@ class Pool:
         self.total = grand_total or len(cells)
         self.t0 = t0 or time.time()
         self.queues = {b: collections.deque(lst) for b, lst in queue_order(cells).items()}
+        self.reread = frozenset(getattr(opts, "reread", None) or ())  # owner decision 22 (cli.py --reread)
 
     def _next(self, browser):
         with self.lock:
@@ -123,6 +140,7 @@ class Pool:
                      + (f" [{r['status']}]" if r.get("status") not in ("ok", None) else "")
                      + (f" [side {', '.join(x['side'] for x in r['ready_retries'])} reloaded after a readiness failure]"
                         if r.get("ready_retries") else "")
+                     + (f" [{reread_note(r['reread'])}]" if r.get("reread") else "")
                      + (f" | {first_err[:300]}" if first_err else ""))
 
     def _worker(self, browser, n):
@@ -164,14 +182,22 @@ class Pool:
                              + (f", OS motion {sess.os_motion}" if sess.os_motion else "")
                              + f", pseudo-elements {sess.pseudos}, proxy {proxy.base}")
                 shot = self.run_dir / "shots" / shot_name(cell) if self.opts.shots else None
+                first = None
                 try:
                     r = run_cell(sess, cell, self.registry, self.opts, self.sides, shot)
+                    if wants_reread(r, self.reread):
+                        # Owner decision 22: read the cell once more in this session; only the
+                        # records that repeat count (compare.reread).
+                        first = r
+                        again = shot.with_name(shot.stem + "--reread" + shot.suffix) if shot else None
+                        r = reread(first, run_cell(sess, cell, self.registry, self.opts, self.sides, again), sess.proxy)
                 except (WebDriverException, Urllib3Error, TimeoutError, ConnectionError) as e:
                     # The browser stopped answering (a WebDriver error, or no reply within the
                     # session's client timeout): record the cell, end the session, start a new one.
-                    r = dict(cell, status="error", errors=[f"webdriver: {type(e).__name__}: "
-                                                           f"{str(e).splitlines()[0] if str(e) else repr(e)}"],
-                             skipped=[], result=None, timing={})
+                    # A reread that fails this way keeps the cell's first read and forgives nothing.
+                    msg = f"webdriver: {type(e).__name__}: {str(e).splitlines()[0] if str(e) else repr(e)}"
+                    r = reread_failed(first, msg, proxy) if first is not None else \
+                        dict(cell, status="error", errors=[msg], skipped=[], result=None, timing={})
                     sess.quit(force=not isinstance(e, WebDriverException))
                     sess = None
                     restarts += 1
@@ -179,8 +205,9 @@ class Pool:
                         self._record(r)
                         raise RuntimeError("too many session restarts")
                 except Exception as e:
-                    r = dict(cell, status="error", errors=[f"harness exception: {e!r}: {traceback.format_exc(limit=4)}"],
-                             skipped=[], result=None, timing={})
+                    msg = f"harness exception: {e!r}: {traceback.format_exc(limit=4)}"
+                    r = reread_failed(first, msg, proxy) if first is not None else \
+                        dict(cell, status="error", errors=[msg], skipped=[], result=None, timing={})
                 for p in proxy.take_harness_404():
                     r.setdefault("errors", []).append(f"harness file 404: {p}")
                 self._record(r)

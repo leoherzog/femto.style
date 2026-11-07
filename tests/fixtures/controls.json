@@ -688,6 +688,51 @@
      "new": "<li>Alpha eight</li><li>Alpha nine</li>"
     }
    ]
+  },
+  "reread-transient": {
+   "describe": "a script in the head gives the h1 word-spacing 3px on this route's first load in a browser session only: it sets a cookie, which the harness never clears (differ.js load empties localStorage and sessionStorage only), and a later load that finds the cookie changes nothing. So the first cell of /index.html in each session differs and its reread does not (for reread-transient and reread-transient-off)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n</head>",
+     "new": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n<script>\n  (function () {\n    if (document.cookie.split(\"; \").indexOf(\"fixture-seen-index=1\") < 0) {\n      document.cookie = \"fixture-seen-index=1; path=/\";\n      var s = document.createElement(\"style\");\n      s.textContent = \"h1 { word-spacing: 3px; }\";\n      document.head.appendChild(s);\n    }\n  })();\n</script>\n</head>"
+    }
+   ]
+  },
+  "reread-error": {
+   "describe": "the reread-transient script, and on every later load in the session a stylesheet <link> to /missing.css, which answers 404: the first read differs, and the reread's side B fails the stylesheet check twice, a harness error (for reread-error)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n</head>",
+     "new": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n<script>\n  (function () {\n    if (document.cookie.split(\"; \").indexOf(\"fixture-seen-index=1\") < 0) {\n      document.cookie = \"fixture-seen-index=1; path=/\";\n      var s = document.createElement(\"style\");\n      s.textContent = \"h1 { word-spacing: 3px; }\";\n      document.head.appendChild(s);\n    } else {\n      var l = document.createElement(\"link\");\n      l.rel = \"stylesheet\";\n      l.href = \"/missing.css\";\n      document.head.appendChild(l);\n    }\n  })();\n</script>\n</head>"
+    }
+   ]
+  },
+  "reread-partial": {
+   "describe": "the h1 color change of color-2-of-255 on every load, and a script in the head that marks the route seen with the cookie of reread-transient: on this route's first load in a browser session it gives the h1 word-spacing 3px, on every later load word-spacing 5px and the lead paragraph letter-spacing 1px. So the session's first cell of /index.html has the color and word-spacing records on its first read, and on its reread the same records (word-spacing with another value) plus letter-spacing records only the reread has (for reread-partial)",
+   "edits": [
+    {
+     "file": "fixture.css",
+     "old": "h1 { color: rgb(45, 49, 56); }",
+     "new": "h1 { color: rgb(47, 49, 56); }"
+    },
+    {
+     "file": "index.html",
+     "old": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n</head>",
+     "new": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n<script>\n  (function () {\n    var s = document.createElement(\"style\");\n    if (document.cookie.split(\"; \").indexOf(\"fixture-seen-index=1\") < 0) {\n      document.cookie = \"fixture-seen-index=1; path=/\";\n      s.textContent = \"h1 { word-spacing: 3px; }\";\n    } else {\n      s.textContent = \"h1 { word-spacing: 5px; } .lead { letter-spacing: 1px; }\";\n    }\n    document.head.appendChild(s);\n  })();\n</script>\n</head>"
+    }
+   ]
+  },
+  "reread-first-read": {
+   "describe": "a script in the head counts this route's loads in a browser session in a cookie, which the harness never clears. The first two loads get the h1 word-spacing 3px and a stylesheet <link> to /missing.css (404), and the second also the cross-origin stylesheet of control cross-origin (this server under localhost); later loads change nothing. So the session's first cell of /index.html fails the stylesheet check, is loaded once more and fails again (a harness error), with the planted records and a cross-origin load, and its reread is clean (for reread-first-read)",
+   "edits": [
+    {
+     "file": "index.html",
+     "old": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n</head>",
+     "new": "<link rel=\"stylesheet\" href=\"/fixture.css\">\n<script>\n  (function () {\n    var m = document.cookie.match(/(?:^|; )fixture-loads-index=(\\d+)/);\n    var n = (m ? parseInt(m[1], 10) : 0) + 1;\n    document.cookie = \"fixture-loads-index=\" + n + \"; path=/\";\n    if (n > 2) return;\n    var s = document.createElement(\"style\");\n    s.textContent = \"h1 { word-spacing: 3px; }\";\n    document.head.appendChild(s);\n    var l = document.createElement(\"link\");\n    l.rel = \"stylesheet\";\n    l.href = \"/missing.css\";\n    document.head.appendChild(l);\n    if (n === 2) {\n      var x = document.createElement(\"link\");\n      x.rel = \"stylesheet\";\n      x.href = location.protocol + \"//localhost:\" + location.port + \"/fixture.css\";\n      document.head.appendChild(x);\n    }\n  })();\n</script>\n</head>"
+    }
+   ]
   }
  }
 }

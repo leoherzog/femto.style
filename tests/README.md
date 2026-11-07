@@ -325,6 +325,9 @@ counted under `align_fallbacks`.
   `oracle-check-icon` for the version picker's check).
   A transient `input[type=file]::file-selector-button { transition: none !important }` cancels the
   transitions Chrome and Safari run on a UA shadow element that `getAnimations()` does not return.
+  Safari 27.2 also leaves some of the oracle's transitions out of `getAnimations()`, so the freeze
+  cannot finish them and one side of a cell can be read mid-transition; the self mode reads such a
+  Safari cell once more (Modes, The reread).
 - Custom properties (tokens) are not compared in the pages mode: their effects are in the computed
   styles. The `styles` mode adds femto's token comparison and interactive states (Tokens and states).
 
@@ -418,8 +421,9 @@ that they are found without it, and that real changes written the same way are s
 
 Common options for `self`, `pages`, `fast`, `styles` and `sections`: `--browsers chrome,firefox,safari`, `--routes`,
 `--widths`, `--schemes light,dark,theme-light,theme-dark` (those legs on every route instead of the
-matrix's legs), `--no-shots`, `--workers chrome=2,firefox=2`, `--max-records N`, `--run-id`,
-`--label`, `--registry DIR`, `--exact-blob-urls` and `--exact-minified` (see Diff rule), and `--plan`
+matrix's legs), `--no-shots`, `--workers chrome=2,firefox=2`, `--max-records N`, `--reread BROWSERS`
+(The reread, below), `--run-id`, `--label`, `--registry DIR`, `--exact-blob-urls` and
+`--exact-minified` (see Diff rule), and `--plan`
 (print the planned cells per browser and exit, starting no server and no browser). `pages` and `fast` take `--a` and `--b` (a named target, `dist:<path>` or a base URL),
 `--ready-a`/`--ready-b` (`oracle`, `static`, `none`) and `--root-a`/`--root-b` (CSS selectors of the
 alignment roots). Without `--routes` the routes are the oracle's kept routes from
@@ -435,9 +439,9 @@ registry, Comparisons).
 | Mode | What it runs |
 |---|---|
 | `rig` | Starts each browser (`--browsers`, default all three) and reports versions, pseudo-element support, the six widths, each scheme leg's mechanism, screenshot timing and input checks to `results/<run>/rig.json`. |
-| `self` | The oracle against itself, from two separate oracle servers (`--one-server` for one). Fast axes; `--full` runs the full matrix (acceptance criterion 1). |
+| `self` | The oracle against itself, from two separate oracle servers (`--one-server` for one). Fast axes; `--full` runs the full matrix (acceptance criterion 1). A Safari cell with unregistered differences is read once more in the same session, and only the differences that repeat count (The reread, below; owner decision 22). |
 | `pages` | `--a` against `--b`. Fast axes; `--full` runs the full matrix (criterion 2 at each parity gate). Phase 1 runs `pages --a oracle --b dist`. |
-| `fast` | For agents: Chrome and Firefox at widths 375 and 1300 (PLAN.md, Fast mode), with the matrix's legs for each route. `--self`, or `--a` and `--b`. The same as `self` or `pages` without `--full`. |
+| `fast` | For agents: Chrome and Firefox at widths 375 and 1300 (PLAN.md, Fast mode), with the matrix's legs for each route. `--self`, or `--a` and `--b`. The same as `self` or `pages` without `--full`, except that `fast --self` rereads no cell unless `--reread` names a browser (The reread, below). |
 | `selftest` | The negative controls (below), each a real `run.py pages` subprocess. `--cases`, `--browsers`. |
 | `registry` | Validates `tests/divergences/` and lists the entries by category. Every comparison run validates them again (a registry error is a harness error). |
 | `oracle` | `harness/oracle.py`'s `main(argv)`: build the oracle if missing or stale, serve it, capture every route into `tests/oracle/`. |
@@ -446,6 +450,42 @@ registry, Comparisons).
 | `sections` | The Phase 3 gate (criterion 2; Sections): each old docs route of `--a` (default `static-femto`) against its section of the one page of `--b` (default `dist`), side A's `[role=document]` (`--root-a`) against the `<section>` around the element with the section's id, loaded at `/docs#<id>` (a color route at `/docs?theme=<color>#version-picker`). Its routes and their sections come from side A's `menu.json` at the tag. A `one-page` comparison; everything else is the pages mode's (legs, widths, masks, value rules, chunking, Safari handling, same-origin rule, `--full` matrix). Fast axes; `--full` runs the full matrix. |
 | `behavior` | Scripted checks of every widget in 01 §2 that Phase 1 rebuilds, against one target (`--target oracle`, `dist`, `dist:<path>` or a base URL), in headless Chrome and Firefox, and in Safari with `--browsers safari` (serialized, the OS scheme and, from Phase 6, the OS motion only, on an unlocked screen: the owner's); see Behavior. Phase 3 adds the docs spy, `#hash` and history behavior and `?theme=` (criterion 7), growing from the spike's `test_spike.py`. |
 | `a11y` | Criterion 10 (Accessibility): axe-core from `node_modules/axe-core` run in every page of one target (`--target`, default `dist`): `/`, `/examples`, the 404 page, `/docs` and `/docs?theme=jade` (until Phase 4 also `/demo`), in headless Chrome and Firefox, light and dark, at 375 and 1300. A serious or critical violation fails the run; moderate and minor ones are listed. `--pages`, `--browsers`, `--schemes`, `--widths`, `--plan`. |
+
+**The reread** (owner decision 22, 2026-11-07). In the self mode a Safari cell whose read
+finishes with unregistered differences is read once more at once, in the same session: both sides
+load again. Only a difference that repeats counts. A record of the reread repeats when its key is
+among the first read's records. The key is every field of the record but its values `a` and `b`, so
+a value read mid-transition on both reads still counts (the conservative reading). It also leaves
+out the fields read from the elements along with the values: a structure record's `size_a` and
+`size_b`; `label` and `label_a`, which carry an element's `data-theme`, `open`, `checked` and
+`aria-current`; and `presence`, which a pseudo-element's `content` record carries when one side's
+pseudo-element is absent (`compare.py` `REREAD_VALUE_FIELDS`). The cell's record is then the
+reread's, with only the unregistered records that repeat, and `total` and `counts` to match; its
+registered records are the reread's, unfiltered. The records of either read that did not repeat are
+forgiven, and the cell's `reread` lists them.
+
+Which records repeat cannot be told when either read kept fewer records than it found
+(`--max-records`), or when a read has registered or inherited records, which a read returns as
+counts and samples, not as records (never in the self mode: no registry entry applies to a self
+comparison). Then every record of the reread counts, as on a single read, and only the first read's
+records that the reread did not find again do not; when their number cannot be told,
+`forgiven_first` is a lower bound (`forgiven_first_at_least`). Nothing is forgiven when the reread
+ends in a harness error or does not finish (a harness error is never forgiven): the cell keeps its
+first read's records, with the reread's status and errors, and its `reread` keeps the reread's
+records. Either way the other read's harness errors (prefixed `first read: ` or `reread: `),
+readiness reloads (`ready_retries`, marked `read`) and cross-origin, site-origin and CSP loads stay
+on the cell, and CSP reports that arrive after the cell go to its final record, so a reread never
+hides one. Each reread cell carries `reread` (Output), its `log.txt` line ends like
+`[reread: 12 then 0, 0 repeated]` (or `repeats not told (truncated)`, or
+`nothing forgiven (the reread's errors)`), and `summary.txt` lists it under REREAD CELLS with the
+first 5 forgiven records of each read. The reason: Safari 27.2 sometimes reads the oracle mid-transition on one side of a cell, for
+transitions that `document.getAnimations()` never returns, so the freeze (Collection) cannot finish
+them (Rig notes, Safari; Harness proof, Safari on 06c0837). `--reread BROWSERS`, a comma list or
+`none`, sets the browsers on any comparison mode. Its default is `safari` in the self mode and none
+in the others, `fast --self` included; every run logs its set as a `cap:` line and stores it in
+`result.json` as `reread`. The criteria's commands (`static_checks.py`, `tests/owner-safari.sh`)
+never pass it: it exists so that the selftest proves the mechanism in Chrome and Firefox (Selftest,
+the `reread-*` controls).
 
 Named targets (`harness/targets.json`):
 
@@ -1748,13 +1788,17 @@ record once the static site fixes it); Phase 2 seeds `femto-divergence` from fem
   browser, leg and width), `status` (`PASS`/`FAIL`), `duration_s`, `totals` (cells per browser,
   cells run and skipped, elements compared, differences by kind, unregistered, registered, harness
   errors, unregistered skipped checks, pixel-diff cells, readiness reloads, alignment fallbacks,
-  cross-origin loads, `head_repeat_documents`: per side, the documents whose head held an exact copy
+  cross-origin loads, `reread_cells` and `reread_forgiven` (the records of either read that did not
+  repeat and so do not count; a lower bound when a cell's `forgiven_first_at_least` is set),
+  `head_repeat_documents`: per side, the documents whose head held an exact copy
   of a data block; `styles`: state replays per side, cells with states, token documents, the most
   names, anchors and seconds), `cross_origin_loads` (cell, side, URL: the failing ones), `site_origin_loads`
   (side, URL, cells: loads from `https://femto.style` by a `same_origin` side, never failing),
   `cross_origin_reported` (side, URL, routes: sides not held to same-origin loading), `caps`,
   `masked_elements`, `rig` (one record per session: versions, launch time, OS scheme,
-  pseudo-element support), `harness_errors`, `ready_retries`, `skipped_checks` (check, browser,
+  pseudo-element support), `harness_errors`, `ready_retries`, `reread` (the run's reread set: the
+  browsers whose differing cells are read once more; Modes, The reread), `rereads` (one item per
+  reread cell: the cell's `reread` without its record lists), `skipped_checks` (check, browser,
   cells, matching entries), `registered_by_entry`, `registered_spread` (per entry: cells, the most
   records in one cell and that cell, `broad`), `registered_samples` (up to 3 records per entry),
   `unused_entries`, `pixels`, `groups` (per browser and route), and `cells` (every cell with its
@@ -1762,19 +1806,37 @@ record once the static site fixes it); Phase 2 seeds `femto-divergence` from fem
   request count, subresource errors, element, pseudo-element and head-entry counts, `head_repeats`,
   Resource Timing entries, cross-origin URLs, `frames_read` and `frames_unreadable`, `csp_reports`,
   `csp_cross_origin` and `csp_other` (the proxy's CSP reports), masked elements
-  and freeze counts, and the pixel result; in the styles mode per side `tokens` (names, anchors,
+  and freeze counts, and the pixel result; on a reread cell `reread`: `first_unregistered`,
+  `first_records` (the first read's first 20), `second_unregistered`, `repeated` (`null` when the
+  repeats cannot be told or the cell keeps its first read), `counted` (the cell's unregistered total), `forgiven_first` and
+  `forgiven_second` (the records of each read that did not repeat, and so do not count) and
+  `forgiven_first_records` and `forgiven_second_records` (those records, of the ones each read kept),
+  `truncated`, `filtered` (whether only the repeats were kept); when the repeats cannot be told,
+  `untold` (`truncated` or `registered records`), `forgiven_first_at_least` when `forgiven_first` is a
+  lower bound, and a `note`; when nothing was forgiven, `forgives_nothing` (`the reread's errors` or
+  `the reread failed`), `second_records` (the reread's records, which do not count) and a `note`;
+  `first_pixels` (the first read's pixel result, when the cell keeps the reread's) or
+  `second_pixels` (the reread's, when it keeps the first read's); and `timing` adds
+  `first_read_total` or `reread_total` (its `total` is both reads'); in the styles mode per side `tokens` (names, anchors,
   probe groups, milliseconds), `states_a` and `states_b` (state replays), `state_targets` (each
   target's tree paths), `scroll_behavior_a` and `scroll_behavior_b` (`html`'s `scroll-behavior`
   after the replay) and the `a_states` and `b_states` timings; in the sections mode `section`,
   `section_theme`, `url_b`, `path_b` and `root_b`).
 - `summary.txt`: status line, both sides, the styles mode's tokens and state replays, unregistered
   differences first (5 records per cell, 40 cells; a record found under a state starts with it, as
-  `[hover] style ...`), harness errors, cross-origin loads (failing, then loads from the deployed site, then
+  `[hover] style ...`), the reread cells (each cell's counts, the first 5 forgiven records of each
+  read, the reread's first 5 when the cell keeps its first read, the first read's first 5 when the
+  repeats cannot be told, and the other read's pixels when any differ), harness errors, cross-origin loads (failing, then loads from the deployed site, then
   reported), readiness reloads, skipped checks, registered counts per entry, unused
   entries, masks, matrix caps, pixel diffs, then one line per browser and route.
-- `log.txt`: the sides, the sessions, one line per cell as it finishes.
+- `log.txt`: the sides, the sessions, one line per cell as it finishes (a reread cell's ends like
+  `[reread: 12 then 0, 0 repeated]`, `[reread: 34 then 34, repeats not told (truncated): 34 count]`
+  or `[reread: 2 then 1, nothing forgiven (the reread's errors): 2 count]`).
 - `shots/`: for each cell with pixels off by more than 8/255, both screenshots
-  (`<browser>__<route>__<leg>__<width>-a.png`, `-b.png`) and a mask.
+  (`<browser>__<route>__<leg>__<width>-a.png`, `-b.png`) and a mask. A reread cell can have both
+  reads' files: the first read's under the plain name, the reread's with `--reread` after the
+  width. The cell's `pixels` is the result of the read its record keeps, and its `reread` holds the
+  other's (`first_pixels` or `second_pixels`, with the mask's path in `image`).
 - `server-<target>-<port>.log`: the output of each command target the run started,
   `wrangler-debug-<port>.log`, the `dist` target's wrangler debug log (`targets.json` `env` sets
   `WRANGLER_LOG_PATH`; the oracle's servers log to `tests/oracle/logs/`), and
@@ -1977,6 +2039,17 @@ they still apply, plus this harness's own.
   records: 23 cells in Light and 14 in Dark rendered without stylesheets that had answered 404 from
   the other side's server. So every Safari document load gets a URL of its own (The proxy,
   `harness-load`), and the stylesheet check reloads a side whose own stylesheet didn't load.
+- **Transitions the freeze cannot see.** Safari 27.2 leaves some of the oracle's transitions and
+  animations out of `document.getAnimations()`, so the freeze (Collection) never finishes them and
+  one side of a cell can be read part way. Safari had read three of the oracle's animations part
+  way before, each masked (`oracle-theme-toggle`, `oracle-maintenance-notice`, `oracle-check-icon`).
+  Then `p6-self-safari-dark-3` (2026-11-07) read
+  `/docs/button` theme-light 375 and `/docs/forms/checkboxes` dark 1300 mid-transition on one side,
+  for example `opacity` `0` against `0.001724` and `translateX(-391px)` against `-390.33px`
+  (Harness proof, Safari on 06c0837). The cells change from pass to pass, and a rerun of both was
+  clean, so the owner chose a reread over more masks: the self mode reads a Safari cell with
+  unregistered differences once more, and only a difference that repeats counts (Modes, The reread;
+  owner decision 22).
 
 **Oracle server (wrangler 4.0.0, the tag's locked toolchain).**
 - wrangler's `InspectorProxyWorker` enables the worker's DevTools `Network` domain and keeps every
@@ -2106,6 +2179,15 @@ grows, never decide whether detection is proved.
 | `registry-route-scope` | the color and attribute changes on `/index.html` and `/other.html`, with an entry for the h1 scoped to `/index.html` and a style catch-all scoped to `/other.html`: the catch-all is a registry error (a route scope does not exempt an entry from the per-document limits); the h1 entry registers the h1 records on `/index.html` and nothing on `/other.html`, whose h1 records stay unregistered, and the attribute record stays unregistered |
 | `inherited` | `tab-size` 4 on the lead paragraph and the list (no tab in their text, so nothing moves) and 2 on the list's first item, with entries for `.lead` and `ul.list`: each registers its element's record, the link's record is folded under `.lead` and the other two items' and their markers' under `ul.list` (`inherited` 1 and 4), and the first item's own value and its marker's stay unregistered |
 | `registry-root-path` | the `registry-evasion` changes with `--root-a body --root-b body` and entries keyed to the old root path form (`path: "/\\{/"`): every record's path starts `html > body:0`, the entries register nothing, and every element kind stays unregistered (no head records under a root) |
+| `reread-transient` | the reread (Modes; owner decision 22) with `--reread` set to the browsers under test, `/index.html` at 375 and 1300: a script in side B's head gives the h1 `word-spacing: 3px` on the route's first load in a browser session only, and sets a cookie, which the harness never clears (`differ.js` `load` empties `localStorage` and `sessionStorage` only), so later loads change nothing. The 375 cell differs on its first read (2 records: the h1's and its `b`'s `word-spacing`), its reread has none, so nothing repeats and both records are forgiven (`forgiven_first_records`); the 1300 cell, clean on its one read, is not reread; the run has 0 unregistered |
+| `reread-transient-off` | the same control without `--reread` (the pages mode reads every cell once): the 375 cell's two `word-spacing` records are unregistered and the 1300 cell has none, so the planted difference is real, only the session's first load shows it, and the reread is what forgives it |
+| `reread-one-browser` | `reread-transient` with `--reread chrome` whatever the browsers under test: Chrome's cells are judged as in `reread-transient` (the 375 cell reread, 0 unregistered), every other browser's as in `reread-transient-off` (no cell reread, the 375 cell's two records unregistered), so a browser outside a set that is not empty is read once, as Chrome and Firefox are in the self mode |
+| `reread-repeat` | `color-2-of-255` with `--reread`, at 375 and 1300: both cells are reread, every record repeats (34 per cell in Chrome, 32 in Firefox) and all of them still count, with nothing forgiven |
+| `reread-partial` | with `--reread`, at 375 and 1300, side B's h1 color of `color-2-of-255` on every load, and a script that gives the h1 `word-spacing: 3px` on the session's first load and `5px` on later ones, with `letter-spacing: 1px` on the lead paragraph. The 375 cell's first read has the color and word-spacing records (36 in Chrome, 34 in Firefox) and its reread those and the letter-spacing records (38): every record of the first read repeats and counts, the word-spacing ones with the reread's `5px`; the reread's own records (the lead paragraph's and its link's `letter-spacing`, and in Firefox the link's `transform-origin` and `perspective-origin`, which follow its width: 2 in Chrome, 4 in Firefox) are forgiven, and `total` and `counts` fall by them. The 1300 cell reads two later loads, so all 38 records repeat and count, the letter-spacing ones included. A reread that replaced the first read, or a key with the values in it, fails this control |
+| `reread-first-read` | with `--reread`, a script that counts side B's loads in the session in a cookie: the first two get the h1 `word-spacing: 3px` and a stylesheet `<link>` to `/missing.css` (404), the second also the cross-origin stylesheet of `cross-origin`, and later loads nothing. The 375 cell's first read fails the stylesheet check, is loaded once more and fails again, and differs (the two `word-spacing` records, and the status record `200` against `None` that side B's reload gives in Chrome and Firefox); its reread is clean, so the cell keeps the reread's record with 0 unregistered, and carries the first read's error (`first read: b ready: stylesheet /missing.css has no rules (after one reload)`), its two reloads and its cross-origin load, each marked `read: first read`; the run fails on them with 0 differences |
+| `reread-registered` | `reread-partial` with `--reread` and a registry entry for the h1's and its `b`'s `color`: each read has registered records, whose keys a read does not return, so which records repeat cannot be told (`untold: registered records`). The 375 cell's reread counts whole (36), the letter-spacing records only it has included, and nothing of it is forgiven |
+| `reread-truncated` | `color-2-of-255` with `--reread` and `--max-records 1`, at 1300: each read keeps one of the records it finds, so which repeat cannot be told (`untold: truncated`); every record of the reread counts (34 in Chrome, 32 in Firefox), not only the one kept, and `forgiven_first` is 0, a lower bound (`forgiven_first_at_least`) |
+| `reread-error` | with `--reread`, the `reread-transient` script, which on later loads of the session also adds a stylesheet `<link>` to `/missing.css` (404): the first read differs, and the reread's side B fails the stylesheet check, is loaded once more and fails again. A harness error is never forgiven, so the cell keeps its first read's two records and carries the reread's error (`reread: b ready: stylesheet /missing.css has no rules (after one reload)`), its reloads and its one record (`second_records`) |
 
 The styles controls (the fixture's `fixture.css` declares nine `--femto-*` tokens: on `:root`, in a
 nested rule, under `@media` and `@supports`, and through `@property`; only `::selection`, which the
@@ -2191,8 +2273,21 @@ of `sections-missing` and the registry errors of the controls that expect them a
 - Tokens are probed under the anchors only (Tokens and states): a token whose value an element below
   an anchor overrides shows only through that element's computed styles. Inline `style` attributes
   that declare tokens are not walked for names (femto's rule); their elements' styles are compared.
-- Every document is read in its first-visit state: storage is emptied before each load, so only
-  the stored color scheme of a data-theme leg ever reaches a page.
+- Every document is read in its first-visit state: `localStorage` and `sessionStorage` are emptied
+  before each load, so only the stored color scheme of a data-theme leg ever reaches a page.
+  Cookies are not cleared within a session. Neither the oracle nor the site sets one (no `cookie` in
+  `site/` outside a comment, or in the oracle's `app/` at `remix-final`); the `reread-*` controls rely
+  on that.
+- The reread (Modes, owner decision 22) counts a Safari self-mode difference only when it shows on
+  both of two reads in the same session. A real difference of the oracle against itself that shows
+  on only one of the two reads passes, so the self mode does not prove such a race absent from the
+  oracle. A record is matched by its key, so a difference whose path changes between the reads (a
+  sibling added part way) is two records that each show once, and both are forgiven. The mechanism
+  is proved in Chrome and Firefox only (the nine `reread-*` controls, which change side B by its
+  load in the session); no Safari selftest has run them. Side B's readiness reload in Chrome and
+  Firefox makes no request for the document, so a reloaded cell also has a status record `200`
+  against `None` (`reread-first-read`); this is older than the reread, and a reloaded cell that
+  fails again has a harness error anyway.
 - Alignment pairs elements by content and keys (see Alignment and record kinds). When an element
   is both moved and changed, or several same-tag siblings change at once, the pairing can name a
   neighbour; every pair is still compared in full, so records are added, never lost.
@@ -3778,7 +3873,7 @@ subjects outside the Workflow table, among them the owner's Decision 16, 17 and 
 
 | Criterion | Chrome and Firefox | Safari |
 |---|---|---|
-| 1 | PASS, `p6-final-self-full-1` | Light PASS (`p6-self-safari-light-2`). Dark not clean: `p6-self-safari-dark-2` and `-3` each had oracle-side mid-animation reads in 2 of 420 cells, different cells each time; the first is masked (`oracle-check-icon`), and the second's two cells pass on rerun (`p6-self-safari-dark-cells-1`). The owner decides (Safari's Phase 6 passes) |
+| 1 | PASS, `p6-final-self-full-1` | Light PASS (`p6-self-safari-light-2`). Dark not clean: `p6-self-safari-dark-2` and `-3` each had oracle-side mid-animation reads in 2 of 420 cells, different cells each time; the first is masked (`oracle-check-icon`), and the second's two cells pass on rerun (`p6-self-safari-dark-cells-1`). The owner chose the reread (owner decision 22): the full Dark pass reruns on it, as `p6-self-safari-dark-4` |
 | 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | waits on `parity`; Phases 2 and 3 never passed in Safari (critic-1) |
 | 3, 4, 5, 6, 8, 9, 11, 12, 13 and 14 | PASS, `static_checks.py` | — |
 | 7 | PASS, `p6-final-behavior-1` | PASS on 06c0837: `p6-behavior-safari-light-3` (103 of 103 run) and `p6-behavior-safari-dark-3` (5 of 5). The Reduce Motion checks wait on `reduced` |
@@ -3965,10 +4060,54 @@ border color between transparent black and transparent white; in `/docs/forms/ch
 every animation `getAnimations()` returns, and Safari 27.2 did not return these, as with the two
 oracle masks of 2026-11-01. The cells differ from pass to pass (`-dark-2`: the version picker's check
 on two other routes), and a rerun of both is clean, so this is Safari's read timing on the oracle, not
-a difference in it. Criterion 1's Safari dark leg has no full pass with 0 differences on this harness;
-whether that stands as is, another full pass is run, or the self mode rereads a differing Safari
-cell once, is the owner's call. Still not run in Safari: `reduced` (Reduce Motion on, which only the
-owner sets) and `parity`.
+a difference in it. Criterion 1's Safari dark leg has no full pass with 0 differences on this harness.
+The owner chose the reread (owner decision 22, 2026-11-07; Modes, The reread): the self mode reads a
+Safari cell with unregistered differences once more in the same session, and only a difference that
+repeats counts. The full Dark pass reruns on it: `self --full --browsers safari` with macOS in Dark,
+as `p6-self-safari-dark-4` (the self step of `final`, run by hand under `caffeinate -d -i`), which no
+agent has run. Still not run in Safari: `reduced` (Reduce Motion on, which only the owner sets) and
+`parity`.
+
+**The reread** (owner decision 22, 2026-11-07; Modes, The reread). `compare.py` (`reread`,
+`reread_failed`, `record_key`) and `runner.py` read a cell of the reread set once more; `cli.py` adds
+`--reread` (default `safari` in the self mode, none in the others) and its `cap:` line, and
+`report.py` the REREAD CELLS section, `reread_cells` and `reread_forgiven`. Five controls proved it
+first (`reread-transient`, `reread-transient-off`, `reread-repeat`, `reread-truncated` and
+`reread-error`), so the selftest went from 70 controls to 75 (`p6-reread-selftest-1`).
+
+The review of the reread (2026-11-07) found that those five controls could not tell the rule from a
+reread that replaces the first read, or from a key that keeps the values: in each of their cells
+the reread had no records, every record repeated with the same values, or nothing was filtered.
+None showed the first read's harness errors, reloads and loads kept on the cell, or a browser
+outside a set that is not empty read once. A mutant of `compare.py` or `runner.py` for each of
+these passed the four that reread (`reread-transient-off` reads once). In the code: a cell whose read kept fewer records than it found was labelled
+`nothing forgiven (truncated)` while the first read's records the reread lacked were forgiven, and
+`reread_forgiven` counted only the ones kept; the reread's records that did not repeat, and the
+first read's pixel result, were dropped from the cell; outside the self comparison a record
+registered on the first read and unregistered on the reread was forgiven; and `presence` was in
+the key. The fixes: such a cell is now `untold: truncated`, with `forgiven_first` a lower bound
+(`forgiven_first_at_least`) and `repeated` `null`; a read with registered or inherited records is
+`untold: registered records`, and the reread counts whole; `reread` lists the records each read
+forgave (`forgiven_first_records`, `forgiven_second_records`), the reread's records when the cell
+keeps its first read (`second_records`), and the other read's pixel result (`first_pixels` or
+`second_pixels`); `presence` is a value field. Four controls were added (`reread-one-browser`,
+`reread-partial`, `reread-first-read`, `reread-registered`), so the selftest has 79, and each
+mutant now fails one of them. No Safari run was made.
+
+| Run id | Command | Cells | Result | Harness errors | Wall clock |
+|---|---|---|---|---|---|
+| `p6-reread-selftest-1` | `selftest --browsers chrome,firefox` | 75 controls × 2 browsers | **75/75**; `reread-transient`: the 375 cell's first read 2 records, its reread 0, run 0 unregistered; `reread-transient-off`: the same 2 records unregistered at 375 only; `reread-repeat`: 34 of 34 records repeat per cell in Chrome, 32 of 32 in Firefox; `reread-truncated`: 34 and 32 count with 1 kept; `reread-error`: 2 records kept, with the reread's stylesheet error | 0 | 455 s (part of it beside `p6-reread-self-1`) |
+| `p6-reread-self-1` | `self --browsers chrome,firefox --routes /docs/button,/docs/forms/checkboxes` | 24 (16,048 elements) | **PASS: 0 differences**; reread set `safari` (the default), so no cell reread | 0 | 20 s |
+| — | `self --full --browsers safari --plan` | 744 planned (420 run on a light OS) | starts nothing; `cap: reread safari (the self mode's default)` | — | — |
+| — | `npm run lint`; `static_checks.py`; `registry` | 15 criteria and the link check; 246 entries | lint exit 0; **11 PASS, 0 FAIL, 5 NOT-YET**; registry valid | — | — |
+| `p6-reread-fix-selftest-1` | `selftest --browsers chrome,firefox`, after the review's fixes | 79 controls × 2 browsers | **79/79**; `reread-partial`: at 375 36 records repeat in Chrome (34 in Firefox) and count, the `word-spacing` ones with `5px`, and the reread's 2 (4) others are forgiven; `reread-first-read`: 0 unregistered, with the first read's error, 2 reloads and 1 cross-origin load; `reread-registered`: `untold: registered records`, 36 count; `reread-truncated`: `untold: truncated`, 34 and 32 count; `reread-one-browser`: Firefox read once | 0 | 464 s |
+| `p6-reread-fix-mutant-<mutant>--<control>` | the `reread-*` controls run in process against five mutants (a scratch script outside the repo): `lastwins` (the reread's result counts unfiltered), `valuekey` (the key keeps the values), `noloads` (the first read's errors and loads are dropped), `anybrowser` (any set rereads every browser), `noregistered` (the filter runs with registered records) | 7 or 2 controls × 2 browsers | `lastwins` and `valuekey` fail `reread-partial`, `noloads` fails `reread-first-read`, `anybrowser` fails `reread-one-browser` (Firefox) and `noregistered` fails `reread-registered`, each in both browsers where it applies; each passes the other controls | — | — |
+| `p6-reread-fix-shots-1` | `pages --a fixture --b fixture:reread-transient --routes /index.html --widths 375,1300 --schemes light --browsers chrome,firefox --reread chrome,firefox`, screenshots on | 4 | PASS; the two 375 cells keep the reread's `pixels` (0), and their `reread.first_pixels` names the first read's mask in `shots/` (1,307 px over 8/255 in Chrome, 1,341 in Firefox), listed under REREAD CELLS | 0 | — |
+| `p6-reread-fix-self-1` | `self --browsers chrome,firefox --routes /docs/button,/docs/forms/checkboxes` | 24 (16,048 elements) | **PASS: 0 differences**; reread set `safari`, so no cell reread | 0 | 18 s |
+| — | `self --full --browsers safari --plan`; `fast --self --browsers safari --plan` | 744 planned; — | start nothing; `cap: reread safari (the self mode's default)`; `cap: reread none (the fast mode's default)` | — | — |
+| — | `npm run lint`; `static_checks.py`; `registry`, after the fixes | 15 criteria and the link check; 246 entries | lint exit 0; **11 PASS, 0 FAIL, 5 NOT-YET**; registry valid | — | — |
+| `p6-reread-gate-selftest-1` | `selftest --browsers chrome,firefox`, the gate on the final tree | 79 controls × 2 browsers | **79/79**, all nine `reread-*` controls among them | 0 | about 480 s |
+| `p6-reread-gate-self-1` | `self --browsers chrome,firefox --routes /docs/button,/docs/forms/checkboxes,/docs/version-picker/jade` | 40 (24,720 elements) | **PASS: 0 differences**; reread set `safari`, no cell reread | 0 | 22 s |
 
 **The owner's open questions.**
 - The Cloudflare steps above, and whether Web Analytics stays (criterion 15).
@@ -4078,7 +4217,8 @@ tests/owner-safari.sh spike      # the spike alone, on whichever appearance is s
     `log.txt` says `OS motion no-preference`.
   - The oracle against itself over the full matrix, `self --full --browsers safari`, as
     `p6-self-safari-<scheme>-N`: 420 of Safari's 744 cells per pass (criterion 1, on the current
-    harness; critic-6).
+    harness; critic-6). A cell with unregistered differences is read once more, and only the
+    differences that repeat count (owner decision 22; Modes, The reread).
   - Criterion 15's run-time loads, `pages --a dist --b dist --full --routes
     '/,/docs,/docs?theme=jade,/examples,/does-not-exist' --browsers safari`, as
     `p6-loads-safari-<scheme>-N`: 54 of 84 cells per pass.
@@ -4293,3 +4433,12 @@ the dark checks. Measured on an unlocked screen: dark self passes of 1,555 s and
    `static-one-page`, names 7b90883, Phase 3's gate commit ("Merge Docs Into One Page"), for the
    Safari parity rerun. 7587a7e has the same `site/` as 17ec97d, Phase 2's Safari follow-up; only
    `README.md` differs. The tags are local and not pushed.
+22. **The reread** (2026-11-07). In the self mode (the oracle against itself, criterion 1), a Safari
+   cell that has unregistered differences is read once more, in the same session, and only a
+   difference that repeats counts (Modes, The reread). Safari 27.2 sometimes reads the oracle
+   mid-transition on one side of a cell, for transitions that `document.getAnimations()` never
+   returns, so the freeze cannot finish them: `p6-self-safari-dark-2` (2 cells, `path#check-icon`'s
+   `stroke-dashoffset` `0px` against `0.049004px`, now masked as `oracle-check-icon`) and
+   `p6-self-safari-dark-3` (143 unregistered in 2 of 420 cells) failed on different cells each pass,
+   while `p6-self-safari-dark-cells-1` reran both of `-3`'s routes clean (8 cells, 0 differences;
+   Harness proof, Safari on 06c0837). The full Dark pass reruns on the reread.

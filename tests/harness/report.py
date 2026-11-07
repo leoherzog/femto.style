@@ -114,6 +114,7 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
     errors += pool_errors
     errors += [f"registry: {e}" for e in registry.errors]
     unregistered_skips = [s for s in skipped.values() if not s["entries"]]
+    rereads = [c["reread"] for c in cells if c.get("reread")]
     status = "PASS" if not (unregistered_total or errors or unregistered_skips or cross_loads) else "FAIL"
     samples = {}
     for c in cells:
@@ -165,6 +166,11 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
             "ready_retries": sum(len(c.get("ready_retries") or []) for c in cells),
             "align_fallbacks": sum(c.get("align_fallbacks") or 0 for c in cells),
             "cross_origin_loads": len(cross_loads),
+            # owner decision 22: cells read once more, and the records of either read that did not repeat
+            # and so do not count (forgiven_first + forgiven_second of each cell's reread; a lower bound
+            # when a cell's forgiven_first_at_least is set)
+            "reread_cells": len(rereads),
+            "reread_forgiven": sum((x.get("forgiven_first") or 0) + (x.get("forgiven_second") or 0) for x in rereads),
             # documents per side whose head held an exact copy of a data block, counted once
             # (differ.js collectHead; tests/README.md, Collection)
             "head_repeat_documents": {s: sum(1 for c in cells if ((c.get("sides") or {}).get(s) or {}).get("head_repeats"))
@@ -177,6 +183,9 @@ def build(run, cells, registry, pool_errors, rigs, caps, extra=None):
                               for k, v in site_loads.items()],
         "cross_origin_reported": [{"side": k[0], "url": k[1], "routes": sorted(v)} for k, v in cross_reported.items()],
         "ready_retries": [{"cell": cell_name(c), **x} for c in cells for x in (c.get("ready_retries") or [])],
+        # the cells' reread without its record lists (first_records, forgiven_*_records, second_records)
+        "rereads": [{"cell": cell_name(c), **{k: v for k, v in x.items() if not k.endswith("_records")}} for c, x in
+                    ((c, c["reread"]) for c in cells if c.get("reread"))],
         "caps": caps,
         "masked_elements": dict(mask_totals),
         "rig": rigs,
@@ -246,6 +255,46 @@ def summary(result, limit=40) -> str:
             if shown >= limit:
                 L.append("  ... see result.json")
                 break
+        L.append("")
+    reread = result.get("reread")
+    rr = [c for c in result["cells"] if c.get("reread")]
+    if reread is not None:
+        least = any(c["reread"].get("forgiven_first_at_least") for c in rr)
+        L.append(f"REREAD CELLS (owner decision 22; reread set: {', '.join(reread) or 'none'}): {len(rr)} cells, "
+                 f"{'at least ' if least else ''}{t.get('reread_forgiven', 0)} records forgiven")
+        for c in rr[:limit]:
+            x = c["reread"]
+            second = "did not finish" if x.get("second_unregistered") is None else f"{x['second_unregistered']} on the reread"
+            line = f"  {cell_name(c)}: {x['first_unregistered']} unregistered on the first read, {second}"
+            if x.get("forgives_nothing"):
+                line += f"; nothing forgiven ({x['forgives_nothing']}): {x.get('counted')} count"
+            elif x.get("untold"):
+                line += (f"; repeats not told ({x['untold']}): every record of the reread counts ({x.get('counted')}), "
+                         f"forgiven {'at least ' if x.get('forgiven_first_at_least') else ''}{x['forgiven_first']} of "
+                         "the first read")
+            else:
+                line += (f", {x['repeated']} repeated; {x.get('counted')} count, forgiven {x['forgiven_first']} of the "
+                         f"first read and {x['forgiven_second']} of the reread")
+            L.append(line)
+            for label, key in (("forgiven, first read", "forgiven_first_records"),
+                               ("forgiven, reread", "forgiven_second_records"), ("reread", "second_records")):
+                recs = x.get(key) or []
+                for r in recs[:5]:
+                    L.append(f"    {label}: {fmt_rec(r)}")
+                if len(recs) > 5:
+                    L.append(f"    ... {len(recs) - 5} more ({key} in result.json)")
+            if x.get("untold"):
+                for r in (x.get("first_records") or [])[:5]:
+                    L.append(f"    first read: {fmt_rec(r)}")
+            for label, key in (("first read", "first_pixels"), ("reread", "second_pixels")):
+                px = x.get(key) or {}
+                if px.get("pixels") == -1:
+                    L.append(f"    {label}'s screenshots differ in size: {px.get('size')}")
+                elif px.get("pixels"):
+                    L.append(f"    {label}'s pixels: {px.get('pixels_gt8', 0)} px > 8/255, {px['pixels']} px in all"
+                             + (f" ({px['image']})" if px.get("image") else ""))
+        if len(rr) > limit:
+            L.append(f"  ... {len(rr) - limit} more in result.json")
         L.append("")
     errs = result["harness_errors"]
     L.append(f"HARNESS ERRORS: {len(errs)}")

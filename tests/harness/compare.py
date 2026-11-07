@@ -2,8 +2,11 @@
 for side B in a fresh iframe; diff in the page; screenshot both sides (never gating). In the styles
 mode the collect also reads the tokens, and each side replays its interactive states after its
 collect (harness/styles.py). In the sections mode (harness/sections.py) the two sides load different
-URLs (the cell's url_b: /docs#<id>) and compare different roots (root_b: the section around the id)."""
+URLs (the cell's url_b: /docs#<id>) and compare different roots (root_b: the section around the id).
+A cell of a browser in the run's reread set whose first read has unregistered differences is read
+once more, and only the records that repeat count (reread(); owner decision 22, tests/README.md)."""
 import io
+import json
 import re
 import time
 from urllib.parse import urlsplit
@@ -322,6 +325,199 @@ def run_cell(sess, cell, registry, opts, sides, shot_path=None):
     if len(pngs) == 2:
         out["pixels"] = pixel_diff(pngs["a"], pngs["b"], shot_path)
     return _finish(out, res, t0, "ok")
+
+
+# The reread (owner decision 22, 2026-11-07). Safari 27.2 sometimes reads the oracle mid-transition on
+# one side of a cell, for transitions that document.getAnimations() never returns, so the freeze cannot
+# finish them. A cell of a browser in the run's reread set (cli.py --reread: by default Safari in the
+# self mode, nobody elsewhere) whose first read has unregistered differences is read once more in the
+# same session (runner.py), and only a record that repeats counts.
+
+# What a record's key leaves out: its two values, and the fields read from the elements' state as the
+# values are (a structure record's subtree sizes; the labels, which carry an element's data-theme,
+# open, checked and aria-current; a pseudo-element content record's `presence`, set when one side's
+# pseudo-element is absent, which is a value), so a record whose values moved between the two reads
+# still repeats, the conservative reading. Every other field (kind, path, pseudo, prop, change,
+# path_a, token, state) is the key.
+REREAD_VALUE_FIELDS = frozenset(("a", "b", "size_a", "size_b", "label", "label_a", "presence"))
+REREAD_FIRST_RECORDS = 20  # the first read's records kept on the cell, for the reader
+
+
+def record_key(rec):
+    """A record's identity for the reread: every field but REREAD_VALUE_FIELDS."""
+    return json.dumps({k: v for k, v in rec.items() if k not in REREAD_VALUE_FIELDS}, sort_keys=True, default=str)
+
+
+def wants_reread(r, browsers):
+    """True for a cell of a browser in the reread set whose read finished (status ok) with
+    unregistered differences."""
+    res = r.get("result") or {}
+    return r.get("browser") in browsers and r.get("status") == "ok" and res.get("unregisteredTotal", 0) > 0
+
+
+def _truncated(res):
+    """The read kept fewer records than it found (--max-records)."""
+    return len(res.get("unregistered") or []) < res.get("unregisteredTotal", 0)
+
+
+def _take_loads(base, other, label):
+    """Copy into `base`, the cell's final record, what the other read found, so the final record can
+    never hide it: its harness errors (prefixed with `label`, each one `base` does not already have),
+    its readiness reloads and criterion 15 loads (marked `read`), and each side's cross-origin,
+    site-origin and CSP lists and CSP report count."""
+    base.setdefault("errors", [])
+    have = set(base["errors"])
+    base["errors"] += [f"{label}: {e}" for e in other.get("errors") or [] if e not in have]
+    for x in other.get("ready_retries") or []:
+        base.setdefault("ready_retries", []).append(dict(x, read=label))
+    seen = {(x.get("side"), x.get("url")) for x in base.get("cross_origin_loads") or []}
+    for x in other.get("cross_origin_loads") or []:
+        if (x.get("side"), x.get("url")) not in seen:
+            base.setdefault("cross_origin_loads", []).append(dict(x, read=label))
+    for side, info in (other.get("sides") or {}).items():
+        mine = base.setdefault("sides", {}).setdefault(side, {})
+        for k in ("cross_origin", "site_origin_loads", "csp_cross_origin", "csp_other", "frames_unreadable"):
+            for v in info.get(k) or []:
+                if v not in (mine.get(k) or []):
+                    mine.setdefault(k, []).append(v)
+        if info.get("csp_reports"):
+            mine["csp_reports"] = mine.get("csp_reports", 0) + info["csp_reports"]
+
+
+def _repoint(proxy, old, new):
+    """CSP reports for the other read's documents that reach the proxy after the cell
+    (attach_late_reports) go to the cell's final record."""
+    owners = getattr(proxy, "owners", None) or {}
+    for tag, (o, side, tgt) in list(owners.items()):
+        if o is old:
+            owners[tag] = (new, side, tgt)
+
+
+def _add_timing(base, other, key):
+    t = base.setdefault("timing", {})
+    other_total = (other.get("timing") or {}).get("total", 0) or 0
+    t[key] = other_total
+    t["total"] = round((t.get("total", 0) or 0) + other_total, 2)
+
+
+def _untold(r1, r2):
+    """Why the reread cannot tell which of its records repeat, or None: a read kept fewer records than
+    it found (--max-records), or a read has registered or inherited records, which a read returns as
+    counts and samples, not as records, so their keys are unknown (never in a self comparison, where
+    no registry entry applies)."""
+    if _truncated(r1) or _truncated(r2):
+        return "truncated"
+    if any(r.get("registered") or r.get("inheritedTotal") for r in (r1, r2)):
+        return "registered records"
+    return None
+
+
+def _first_bounds(r1, r2, u1, k2):
+    """For a cell whose repeats cannot be told: how many of the first read's records the reread did not
+    find again, and so do not count, at least and at most, and those of the kept records known not to
+    repeat. At most: all but the kept records the reread found again. At least: as many as the first
+    read found beyond every record of the reread, and, when the reread's keys are all known (its every
+    record kept, none registered or inherited), each kept record whose key the reread lacks."""
+    n1 = r1.get("unregisteredTotal", 0)
+    known = sum(1 for x in u1 if record_key(x) in k2)
+    lo = max(0, n1 - (r2.get("total", 0) or 0))
+    complete2 = not (_truncated(r2) or r2.get("registered") or r2.get("inheritedTotal"))
+    gone = [x for x in u1 if record_key(x) not in k2] if complete2 else []
+    return max(lo, len(gone)), n1 - known, gone
+
+
+def reread(first, second, proxy=None):
+    """The cell's final record from its two reads. A record of the reread repeats when its key
+    (record_key) is among the first read's records; the final record is the reread's, its
+    unregistered records only those that repeat (total and counts follow). When the repeats cannot be
+    told (_untold: a read kept fewer records than it found, or a read has registered or inherited
+    records), the reread's whole result counts, as a single read's would. When the reread did not
+    finish or has harness errors, nothing is forgiven: the cell keeps its first read, with the
+    reread's status and errors. The other read's errors, readiness reloads and loads are kept on the
+    final record either way, and `reread` on it says what happened: the counts, the records of each
+    read that did not repeat (or, when the cell keeps its first read, the reread's records), and the
+    other read's pixel result."""
+    r1, r2 = first.get("result") or {}, second.get("result") or {}
+    u1, u2 = r1.get("unregistered") or [], r2.get("unregistered") or []
+    n1, n2 = r1.get("unregisteredTotal", 0), r2.get("unregisteredTotal", 0)
+    k1, k2 = {record_key(x) for x in u1}, {record_key(x) for x in u2}
+    info = {"first_unregistered": n1, "first_records": u1[:REREAD_FIRST_RECORDS], "second_unregistered": n2,
+            "truncated": _truncated(r1) or _truncated(r2), "filtered": False}
+    if second.get("status") != "ok" or second.get("errors") or not second.get("result"):
+        # A harness error is never forgiven, and a read that did not finish shows nothing about what
+        # repeats: the first read's result counts as it is.
+        info.update(second_unregistered=n2 if second.get("result") else None, repeated=None, counted=n1,
+                    forgiven_first=0, forgiven_second=0, second_records=u2, forgives_nothing="the reread's errors",
+                    note=f"the reread ended {second.get('status')} with {len(second.get('errors') or [])} harness "
+                         "errors, so nothing is forgiven: the first read's result counts, and the reread's records "
+                         "are in second_records")
+        if second.get("pixels") is not None:
+            info["second_pixels"] = second["pixels"]
+        out = first
+        _take_loads(out, second, "reread")
+        out["status"] = second.get("status")
+        _add_timing(out, second, "reread_total")
+        _repoint(proxy, second, out)
+    else:
+        out = second
+        untold = _untold(r1, r2)
+        if untold:
+            lo, hi, gone = _first_bounds(r1, r2, u1, k2)
+            info.update(repeated=None, counted=n2, forgiven_first=lo, forgiven_second=0, forgiven_first_records=gone,
+                        forgiven_second_records=[], untold=untold)
+            if lo < hi:
+                info["forgiven_first_at_least"] = True
+            why = ("a read kept fewer records than it found (--max-records)" if untold == "truncated" else
+                   "a read has registered or inherited records, whose keys a read does not return")
+            info["note"] = (f"{why}, so which records repeat cannot be told: every record of the reread counts "
+                            f"({n2}), and {'at least ' if lo < hi else ''}{lo} of the first read's {n1} do not")
+        else:
+            repeat = [x for x in u2 if record_key(x) in k1]
+            dropped = [x for x in u2 if record_key(x) not in k1]
+            gone = [x for x in u1 if record_key(x) not in k2]
+            info.update(filtered=True, repeated=len(repeat), counted=len(repeat), forgiven_first=len(gone),
+                        forgiven_second=len(dropped), forgiven_first_records=gone, forgiven_second_records=dropped)
+            r2["unregistered"] = repeat
+            r2["unregisteredTotal"] = len(repeat)
+            r2["total"] = r2.get("total", 0) - len(dropped)
+            counts = r2.setdefault("counts", {})
+            for x in dropped:
+                counts[x["kind"]] = counts.get(x["kind"], 0) - 1
+                if counts[x["kind"]] <= 0:
+                    counts.pop(x["kind"])
+        if first.get("pixels") is not None:
+            info["first_pixels"] = first["pixels"]
+        _take_loads(out, first, "first read")
+        _add_timing(out, first, "first_read_total")
+        _repoint(proxy, first, out)
+    out["reread"] = info
+    return out
+
+
+def reread_failed(first, error, proxy=None):
+    """The cell's final record when the reread raised (the browser stopped answering, a harness
+    exception): its first read, with the error, status error and nothing forgiven. What the
+    unfinished reread had already recorded of its documents' loads (the proxy's owners of its tags)
+    is kept too, and its late CSP reports go to this record."""
+    r1 = first.get("result") or {}
+    u1 = r1.get("unregistered") or []
+    ident = ("browser", "route", "scheme", "width")
+    partial = []
+    for o, _side, _tgt in (getattr(proxy, "owners", None) or {}).values():
+        if o is not first and all(o.get(k) == first.get(k) for k in ident) and all(o is not p for p in partial):
+            partial.append(o)
+    for o in partial:
+        _take_loads(first, o, "reread")
+        _repoint(proxy, o, first)
+    first.setdefault("errors", []).append(f"reread: {error}")
+    first["status"] = "error"
+    first["reread"] = {"first_unregistered": r1.get("unregisteredTotal", 0), "first_records": u1[:REREAD_FIRST_RECORDS],
+                       "second_unregistered": None, "repeated": None, "forgiven_first": 0, "forgiven_second": 0,
+                       "second_records": [], "truncated": _truncated(r1), "filtered": False,
+                       "counted": r1.get("unregisteredTotal", 0),
+                       "forgives_nothing": "the reread failed",
+                       "note": "the reread failed, so nothing is forgiven: the first read's result counts"}
+    return first
 
 
 def pixel_diff(a: bytes, b: bytes, path=None):

@@ -20,6 +20,9 @@ from .report import fmt_rec as fmt
 
 WIDTHS = "375,600,800,1100,1300,1600"
 ALL_LEGS = "light,dark,theme-light,theme-dark"
+# In a control's argv, replaced by the browsers the selftest runs (its --browsers): the reread
+# controls pass it to --reread, so each browser under test rereads.
+UNDER_TEST = "<browsers under test>"
 
 
 def _records(result, kinds=None):
@@ -608,9 +611,250 @@ def build_cases(reg_dir):
          "tab-size on the lead paragraph and the list, registered on those two elements, is folded on the link and the "
          "list items that inherit it (and their markers); the first item's own value, and its marker's, stay "
          "unregistered", extra=("--registry", str(inh_dir)))
+    reread_cases(case, reg_dir)
     styles_cases(case, zero, x, reg_dir)
     sections_cases(case, reg_dir)
     return cases
+
+
+H1 = "html > body:0 > main:1 > h1:0"  # the fixture's h1 (the color and reread controls change it)
+LEAD = "html > body:0 > main:1 > p:1"  # the fixture's lead paragraph (control reread-partial)
+
+
+def reread_cases(case, reg_dir):
+    """Owner decision 22, the reread (tests/README.md, Modes): the self mode reads a Safari cell with
+    unregistered differences once more in the same session, and only a record that repeats counts.
+    These controls prove it in Chrome and Firefox with --reread set to the browsers under test
+    (reread-one-browser: chrome only). Their fixture controls change side B by the load: a script in
+    the head marks the route in a cookie, which the harness never clears, so of the cells of
+    /index.html at 375 and 1300 the first in each session (375) reads the session's first loads."""
+    reread = ("--reread", UNDER_TEST)
+
+    def planted(recs):
+        return (bool(recs) and all(y["kind"] == "style" and y["path"].startswith(H1) for y in recs)
+                and any(y["prop"] == "word-spacing" for y in recs))
+
+    def in_set(r):
+        browsers = {c["browser"] for c in r["cells"]}
+        return bool(browsers) and browsers <= set(r.get("reread") or [])
+
+    def rr_of(r):
+        return [c for c in r["cells"] if c.get("reread")]
+
+    def by_width(r):
+        return {c["width"]: c for c in r["cells"]}
+
+    def transient(r):
+        rr = rr_of(r)
+        differed = [c for c in rr if c["reread"]["first_unregistered"]]
+        firsts = [y for c in differed for y in c["reread"]["first_records"]]
+        clean = all(c["reread"]["filtered"] and c["reread"]["second_unregistered"] == 0 and c["reread"]["repeated"] == 0
+                    and c["reread"]["counted"] == 0 and c["reread"]["forgiven_second"] == 0
+                    and c["reread"]["forgiven_first"] == c["reread"]["first_unregistered"]
+                    and c["reread"]["forgiven_first_records"] == c["reread"]["first_records"] for c in rr)
+        n = r["totals"]["unregistered"]
+        ok = (in_set(r) and sorted(c["width"] for c in differed) == [375] and len(rr) == len(differed) and planted(firsts)
+              and clean and n == 0 and not r["harness_errors"])
+        return ok, (f"reread set {r.get('reread')}; cells reread {[(c['width'], c['reread']['first_unregistered'], c['reread']['second_unregistered'], c['reread']['repeated']) for c in rr]} "
+                    f"(width, first read, reread, repeated); first read's records, forgiven {[fmt(y) for y in firsts[:2]]}; "
+                    f"unregistered after the reread {n}")
+    case("reread-transient", "reread-transient", transient,
+         "with --reread, side B's h1 word-spacing on the session's first load of /index.html: the 375 cell differs "
+         "on its first read, its reread is clean, so nothing repeats, the 2 records are forgiven and the run has 0 "
+         "unregistered (the 1300 cell, clean on its one read, is not reread)", widths="375,1300", extra=reread)
+
+    def read_once(r):
+        """reread-transient read once per cell: the planted records unregistered at 375 only."""
+        diff = _diff_cells(r)
+        recs = [y for _, y in _records(r)]
+        rr = rr_of(r)
+        ok = not rr and sorted(c["width"] for c in diff) == [375] and planted(recs)
+        return ok, (f"reread set {r.get('reread')}, cells reread {len(rr)}; widths with records "
+                    f"{sorted(c['width'] for c in diff)}; records {[fmt(y) for y in recs[:2]]}")
+
+    def transient_off(r):
+        ok, msg = read_once(r)
+        return ok and r.get("reread") == [], msg
+    case("reread-transient-off", "reread-transient", transient_off,
+         "the same control without --reread (the pages mode reads every cell once): the 375 cell's h1 word-spacing "
+         "records are unregistered and the 1300 cell has none, so the planted difference is real and only the "
+         "session's first load shows it", widths="375,1300")
+
+    def one_browser(r):
+        if in_set(r):
+            ok, msg = transient(r)
+            return ok and r.get("reread") == ["chrome"], "in the reread set: " + msg
+        ok, msg = read_once(r)
+        return ok and r.get("reread") == ["chrome"], "outside the reread set: " + msg
+    case("reread-one-browser", "reread-transient", one_browser,
+         "reread-transient with --reread chrome, whatever the browsers under test: Chrome's cells are judged as in "
+         "reread-transient (the 375 cell reread, 0 unregistered), every other browser's as in reread-transient-off "
+         "(no cell reread, the 375 cell's records unregistered)", widths="375,1300", extra=("--reread", "chrome"))
+
+    def repeat(r):
+        diff = _diff_cells(r)
+        rr = rr_of(r)
+        same = all(x["filtered"] and x["repeated"] > 0
+                   and x["repeated"] == x["first_unregistered"] == x["second_unregistered"] == x["counted"]
+                   and not x["forgiven_first"] and not x["forgiven_second"]
+                   and not x["forgiven_first_records"] and not x["forgiven_second_records"] for x in (c["reread"] for c in rr))
+        kept = all(c["result"]["unregisteredTotal"] == c["reread"]["repeated"] for c in rr)
+        h1 = all(y["path"].startswith(H1) for _, y in _records(r))
+        ok = in_set(r) and bool(diff) and len(diff) == len(rr) == len(r["cells"]) and same and kept and h1
+        return ok, (f"reread set {r.get('reread')}; cells {len(r['cells'])}, with records {len(diff)}, reread {len(rr)}: "
+                    f"{[(c['reread']['first_unregistered'], c['reread']['second_unregistered'], c['reread']['repeated']) for c in rr]} "
+                    f"(first read, reread, repeated); unregistered {r['totals']['unregistered']}, all on the h1 {h1}")
+    case("reread-repeat", "color-2-of-255", repeat,
+         "with --reread, the h1 color change of color-2-of-255 differs on both reads of every cell: each cell is "
+         "reread, every record repeats, and all of them still count", widths="375,1300", extra=reread)
+
+    def partial(r):
+        w = by_width(r)
+        c1, c2 = w.get(375) or {}, w.get(1300) or {}
+        x1, x2 = c1.get("reread") or {}, c2.get("reread") or {}
+        res1, res2 = c1.get("result") or {}, c2.get("result") or {}
+        u1 = res1.get("unregistered") or []
+        ws = [y for y in u1 if y["prop"] == "word-spacing"]
+        gone = x1.get("forgiven_second_records") or []
+        # the letter-spacing records, and in Firefox the link's transform-origin and perspective-origin,
+        # which follow its width
+        lead = (bool(gone) and all(y["kind"] == "style" and y["path"].startswith(LEAD) for y in gone)
+                and {"p.lead", "a#link"} <= {y["label"].split("[")[0].split(" ")[0] for y in gone
+                                             if y["prop"] == "letter-spacing"})
+        # 375: the session's first load, then its second. Every record of the first read repeats, the
+        # word-spacing ones with another value (3px, then 5px), and only the reread's letter-spacing
+        # records do not: they are forgiven, and total and counts fall by them.
+        ok1 = (x1.get("filtered") is True and x1["forgiven_first"] == 0 and x1["forgiven_second"] == len(gone) > 0 and lead
+               and x1["repeated"] == x1["first_unregistered"] == x1["counted"] == res1.get("unregisteredTotal") == len(u1)
+               and x1["second_unregistered"] == x1["repeated"] + x1["forgiven_second"]
+               and planted([y for y in u1 if y["path"].startswith(H1) and y["prop"] == "word-spacing"])
+               and bool(ws) and all(y["b"] == "5px" for y in ws) and all(y["path"].startswith(H1) for y in u1)
+               and not any(y["prop"] == "letter-spacing" for y in u1)
+               and res1.get("total") == len(u1) and res1.get("counts") == {"style": len(u1)})
+        # 1300: two later loads, the same records on both, letter-spacing among them: all count.
+        u2 = res2.get("unregistered") or []
+        ok2 = (x2.get("filtered") is True and not x2["forgiven_first"] and not x2["forgiven_second"]
+               and x2["repeated"] == x2["first_unregistered"] == x2["second_unregistered"] == res2.get("unregisteredTotal")
+               and any(y["prop"] == "letter-spacing" and y["path"].startswith(LEAD) for y in u2))
+        ok = in_set(r) and len(r["cells"]) == 2 and ok1 and ok2 and not r["harness_errors"]
+        brief = {k: x1.get(k) for k in ("first_unregistered", "second_unregistered", "repeated", "forgiven_first",
+                                        "forgiven_second")}
+        return ok, (f"375 {brief}, forgiven of the reread {[fmt(y) for y in gone[:2]]}, word-spacing kept "
+                    f"{[fmt(y) for y in ws[:1]]}, total {res1.get('total')}, counts {res1.get('counts')}; 1300 "
+                    f"{[x2.get(k) for k in ('first_unregistered', 'second_unregistered', 'repeated')]} (first read, reread, "
+                    f"repeated), letter-spacing counted {sum(y['prop'] == 'letter-spacing' for y in u2)}")
+    case("reread-partial", "reread-partial", partial,
+         "with --reread, side B's h1 color on every load, its h1 word-spacing 3px on the session's first load and 5px "
+         "after, and the lead paragraph's letter-spacing after: the 375 cell's color and word-spacing records repeat and "
+         "count (word-spacing with the reread's 5px), the letter-spacing records only its reread has are forgiven, and "
+         "total and counts fall by them; at 1300 both reads have the letter-spacing records, and they count",
+         widths="375,1300", extra=reread)
+
+    def first_read(r):
+        w = by_width(r)
+        c1, c2 = w.get(375) or {}, w.get(1300) or {}
+        x = c1.get("reread") or {}
+        errs = c1.get("errors") or []
+        reloads = c1.get("ready_retries") or []
+        loads = c1.get("cross_origin_loads") or []
+        ok_errs = (len(errs) == 1 and errs[0].startswith("first read: b ready: stylesheet /missing.css ")
+                   and errs[0].endswith("(after one reload)"))
+        ok_reloads = bool(reloads) and all(y.get("read") == "first read" and y["side"] == "b" for y in reloads)
+        ok_loads = bool(loads) and all(y.get("read") == "first read" and y["side"] == "b"
+                                       and re.fullmatch(r"http://localhost:\d+/fixture\.css", y["url"]) for y in loads)
+        # The first read's records: the planted word-spacing, and the status record side B's reload
+        # gives in Chrome and Firefox (the reloaded document makes no request, so its status is None).
+        f1 = x.get("forgiven_first_records") or []
+        ok_f1 = (planted([y for y in f1 if y["kind"] == "style"]) and all(y["kind"] in ("style", "status") for y in f1)
+                 and len(f1) == x.get("first_unregistered") == x.get("forgiven_first"))
+        ok = (in_set(r) and x.get("filtered") is True and x.get("second_unregistered") == 0
+              and ok_f1 and (c1.get("result") or {}).get("unregisteredTotal") == 0
+              and c1.get("status") == "ok" and ok_errs and ok_reloads and ok_loads
+              and not c2.get("reread") and not c2.get("errors") and not c2.get("cross_origin_loads")
+              and r["totals"]["cross_origin_loads"] == len(loads) and r["totals"]["differences"] == 0
+              and r["status"] == "FAIL")
+        return ok, (f"375 reread {[x.get(k) for k in ('first_unregistered', 'second_unregistered', 'repeated')]} "
+                    f"(first read, reread, repeated), forgiven {[fmt(y)[:60] for y in f1]}; its errors {[e[:80] for e in errs]}; reloads "
+                    f"{[(y['side'], y.get('read')) for y in reloads]}; cross-origin loads "
+                    f"{[(y['side'], y['url'], y.get('read')) for y in loads]}; differences {r['totals']['differences']}, "
+                    f"run {r['status']}")
+    case("reread-first-read", "reread-first-read", first_read,
+         "with --reread, side B's first two loads in the session add the h1 word-spacing and a 404 stylesheet, the "
+         "second also a cross-origin stylesheet: the 375 cell's first read fails the stylesheet check after one reload "
+         "and differs, its reread is clean, and the cell keeps the first read's harness error, reloads and cross-origin "
+         "load (marked first read), so the run fails on them with 0 differences",
+         widths="375,1300", extra=reread, expect_errors=("first read: b ready: stylesheet /missing.css ",))
+
+    def truncated(r):
+        cells = r["cells"]
+        x = cells[0].get("reread") if len(cells) == 1 else None
+        res = (cells[0].get("result") or {}) if cells else {}
+        ok = (in_set(r) and bool(x) and x["truncated"] and x.get("untold") == "truncated" and not x["filtered"]
+              and "forgives_nothing" not in x and x["repeated"] is None and x["forgiven_second"] == 0
+              and x["forgiven_first"] == max(0, x["first_unregistered"] - x["second_unregistered"])
+              and x.get("forgiven_first_at_least") is True
+              and x["counted"] == x["second_unregistered"] == res.get("unregisteredTotal") and x["counted"] > 1
+              and len(res.get("unregistered") or []) == 1)
+        return ok, (f"reread {({k: x.get(k) for k in ('first_unregistered', 'second_unregistered', 'repeated', 'counted', 'truncated', 'untold', 'forgiven_first', 'forgiven_first_at_least')} if x else None)}; "
+                    f"unregistered {res.get('unregisteredTotal')}, {len(res.get('unregistered') or [])} kept")
+    # A registry entry for the h1's own color (the other color records stay unregistered): every read
+    # has registered records, whose keys a read does not return, so which records repeat cannot be told.
+    reg_rr = reg_dir.parent / "registry-reread"
+    reg_rr.mkdir(parents=True, exist_ok=True)
+    (reg_rr / "rig.json").write_text((DIVERGENCES / "rig.json").read_text())
+    (reg_rr / "reread.json").write_text(json.dumps([
+        {"id": "neg-reread-h1-color", "kind": "style", "selector": "h1, h1 *", "property": "color",
+         "category": "oracle-bug", "reason": "Negative control: register the h1's color records, so each read of the "
+                                             "reread-registered control has registered records."},
+    ], indent=1))
+
+    def registered(r):
+        w = by_width(r)
+        c1 = w.get(375) or {}
+        x = c1.get("reread") or {}
+        res = c1.get("result") or {}
+        u = res.get("unregistered") or []
+        ls = [y for y in u if y["prop"] == "letter-spacing" and y["path"].startswith(LEAD)]
+        ok = (in_set(r) and x.get("untold") == "registered records" and x.get("filtered") is False
+              and x.get("repeated") is None and x.get("forgiven_second") == 0 and "forgives_nothing" not in x
+              and x.get("counted") == x.get("second_unregistered") == res.get("unregisteredTotal") > x.get("first_unregistered")
+              and bool(ls) and (res.get("registered") or {}).get("neg-reread-h1-color", 0) > 0
+              and r["registered_by_entry"].get("neg-reread-h1-color", 0) > 0 and not r["harness_errors"])
+        return ok, (f"375 reread {({k: x.get(k) for k in ('first_unregistered', 'second_unregistered', 'repeated', 'counted', 'untold', 'forgiven_first', 'forgiven_second')})}; "
+                    f"registered {res.get('registered')}; letter-spacing counted {[fmt(y)[:70] for y in ls[:1]]}")
+    case("reread-registered", "reread-partial", registered,
+         "reread-partial with --reread and a registry entry for the h1's color: each read has registered records, "
+         "whose keys a read does not return, so which records repeat cannot be told; the 375 cell's reread counts "
+         "whole, the letter-spacing records only it has included", widths="375,1300",
+         extra=(*reread, "--registry", str(reg_rr)))
+
+    case("reread-truncated", "color-2-of-255", truncated,
+         "color-2-of-255 with --reread and --max-records 1, at 1300: each read keeps one record of the many it finds, "
+         "so which repeat cannot be told; every record of the reread counts, not only the one kept, and the first "
+         "read's forgiven count is a lower bound (at least 0)",
+         extra=(*reread, "--max-records", "1"))
+
+    def error(r):
+        cells = r["cells"]
+        c = cells[0] if len(cells) == 1 else {}
+        x = c.get("reread") or {}
+        res = c.get("result") or {}
+        errs = [e for e in c.get("errors") or [] if e.startswith("reread: b ready: stylesheet /missing.css ")]
+        reloads = [y for y in c.get("ready_retries") or [] if y.get("read") == "reread" and y["side"] == "b"]
+        ok = (in_set(r) and bool(x) and x.get("forgives_nothing") == "the reread's errors" and not x.get("filtered")
+              and x["first_unregistered"] > 0 and res.get("unregisteredTotal") == x["first_unregistered"] == x["counted"]
+              and planted(res.get("unregistered")) and len(errs) == 1 and errs[0].endswith("(after one reload)")
+              and bool(reloads) and len(c.get("errors") or []) == 1
+              and len(x.get("second_records") or []) == min(x.get("second_unregistered") or 0, 300))
+        return ok, (f"reread {({k: x.get(k) for k in ('first_unregistered', 'second_unregistered', 'counted', 'forgives_nothing')})}; "
+                    f"unregistered {res.get('unregisteredTotal')}; errors {[e[:90] for e in c.get('errors') or []]}; "
+                    f"reread's side B reloads {len(reloads)}; the reread's records kept "
+                    f"{[fmt(y) for y in (x.get('second_records') or [])[:1]]}")
+    case("reread-error", "reread-error", error,
+         "with --reread, the first read differs and the reread's side B fails its stylesheet check (/missing.css, "
+         "404) after one reload: a harness error is never forgiven, so the cell keeps its first read's records, with "
+         "the reread's error, reloads and records on it", extra=reread,
+         expect_errors=("reread: b ready: stylesheet /missing.css ",))
 
 
 MAIN = "html > body:0 > main:1"  # the fixture's <main>: an anchor (harness/styles.py ANCHORS)
@@ -1043,7 +1287,8 @@ def run_selftest(args):
     report, ok_all = [], True
     for c in cases:
         rid = f"{run_id}--{c['name']}"
-        argv = [sys.executable, str(TESTS / "run.py"), *c["argv"], "--browsers", browsers, "--run-id", rid, "--no-shots"]
+        argv = [sys.executable, str(TESTS / "run.py"), *(browsers if a == UNDER_TEST else a for a in c["argv"]),
+                "--browsers", browsers, "--run-id", rid, "--no-shots"]
         t0 = time.time()
         p = subprocess.run(argv, capture_output=True, text=True)
         path = RESULTS / rid / "result.json"
