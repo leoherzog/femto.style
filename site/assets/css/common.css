@@ -31,8 +31,7 @@
   --femto-header-border-color: transparent;
   /* Logo */
   --femto-logo-wordmark: #2a3140;
-  --femto-logo-small-sparkles: #ffbf00;
-  --femto-logo-big-sparkle: #ff9500;
+  --femto-logo-sparkle: #ff9500;
   /* Card for components */
   --femto-card-component-outline-width: 0;
   --femto-card-component-outline-color: transparent;
@@ -51,8 +50,7 @@
 [data-theme=light] footer,
 :root:not([data-theme=dark]) footer,
 :host:not([data-theme=dark]) footer {
-  --femto-logo-small-sparkles: #cfd5e2;
-  --femto-logo-big-sparkle: #b0b9d0;
+  --femto-logo-sparkle: #b0b9d0;
 }
 
 /* Dark color scheme (Auto)
@@ -65,8 +63,7 @@
     --femto-header-border-color: rgba(32, 38, 50, 0.9);
     /* Logo */
     --femto-logo-wordmark: #fff;
-    --femto-logo-small-sparkles: #ff9500;
-    --femto-logo-big-sparkle: #ffbf00;
+    --femto-logo-sparkle: #ffbf00;
     /* Card for components */
     --femto-card-component-outline-width: 2px;
     --femto-card-component-outline-color: var(--femto-card-background-color);
@@ -84,8 +81,7 @@
   /* Footer */
   :root:not([data-theme]) footer,
   :host:not([data-theme]) footer {
-    --femto-logo-small-sparkles: #5d6b89;
-    --femto-logo-big-sparkle: #8191b5;
+    --femto-logo-sparkle: #8191b5;
   }
 }
 
@@ -97,8 +93,7 @@
   --femto-header-border-color: rgba(32, 38, 50, 0.9);
   /* Logo */
   --femto-logo-wordmark: #fff;
-  --femto-logo-small-sparkles: #ff9500;
-  --femto-logo-big-sparkle: #ffbf00;
+  --femto-logo-sparkle: #ffbf00;
   /* Card for components */
   --femto-card-component-outline-width: 2px;
   --femto-card-component-outline-color: var(--femto-card-background-color);
@@ -115,8 +110,7 @@
 
 /* Footer */
 [data-theme=dark] footer {
-  --femto-logo-small-sparkles: #5d6b89;
-  --femto-logo-big-sparkle: #8191b5;
+  --femto-logo-sparkle: #8191b5;
 }
 
 /**
@@ -463,39 +457,22 @@ svg.femto-icon {
   height: 2.25rem;
 }
 
-/* The three sparkles of an animated logo pop in one after the other */
+/* The sparkle of an animated or hovered logo pops */
 svg.femto-logo.animated path:first-of-type,
-svg.femto-logo.animated path:nth-of-type(2),
-svg.femto-logo.animated path:nth-of-type(3),
-svg.femto-icon.animated path:first-of-type,
-svg.femto-icon.animated path:nth-of-type(2),
-svg.femto-icon.animated path:nth-of-type(3) {
-  animation-duration: var(--animate-duration);
+a:hover > svg.femto-logo path:first-of-type,
+svg.femto-icon.animated path:first-of-type {
+  animation-duration: 0.75s;
   animation-timing-function: ease-in-out;
-  animation-delay: var(--animate-delay);
   animation-fill-mode: both;
   animation-name: sparkle;
 }
 
-svg.femto-logo.animated path:nth-of-type(3),
-svg.femto-icon.animated path:nth-of-type(3) {
-  --animate-duration: 0.5s;
-  --animate-delay: 0s;
-  transform-origin: 1825.3px 293.1px;
+svg.femto-logo path:first-of-type {
+  transform-origin: 1779.5px 360px;
 }
 
-svg.femto-logo.animated path:first-of-type,
-svg.femto-icon.animated path:first-of-type {
-  --animate-duration: 0.75s;
-  --animate-delay: 0.125s;
+svg.femto-icon path:first-of-type {
   transform-origin: 2034.8px 200px;
-}
-
-svg.femto-logo.animated path:nth-of-type(2),
-svg.femto-icon.animated path:nth-of-type(2) {
-  --animate-duration: 0.5s;
-  --animate-delay: 0.375s;
-  transform-origin: 1855.2px 84.6px;
 }
 
 @keyframes sparkle {
