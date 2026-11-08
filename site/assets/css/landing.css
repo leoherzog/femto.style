@@ -455,17 +455,9 @@ body > main.homepage > .features > .grid article {
   border: var(--femto-card-component-outline-width) solid var(--femto-card-component-outline-color);
 }
 
-body > main.homepage > .features > .grid article > svg {
-  width: auto;
-  height: 1.125rem;
-  margin-bottom: calc(var(--femto-spacing) * 0.75);
-  color: var(--femto-features-icon-color);
-}
-
-/* The features' character icons (Decision 18), in the box and color of the SVG icons they replaced,
-   femto's own mark beside them. Each is a one-color silhouette, a transparent glyph and its shadow,
-   as Decision 16's toggle is, so the two emoji (⚙️ and ⚡) take the color as the text characters
-   do. The shadow's color is explicit: a shadow in currentColor takes the transparent color, and
+/* The features' character icons (Decision 18), in the box and color of the SVG icons they replaced.
+   Each is a one-color silhouette, a transparent glyph and its shadow, as Decision 16's toggle is, so
+   the two emoji (⚙️ and ⚡) take the color as the text characters do. The shadow's color is explicit: a shadow in currentColor takes the transparent color, and
    Firefox draws no shadow for a glyph whose -webkit-text-fill-color is transparent (checked in
    Chrome 158 and Firefox 160, and the silhouettes seen in Safari, 2026-11-05) */
 body > main.homepage > .features > .grid article > span[role=img] {
@@ -483,17 +475,14 @@ body > main.homepage > .features > .grid article:has(a[href="/docs#typography"])
   transform: scale(1.25);
 }
 
-/* The first feature's </> is code: in the code font at 0.75em, without femto's code box */
+/* The first two features' </> and { } are code: in the code font at 0.75em, without femto's code
+   box */
 body > main.homepage > .features > .grid article > span[role=img] > code {
   padding: 0;
   background: none;
   color: inherit;
   font-size: 0.75em;
   line-height: inherit;
-}
-
-body > main.homepage > .features > .grid article > svg.femto-icon path {
-  fill: currentColor;
 }
 
 body > main.homepage > .features > .grid article h3 {

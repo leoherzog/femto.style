@@ -3878,7 +3878,7 @@ subjects outside the Workflow table, among them the owner's Decision 16, 17 and 
 | 3, 4, 5, 6, 8, 9, 11, 12, 13 and 14 | PASS, `static_checks.py` | — |
 | 7 | PASS, `p6-final-behavior-1` | PASS on 06c0837: `p6-behavior-safari-light-3` (103 of 103 run) and `p6-behavior-safari-dark-3` (5 of 5); with Reduce Motion on, `p6-behavior-safari-reduced-light-2` (5308ab4, 3 of 3) |
 | 10 | PASS, `p6-final-a11y-1` and `-widths-1` | not in the criterion |
-| 15 | PASS: the static part, `p6-final-loads-1`, and `deep-link-cold` in Chrome | PASS on 6378a3e: `p6-loads-safari-light-2` and `-dark-2`, 0 cross-origin loads (06c0837 changes only docs.js's focus handling, the checks and a mask); production fails it while Web Analytics injects its beacon (the owner's step 5 below) |
+| 15 | PASS: the static part, `p6-final-loads-1`, and `deep-link-cold` in Chrome | PASS on 6378a3e: `p6-loads-safari-light-2` and `-dark-2`, 0 cross-origin loads (06c0837 changes only docs.js's focus handling, the checks and a mask); production adds only the zone's Web Analytics beacon, criterion 15's exception (the owner, 2026-11-08; step 5 below) |
 
 **The owner's steps outside the repository** (the Cloudflare dashboard). No agent logged in, used the
 dashboard or changed the live site; these are recorded here, in README's Deploy section and in
@@ -3908,9 +3908,10 @@ empty side nav and an empty `#content`. `/sitemap.xml` and the palette JSON answ
    ```
 
    `Accept: text/html` matters: the zone injects step 5's beacon only into a response to a request
-   that sends it, as a browser does, and curl's default `Accept: */*` hides it. So on `femto.style`
-   the pages hash the same only once steps 2 (for `/examples`) and 5 are done as well; on
-   `femto-style.pages.dev` they should once this step is.
+   that sends it, as a browser does, and curl's default `Accept: */*` hides it. Step 5's beacon
+   stays, so with the header `femto.style`'s pages never hash the same. Run the loop without the
+   header to compare them, once step 2 is done for `/examples`. On `femto-style.pages.dev` they
+   hash the same with the header too, once the Pages project's own Web Analytics is off (step 5).
 2. **Email Address Obfuscation** (repo-2, verify-content-c-1). In the `femto.style` zone, Security >
    Settings (Scrape Shield) > Email Address Obfuscation: Off, or a Configuration Rule for
    `femto.style` and `/examples` that turns it off. It rewrites the six addresses on `/examples` and
@@ -3931,13 +3932,17 @@ empty side nav and an empty `#content`. `/sitemap.xml` and the palette JSON answ
    `http://www.femto.style/` hung about 20 s and answered Cloudflare's 522, while
    `https://www.femto.style/` answered 301 to the apex. Recheck: `curl -sS -o /dev/null -w
    '%{http_code} %{redirect_url}\n' 'http://www.femto.style/docs?x=1'` answers 301 at once.
-5. **Web Analytics' automatic setup** (verify-repo-1, verify-content-c-2). In Analytics & Logs >
-   Web Analytics > the `femto.style` site > Manage site, set the automatic setup to Disable. For
-   every request that sends `Accept: text/html` it injects a script from
-   `static.cloudflareinsights.com` and a beacon to `/cdn-cgi/rum`, a cross-origin load against
-   criterion 15 (`femto-style.pages.dev` has neither). Recheck: `curl -sS -H 'Accept: text/html'
-   https://femto.style/docs | grep -c cloudflareinsights` prints 0. Keeping analytics instead would
-   be a change to criterion 15, for the owner to make.
+5. **Web Analytics** (verify-repo-1, verify-content-c-2). The owner keeps the zone's, as criterion
+   15's exception (2026-11-08). Its automatic setup, in Analytics & Logs > Web Analytics > the
+   `femto.style` site, stays on: for every request that sends `Accept: text/html` it injects a
+   module script from `static.cloudflareinsights.com` that reports to
+   `cloudflareinsights.com/cdn-cgi/rum`. The Pages project's own Web Analytics, in Workers & Pages >
+   `femto-style` > Metrics, stays off. It injected a second beacon on both hosts, and with both on
+   `femto.style`'s console showed CORS errors for the reports, while `femto-style.pages.dev`, with
+   it alone, showed none. The owner turned it off on 2026-11-08; it leaves a page once the next
+   deploy serves it. Recheck: `curl -sS -H 'Accept: text/html' https://femto.style/docs | grep -o
+   data-cf-beacon | wc -l` prints 1, the same for `https://femto-style.pages.dev/docs` prints 0,
+   and the console on `https://femto.style/` shows no CORS error.
 6. **Speed Brain** adds a `speculation-rules: "/cdn-cgi/speculation"` header on `femto.style`,
    same-origin and conservative prefetch: harmless, no step (verify-repo-1).
 
@@ -4161,7 +4166,8 @@ mutant now fails one of them. No Safari run was made.
 | `p6-reread-gate-self-1` | `self --browsers chrome,firefox --routes /docs/button,/docs/forms/checkboxes,/docs/version-picker/jade` | 40 (24,720 elements) | **PASS: 0 differences**; reread set `safari`, no cell reread | 0 | 22 s |
 
 **The owner's open questions.**
-- The Cloudflare steps above, and whether Web Analytics stays (criterion 15).
+- The Cloudflare steps above. Web Analytics is settled: the zone's stays, as criterion 15's
+  exception, and the Pages project's is off (the owner, 2026-11-08).
 - femto's items above.
 - rr-site-5: the spy's take-over keeps a `wheel` listener beside `keydown` and touch `pointerdown`.
   `wheel` is Baseline limited (Safari on iOS never fires it) and has no Widely Available
