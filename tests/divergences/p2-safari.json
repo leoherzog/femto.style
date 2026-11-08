@@ -114,7 +114,7 @@
     "id": "p2-safari-autofill-button",
     "kind": "style",
     "selector": "input[autocomplete]",
-    "pseudo": "",
+    "pseudo": "/^(::placeholder)?$/",
     "property": "/^(width|inline-size|transform-origin|perspective-origin)$/",
     "a": "/^[0-9.]+px( [0-9.]+px)?$/",
     "b": "/^[0-9.]+px( [0-9.]+px)?$/",
@@ -123,14 +123,15 @@
         "safari"
       ],
       "states": [
-        "focus"
+        "focus",
+        "focus-visible"
       ],
       "comparisons": [
         "styles"
       ]
     },
     "category": "browser-limit",
-    "reason": "Safari shows its AutoFill button in a focused field whose autocomplete names AutoFill data (username, email, given-name on these pages), at its own discretion: in a run it shows on one side's field and not the other's, on either side. The field is then exactly 27px wider or narrower (277px against 250px on /docs/version-picker/jade at 375px), and its origins half that (p2-styles-safari-light-2 and -dark-2: 34 records in 17 cells, the Login, Email and First name fields of /docs/color-schemes, /docs/version-picker/jade, /docs/forms/input and /docs/forms).",
+    "reason": "Safari shows its AutoFill button in a focused field whose autocomplete names AutoFill data (username, email, given-name on these pages), at its own discretion: in a run it shows on one side's field and not the other's, on either side. The field is then exactly 27px wider or narrower (277px against 250px on /docs/version-picker/jade at 375px), and its origins half that (p2-styles-safari-light-2 and -dark-2: 34 records in 17 cells, the Login, Email and First name fields of /docs/color-schemes, /docs/version-picker/jade, /docs/forms/input and /docs/forms). From Phase 6 the harness also collects ::placeholder, and in Safari 27.2 the button narrows the field's placeholder box by the same 27px while the field keeps its width (p6-styles-safari-light-1 and -dark-1, 2026-11-07: 96 records in 24 cells, every one the ::placeholder's width, inline-size, transform-origin and perspective-origin of the Login, Email, First name or Password field, either side wider, the field's own width differing in none), once under :focus-visible (the password field of /docs/group). So the entry covers the field and its ::placeholder, under :focus and :focus-visible (the owner, 2026-11-07).",
     "notes": "No WebDriver capability turns AutoFill off, and its setting is the owner's Safari's. Chrome and Firefox add no such button."
   },
   {

@@ -3874,7 +3874,7 @@ subjects outside the Workflow table, among them the owner's Decision 16, 17 and 
 | Criterion | Chrome and Firefox | Safari |
 |---|---|---|
 | 1 | PASS, `p6-final-self-full-1` | Light PASS (`p6-self-safari-light-2`). Dark not clean: `p6-self-safari-dark-2` and `-3` each had oracle-side mid-animation reads in 2 of 420 cells, different cells each time; the first is masked (`oracle-check-icon`), and the second's two cells pass on rerun (`p6-self-safari-dark-cells-1`). The owner chose the reread (owner decision 22), and on it the full Dark pass passes: `p6-self-safari-dark-4` (60f6b47), 0 differences, one cell reread with all 114 of its first read's records forgiven |
-| 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | waits on `parity`; Phases 2 and 3 never passed in Safari (critic-1) |
+| 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | Phase 3: PASS in Light and Dark (`p6-sections-safari-*-1`, `p6-pages-safari-*-1`, 0 unregistered). Phase 2: `p6-styles-safari-*-1` failed on Safari's AutoFill button only (96 records); the entry is widened, and its rerun is `p6-styles-safari-*-2` |
 | 3, 4, 5, 6, 8, 9, 11, 12, 13 and 14 | PASS, `static_checks.py` | — |
 | 7 | PASS, `p6-final-behavior-1` | PASS on 06c0837: `p6-behavior-safari-light-3` (103 of 103 run) and `p6-behavior-safari-dark-3` (5 of 5); with Reduce Motion on, `p6-behavior-safari-reduced-light-2` (5308ab4, 3 of 3) |
 | 10 | PASS, `p6-final-a11y-1` and `-widths-1` | not in the criterion |
@@ -4082,7 +4082,32 @@ The owner's `reduced` pass, on 5308ab4 (2026-11-07):
 | `p6-behavior-safari-reduced-light-2` | 119 (3 run, 116 skipped as `motion:no-preference` or `media:dark`) | **PASS: 3 of 3**, `demo-reduced-motion`, `spy-nav-click-reduced` and `progress-reduced-motion`; log `OS scheme light`, `OS motion reduce` | 31 s |
 
 So criterion 7 passes in Safari: Light and Dark with Reduce Motion off (`p6-behavior-safari-light-3`,
-`-dark-3`) and its reduced-motion checks with it on. Still not run in Safari: `parity`.
+`-dark-3`) and its reduced-motion checks with it on.
+
+The `parity` pass, on 8ef6b2a (2026-11-07, 15:48 to 18:09; `tests/owner-safari.sh parity`, run by
+the agent with the owner's leave, Reduce Motion off, `OS motion no-preference` in every log):
+
+| Run | Cells | Result | Time |
+|---|---|---|---|
+| `p6-styles-safari-light-1` | 744 (420 run) | **FAIL: 44 unregistered in 11 cells**, 650,317 registered, 0 harness errors | 2,023 s |
+| `p6-sections-safari-light-1` | 684 (384 run) | **PASS: 0 unregistered**, 13,607 registered | 2,150 s |
+| `p6-pages-safari-light-1` | 60 (36 run) | **PASS: 0 unregistered**, 222 registered | 25 s |
+| `p6-styles-safari-dark-1` | 744 (420 run) | **FAIL: 52 unregistered in 13 cells**, 650,541 registered, 0 harness errors | 1,980 s |
+| `p6-sections-safari-dark-1` | 684 (384 run) | **PASS: 0 unregistered**, 13,607 registered | 2,193 s |
+| `p6-pages-safari-dark-1` | 60 (36 run) | **PASS: 0 unregistered**, 222 registered | 25 s |
+
+So Phase 3's gate passes in Safari, the sections comparison for the first time. Every one of the
+styles runs' 96 records is the same thing: under `:focus` (once `:focus-visible`), the `::placeholder`
+of a field with `autocomplete` (Login, Email, First name, Password) is exactly 27 px wider on one side,
+either side, in `width`, `inline-size` and the two origins. That is Safari's AutoFill button, which
+`p2-safari-autofill-button` registered on the field itself in Phase 2; in Safari 27.2 the field keeps
+its width (the entry matched nothing in these runs) and its placeholder narrows, and Phase 2 did not
+collect `::placeholder`. The owner chose to widen the entry (2026-11-07): its `pseudo` is now
+`/^(::placeholder)?$/` and its states `focus` and `focus-visible`; selector, properties, values,
+browser (Safari) and comparison (styles) are unchanged. Replayed offline against the two runs' kept
+records (every cell kept all of its), it matches all 96 and misses none, and every one of their
+fields carries `autocomplete` on both sides (`static-multipage` and `static-femto`). The styles
+comparison reruns in Safari as `p6-styles-safari-light-2` and `-dark-2`.
 
 **The reread** (owner decision 22, 2026-11-07; Modes, The reread). `compare.py` (`reread`,
 `reread_failed`, `record_key`) and `runner.py` read a cell of the reread set once more; `cli.py` adds
