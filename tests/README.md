@@ -3874,7 +3874,7 @@ subjects outside the Workflow table, among them the owner's Decision 16, 17 and 
 | Criterion | Chrome and Firefox | Safari |
 |---|---|---|
 | 1 | PASS, `p6-final-self-full-1` | Light PASS (`p6-self-safari-light-2`). Dark not clean: `p6-self-safari-dark-2` and `-3` each had oracle-side mid-animation reads in 2 of 420 cells, different cells each time; the first is masked (`oracle-check-icon`), and the second's two cells pass on rerun (`p6-self-safari-dark-cells-1`). The owner chose the reread (owner decision 22), and on it the full Dark pass passes: `p6-self-safari-dark-4` (60f6b47), 0 differences, one cell reread with all 114 of its first read's records forgiven |
-| 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | Phase 3: PASS in Light and Dark (`p6-sections-safari-*-1`, `p6-pages-safari-*-1`, 0 unregistered). Phase 2: `p6-styles-safari-*-1` failed on Safari's AutoFill button only (96 records); the entry is widened, and its rerun is `p6-styles-safari-*-2` |
+| 2 | PASS: Phases 2 and 3 rerun between the tags (`p6-parity-*`), equal to the gates; Phase 1's gate is `p1g3-pages-full-1` | Phase 3: PASS in Light and Dark (`p6-sections-safari-*-1`, `p6-pages-safari-*-1`, 0 unregistered). Phase 2: PASS in Light and Dark on 2c7516f (`p6-styles-safari-light-2`, `-dark-2`, 0 unregistered), after `p6-styles-safari-*-1` failed on Safari's AutoFill button only and the owner widened its entry. Phase 1's gate is Chrome and Firefox only, by PLAN |
 | 3, 4, 5, 6, 8, 9, 11, 12, 13 and 14 | PASS, `static_checks.py` | — |
 | 7 | PASS, `p6-final-behavior-1` | PASS on 06c0837: `p6-behavior-safari-light-3` (103 of 103 run) and `p6-behavior-safari-dark-3` (5 of 5); with Reduce Motion on, `p6-behavior-safari-reduced-light-2` (5308ab4, 3 of 3) |
 | 10 | PASS, `p6-final-a11y-1` and `-widths-1` | not in the criterion |
@@ -4107,7 +4107,17 @@ collect `::placeholder`. The owner chose to widen the entry (2026-11-07): its `p
 browser (Safari) and comparison (styles) are unchanged. Replayed offline against the two runs' kept
 records (every cell kept all of its), it matches all 96 and misses none, and every one of their
 fields carries `autocomplete` on both sides (`static-multipage` and `static-femto`). The styles
-comparison reruns in Safari as `p6-styles-safari-light-2` and `-dark-2`.
+comparison then reran in Safari on 2c7516f (2026-11-07, 19:45 to 20:53, the agent with the owner's
+leave):
+
+| Run | Cells | Result | Time |
+|---|---|---|---|
+| `p6-styles-safari-light-2` | 744 (420 run) | **PASS: 0 unregistered**, 650,353 registered (60 by `p2-safari-autofill-button`), 0 harness errors | 2,010 s |
+| `p6-styles-safari-dark-2` | 744 (420 run) | **PASS: 0 unregistered**, 650,619 registered (60 by `p2-safari-autofill-button`), 0 harness errors | 2,012 s |
+
+So criterion 2's Safari legs pass: Phase 2's gate on these two runs and Phase 3's on
+`p6-sections-safari-*-1` and `p6-pages-safari-*-1`. With criteria 1, 7 and 15 above, every
+criterion that names Safari has passed there in Phase 6.
 
 **The reread** (owner decision 22, 2026-11-07; Modes, The reread). `compare.py` (`reread`,
 `reread_failed`, `record_key`) and `runner.py` read a cell of the reread set once more; `cli.py` adds
