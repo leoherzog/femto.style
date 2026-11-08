@@ -18,6 +18,9 @@ GROUP = "getting-started"
 PKG = "@leoherzog/femto@3"   # the package and version range the samples name (picker.js reads it from the built cdn sample)
 CDN = f"https://cdn.jsdelivr.net/npm/{PKG}/"
 OPTIONS = ["responsive-spacings", "fixed-typography", "no-transitions"]   # femto's css/options/, in link order
+# The switches as the page loads them: responsive spacings on, since the page loads that option
+# (the owner, 2026-11-08: the switches apply to the page as well as the samples).
+DEFAULT = ["responsive-spacings"]
 STYLESHEET = "styles.css"    # the reader's own stylesheet, after femto's files
 PICKER = "/docs#theme-picker"   # azure; a color is /docs?theme=<color>#theme-picker
 ONLY = ("one-page",)
@@ -42,6 +45,10 @@ return [...document.querySelectorAll("link[rel=stylesheet]")].map(l => l.getAttr
   .filter(h => /\/(css\/themes|custom-themes)\//.test(h)).map(h => h.replace(/^.*\//, "").replace(/\.css$/, ""));
 """
 STYLESHEETS = "return [...document.querySelectorAll('link[rel=stylesheet]')].map(l => l.getAttribute('href'))"
+# The page's femto option stylesheets, by option name, in document order; and its other stylesheets.
+OPTION_SHEETS = STYLESHEETS + ".filter(h => h.includes('/css/options/')).map(h => h.replace(/^.*\\//, '').replace(/\\.css$/, ''))"
+OTHER_SHEETS = STYLESHEETS + ".filter(h => !h.includes('/css/options/'))"
+ROOT_FONT = "return getComputedStyle(document.documentElement).fontSize"
 
 
 def swapped(page, color, label):
@@ -115,7 +122,7 @@ def chosen(page):
     return page.js(f"return [...S.querySelectorAll('{SWITCHES}')].filter(i => i.checked).map(i => i.name)")
 
 
-def expect_state(page, color="azure", options=(), label=""):
+def expect_state(page, color="azure", options=DEFAULT, label=""):
     want = expected_codes(color, options)
     page.wait(f"{label}codes regenerated", f"(() => {{ {CODES} return !!cdn && cdn.textContent === arguments[0]; }})()",
               1, args=(want["cdn"],), got=code_texts(page)["cdn"])
@@ -159,23 +166,31 @@ def picker_options(page):
     """The Theme picker's options (`section[data-picker-options]`): one switch per file in femto's
     css/options/ (`input[type=checkbox][role=switch]` named responsive-spacings, fixed-typography and
     no-transitions, in that order, each described by its helper <small> through aria-describedby),
-    all off on load. The switches regenerate the three samples' text exactly (expected_codes: the
-    cdn links in load order, femto, the theme, the chosen options, then styles.css; the combine URL,
-    or femto's link alone; the starter template's links), checked on load and after five sets of
-    options, and change nothing else on the page: its stylesheets (femto, the responsive-spacings
-    option it always loads, femto.colors.css and the site's) stay as they were loaded."""
+    responsive spacings on at load and the others off, as the page loads responsive-spacings.css.
+    The switches regenerate the three samples' text exactly (expected_codes: the cdn links in load
+    order, femto, the theme, the chosen options, then styles.css; the combine URL, or femto's link
+    alone; the starter template's links), and they apply to the page too: its femto option
+    stylesheets are exactly the chosen ones, in OPTIONS order, while its other stylesheets (femto,
+    femto.colors.css and the site's) stay as loaded, and with fixed typography on the root font
+    size is 16px (100%), back to its load-time size once it is off. Checked on load and after six
+    sets of options, the last the load-time one."""
     r = page.js(f"""return [...S.querySelectorAll('{SWITCHES}')].map(i => {{
         const d = document.getElementById(i.getAttribute('aria-describedby') || '');
         return [i.name, i.checked, !!d && d.localName === 'small' && d.textContent.trim().length > 0]; }})""")
-    page.eq("three option switches, off, each with its helper", r, [[o, False, True] for o in OPTIONS])
-    sheets = page.js(STYLESHEETS)
-    page.expect("the page loads responsive-spacings.css", any(h.endswith("/css/options/responsive-spacings.css") for h in sheets),
-                sheets=sheets)
+    page.eq("three option switches, responsive spacings on, each with its helper", r,
+            [[o, o in DEFAULT, True] for o in OPTIONS])
+    page.eq("on load: the page's option stylesheets", page.js(OPTION_SHEETS), DEFAULT)
+    others, font = page.js(OTHER_SHEETS), page.js(ROOT_FONT)
     expect_state(page, label="on load: ")
-    for opts in (["fixed-typography"], ["responsive-spacings", "no-transitions"], OPTIONS, ["no-transitions"], []):
+    for opts in (["fixed-typography"], ["responsive-spacings", "no-transitions"], OPTIONS, ["no-transitions"], [], DEFAULT):
+        name = opts or "no options"
         choose(page, opts)
-        expect_state(page, "azure", opts, label=f"{opts or 'no options'}: ")
-        page.eq(f"{opts or 'no options'}: the page's stylesheets are as loaded", page.js(STYLESHEETS), sheets)
+        expect_state(page, "azure", opts, label=f"{name}: ")
+        page.eq(f"{name}: the page's option stylesheets follow the switches", page.js(OPTION_SHEETS), opts)
+        page.eq(f"{name}: the page's other stylesheets are as loaded", page.js(OTHER_SHEETS), others)
+        want = "16px" if "fixed-typography" in opts else font
+        page.wait(f"{name}: the root font size is {want}", f"{ROOT_FONT.removeprefix('return ')} === arguments[0]", 3,
+                  args=(want,), got=page.js(ROOT_FONT))
 
 
 # Prism's markup tokens for <link rel="stylesheet" href="...">, as build.mjs writes them and picker.js
@@ -203,13 +218,14 @@ TOKEN_LISTS = TOKENS + CODES + "return Object.fromEntries(Object.entries({cdn, c
 
 def expected_tokens(initial_template, color, options):
     """The three samples' tokens: cdn and combine are link lines only; the template keeps the
-    load-time tokens of its other lines, with femto's link line replaced by the links' lines."""
+    load-time tokens of its other lines, with the load-time switches' link lines (femto's, then
+    responsive spacings') replaced by the links' lines."""
     fs = files(color, options)
-    femto = link_tokens(CDN + "dist/femto.min.css")
+    loaded = lines_tokens([CDN + f for f in files("azure", DEFAULT)], "    ")
     t = initial_template
-    i = next(k for k in range(len(t)) if t[k:k + len(femto)] == femto)
+    i = next(k for k in range(len(t)) if t[k:k + len(loaded)] == loaded)
     return {"cdn": lines_tokens([CDN + f for f in fs] + [STYLESHEET]), "combine": lines_tokens([combine_href(fs)]),
-            "template": t[:i] + lines_tokens([CDN + f for f in fs], "    ") + t[i + len(femto):]}
+            "template": t[:i] + lines_tokens([CDN + f for f in fs], "    ") + t[i + len(loaded):]}
 
 
 @check("picker-code-highlight", PICKER, layouts=ONLY, layout_reason=REWORKED)
@@ -219,13 +235,14 @@ def picker_code_highlight(page):
     tokens for their <link> lines (the model link_tokens: punctuation, tag, attr-name, attr-equals and
     attr-value spans, a line break and an indent span between lines) and the template holds femto's
     link line's tokens; after option changes and swaps (all options; jade with all options; jade with
-    fixed-typography; azure with none) every sample is exactly the model again, the template's other
-    lines keeping their load-time tokens, and azure with no options gives the load-time tokens."""
+    fixed-typography; azure with none; azure with the load-time responsive spacings) every sample is
+    exactly the model again, the template's other lines keeping their load-time tokens, and the last
+    gives the load-time tokens."""
     initial = page.js(TOKEN_LISTS)
-    want = expected_tokens(initial["template"], "azure", [])
+    want = expected_tokens(initial["template"], "azure", DEFAULT)
     for k in ("cdn", "combine", "template"):
         page.eq(f"on load: {k} tokens are Prism's", initial[k], want[k])
-    steps = [("azure", OPTIONS), ("jade", OPTIONS), ("jade", ["fixed-typography"]), ("azure", [])]
+    steps = [("azure", OPTIONS), ("jade", OPTIONS), ("jade", ["fixed-typography"]), ("azure", []), ("azure", DEFAULT)]
     color = "azure"
     for c, opts in steps:
         choose(page, opts)
@@ -237,7 +254,7 @@ def picker_code_highlight(page):
         got, want = page.js(TOKEN_LISTS), expected_tokens(initial["template"], c, opts)
         for k in ("cdn", "combine", "template"):
             page.eq(f"{c}, {opts or 'no options'}: {k} tokens", got[k], want[k])
-    page.eq("azure, no options: the load-time tokens", page.js(TOKEN_LISTS), initial)
+    page.eq("azure, responsive spacings: the load-time tokens", page.js(TOKEN_LISTS), initial)
 
 
 def swatch(color):
@@ -349,7 +366,8 @@ def picker_swatch(page):
     page.eq("reload: the URL keeps ?theme=jade", page.url(), url)
     page.eq("reload: jade is the page's theme stylesheet", page.js(THEME_LINKS), ["jade"])
     expect_state(page, "jade", chosen(page), label="reload: the samples follow the switches as restored: ")
-    choose(page, [])
+    page.eq("reload: the page's option stylesheets follow the switches as restored", page.js(OPTION_SHEETS), chosen(page))
+    choose(page, DEFAULT)
     # Back where the swaps started: the side nav's current link follows the scroll position, and a
     # switch's own scroll into view can leave the picker's heading under the line.
     page.scroll_to(y)

@@ -5,7 +5,7 @@
 </hgroup>
 <section>
   <h2>Theme color</h2>
-  <p>Choose one of femto's 20 <a href="/docs#themes">theme colors</a>. This page switches to it, and its address keeps it for a reload or a shared link.</p>
+  <p>Choose one of femto's 20 <a href="/docs#themes">theme&nbsp;colors</a>.</p>
   <article class="color-picker component" aria-label="Theme example" data-version-picker>
     <header>
       <a class="femto-background-red" aria-label="Red" href="/docs?theme=red#theme-picker"></a>
@@ -45,10 +45,10 @@
 </section>
 <section data-picker-options>
   <h2>Options</h2>
-  <p>Each <a href="/docs#options">option</a> is one more file, loaded after the theme. The switches change the code below, not this page, which always loads <code>responsive-spacings.css</code>.</p>
+  <p>Each <a href="/docs#options">option</a> is one more file, loaded after the theme. The switches apply it to this page and add it to the code below. These docs start with responsive spacings&nbsp;on.</p>
   <fieldset>
-    <legend>Add to the code below</legend>
-    <label><input type="checkbox" role="switch" name="responsive-spacings" aria-describedby="picker-responsive-spacings-note"> Responsive spacings</label>
+    <legend>Apply to this page and the code below</legend>
+    <label><input type="checkbox" role="switch" name="responsive-spacings" checked aria-describedby="picker-responsive-spacings-note"> Responsive spacings</label>
     <small id="picker-responsive-spacings-note">More spacing at each breakpoint for the page's header, main and footer, sections and cards.</small>
     <label><input type="checkbox" role="switch" name="fixed-typography" aria-describedby="picker-fixed-typography-note"> Fixed typography</label>
     <small id="picker-fixed-typography-note">The root font size stays at 100% at every width.</small>
@@ -60,13 +60,14 @@
   <h2>Links to copy</h2>
   <p>Link these in the <code>&lt;head&gt;</code> of your page, in this order: femto, the theme, the options, then your own stylesheets. Azure is built in, so it needs no theme file.</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/options/responsive-spacings.css"&gt;
 &lt;link rel="stylesheet" href="styles.css"&gt;</code></pre></div>
   <p>Until 3.0.0 is released, write <code>@{{version}}</code> or <code>@alpha</code> in place of <code>@3</code> (see <a href="/docs#quick-start">Quick start</a>).</p>
 </section>
 <section data-picker-usage="combine">
   <h2>One request</h2>
   <p>The same files in one request, as a jsDelivr <a href="/docs#themes">combine URL</a>; with azure and no options, it is femto's plain link:</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@leoherzog/femto@3/dist/femto.min.css,npm/@leoherzog/femto@3/css/options/responsive-spacings.css"&gt;</code></pre></div>
 </section>
 <section data-picker-usage="template">
   <h2>Starter template</h2>
@@ -77,6 +78,7 @@
     &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
     &lt;meta name="color-scheme" content="light dark"&gt;
     &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/options/responsive-spacings.css"&gt;
     &lt;title&gt;Hello, world!&lt;/title&gt;
   &lt;/head&gt;
   &lt;body&gt;

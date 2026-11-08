@@ -10,6 +10,8 @@
 // - combine: the same femto files in one jsDelivr combine URL, or femto's own link when it is the
 //   only file (azure, no options);
 // - template: femto's starter template, its femto <link> followed by the theme's and the options'.
+// The section file writes the samples as azure with the switches checked in its markup (responsive
+// spacings), the state a fresh load shows, so a fresh load rewrites nothing and shifts nothing.
 // The samples keep the spans build.mjs writes (step 4: Prism's markup tokens, flattened and split
 // at newlines): each <link> tag is written as those spans, and the template's other lines keep the
 // spans the build gave them. The package and its version range (@leoherzog/femto@3) are read from
@@ -30,7 +32,10 @@
 //   options and the example form keep their state. If the stylesheet fails to load, the browser
 //   loads the swatch's URL. Back and forward to an entry of this document with another ?theme= show
 //   that entry's color.
-// - The option switches change only the samples: the page always loads responsive-spacings.css.
+// - The option switches apply to the page and the samples alike: a checked switch's femto option
+//   stylesheet (css/options/<option>.css) is linked, and an unchecked one's link is removed. The page
+//   loads responsive-spacings.css, so that switch is checked in the markup. A reload or a return to
+//   the page can restore other states, which the page follows on load.
 // - Every change of color also animates the header logo for 1 s (class "animated" on its svg).
 // - The page's title, description, canonical and og:url stay the docs page's (Decision 9); docs.js
 //   sets document.title for the section being read. site.js cancels the example form's submit.
@@ -155,10 +160,12 @@ function picker(article) {
   if (!current || !check || !heading || !sentence || !form || switches.some((input) => !input)
     || Object.values(codes).some((code) => !code) || !pkg) return;
 
-  // The template's lines other than its femto <link> keep the spans the build gave them.
-  const femtoTag = linkTag(fileUrl(pkg, "dist/femto.min.css"));
+  // The template's lines other than its <link>s keep the spans the build gave them. Its <link>s are
+  // the markup's state: azure, with the switches its markup checks.
+  const defaults = OPTIONS.filter((option, i) => switches[i].defaultChecked);
+  const builtTags = linksHtml(filesOf(colorOf(current), defaults).map((file) => fileUrl(pkg, file)), "    ");
   const template = codes.template.innerHTML;
-  if (!template.includes(femtoTag)) return;
+  if (!template.includes(builtTags)) return;
   const rendered = Object.fromEntries(Object.entries(codes).map(([name, code]) => [name, code.innerHTML]));
   const write = (name, html) => {
     if (rendered[name] === html) return;
@@ -174,11 +181,13 @@ function picker(article) {
     const urls = filesOf(color, chosen()).map((file) => fileUrl(pkg, file));
     write("cdn", linksHtml([...urls, STYLESHEET]));
     write("combine", linksHtml([combineUrl(pkg, filesOf(color, chosen()))]));
-    write("template", template.replace(femtoTag, () => linksHtml(urls, "    ")));
+    write("template", template.replace(builtTags, () => linksHtml(urls, "    ")));
   }
 
   optionsPart.addEventListener("change", (event) => {
-    if (switches.includes(event.target)) render();
+    if (!switches.includes(event.target)) return;
+    render();
+    applyOptions();
   });
 
   // The example form's links to the page itself: they carry the color's page. (The code blocks' copy
@@ -212,6 +221,32 @@ function picker(article) {
   const colorsSheet = document.querySelector("link[rel=stylesheet][href$='/femto.colors.min.css']");
   const themes = `${colorsSheet?.getAttribute("href").replace(/dist\/femto\.colors\.min\.css$/, "")}css/themes/`;
   let sheet = document.querySelector("link[rel=stylesheet][href*='/css/themes/']");
+
+  // The option stylesheets: femto's css/options/<option>.css, one <link> per checked switch. A new
+  // one goes after the option before it, else after the theme stylesheet, else after
+  // femto.colors.min.css: no option changes a token a theme sets, so only the options' own order
+  // matters.
+  const optionsDir = themes.replace(/themes\/$/, "options/");
+  const optionSheets = OPTIONS.map((option) =>
+    document.querySelector(`link[rel=stylesheet][href="${optionsDir}${option}.css"]`));
+  function applyOptions() {
+    let previous = null;
+    OPTIONS.forEach((option, i) => {
+      if (switches[i].checked) {
+        if (!optionSheets[i]) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = `${optionsDir}${option}.css`;
+          (previous ?? sheet ?? colorsSheet).after(link);
+          optionSheets[i] = link;
+        }
+        previous = optionSheets[i];
+      } else if (optionSheets[i]) {
+        optionSheets[i].remove();
+        optionSheets[i] = null;
+      }
+    });
+  }
   let swaps = 0;
   let target = color; // the color the newest swap shows
 
@@ -283,6 +318,7 @@ function picker(article) {
   // section.
   const start = location.pathname === "/docs" ? colorOfQuery(location.search, colors) : "azure";
   target = start;
+  applyOptions();
   if (start !== color) show(start, false);
   else render();
 }
