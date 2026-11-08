@@ -1,8 +1,19 @@
 <hgroup>
   <p class="chapter">Getting started</p>
   <h1 id="quick-start">Quick start</h1>
-  <p>Link femto from a CDN, a download or npm, and plain HTML looks clean and readable.</p>
+  <p>femto builds on <a rel="noopener noreferrer" href="https://picocss.com" target="_blank">Pico CSS</a> to make beautiful websites easy. It styles <a rel="noopener noreferrer" href="https://web.dev/learn/html/semantic-html/" target="_blank">semantic HTML</a> with an extensible design system, so your code stays readable, accessible and search-friendly.</p>
 </hgroup>
+<section>
+  <p>Compared to Pico CSS, femto:</p>
+  <ul>
+    <li>Uses plain CSS, with modules joined by <code>@import</code>, instead of Sass</li>
+    <li>Uses CSS variables for <a href="/docs#themes">theme colors</a>, one small file per color, instead of a compiled copy of the library for each</li>
+    <li>Uses add-on files instead of Sass variables for its <a href="/docs#options">options</a></li>
+    <li>Uses CSS's <a rel="noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/light-dark" target="_blank"><code>light-dark()</code></a> for the light and dark color schemes</li>
+    <li>Drops the rarely used classless, fluid classless and conditional builds</li>
+  </ul>
+  <p>For every change, see <a href="/docs#migration">Migrating from Pico</a>.</p>
+</section>
 <section>
   <p>The <code>@3</code> links and commands in these docs work once 3.0.0 is released, since jsDelivr and npm skip prereleases for <code>@3</code>. Until then, load the alpha by its version, or write <code>@alpha</code> in place of <code>@3</code>:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@{{version}}/dist/femto.min.css"&gt;</code></pre></div>

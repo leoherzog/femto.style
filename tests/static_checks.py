@@ -244,6 +244,7 @@ PICO_ALLOWED = (
     "README.md",
     "site/partials/footer.html",
     "site/docs/sections/migration.html",
+    "site/docs/sections/quick-start.html",  # its intro credits Pico CSS (the owner, 2026-11-08)
 )
 # femto's own files, which criterion 12 pins to its commit: its LICENSE.md and the MIT banners in its
 # CSS keep Pico's copyright line (from 74e65f6e on).

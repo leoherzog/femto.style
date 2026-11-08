@@ -187,7 +187,8 @@ Each criterion is checked mechanically, and the final report gives the evidence 
     - `LICENSE.md` and `README.md`;
     - `site/partials/footer.html` (the CC BY-SA attribution);
     - anything under `site/vendor/femto/`: femto's own files, pinned by criterion 12, whose `LICENSE.md` and stylesheet banners keep Pico's copyright line as its MIT license requires;
-    - `site/docs/sections/migration.html`.
+    - `site/docs/sections/migration.html`;
+    - `site/docs/sections/quick-start.html`, whose intro credits Pico CSS (the owner, 2026-11-08).
 15. **Performance.**
     - Every page loads only same-origin resources.
     - The only render-blocking scripts are the two inline head scripts: the `?theme=` script, then the color-scheme script (Decisions 8 and 14).

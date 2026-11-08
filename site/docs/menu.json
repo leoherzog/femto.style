@@ -1,13 +1,12 @@
 {
-  "about": "The docs sections in menu order (PLAN.md File tree; ids from docs/research/02 §1, and the sections Phase 4 adds from docs/research/04 §1). build.mjs assembles them into the one docs page, docs.html, and generates its side nav from this file: each category is a <details> in the nav, and each section a link to #<id> (build.mjs header comment, step 3). Per section: id, the section's id, which its file site/docs/sections/<id>.html puts on its hgroup's h1; title, that h1's text; description, the sentence of its hgroup's <p> as plain text; and label, its nav link as HTML, only where that is not the title. The migration section has no title or description here: both hold the name criterion 14 allows only in that section's own file, so its nav link takes the content of the file's h1 (build.mjs, step 3).",
+  "about": "The docs sections in menu order (PLAN.md File tree; ids from docs/research/02 §1, and the sections Phase 4 adds from docs/research/04 §1). build.mjs assembles them into the one docs page, docs.html, and generates its side nav from this file: each category is a <details> in the nav, and each section a link to #<id> (build.mjs header comment, step 3). Per section: id, the section's id, which its file site/docs/sections/<id>.html puts on its hgroup's h1; title, that h1's text; description, the sentence of its hgroup's <p> as plain text; and label, its nav link as HTML, only where that is not the title. The migration section has no title or description here: both hold the name criterion 14 allows only in that section's own file, so its nav link takes the content of the file's h1 (build.mjs, step 3). Quick start has no description for the same reason: its hgroup's <p> credits the project femto builds on, by that same name (the owner, 2026-11-08).",
   "categories": [
     {
       "title": "Getting started",
       "sections": [
         {
           "id": "quick-start",
-          "title": "Quick start",
-          "description": "Link femto from a CDN, a download or npm, and plain HTML looks clean and readable."
+          "title": "Quick start"
         },
         {
           "id": "theme-picker",
