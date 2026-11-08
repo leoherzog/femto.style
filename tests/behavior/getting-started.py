@@ -273,8 +273,10 @@ return {article: tree(article), cdn: tree(cdn), combine: tree(combine), template
         themes: (() => { """ + THEME_LINKS + """ })(),
         url: location.pathname + location.search + location.hash, history: history.length, y: Math.round(scrollY)};
 """
-NAMES = ["Red", "Pink", "Fuchsia", "Purple", "Violet", "Indigo", "Blue", "Azure", "Cyan", "Jade", "Green", "Lime", "Yellow",
-         "Amber", "Pumpkin", "Orange", "Sand", "Grey", "Zinc", "Slate"]
+# The swatches' labels in order: rainbow order (ROYGBIV) by hue, then the neutrals from lightest to
+# darkest (the owner, 2026-11-08; the oracle's ran from red through pink and blue to orange).
+NAMES = ["Red", "Orange", "Pumpkin", "Amber", "Yellow", "Lime", "Green", "Jade", "Cyan", "Azure", "Blue", "Indigo",
+         "Violet", "Purple", "Fuchsia", "Pink", "Sand", "Grey", "Zinc", "Slate"]
 
 
 def picker_snapshot(page):
@@ -396,18 +398,19 @@ def picker_logo(page):
 def picker_swatch_focus(page):
     """Keyboard use of the swatches: with pumpkin's swatch focused, Enter swaps to pumpkin (the
     route /docs/version-picker/pumpkin, or ?theme=pumpkin on the one page) and focus stays on that
-    swatch; Tab then moves focus to the next swatch, orange's, and Enter on it swaps to orange with
-    focus on it."""
+    swatch; Tab then moves focus to the next swatch (amber's on the one page, whose swatches are in
+    rainbow order; orange's on routes) and Enter on it swaps to that color with focus on it."""
+    after = "orange" if page.layout == "routes" else "amber"
     page.focus(swatch("pumpkin"))
     page.key("ENTER")
     swapped(page, "pumpkin", "pumpkin")
     focused = "document.activeElement === document.querySelector(arguments[0])"
     page.wait("focus stays on pumpkin's swatch", focused, 1, args=(swatch("pumpkin"),))
     page.key("TAB")
-    page.wait("Tab moves focus to orange's swatch", focused, 1, args=(swatch("orange"),))
+    page.wait(f"Tab moves focus to {after}'s swatch", focused, 1, args=(swatch(after),))
     page.key("ENTER")
-    swapped(page, "orange", "orange")
-    page.wait("focus stays on orange's swatch", focused, 1, args=(swatch("orange"),))
+    swapped(page, after, after)
+    page.wait(f"focus stays on {after}'s swatch", focused, 1, args=(swatch(after),))
 
 
 CURRENT_SWATCH = "S.querySelector('article.color-picker > header a[aria-current=page]').className"
