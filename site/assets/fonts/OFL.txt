@@ -1,8 +1,5 @@
 The fonts in this folder are licensed under the SIL Open Font License, Version 1.1.
 
-figtree-*.woff2: Figtree 700, normal and italic (from @fontsource/figtree 5.2.5).
-Copyright 2022 The Figtree Project Authors (https://github.com/erikdkennedy/figtree)
-
 fira-code-*.woff2: Fira Code 400 (from @fontsource/fira-code 5.2.5).
 Copyright 2014-2020 The Fira Code Project Authors (https://github.com/tonsky/FiraCode)
 

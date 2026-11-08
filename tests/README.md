@@ -3935,14 +3935,15 @@ empty side nav and an empty `#content`. `/sitemap.xml` and the palette JSON answ
 5. **Web Analytics** (verify-repo-1, verify-content-c-2). The owner keeps the zone's, as criterion
    15's exception (2026-11-08). Its automatic setup, in Analytics & Logs > Web Analytics > the
    `femto.style` site, stays on: for every request that sends `Accept: text/html` it injects a
-   module script from `static.cloudflareinsights.com` that reports to
-   `cloudflareinsights.com/cdn-cgi/rum`. The Pages project's own Web Analytics, in Workers & Pages >
-   `femto-style` > Metrics, stays off. It injected a second beacon on both hosts, and with both on
-   `femto.style`'s console showed CORS errors for the reports, while `femto-style.pages.dev`, with
-   it alone, showed none. The owner turned it off on 2026-11-08; it leaves a page once the next
-   deploy serves it. Recheck: `curl -sS -H 'Accept: text/html' https://femto.style/docs | grep -o
-   data-cf-beacon | wc -l` prints 1, the same for `https://femto-style.pages.dev/docs` prints 0,
-   and the console on `https://femto.style/` shows no CORS error.
+   module script from `static.cloudflareinsights.com`, which reports to the same origin's
+   `/cdn-cgi/rum`. The Pages project's own Web Analytics, in Workers & Pages > `femto-style` >
+   Metrics, stays off. It injected a second beacon on both hosts, and with both on `femto.style`'s
+   console showed CORS errors for that beacon's reports to `cloudflareinsights.com/cdn-cgi/rum`.
+   The owner turned it off on 2026-11-08. Recheck: `curl -sS -H 'Accept: text/html'
+   https://femto.style/docs | grep -o data-cf-beacon | wc -l` prints 1, and the same for
+   `https://femto-style.pages.dev/docs` prints 0. In a browser, `femto.style`'s POSTs to
+   `/cdn-cgi/rum` answer 204 and the console shows no CORS error. All of this held after the
+   `f24c627` deploy (2026-11-08).
 6. **Speed Brain** adds a `speculation-rules: "/cdn-cgi/speculation"` header on `femto.style`,
    same-origin and conservative prefetch: harmless, no step (verify-repo-1).
 

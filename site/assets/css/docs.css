@@ -500,7 +500,6 @@ main > [role=document] > section > hgroup p.chapter {
 
 main > [role=document] > section > hgroup h1 {
   margin-bottom: calc(var(--femto-spacing) * 0.5);
-  font-family: "Figtree", var(--femto-font-family);
 }
 
 @media (min-width: 576px) {

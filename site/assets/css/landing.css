@@ -630,15 +630,6 @@ body > main.examples > .examples-hero {
  */
 
 /* Typography */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: Figtree, var(--femto-font-family);
-}
-
 @media (min-width: 576px) {
   h1 {
     --femto-font-size: 2.5rem;
