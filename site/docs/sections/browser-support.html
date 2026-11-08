@@ -1,5 +1,5 @@
 <hgroup>
-  <p class="chapter">Getting started</p>
+  <p class="chapter">Reference</p>
   <h1 id="browser-support">Browser support</h1>
   <p>femto targets Baseline Widely Available on its release date: Chrome and Edge 125, Firefox 128, Safari 17.5 and Samsung Internet 27.</p>
 </hgroup>
@@ -33,7 +33,7 @@
       </tbody>
     </table>
   </div>
-  <p>Each minimum version is at or above what Baseline Widely Available maps to on 2026-11-13, Safari 17.5 being the first Safari with <code>light-dark()</code>. femto's parity tests run in recent Chrome, Firefox and Safari, not in these versions.</p>
+  <p>Each is at or above what Baseline Widely Available maps to on 2026-11-13; Safari 17.5 is the first Safari with <code>light-dark()</code>. femto is tested in recent Chrome, Firefox and Safari, not in these versions.</p>
 </section>
 <section>
   <h2>Prefixed and ignored features</h2>
@@ -47,12 +47,11 @@
 </section>
 <section>
   <h2>How femto checks its CSS</h2>
-  <p>In femto's repository, <code>npm run lint</code> runs the <code>use-baseline</code> rule of @eslint/css over every file in <code>css/</code>, with the Baseline data of web-features 3.42.0 from October 2026. It checks property names, at-rule names, <code>@media</code> features, pseudo-classes and pseudo-elements, and the keywords, functions and units of ordinary declarations.</p>
-  <p>It does not check custom property values, which is where <code>light-dark()</code> and the font stacks live, values nested inside other functions, vendor-prefixed names or browser versions. Its exceptions are listed and explained in <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/eslint.config.mjs" target="_blank"><code>eslint.config.mjs</code></a>.</p>
+  <p>femto's lint (<code>npm run lint</code>) checks every file in <code>css/</code> against Baseline, with the <code>use-baseline</code> rule of @eslint/css and web-features 3.42.0 (October 2026). It does not check custom property values, where <code>light-dark()</code> and the font stacks live, values nested inside other functions, vendor-prefixed names or browser versions. Its exceptions are explained in <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/eslint.config.mjs" target="_blank"><code>eslint.config.mjs</code></a>.</p>
 </section>
 <section>
   <h2>Older browsers</h2>
-  <p>Browsers without <code>light-dark()</code>, which means Chrome and Edge before 123, Firefox before 120, Safari before 17.5 and Samsung Internet before 27, do not get a plainer femto: they get a broken one. Every color token whose light and dark values differ fails where it is used, so form fields lose their borders and backgrounds and some button labels disappear.</p>
+  <p>Browsers without <code>light-dark()</code> (Chrome and Edge before 123, Firefox before 120, Safari before 17.5 and Samsung Internet before 27) get a broken femto, not a plainer one. Every color token whose light and dark values differ fails, so form fields lose their borders and backgrounds and some button labels disappear.</p>
   <p>Tools that rewrite <code>light-dark()</code> for those browsers cause a narrower break in supported ones: <code>data-theme</code> on an element stops changing its colors. To keep a bundler from doing that, set its CSS targets as <a href="/docs#quick-start">Quick start</a> shows under npm.</p>
 </section>
 <section class="edit-on-github">

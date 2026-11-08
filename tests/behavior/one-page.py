@@ -282,8 +282,9 @@ def spy_scroll(page):
     from the top, a jump so Grid's heading is 40 px above its line makes the nav mark #grid and the
     title "Grid • femto" at once, and the URL /docs#grid by replaceState (no new history entry)
     180 ms or more after the jump. Back at the top the URL is plain /docs (no hash), the title the
-    page's own ("Documentation • femto") and the nav marks #quick-start. At the very bottom the short
-    last section is current: the URL is /docs#tooltip and the nav marks #tooltip."""
+    page's own ("Documentation • femto") and the nav marks #quick-start. At the very bottom the
+    last section in menu.json is current: the URL is /docs#<its id>, the nav marks it and the
+    title is its h1's."""
     s0 = state(page)
     page.eq("plain /docs at the top", s0["url"], "/docs")
     page.js(TRACK)
@@ -303,9 +304,11 @@ def spy_scroll(page):
     page.eq("top: the page's own title", s["title"], PAGE_TITLE)
     page.eq("top: no new history entry", s["history"], s0["history"])
     page.scroll_to(page.js("return document.documentElement.scrollHeight"))
-    wait_current(page, "tooltip", "bottom")
-    wait_url(page, "/docs#tooltip", "bottom")
-    page.eq("bottom: the title is Tooltip's", state(page)["title"], "Tooltip" + SUFFIX)
+    last = MENU_IDS[-1]
+    wait_current(page, last, "bottom")
+    wait_url(page, f"/docs#{last}", "bottom")
+    h1 = page.js("return document.getElementById(arguments[0]).textContent.trim()", last)
+    page.eq(f"bottom: the title is {h1}'s", state(page)["title"], h1 + SUFFIX)
 
 
 FAST_SCROLL = """
@@ -327,14 +330,14 @@ return {height, steps, scrollMs, replace: __bhTrack.replace, url: location.pathn
 @check("spy-fast-scroll", "/docs", layouts=ONLY, layout_reason=WHY)
 def spy_fast_scroll(page):
     """A fast scroll from the top to the bottom, 200 px every 16 ms in the page, makes at most 3
-    replaceState calls (the URL is written 200 ms after scrolling last moved) and ends on
-    /docs#tooltip with the nav marking #tooltip."""
+    replaceState calls (the URL is written 200 ms after scrolling last moved) and ends on the last
+    section in menu.json, /docs#<its id>, with the nav marking it."""
     page.js(TRACK)
     r = page.ajs(FAST_SCROLL)
     page.note(f"{r['steps']} steps over {r['scrollMs']} ms, {len(r['replace'])} replaceState calls")
     page.expect("at most 3 replaceState calls", len(r["replace"]) <= 3, **r)
-    wait_url(page, "/docs#tooltip", "the end")
-    wait_current(page, "tooltip", "the end")
+    wait_url(page, f"/docs#{MENU_IDS[-1]}", "the end")
+    wait_current(page, MENU_IDS[-1], "the end")
 
 
 @check("spy-categories", "/docs", layouts=ONLY, layout_reason=WHY)
@@ -387,9 +390,11 @@ def spy_categories(page):
 def spy_chapter_small(page):
     """At 375 x 812, where the breadcrumb shows (sticky, its chapter the current category), the
     chapter follows the spy as the reader scrolls: Customization at Colors, Layout at Grid, Content
-    at Table, Forms at Radios, Components at Modal, and Getting started back at the top."""
+    at Table, Forms at Radios, Components at Modal, Advanced at Cascade layer, Reference at Browser
+    support, and Getting started back at the top."""
     for sid, category in (("colors", "Customization"), ("grid", "Layout"), ("table", "Content"), ("radios", "Forms"),
-                          ("modal", "Components"), ("quick-start", "Getting started")):
+                          ("modal", "Components"), ("cascade-layer", "Advanced"), ("browser-support", "Reference"),
+                          ("quick-start", "Getting started")):
         if sid == "quick-start":
             page.scroll_to(0)
         else:

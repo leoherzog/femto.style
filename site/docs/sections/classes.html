@@ -1,10 +1,10 @@
 <hgroup>
-  <p class="chapter">Getting started</p>
+  <p class="chapter">Reference</p>
   <h1 id="classes">Classes and attributes</h1>
   <p>Most of femto works from the elements alone; these are the classes and attributes it also reads.</p>
 </hgroup>
 <section>
-  <p>Link femto and plain HTML is styled: headings, text, links, buttons, forms, tables, cards (<code>&lt;article&gt;</code>), accordions (<code>&lt;details&gt;</code>) and modals (<code>&lt;dialog&gt;</code>) need no classes. A few classes and attributes cover what HTML has no element for. Most rows link to the section that shows them in full.</p>
+  <p>Headings, text, links, buttons, forms, tables, cards (<code>&lt;article&gt;</code>), accordions (<code>&lt;details&gt;</code>) and modals (<code>&lt;dialog&gt;</code>) need no classes. The classes and attributes below cover what HTML has no element for.</p>
 </section>
 <section>
   <h2>Layout</h2>
@@ -59,28 +59,6 @@
       </tbody>
     </table>
   </div>
-  <article aria-label="Button and link classes example" class="component">
-    <p>
-      <button type="button">Primary</button>
-      <button type="button" class="secondary">Secondary</button>
-      <button type="button" class="contrast">Contrast</button>
-      <button type="button" class="outline">Outline</button>
-      <a href="/docs#classes" role="button">A link as a button</a>
-    </p>
-    <p><a href="/docs#classes" class="secondary">A secondary link</a> and <a href="/docs#classes" class="contrast">a contrast link</a></p>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;
-  &lt;button type="button"&gt;Primary&lt;/button&gt;
-  &lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
-  &lt;button type="button" class="contrast"&gt;Contrast&lt;/button&gt;
-  &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt;
-  &lt;a href="#" role="button"&gt;A link as a button&lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;
-  &lt;a href="#" class="secondary"&gt;A secondary link&lt;/a&gt; and
-  &lt;a href="#" class="contrast"&gt;a contrast link&lt;/a&gt;
-&lt;/p&gt;</code></pre></footer>
-  </article>
 </section>
 <section>
   <h2>Tables</h2>
@@ -158,7 +136,7 @@
         </tr>
         <tr>
           <td><code>aria-invalid="true"</code> or <code>"false"</code> on a form field</td>
-          <td>Invalid or valid border colors, an icon in most text fields, and a matching color on a <code>&lt;small&gt;</code> right after the field. See <a href="/docs#input">Input</a>.</td>
+          <td>Invalid or valid colors on the field and its helper text. See <a href="/docs#input">Input</a>.</td>
         </tr>
         <tr>
           <td><code>role="group"</code>, <code>role="search"</code></td>
@@ -167,35 +145,6 @@
       </tbody>
     </table>
   </div>
-  <article aria-label="Form attributes example" class="component">
-    <div>
-      <label for="classes-name">Name</label>
-      <input type="text" id="classes-name" name="name" value="Ada Lovelace" autocomplete="name" aria-invalid="false" aria-describedby="classes-name-helper">
-      <small id="classes-name-helper">Looks good.</small>
-      <label for="classes-email">Email</label>
-      <input type="email" id="classes-email" name="email" value="ada" autocomplete="email" aria-invalid="true" aria-describedby="classes-email-helper">
-      <small id="classes-email-helper">Enter a full email address.</small>
-      <label><input type="checkbox" role="switch" name="updates" checked> Send me updates</label>
-    </div>
-    <form role="search" aria-label="Example search">
-      <input type="search" name="search" placeholder="Search" aria-label="Search">
-      <input type="submit" value="Search">
-    </form>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;label for="name"&gt;Name&lt;/label&gt;
-&lt;input type="text" id="name" name="name" value="Ada Lovelace" autocomplete="name" aria-invalid="false" aria-describedby="name-helper"&gt;
-&lt;small id="name-helper"&gt;Looks good.&lt;/small&gt;
-
-&lt;label for="email"&gt;Email&lt;/label&gt;
-&lt;input type="email" id="email" name="email" value="ada" autocomplete="email" aria-invalid="true" aria-describedby="email-helper"&gt;
-&lt;small id="email-helper"&gt;Enter a full email address.&lt;/small&gt;
-
-&lt;label&gt;&lt;input type="checkbox" role="switch" name="updates" checked&gt; Send me updates&lt;/label&gt;
-
-&lt;form role="search" aria-label="Example search"&gt;
-  &lt;input type="search" name="search" placeholder="Search" aria-label="Search"&gt;
-  &lt;input type="submit" value="Search"&gt;
-&lt;/form&gt;</code></pre></footer>
-  </article>
 </section>
 <section>
   <h2>Components</h2>
@@ -223,15 +172,15 @@
         </tr>
         <tr>
           <td><code>data-tooltip</code>, <code>data-placement</code></td>
-          <td>A tooltip with that text, above the element or where <code>data-placement</code> (<code>top</code>, <code>bottom</code>, <code>left</code>, <code>right</code>) puts it. A switch shows none, since its <code>::before</code> is its thumb, so put the tooltip on the switch's <code>&lt;label&gt;</code>. See <a href="/docs#tooltip">Tooltip</a>.</td>
+          <td>A tooltip with that text; <code>data-placement</code> sets its side. See <a href="/docs#tooltip">Tooltip</a>.</td>
         </tr>
         <tr>
           <td><code>&lt;dialog&gt;</code> holding an <code>&lt;article&gt;</code></td>
-          <td>A modal. The <code>.modal-is-open</code>, <code>.modal-is-opening</code> and <code>.modal-is-closing</code> classes, which your script sets on <code>&lt;html&gt;</code>, lock scrolling and run the opening and closing animations. To keep the page from shifting when <code>.modal-is-open</code> hides the scrollbar, your script can also set <code>--femto-scrollbar-width</code> on <code>&lt;html&gt;</code> to the scrollbar's width. See <a href="/docs#modal">Modal</a>.</td>
+          <td>A modal; your script sets its opening and closing classes on <code>&lt;html&gt;</code>. See <a href="/docs#modal">Modal</a>.</td>
         </tr>
         <tr>
           <td><code>.close</code>, or <code>rel="prev"</code> on a link or button, in a modal's <code>&lt;article&gt;</code></td>
-          <td>A close button: an × icon at the top right (top left in right-to-left text), in the header if there is one. See <a href="/docs#modal">Modal</a>.</td>
+          <td>A close button for the modal. See <a href="/docs#modal">Modal</a>.</td>
         </tr>
       </tbody>
     </table>
@@ -264,22 +213,6 @@
       </tbody>
     </table>
   </div>
-  <article aria-label="State attributes example" class="component">
-    <p><a href="/docs#classes" aria-current="page">The current page</a> and <a href="/docs#link">another page</a></p>
-    <p><button type="button" disabled>Disabled</button></p>
-    <label aria-disabled="true"><input type="checkbox" name="unavailable" disabled> Not available</label>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;
-  &lt;a href="#" aria-current="page"&gt;The current page&lt;/a&gt; and
-  &lt;a href="#"&gt;another page&lt;/a&gt;
-&lt;/p&gt;
-
-&lt;p&gt;&lt;button type="button" disabled&gt;Disabled&lt;/button&gt;&lt;/p&gt;
-
-&lt;label aria-disabled="true"&gt;
-  &lt;input type="checkbox" name="unavailable" disabled&gt;
-  Not available
-&lt;/label&gt;</code></pre></footer>
-  </article>
 </section>
 <section>
   <h2>Direction</h2>
@@ -294,7 +227,7 @@
       <tbody>
         <tr>
           <td><code>dir="rtl"</code></td>
-          <td>Right-to-left text, with the form field icons, chevrons, breadcrumb separators, group and search corners, progress animation, modal close button and modal footer mirrored. See <a href="/docs#rtl">RTL</a>.</td>
+          <td>Right-to-left text, with femto's directional parts mirrored. See <a href="/docs#rtl">RTL</a>.</td>
         </tr>
       </tbody>
     </table>

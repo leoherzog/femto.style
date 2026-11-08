@@ -1,12 +1,12 @@
 <hgroup>
-  <p class="chapter">Getting started</p>
+  <p class="chapter">Customization</p>
   <h1 id="color-schemes">Color schemes</h1>
   <p>femto has a light and a dark color scheme, which follow the visitor's system setting unless you choose one with <code>data-theme</code>.</p>
 </hgroup>
 <section>
   <p>By default, femto follows the visitor's system setting (<code>prefers-color-scheme</code>) on screen, and prints in the light scheme. To choose a scheme, set <code>data-theme="light"</code> or <code>data-theme="dark"</code> on <code>&lt;html&gt;</code> for the whole page, or on one element for a part of it.</p>
   <div class="code small" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;html lang="en" data-theme="dark"&gt;</code></pre></div>
-  <p>This button sets <code>data-theme</code> on this page's <code>&lt;html&gt;</code>, as the toggle in the header does:</p>
+  <p>This button sets <code>data-theme</code> on this page's <code>&lt;html&gt;</code>:</p>
   <article aria-label="Color scheme switcher" id="theme-switcher">
     <button type="button" class="contrast" data-scheme-switcher><span role="img" aria-hidden="true">☀️</span>Turn on dark mode</button>
   </article>
@@ -48,7 +48,7 @@
   &lt;form&gt;...&lt;/form&gt;
 &lt;/article&gt;</code></pre></footer>
   </article>
-  <p>It does not change the text color the element inherits, which text directly inside it keeps, and it adds no background to an element femto gives none, such as a <code>&lt;section&gt;</code> or a <code>&lt;div&gt;</code>. Where you need them, set <code>color: var(--femto-color)</code> on the element, and <code>background-color: var(--femto-background-color)</code> if femto gives it no background:</p>
+  <p>It does not change the color the element inherits, so text directly inside it keeps that color, and it adds no background to an element femto gives none, such as a <code>&lt;section&gt;</code> or a <code>&lt;div&gt;</code>. Where you need them, set the color on the element yourself, and the background too if femto gives it none:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">section[data-theme] {
   background-color: var(--femto-background-color);
   color: var(--femto-color);
@@ -67,6 +67,7 @@
   --femto-background-color: light-dark(#fffdf7, #101418);
 }</code></pre></div>
   <p><a href="/docs#css-variables">CSS variables</a> links to the files that declare the tokens' defaults.</p>
+  <p>Browsers without <code>light-dark()</code>, and bundlers that rewrite it, break color schemes: see <a href="/docs#browser-support">Browser support</a>.</p>
 </section>
 <section>
   <h2>The color-scheme property</h2>
@@ -74,11 +75,7 @@
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">aside {
   color-scheme: dark;
 }</code></pre></div>
-  <p><code>data-theme</code> is still the way to theme an element: it also switches the form validation icons and the chevron and loading spinner on <code>.contrast</code> buttons, which <code>light-dark()</code> cannot carry.</p>
-</section>
-<section>
-  <h2>Older browsers and bundlers</h2>
-  <p>Color schemes rely on <code>light-dark()</code>, which all of femto's supported browsers have. Browsers without it get a broken femto, and tools that rewrite it stop <code>data-theme</code> from working on an element: see <a href="/docs#browser-support">Browser support</a>, and set a bundler's CSS targets as <a href="/docs#quick-start">Quick start</a> shows under npm.</p>
+  <p><code>data-theme</code> is still the way to theme an element: it also switches the few values, listed above, that <code>light-dark()</code> cannot carry.</p>
 </section>
 <section class="edit-on-github">
   <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/color-schemes.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>

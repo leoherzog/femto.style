@@ -5,7 +5,7 @@
 </hgroup>
 <section>
   <h2>Theme color</h2>
-  <p>Choose one of femto's 20 <a href="/docs#themes">theme colors</a>. This page switches to it, and its address keeps it, so a reload or a shared link shows the same color.</p>
+  <p>Choose one of femto's 20 <a href="/docs#themes">theme colors</a>. This page switches to it, and its address keeps it for a reload or a shared link.</p>
   <article class="color-picker component" aria-label="Theme example" data-version-picker>
     <header>
       <a class="femto-background-red" aria-label="Red" href="/docs?theme=red#theme-picker"></a>
@@ -49,11 +49,11 @@
   <fieldset>
     <legend>Add to the code below</legend>
     <label><input type="checkbox" role="switch" name="responsive-spacings" aria-describedby="picker-responsive-spacings-note"> Responsive spacings</label>
-    <small id="picker-responsive-spacings-note">More vertical spacing at each breakpoint for the page's header, main and footer, sections and cards, and more horizontal spacing for cards.</small>
+    <small id="picker-responsive-spacings-note">More spacing at each breakpoint for the page's header, main and footer, sections and cards.</small>
     <label><input type="checkbox" role="switch" name="fixed-typography" aria-describedby="picker-fixed-typography-note"> Fixed typography</label>
-    <small id="picker-fixed-typography-note">The root font size stays at 100% at every width, instead of stepping up at each breakpoint.</small>
+    <small id="picker-fixed-typography-note">The root font size stays at 100% at every width.</small>
     <label><input type="checkbox" role="switch" name="no-transitions" aria-describedby="picker-no-transitions-note"> No transitions</label>
-    <small id="picker-no-transitions-note">Links, buttons, form fields and components lose their transitions, the modal opens and closes without animating, and tooltips appear without sliding in.</small>
+    <small id="picker-no-transitions-note">Turns off transitions and the modal and tooltip animations; the loading spinner and the indeterminate progress bar still animate.</small>
   </fieldset>
 </section>
 <section data-picker-usage="cdn">
@@ -61,13 +61,12 @@
   <p>Link these in the <code>&lt;head&gt;</code> of your page, in this order: femto, the theme, the options, then your own stylesheets. Azure is built in, so it needs no theme file.</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
 &lt;link rel="stylesheet" href="styles.css"&gt;</code></pre></div>
-  <p>femto 3.0 is in alpha, and links with <code>@3</code> work once 3.0.0 is released. Until then, write <code>@{{version}}</code> or <code>@alpha</code> in place of <code>@3</code>, as <a href="/docs#quick-start">Quick start</a> explains.</p>
+  <p>Until 3.0.0 is released, write <code>@{{version}}</code> or <code>@alpha</code> in place of <code>@3</code> (see <a href="/docs#quick-start">Quick start</a>).</p>
 </section>
 <section data-picker-usage="combine">
   <h2>One request</h2>
-  <p>femto ships no prebuilt themed copies. To fetch femto, the theme and the options in one request, join them in a jsDelivr combine URL. When there is only femto's file to load, as with azure and no options, the code is its plain link.</p>
+  <p>The same files in one request, as a jsDelivr <a href="/docs#themes">combine URL</a>; with azure and no options, it is femto's plain link:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
-  <p>This should work once femto is published, because none of these files has an <code>@import</code> and every <code>url()</code> in them is a <code>data:</code> URI, but it is not yet confirmed.</p>
 </section>
 <section data-picker-usage="template">
   <h2>Starter template</h2>

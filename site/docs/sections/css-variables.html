@@ -4,13 +4,13 @@
   <p>Change femto's fonts, spacing, borders and colors by setting its <code>--femto-*</code> custom properties in your own CSS.</p>
 </hgroup>
 <section>
-  <p>femto reads its settings from custom properties, which these docs call tokens: font families and sizes, line height, spacing, border radius and widths, transitions, and the colors of both color schemes. Every name starts with <code>--femto-</code>, and changing a value needs no build step.</p>
-  <p>Set a token in your own stylesheet, loaded after femto: on <code>:root</code> for the whole page, or on a selector for those elements and what is inside them. Load theme and option files before your stylesheet, right after femto. A theme file sets its tokens on <code>:root, :host</code>, the same specificity as your <code>:root</code>, so a theme loaded after your stylesheet would replace your values.</p>
+  <p>These docs call femto's custom properties tokens. Changing one needs no build step.</p>
+  <p>Set a token in your own stylesheet, loaded after femto: on <code>:root</code> for the whole page, or on a selector for those elements and what is inside them. Load it after any theme and option files, or they can override your values (see <a href="/docs#themes">Themes</a>).</p>
   <p>Some elements set their own values, which an override on <code>:root</code> does not reach. Headings, for example, set their own font size and weight. Set those on the element, as the example below does for <code>h1</code>.</p>
 </section>
 <section>
   <h2>Example</h2>
-  <p>The heading's font, Pacifico, is a web font that this page loads. Load it on your page too, or the heading falls back to a cursive system font.</p>
+  <p>Pacifico is a web font: load it on your page too, or the heading falls back to a cursive system font.</p>
   <article aria-label="CSS variables example" class="component" id="css-var-example">
     <style>
       #css-var-example > h1,
@@ -64,8 +64,7 @@
 </section>
 <section>
   <h2>Tokens and color schemes</h2>
-  <p>Every color token is declared once, on <code>:root, :host</code>, with <code>light-dark()</code> where its light and dark values differ. The visitor's system setting, or <code>data-theme</code>, sets <code>color-scheme</code>, which picks the value in effect (see <a href="/docs#color-schemes">Color schemes</a>).</p>
-  <p>So one override on <code>:root</code> applies in both schemes and inside every <code>data-theme</code> element. Write it with <code>light-dark()</code>, the light value first, to give each scheme its own value:</p>
+  <p>femto declares each color token once, on <code>:root, :host</code>, so one override on <code>:root</code> applies in both schemes and inside every <code>data-theme</code> element (see <a href="/docs#color-schemes">Color schemes</a>). To give each scheme its own value, write it with <code>light-dark()</code>, the light value first:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">:root {
   --femto-text-selection-color: light-dark(rgba(244, 93, 44, 0.25), rgba(245, 107, 61, 0.1875));
   --femto-primary: light-dark(#bd3c13, #f56b3d);
@@ -76,8 +75,8 @@
   --femto-primary-focus: light-dark(rgba(244, 93, 44, 0.5), rgba(245, 107, 61, 0.375));
   --femto-primary-inverse: #fff;
 }</code></pre></div>
-  <p>These are the orange theme's values. To use a theme color, load its file instead; azure, femto's built-in color, needs none (see <a href="/docs#themes">Themes</a>). For a color of your own, copy a theme file and change its values. Its ten tokens include <code>--femto-primary-inverse-filter</code>, the filter for the loading spinner on primary buttons: set it to <code>brightness(0) invert(0)</code> when your <code>--femto-primary-inverse</code> is dark.</p>
-  <p>The form validation icons, <code>--femto-icon-valid</code> and <code>--femto-icon-invalid</code>, are the exception: <code>light-dark()</code> cannot carry an image, so femto sets them per scheme.</p>
+  <p>These are some of the orange theme's values. To change the primary color, load a theme file, or copy one for a color of your own: see <a href="/docs#themes">Themes</a>.</p>
+  <p>The form validation icons, <code>--femto-icon-valid</code> and <code>--femto-icon-invalid</code>, are the only tokens femto sets per scheme instead, since <code>light-dark()</code> cannot carry an image. <a href="/docs#color-schemes">Color schemes</a> lists the other values it switches that way.</p>
   <p>A script that reads a color token with <code>getPropertyValue()</code> gets the <code>light-dark(...)</code> text where the schemes differ. To get the color in effect, set the token on a property, such as <code>color: var(--femto-primary)</code>, and read that property's computed value.</p>
 </section>
 <section>

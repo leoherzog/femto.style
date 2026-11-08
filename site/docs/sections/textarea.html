@@ -13,40 +13,11 @@
 &gt;
 &lt;/textarea&gt;</code></pre></footer>
   </article>
-</section>
-<section>
-  <h2>Disabled textarea</h2>
-  <article aria-label="Disabled textarea example" class="component">
-    <textarea name="disabled" aria-label="Disabled textarea" disabled>Disabled</textarea>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea name="disabled" aria-label="Disabled textarea" disabled&gt;
-  Disabled
-&lt;/textarea&gt;</code></pre></footer>
-  </article>
-</section>
-<section>
-  <h2>Read-only textarea</h2>
-  <article aria-label="Read-only textarea example" class="component">
-    <textarea name="read-only" aria-label="Read-only textarea" readonly>Read-only</textarea>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea name="read-only" aria-label="Read-only textarea" readonly&gt;
-  Read-only
-&lt;/textarea&gt;</code></pre></footer>
-  </article>
+  <p><code>disabled</code> and <code>readonly</code> work as on an <a href="/docs#input">input</a>.</p>
 </section>
 <section>
   <h2>Validation states</h2>
-  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a textarea the invalid or valid border color, and an icon at the top right.</p>
-  <article aria-label="Textarea validation states example" class="component">
-    <textarea name="textarea-valid" placeholder="Valid" aria-label="Valid" aria-invalid="false">Valid</textarea>
-    <textarea name="textarea-invalid" placeholder="Invalid" aria-label="Invalid" aria-invalid="true">Invalid</textarea>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea name="valid" aria-label="Valid" aria-invalid="false"&gt;
-  Valid
-&lt;/textarea&gt;
-
-&lt;textarea name="invalid" aria-label="Invalid" aria-invalid="true"&gt;
-  Invalid
-&lt;/textarea&gt;</code></pre></footer>
-  </article>
-  <p>A <code class="language-html">&lt;small&gt;</code> right after the textarea takes the matching color.</p>
+  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a textarea the invalid or valid border color and an icon at the top right. A <code class="language-html">&lt;small&gt;</code> right after the textarea takes the matching color.</p>
   <article aria-label="Textarea validation states with helper text example" class="component">
     <textarea name="textarea-helper-valid" placeholder="Valid" aria-label="Valid" aria-invalid="false" aria-describedby="textarea-valid-helper">Valid</textarea>
     <small id="textarea-valid-helper">Looks good!</small>

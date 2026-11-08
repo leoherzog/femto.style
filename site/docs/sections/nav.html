@@ -1,5 +1,5 @@
 <hgroup>
-  <p class="chapter">Components</p>
+  <p class="chapter">Layout</p>
   <h1 id="nav">Nav</h1>
   <p><code class="language-html">&lt;nav&gt;</code> lays out its lists in one row, with their links, buttons and form fields lined up.</p>
 </hgroup>
@@ -30,7 +30,7 @@
 </section>
 <section>
   <h2>Link variants</h2>
-  <p><code>.secondary</code> and <code>.contrast</code> color links.</p>
+  <p><code>.secondary</code> and <code>.contrast</code> color links (see <a href="/docs#link">Link</a>).</p>
   <article aria-label="Nav link variants example" class="component">
     <nav aria-label="Nav link variants example" data-nav-example>
       <ul>
@@ -106,49 +106,7 @@
 </section>
 <section>
   <h2>Dropdowns</h2>
-  <p>A <a href="/docs#dropdown">dropdown</a> in a nav item is as wide as its summary.</p>
-  <article aria-label="Nav dropdown example" class="component">
-    <nav aria-label="Nav dropdown example" data-nav-example>
-      <ul>
-        <li><strong>Acme Corp</strong></li>
-      </ul>
-      <ul>
-        <li><a class="secondary" href="/docs">Services</a></li>
-        <li>
-          <details class="dropdown">
-            <summary>Account</summary>
-            <ul dir="rtl">
-              <li><a href="/docs">Profile</a></li>
-              <li><a href="/docs">Settings</a></li>
-              <li><a href="/docs">Security</a></li>
-              <li><a href="/docs">Log out</a></li>
-            </ul>
-          </details>
-        </li>
-      </ul>
-    </nav>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
-  &lt;ul&gt;
-    &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
-  &lt;/ul&gt;
-  &lt;ul&gt;
-    &lt;li&gt;&lt;a href="#" class="secondary"&gt;Services&lt;/a&gt;&lt;/li&gt;
-    &lt;li&gt;
-      &lt;details class="dropdown"&gt;
-        &lt;summary&gt;
-          Account
-        &lt;/summary&gt;
-        &lt;ul dir="rtl"&gt;
-          &lt;li&gt;&lt;a href="#"&gt;Profile&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href="#"&gt;Settings&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href="#"&gt;Security&lt;/a&gt;&lt;/li&gt;
-          &lt;li&gt;&lt;a href="#"&gt;Log out&lt;/a&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-      &lt;/details&gt;
-    &lt;/li&gt;
-  &lt;/ul&gt;
-&lt;/nav&gt;</code></pre></footer>
-  </article>
+  <p>A dropdown in a nav item is as wide as its summary: see <a href="/docs#dropdown">Dropdown</a>.</p>
 </section>
 <section>
   <h2>Vertical stacking</h2>
@@ -218,7 +176,7 @@
 </section>
 <section id="overflow">
   <h2>Overflow</h2>
-  <p>Nav links have padding, so their keyboard focus ring has room, and negative margins that keep their text lined up with the content around the nav. The nav keeps <code class="language-css">overflow: visible</code>, so the ring is not cut off. Below, the dashed lines are the edges of two navs, and the second shows the focus rings.</p>
+  <p>Nav links reach past the nav's edges: padding gives their focus ring room, and negative margins line their text up with the content around the nav. Leave the nav's <code class="language-css">overflow</code> visible, as femto sets it, or the rings are cut off. Below, the dashed lines are the edges of two navs; the second shows the focus rings.</p>
   <article aria-label="Overflow example" class="component">
     <nav aria-label="Overflow example" data-nav-example>
       <ul>

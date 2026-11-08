@@ -1,10 +1,10 @@
 <hgroup>
-  <p class="chapter">Customization</p>
+  <p class="chapter">Advanced</p>
   <h1 id="modules">Custom module set</h1>
   <p>To load only some modules, save a copy of <code>css/femto.css</code> in the same folder and delete the lines you do not need.</p>
 </hgroup>
 <section>
-  <p>The copy must sit in the same folder as <code>css/femto.css</code>, under a name of your own such as <code>site.css</code>, since its <code>@import</code> paths are relative to it. After its header comment, it holds 36 <code>@import</code> lines, one for each module:</p>
+  <p>Name the copy something like <code>site.css</code>. Its <code>@import</code> paths are relative, so it must stay in that folder. After its header comment, it holds 36 <code>@import</code> lines, one per module:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import "tokens/base.css";
 @import "tokens/breakpoints.css";
 @import "layout/elements.css";
@@ -42,7 +42,7 @@
 @import "utilities/accessibility.css";
 @import "utilities/reduce-motion.css";</code></pre></div>
   <p>Keep the lines in their order, which is the cascade order, and keep the first four: <code>tokens/base.css</code>, <code>tokens/breakpoints.css</code>, <code>layout/elements.css</code> and <code>tokens/schemes.css</code>. They hold the tokens and per-element settings the other modules read. Without <code>layout/elements.css</code>, for example, headings lose their sizes and weights, and search fields their rounded ends.</p>
-  <p>The copy loads module by module, like <code>css/femto.css</code> (see <a href="/docs#files">Files</a>). A bundler that inlines <code>@import</code> turns it into one file.</p>
+  <p>The copy loads module by module, like <code>css/femto.css</code>, unless a bundler inlines it (see <a href="/docs#files">Files</a>).</p>
   <p>If you install femto from npm, write the same list in your own CSS with package paths, such as <code>@import "@leoherzog/femto/css/tokens/base.css";</code>, instead of copying the file.</p>
   <p>If you also load <code>no-transitions.css</code>, copy it too and delete its rules for the modules you left out (see <a href="/docs#options">Options</a>).</p>
 </section>

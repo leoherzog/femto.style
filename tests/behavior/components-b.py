@@ -353,16 +353,17 @@ return Math.round(scrollY);
 
 @check("nav-example-links", "/docs#nav")
 def nav_example_links(page):
-    """Every example link of Nav (the 28 inside the examples' navs, dropdown items included, and on
+    """Every example link of Nav (those inside the examples' navs, dropdown items included, and on
     routes also the 3 of the oracle's nav[aria-label=overflow-with-focus] first in <main>, which
-    Phase 4 removed from the section: 28 links on the one page, 31 on routes, each pointing at its
+    Phase 4 removed from the section: 31 links on routes; on the one page 23, since the 2026-11-07
+    cleanup moved the nav dropdown example's 5 links to Dropdown alone; each pointing at its
     own place: href="/docs/nav" on routes, /docs or /docs#nav on the one page) goes nowhere. A real click on each (its dropdown opened
     first with a click on the summary), and Enter on the first link of each nav outside a dropdown,
     leave the document (a marker set on window survives), the URL, history.length and the scroll
     position as they were, keep the dropdown open, and the click event is canceled
     (defaultPrevented)."""
     links = page.js(NAV_LINKS)
-    want = 31 if page.layout == "routes" else 28
+    want = 31 if page.layout == "routes" else 23
     page.eq(f"{want} example links", len(links), want, labels=[f"{x[3]}: {x[2]}" for x in links])
     page.expect("every example link points at the route itself", all(self_href(page, x[0]) for x in links))
     page.js(CLICK_SPY)

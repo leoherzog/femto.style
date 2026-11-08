@@ -1,5 +1,5 @@
 """Getting started: the Theme picker (04 §1, Theme picker; picker.js) and the color-schemes section's
-own toggle (01 §2, small widgets).
+own toggle (01 §2, small widgets; Customization since the 2026-11-07 reorder).
 
 Phase 4 reworked the version picker into the Theme picker (PLAN.md Open questions 3), section id
 theme-picker: the 20 theme colors, a switch for each of femto's three option files, and three samples

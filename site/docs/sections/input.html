@@ -1,7 +1,7 @@
 <hgroup>
   <p class="chapter">Forms</p>
   <h1 id="input">Input</h1>
-  <p>Text, date, search and color inputs share one field style, with valid and invalid states. File inputs, checkboxes, radios, switches and range have their own look.</p>
+  <p>Text, date, search and color inputs share one field style; file inputs, checkboxes, radios, switches and range have their own look.</p>
 </hgroup>
 <section>
   <article aria-label="Input examples" class="component">
@@ -14,7 +14,7 @@
     <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="text" name="text" placeholder="Text" aria-label="Text"&gt;
 &lt;input type="email" name="email" placeholder="Email" aria-label="Email" autocomplete="email"&gt;
 &lt;input type="number" name="number" placeholder="Number" aria-label="Number"&gt;
-&lt;input type="password" name="password" placeholder="Password" aria-label="Password"&gt;
+&lt;input type="password" name="password" placeholder="Password" aria-label="Password" autocomplete="current-password"&gt;
 &lt;input type="tel" name="tel" placeholder="Tel" aria-label="Tel" autocomplete="tel"&gt;
 &lt;input type="url" name="url" placeholder="URL" aria-label="URL"&gt;</code></pre></footer>
   </article>
@@ -71,7 +71,7 @@
 </section>
 <section>
   <h2>Disabled input</h2>
-  <p><code>disabled</code> dims a field, and the field ignores the pointer.</p>
+  <p>A <code>disabled</code> field, or any field in a disabled <code class="language-html">&lt;fieldset&gt;</code>, is dimmed and ignores the pointer.</p>
   <article aria-label="Disabled input example" class="component">
     <input type="text" placeholder="Disabled" aria-label="Disabled input" disabled name="input-disabled">
     <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
@@ -99,27 +99,7 @@
 </section>
 <section>
   <h2>Validation states</h2>
-  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a field the invalid or valid border color, and an icon in most text fields.</p>
-  <article aria-label="Input validation states example" class="component">
-    <input type="text" placeholder="Valid" aria-label="Valid" aria-invalid="false" name="input-valid" value="Valid">
-    <input type="text" placeholder="Invalid" aria-label="Invalid" aria-invalid="true" name="input-invalid" value="Invalid">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
-  type="text"
-  name="valid"
-  value="Valid"
-  aria-label="Valid"
-  aria-invalid="false"
-&gt;
-
-&lt;input
-  type="text"
-  name="invalid"
-  value="Invalid"
-  aria-label="Invalid"
-  aria-invalid="true"
-&gt;</code></pre></footer>
-  </article>
-  <p>A <code class="language-html">&lt;small&gt;</code> right after the field takes the matching color.</p>
+  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a field the invalid or valid border color, and an icon in most text fields. A <code class="language-html">&lt;small&gt;</code> right after the field takes the matching color.</p>
   <article aria-label="Input validation states with helper text example" class="component">
     <input type="text" placeholder="Valid" aria-label="Valid" aria-invalid="false" aria-describedby="input-valid-helper" name="input-helper-valid" value="Valid">
     <small id="input-valid-helper">Looks good!</small>

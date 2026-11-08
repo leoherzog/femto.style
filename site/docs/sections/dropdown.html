@@ -4,7 +4,7 @@
   <p><code class="language-html">&lt;details class="dropdown"&gt;</code> is a dropdown: a <code class="language-html">&lt;summary&gt;</code> and a <code class="language-html">&lt;ul&gt;</code> that opens below it.</p>
 </hgroup>
 <section>
-  <p>The <code class="language-html">&lt;summary&gt;</code> and the <code class="language-html">&lt;ul&gt;</code> are the dropdown’s direct children. The summary looks like a select, and the dropdown is as wide as its container, except in a <a href="/docs#nav">nav</a>. A click outside an open dropdown closes it.</p>
+  <p>The <code class="language-html">&lt;ul&gt;</code> comes right after the <code class="language-html">&lt;summary&gt;</code>, both directly inside the <code class="language-html">&lt;details&gt;</code>. The summary looks like a select, and the dropdown is as wide as its container, except in a <a href="/docs#nav">nav</a>. A click outside an open dropdown closes it.</p>
   <p><code>aria-current</code> on an item’s link shows it as current, with its hover colors.</p>
   <article aria-label="Dropdowns as selects" class="component" data-dropdown-example>
     <div class="grid"><details class="dropdown">
@@ -67,25 +67,25 @@
   &lt;ul&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="radio" name="phase" value="solid"&gt;
+        &lt;input type="radio" name="phase" value="Solid"&gt;
         Solid
       &lt;/label&gt;
     &lt;/li&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="radio" name="phase" value="liquid"&gt;
+        &lt;input type="radio" name="phase" value="Liquid"&gt;
         Liquid
       &lt;/label&gt;
     &lt;/li&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="radio" name="phase" value="gas"&gt;
+        &lt;input type="radio" name="phase" value="Gas"&gt;
         Gas
       &lt;/label&gt;
     &lt;/li&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="radio" name="phase" value="plasma"&gt;
+        &lt;input type="radio" name="phase" value="Plasma"&gt;
         Plasma
       &lt;/label&gt;
     &lt;/li&gt;
@@ -100,36 +100,36 @@
   &lt;ul&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="checkbox" name="solid"&gt;
+        &lt;input type="checkbox" name="solid" value="Solid"&gt;
         Solid
       &lt;/label&gt;
     &lt;/li&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="checkbox" name="liquid"&gt;
+        &lt;input type="checkbox" name="liquid" value="Liquid"&gt;
         Liquid
       &lt;/label&gt;
     &lt;/li&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="checkbox" name="gas"&gt;
+        &lt;input type="checkbox" name="gas" value="Gas"&gt;
         Gas
       &lt;/label&gt;
     &lt;/li&gt;
     &lt;li&gt;
       &lt;label&gt;
-        &lt;input type="checkbox" name="plasma"&gt;
+        &lt;input type="checkbox" name="plasma" value="Plasma"&gt;
         Plasma
       &lt;/label&gt;
     &lt;/li&gt;
   &lt;/ul&gt;
 &lt;/details&gt;</code></pre></footer>
   </article>
-  <p>femto has no JavaScript. To show the choice in the summary, or to close the dropdown once a choice is made, use a script of your own.</p>
+  <p>femto has no JavaScript: to show the choice in the summary or close the dropdown after a choice, use your own script.</p>
 </section>
 <section>
   <h2>Button variants</h2>
-  <p><code class="language-html">&lt;summary role="button"&gt;</code> makes the dropdown a button.</p>
+  <p><code class="language-html">&lt;summary role="button"&gt;</code> makes the dropdown a button, which takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code> like other buttons (see <a href="/docs#button">Button</a>).</p>
   <article aria-label="Dropdown as a button example" class="component" data-dropdown-example>
     <details class="dropdown">
       <summary role="button">Dropdown as a button</summary>
@@ -148,123 +148,6 @@
     ...
   &lt;/ul&gt;
 &lt;/details&gt;</code></pre></footer>
-  </article>
-  <p>Like other buttons, it takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code>.</p>
-  <article aria-label="Dropdown button styles example" class="component" data-dropdown-example>
-    <details class="dropdown">
-      <summary role="button">Primary</summary>
-      <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
-      </ul>
-    </details>
-    <details class="dropdown">
-      <summary role="button" class="secondary">Secondary</summary>
-      <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
-      </ul>
-    </details>
-    <details class="dropdown">
-      <summary role="button" class="contrast">Contrast</summary>
-      <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
-      </ul>
-    </details>
-    <details class="dropdown">
-      <summary role="button" class="outline">Primary outline</summary>
-      <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
-      </ul>
-    </details>
-    <details class="dropdown">
-      <summary role="button" class="outline secondary">Secondary outline</summary>
-      <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
-      </ul>
-    </details>
-    <details class="dropdown">
-      <summary role="button" class="outline contrast">Contrast outline</summary>
-      <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
-      </ul>
-    </details>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Primary --&gt;
-&lt;details class="dropdown"&gt;
-  &lt;summary role="button"&gt;
-    Primary
-  &lt;/summary&gt;
-  &lt;ul&gt;
-    ...
-  &lt;/ul&gt;
-&lt;/details&gt;
-
-&lt;!-- Secondary --&gt;
-&lt;details class="dropdown"&gt;
-  &lt;summary role="button" class="secondary"&gt;
-    Secondary
-  &lt;/summary&gt;
-  &lt;ul&gt;
-    ...
-  &lt;/ul&gt;
-&lt;/details&gt;
-
-&lt;!-- Contrast --&gt;
-&lt;details class="dropdown"&gt;
-  &lt;summary role="button" class="contrast"&gt;
-    Contrast
-  &lt;/summary&gt;
-  &lt;ul&gt;
-    ...
-  &lt;/ul&gt;
-&lt;/details&gt;
-
-&lt;!-- Primary outline --&gt;
-&lt;details class="dropdown"&gt;
-  &lt;summary role="button" class="outline"&gt;
-    Primary outline
-  &lt;/summary&gt;
-  &lt;ul&gt;
-    ...
-  &lt;/ul&gt;
-&lt;/details&gt;
-
-&lt;!-- Secondary outline --&gt;
-&lt;details class="dropdown"&gt;
-  &lt;summary role="button" class="outline secondary"&gt;
-    Secondary outline
-  &lt;/summary&gt;
-  &lt;ul&gt;
-    ...
-  &lt;/ul&gt;
-&lt;/details&gt;
-
-&lt;!-- Contrast outline --&gt;
-&lt;details class="dropdown"&gt;
-  &lt;summary role="button" class="outline contrast"&gt;
-    Contrast outline
-  &lt;/summary&gt;
-  &lt;ul&gt;
-    ...
-  &lt;/ul&gt;
-&lt;/details&gt;
-</code></pre></footer>
   </article>
 </section>
 <section>

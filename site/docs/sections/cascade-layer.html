@@ -1,5 +1,5 @@
 <hgroup>
-  <p class="chapter">Customization</p>
+  <p class="chapter">Advanced</p>
   <h1 id="cascade-layer">Cascade layer</h1>
   <p>femto is not in a cascade layer: to put it in one, import it with <code>layer()</code>, with your theme and option files in the same layer.</p>
 </hgroup>
@@ -8,12 +8,9 @@
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import url(femto.css) layer(femto);
 @import url(themes/jade.css) layer(femto);
 @import url(options/no-transitions.css) layer(femto);</code></pre></div>
-  <p>If you install femto from npm, use package paths instead:</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import "@leoherzog/femto/css/femto.css" layer(femto);
-@import "@leoherzog/femto/css/themes/jade.css" layer(femto);
-@import "@leoherzog/femto/css/options/no-transitions.css" layer(femto);</code></pre></div>
+  <p>From npm, use package paths instead, such as <code>@import "@leoherzog/femto/css/femto.css" layer(femto);</code>.</p>
   <p>Your unlayered rules then override femto's, whatever their specificity, except femto's few <code>!important</code> declarations.</p>
-  <p>Theme and option files belong in femto's layer. Left unlayered, they would compete with your unlayered rules by specificity instead of always losing to them, and would override any rules you put in layers of your own.</p>
+  <p>Left unlayered, theme and option files would compete with your unlayered rules by specificity instead of always losing to them, and would override any rules in layers of your own.</p>
   <p><code>dist/femto.min.css</code> can be imported into a layer the same way, and it loads as one file (see <a href="/docs#files">Files</a>).</p>
 </section>
 <section class="edit-on-github">

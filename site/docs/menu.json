@@ -10,43 +10,15 @@
           "description": "Link femto from a CDN, a download or npm, and plain HTML looks clean and readable."
         },
         {
-          "id": "classes",
-          "title": "Classes and attributes",
-          "description": "Most of femto works from the elements alone; these are the classes and attributes it also reads."
-        },
-        {
           "id": "theme-picker",
           "title": "Theme picker",
           "description": "Choose a theme color and options, and copy the links that load them."
-        },
-        {
-          "id": "color-schemes",
-          "title": "Color schemes",
-          "description": "femto has a light and a dark color scheme, which follow the visitor's system setting unless you choose one with data-theme."
-        },
-        {
-          "id": "rtl",
-          "title": "RTL",
-          "description": "Set dir=\"rtl\" for right-to-left text, and femto mirrors the parts of its components that have a direction."
-        },
-        {
-          "id": "browser-support",
-          "title": "Browser support",
-          "description": "femto targets Baseline Widely Available on its release date: Chrome and Edge 125, Firefox 128, Safari 17.5 and Samsung Internet 27."
-        },
-        {
-          "id": "migration"
         }
       ]
     },
     {
       "title": "Customization",
       "sections": [
-        {
-          "id": "files",
-          "title": "Files",
-          "description": "femto comes in two forms that style a page the same way: one file in dist/, or the modules it is built from in css/."
-        },
         {
           "id": "themes",
           "title": "Themes",
@@ -58,9 +30,9 @@
           "description": "Each file in css/options/ changes one default."
         },
         {
-          "id": "css-variables",
-          "title": "CSS variables",
-          "description": "Change femto's fonts, spacing, borders and colors by setting its --femto-* custom properties in your own CSS."
+          "id": "color-schemes",
+          "title": "Color schemes",
+          "description": "femto has a light and a dark color scheme, which follow the visitor's system setting unless you choose one with data-theme."
         },
         {
           "id": "colors",
@@ -68,19 +40,9 @@
           "description": "femto.colors.css holds the palette of femto's 20 theme colors, in 19 shades each, as custom properties and utility classes."
         },
         {
-          "id": "modules",
-          "title": "Custom module set",
-          "description": "To load only some modules, save a copy of css/femto.css in the same folder and delete the lines you do not need."
-        },
-        {
-          "id": "cascade-layer",
-          "title": "Cascade layer",
-          "description": "femto is not in a cascade layer: to put it in one, import it with layer(), with your theme and option files in the same layer."
-        },
-        {
-          "id": "shadow-roots",
-          "title": "Shadow roots",
-          "description": "femto declares its tokens on :host as well as :root, so it also styles the inside of a shadow root that loads it."
+          "id": "css-variables",
+          "title": "CSS variables",
+          "description": "Change femto's fonts, spacing, borders and colors by setting its --femto-* custom properties in your own CSS."
         }
       ]
     },
@@ -98,9 +60,19 @@
           "description": "The page's header, main and footer, and every section, get vertical spacing."
         },
         {
+          "id": "nav",
+          "title": "Nav",
+          "description": "<nav> lays out its lists in one row, with their links, buttons and form fields lined up."
+        },
+        {
           "id": "grid",
           "title": "Grid",
           "description": ".grid lays its children out in equal columns from 768px, and in one column below."
+        },
+        {
+          "id": "card",
+          "title": "Card",
+          "description": "An <article> is a card: a padded block with rounded corners, a background and a shadow."
         },
         {
           "id": "overflow-auto",
@@ -125,7 +97,7 @@
         {
           "id": "button",
           "title": "Button",
-          "description": "A plain <button> needs no class: femto styles it from the element alone."
+          "description": "A plain <button> needs no class and has the primary color by default."
         },
         {
           "id": "table",
@@ -141,12 +113,12 @@
           "id": "forms",
           "title": "Forms overview",
           "label": "Overview",
-          "description": "Inputs, selects and textareas are styled from their elements alone: text inputs, selects and textareas fill their container, and text inputs and drop-down selects are as tall as a button."
+          "description": "Form fields are styled from their elements alone, and text inputs, selects and textareas fill the width of their container."
         },
         {
           "id": "input",
           "title": "Input",
-          "description": "Text, date, search and color inputs share one field style, with valid and invalid states. File inputs, checkboxes, radios, switches and range have their own look."
+          "description": "Text, date, search and color inputs share one field style; file inputs, checkboxes, radios, switches and range have their own look."
         },
         {
           "id": "textarea",
@@ -189,11 +161,6 @@
           "description": "A <details> is an accordion: its <summary> opens and closes the content, without JavaScript."
         },
         {
-          "id": "card",
-          "title": "Card",
-          "description": "An <article> is a card: a padded block with rounded corners, a background and a shadow."
-        },
-        {
           "id": "dropdown",
           "title": "Dropdown",
           "description": "<details class=\"dropdown\"> is a dropdown: a <summary> and a <ul> that opens below it."
@@ -214,11 +181,6 @@
           "description": "A <dialog> holding an <article> is a modal: a card centered over the page."
         },
         {
-          "id": "nav",
-          "title": "Nav",
-          "description": "<nav> lays out its lists in one row, with their links, buttons and form fields lined up."
-        },
-        {
           "id": "progress",
           "title": "Progress",
           "description": "<progress> is a full-width rounded bar in the primary color."
@@ -227,6 +189,54 @@
           "id": "tooltip",
           "title": "Tooltip",
           "description": "data-tooltip shows its text in a tooltip on hover and focus, without JavaScript."
+        }
+      ]
+    },
+    {
+      "title": "Advanced",
+      "sections": [
+        {
+          "id": "files",
+          "title": "Files",
+          "description": "femto comes in two forms that style a page the same way: one file in dist/, or the modules it is built from in css/."
+        },
+        {
+          "id": "modules",
+          "title": "Custom module set",
+          "description": "To load only some modules, save a copy of css/femto.css in the same folder and delete the lines you do not need."
+        },
+        {
+          "id": "cascade-layer",
+          "title": "Cascade layer",
+          "description": "femto is not in a cascade layer: to put it in one, import it with layer(), with your theme and option files in the same layer."
+        },
+        {
+          "id": "shadow-roots",
+          "title": "Shadow roots",
+          "description": "femto declares its tokens on :host as well as :root, so it also styles the inside of a shadow root that loads it."
+        }
+      ]
+    },
+    {
+      "title": "Reference",
+      "sections": [
+        {
+          "id": "classes",
+          "title": "Classes and attributes",
+          "description": "Most of femto works from the elements alone; these are the classes and attributes it also reads."
+        },
+        {
+          "id": "rtl",
+          "title": "RTL",
+          "description": "Set dir=\"rtl\" for right-to-left text, and femto mirrors the parts of its components that have a direction."
+        },
+        {
+          "id": "browser-support",
+          "title": "Browser support",
+          "description": "femto targets Baseline Widely Available on its release date: Chrome and Edge 125, Firefox 128, Safari 17.5 and Samsung Internet 27."
+        },
+        {
+          "id": "migration"
         }
       ]
     }

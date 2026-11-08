@@ -1,11 +1,10 @@
 <hgroup>
-  <p class="chapter">Customization</p>
+  <p class="chapter">Advanced</p>
   <h1 id="shadow-roots">Shadow roots</h1>
   <p>femto declares its tokens on <code>:host</code> as well as <code>:root</code>, so it also styles the inside of a shadow root that loads it.</p>
 </hgroup>
 <section>
-  <p>The host's <code>data-theme</code> picks the scheme there: <code>data-theme="dark"</code> on a web component's host makes its shadow root dark when the component loads femto in it.</p>
-  <p>A <code>&lt;link rel="stylesheet"&gt;</code> inside the shadow root works with any femto file, and theme and option files load there the same way, after femto:</p>
+  <p>A <code>&lt;link rel="stylesheet"&gt;</code> inside the shadow root works with any femto file, and theme and option files load there the same way, after femto. The host's <code>data-theme</code> picks the scheme inside:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;my-widget data-theme="dark"&gt;
   &lt;template shadowrootmode="open"&gt;
     &lt;link rel="stylesheet" href="dist/femto.min.css"&gt;
@@ -20,7 +19,7 @@
 <section>
   <h2>Constructable stylesheets</h2>
   <p>A constructable stylesheet (<code>adoptedStyleSheets</code>) needs the text of <code>dist/femto.css</code> or <code>dist/femto.min.css</code>. <code>CSSStyleSheet.replace()</code> and <code>replaceSync()</code> drop <code>@import</code> rules, so a sheet made from the text of <code>css/femto.css</code> would have no rules at all.</p>
-  <p>One sheet can be adopted by every shadow root that needs femto. In a module script:</p>
+  <p>One sheet can be adopted by every shadow root that needs femto:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;script type="module"&gt;
   const sheet = new CSSStyleSheet();
   sheet.replaceSync(await (await fetch("dist/femto.min.css")).text());

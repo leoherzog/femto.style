@@ -10,7 +10,8 @@ GROUP = "components-a"
 
 # The example links of /docs/dropdown, in document order: every <a> inside an example
 # (article.component) but the copy links of the code footers. That is the four Items of each of the
-# eleven link dropdowns and the nav example's "Services" Item: 45 links. Each link comes with the
+# link dropdowns and the nav example's "Services" Item (21 links in five dropdowns on the one page,
+# 45 in eleven on routes). Each link comes with the
 # index of its dropdown's summary in `summaries` (-1 outside a dropdown), so a dropdown is told
 # apart by its index, never by comparing the WebElements that two script calls return.
 ITEMS = """
@@ -75,9 +76,10 @@ def _state(page, label, summary, link):
 
 @check("dropdown-items", "/docs#dropdown")
 def dropdown_items(page):
-    """Every example link of Dropdown (the four menu items of each of the eleven link dropdowns and
-    the nav example's "Services", 45 links pointing at their own place: href="/docs/dropdown" on
-    routes, /docs or /docs#dropdown on the one page) goes nowhere,
+    """Every example link of Dropdown (the four menu items of each link dropdown and the nav
+    example's "Services": on routes eleven dropdowns and 45 links, on the one page five and 21 since
+    the 2026-11-07 cleanup dropped the six-dropdown button-variants gallery; each points at its own
+    place: href="/docs/dropdown" on routes, /docs or /docs#dropdown on the one page) goes nowhere,
     with the pointer and with the keyboard. Pointer: each dropdown is opened once with a click on its
     summary, then each of its items is clicked in turn inside that open dropdown, and the dropdown is
     closed with its summary again. Keyboard: each dropdown's summary is focused and Enter opens it,
@@ -87,8 +89,9 @@ def dropdown_items(page):
     the scroll position are as they were, its dropdown is still open, and the click event was
     canceled (defaultPrevented); after an Enter, focus is still on the item."""
     items, summaries, names = page.js(ITEMS)
-    page.eq("45 example links", len(items), 45, labels=[f"{i[3]}: {i[2]}" for i in items])
-    page.eq("eleven link dropdowns", len(summaries), 11, summaries=names)
+    want, dropdowns = (45, 11) if page.layout == "routes" else (21, 5)
+    page.eq(f"{want} example links", len(items), want, labels=[f"{i[3]}: {i[2]}" for i in items])
+    page.eq(f"{dropdowns} link dropdowns", len(summaries), dropdowns, summaries=names)
     page.expect("every example link points at the route itself", all(self_href(page, i[0]) for i in items))
     page.js(CLICK_SPY)
     url, history = page.url(), page.js("return history.length")
@@ -132,8 +135,8 @@ def dropdown_items(page):
         page.click(summaries[current])
         page.wait(f"{where(current)}: a click on its summary closes it",
                   "!arguments[0].parentElement.open", 1, args=(summaries[current],))
-    page.eq("every dropdown was opened once", opened, 11)
-    page.eq("every example link was clicked", clicked, 45)
+    page.eq("every dropdown was opened once", opened, dropdowns)
+    page.eq("every example link was clicked", clicked, want)
 
     # Keyboard: Enter on each summary, Tab to each item, Enter on it.
     current, opened, pressed = -1, 0, 0
@@ -170,7 +173,7 @@ def dropdown_items(page):
         page.key("ENTER")
         page.wait(f"{where(current)}: Enter on its summary closes it",
                   "!arguments[0].parentElement.open", 1, args=(summaries[current],))
-    page.eq("every dropdown was opened once from the keyboard", opened, 11)
-    page.eq("Enter was pressed on every example link", pressed, 45)
+    page.eq("every dropdown was opened once from the keyboard", opened, dropdowns)
+    page.eq("Enter was pressed on every example link", pressed, want)
     page.note(f"{clicked} example links clicked and {pressed} activated with Enter, in {opened} dropdowns:"
               " every click canceled, nothing navigated")
