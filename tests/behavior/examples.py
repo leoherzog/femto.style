@@ -65,7 +65,7 @@ def examples_structure(page):
         const live = document.createDocumentFragment();
         const nodes = [...h.root.childNodes];
         for (const n of nodes.slice(nodes.indexOf(link) + 1)) live.append(n.cloneNode(true));
-        const code = h.frame.closest('section').querySelector('details pre code').textContent;
+        const code = h.frame.closest('section').querySelector(':scope > .code pre code').textContent;
         const t = document.createElement('template'); t.innerHTML = code;
         const [x, y] = [norm(live), norm(t.content.cloneNode(true))];
         out.same = x === y && x.length > 100;
@@ -120,7 +120,7 @@ const frameCss = [...document.styleSheets].find(s => s.href?.endsWith('/assets/c
 const frameRules = [...frameCss.cssRules].map(r => r.cssText).filter(t => t.includes('div[data-example]'))
   .map(t => t.replaceAll('body > main.examples > section.example > div[data-example]', 'div[data-ref]')).join('\n');
 const sections = hosts.map(h => {
-  const code = h.frame.closest('section').querySelector('details pre code').textContent;
+  const code = h.frame.closest('section').querySelector(':scope > .code pre code').textContent;
   return `<div data-ref><template shadowrootmode="open"><div${theme ? ` data-theme="${theme}"` : ''}><template shadowrootmode="open"><link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">${code}</template></div></template></div>`;
 }).join('\n');
 const html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark">

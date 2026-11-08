@@ -1,6 +1,6 @@
 /* The examples page's styles (/examples, site/examples.html), after landing.css: the index under the
-   hero, each example's heading, and the frame around each example. Nothing here reaches inside an
-   example: it renders in a shadow root that loads femto alone (assets/js/examples.js). */
+   hero, each example's heading, the frame around each example and its markup. Nothing here reaches
+   inside an example: it renders in a shadow root that loads femto alone (assets/js/examples.js). */
 
 /* The body is a one-column grid (common.css), and a grid item's min-content width widens that
    column: the dashboard's table, which scrolls inside its .overflow-auto, would otherwise make the
@@ -14,17 +14,6 @@ body > main.examples {
  */
 body > main.examples > .examples-index {
   margin-block: calc(var(--femto-homepage-spacing-vertical) / 4) calc(var(--femto-homepage-spacing-vertical) / 2);
-}
-
-body > main.examples > .examples-index > p {
-  max-width: 45rem;
-}
-
-@media (min-width: 576px) {
-  body > main.examples > .examples-index > p {
-    margin-inline: auto;
-    text-align: center;
-  }
 }
 
 body > main.examples > .examples-index .grid {
@@ -97,6 +86,7 @@ body > main.examples > section.example > div[data-example] {
   color-scheme: dark;
 }
 
-body > main.examples > section.example > details {
+/* The example's markup, shown under it: the section's own margin follows it. */
+body > main.examples > section.example > .code {
   margin-bottom: 0;
 }
