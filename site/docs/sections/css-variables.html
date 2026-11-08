@@ -64,27 +64,36 @@
 </section>
 <section>
   <h2>Tokens and color schemes</h2>
-  <p>femto declares each color token once, on <code>:root, :host</code>, so one override on <code>:root</code> applies in both schemes and inside every <code>data-theme</code> element (see <a href="/docs#color-schemes">Color schemes</a>). To give each scheme its own value, write it with <code>light-dark()</code>, the light value first:</p>
+  <p>femto declares each color token once, on <code>:root, :host</code>, so one override on <code>:root</code> applies inside every <code>data-theme</code> element (see <a href="/docs#color-schemes">Color schemes</a>). A token that femto or a theme gives a light and a dark value takes them from a pair of tokens of its own, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> for <code>--femto-primary</code>. Set the pair to give each scheme its own value, and set the token itself for one value in both:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">:root {
-  --femto-text-selection-color: light-dark(rgba(244, 93, 44, 0.25), rgba(245, 107, 61, 0.1875));
-  --femto-primary: light-dark(#bd3c13, #f56b3d);
+  --femto-light-text-selection-color: rgba(244, 93, 44, 0.25);
+  --femto-dark-text-selection-color: rgba(245, 107, 61, 0.1875);
+  --femto-light-primary: #bd3c13;
+  --femto-dark-primary: #f56b3d;
   --femto-primary-background: #d24317;
-  --femto-primary-underline: light-dark(rgba(189, 60, 19, 0.5), rgba(245, 107, 61, 0.5));
-  --femto-primary-hover: light-dark(#942d0d, #f8a283);
-  --femto-primary-hover-background: #bd3c13;
-  --femto-primary-focus: light-dark(rgba(244, 93, 44, 0.5), rgba(245, 107, 61, 0.375));
+  --femto-light-primary-underline: rgba(189, 60, 19, 0.5);
+  --femto-dark-primary-underline: rgba(245, 107, 61, 0.5);
+  --femto-light-primary-hover: #942d0d;
+  --femto-dark-primary-hover: #f8a283;
+  --femto-light-primary-hover-background: #bd3c13;
+  --femto-dark-primary-hover-background: #bd3c13;
+  --femto-light-primary-focus: rgba(244, 93, 44, 0.5);
+  --femto-dark-primary-focus: rgba(245, 107, 61, 0.375);
   --femto-primary-inverse: #fff;
 }</code></pre></div>
   <p>These are some of the orange theme's values. To change the primary color, load a theme file, or copy one for a color of your own: see <a href="/docs#themes">Themes</a>.</p>
-  <p>The form validation icons, <code>--femto-icon-valid</code> and <code>--femto-icon-invalid</code>, are the only tokens femto sets per scheme instead, since <code>light-dark()</code> cannot carry an image. <a href="/docs#color-schemes">Color schemes</a> lists the other values it switches that way.</p>
-  <p>A script that reads a color token with <code>getPropertyValue()</code> gets the <code>light-dark(...)</code> text where the schemes differ. To get the color in effect, set the token on a property, such as <code>color: var(--femto-primary)</code>, and read that property's computed value.</p>
+  <p><code>css/tokens/schemes.css</code> declares every pair. A <code>--femto-light-*</code> or <code>--femto-dark-*</code> name for a token without one, such as <code>--femto-primary-background</code> or <code>--femto-primary-hover-underline</code>, does nothing.</p>
+  <p>Set a pair on <code>:root</code>. femto combines each pair into its token there and on <code>:host</code>, so a pair set on another element does not change femto's colors. To change a color inside one element, set the token itself on it, such as <code>--femto-primary</code> on a card.</p>
+  <p>An override written with <code>light-dark()</code>, such as <code>--femto-primary: light-dark(#c00, #f66)</code>, also works, except in browsers without <code>light-dark()</code>, where it fails. Those browsers use the light value of each pair, including the ones you set (see <a href="/docs#browser-support">Browser support</a>).</p>
+  <p>The form validation icons, <code>--femto-icon-valid</code> and <code>--femto-icon-invalid</code>, are images, which <code>light-dark()</code> cannot carry, so femto sets them per scheme instead, from <code>--femto-light-icon-valid</code>, <code>--femto-dark-icon-valid</code>, <code>--femto-light-icon-invalid</code> and <code>--femto-dark-icon-invalid</code>. <a href="/docs#color-schemes">Color schemes</a> lists the other values it switches that way.</p>
+  <p>A script that reads a color token with <code>getPropertyValue()</code> gets <code>light-dark(...)</code> text for a token declared with <code>light-dark()</code> or set from one with <code>var()</code>, such as <code>light-dark(#0172ad, #01aaff)</code> for the default <code>--femto-primary</code>. To get the color in effect, set the token on a property, such as <code>color: var(--femto-primary)</code>, and read that property's computed value.</p>
 </section>
 <section>
   <h2>Where each token is declared</h2>
   <p>femto declares its tokens' defaults in these files:</p>
   <ul>
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/tokens/base.css" target="_blank" rel="noopener noreferrer">css/tokens/base.css</a>: the tokens that do not depend on the color scheme, such as the font families, font size and weight, line height, borders, outlines, transitions, spacing, component settings, and the icons that are the same in both schemes.</li>
-    <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/tokens/schemes.css" target="_blank" rel="noopener noreferrer">css/tokens/schemes.css</a>: the color tokens, with their light and dark values, and the validation icons of each scheme.</li>
+    <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/tokens/schemes.css" target="_blank" rel="noopener noreferrer">css/tokens/schemes.css</a>: the color tokens, with the pairs that hold their light and dark values, the validation icons of each scheme, and the light scheme that browsers without <code>light-dark()</code> get.</li>
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/tokens/breakpoints.css" target="_blank" rel="noopener noreferrer">css/tokens/breakpoints.css</a>: the root font size at each breakpoint, and <code>--femto-grid-template-columns</code>, the columns <code>.grid</code> reads from 768px.</li>
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/layout/elements.css" target="_blank" rel="noopener noreferrer">css/layout/elements.css</a>: the values some elements set for themselves, such as each heading's font size, line height and weight.</li>
     <li><a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/components/modal.css" target="_blank" rel="noopener noreferrer">css/components/modal.css</a>: <code>--femto-scrollbar-width</code>, which your modal script can set (see <a href="/docs#modal">Modal</a>).</li>

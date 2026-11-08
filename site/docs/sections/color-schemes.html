@@ -56,18 +56,19 @@
 </section>
 <section>
   <h2>How it works</h2>
-  <p>Every color token is declared once, on <code>:root</code> and <code>:host</code>, with <code>light-dark()</code> where the light and dark values differ. <code>data-theme</code> sets <code>color-scheme</code>, which picks between them, plus the few values <code>light-dark()</code> cannot carry: the form validation icons, and the chevron and loading spinner on <code>.contrast</code> buttons. So:</p>
+  <p>Every color token is declared once, on <code>:root</code> and <code>:host</code>. A token that femto or a theme gives a light and a dark value takes them from a pair of tokens of its own: <code>--femto-primary</code> is <code>light-dark(var(--femto-light-primary), var(--femto-dark-primary))</code>. Other color tokens have no pair: those with one value, such as <code>--femto-primary-background</code>, and those set from another token, such as <code>--femto-primary-hover-underline</code>, which follows <code>--femto-primary-hover</code> in each scheme. <code>--femto-box-shadow</code> uses <code>light-dark()</code> in each of its layers. <code>data-theme</code> sets <code>color-scheme</code>, which picks between the two values, plus the few values <code>light-dark()</code> cannot carry: the form validation icons, and the chevron and loading spinner on <code>.contrast</code> buttons. So:</p>
   <ul>
     <li>An element that carries <code>data-theme</code> itself, such as a button, heading or form field, keeps its own colors in that scheme.</li>
-    <li>Your own color overrides on <code>:root</code>, loaded after femto, apply in both schemes and inside every <code>data-theme</code> element. Write them with <code>light-dark()</code> to give each scheme its own value.</li>
+    <li>Your own color overrides on <code>:root</code>, loaded after femto, apply inside every <code>data-theme</code> element. Set a token's pair to give each scheme its own value, or one of the two to change one scheme. A plain value of the token itself, such as <code>--femto-primary: #c00</code>, applies in both schemes, in place of its pair.</li>
     <li><code>data-theme="dark"</code> on a web component's host makes its shadow root dark when the component loads femto there. See <a href="/docs#shadow-roots">Shadow roots</a>.</li>
   </ul>
   <p>For example, this override gives the page a background of your own in each scheme:</p>
   <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">:root {
-  --femto-background-color: light-dark(#fffdf7, #101418);
+  --femto-light-background-color: #fffdf7;
+  --femto-dark-background-color: #101418;
 }</code></pre></div>
-  <p><a href="/docs#css-variables">CSS variables</a> links to the files that declare the tokens' defaults.</p>
-  <p>Browsers without <code>light-dark()</code>, and bundlers that rewrite it, break color schemes: see <a href="/docs#browser-support">Browser support</a>.</p>
+  <p>femto combines each pair into its token on <code>:root</code> and <code>:host</code>, so a <code>--femto-light-*</code> or <code>--femto-dark-*</code> token set on another element does not change femto's colors. To change a color in one part of a page, set the token itself on that element, such as <code>--femto-primary</code> on a card. <a href="/docs#css-variables">CSS variables</a> has more on overrides, and links to the files that declare the tokens' defaults.</p>
+  <p>Browsers without <code>light-dark()</code> get the light scheme only, and bundlers that rewrite it break color schemes: see <a href="/docs#browser-support">Browser support</a>.</p>
 </section>
 <section>
   <h2>The color-scheme property</h2>

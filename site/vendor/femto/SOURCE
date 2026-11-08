@@ -1,6 +1,6 @@
 # Written by npm run vendor (vendor.mjs). Do not edit: run it again to change femto.
-commit: 33d4dc6f84f8aa9592fdfbf977b9d6eebba9bb54
+commit: 4e27a062a61ac75e6e2f5484cf1114136945578d
 tag: none
-refs: refs/heads/dev, refs/heads/main, refs/remotes/origin/HEAD, refs/remotes/origin/dev, refs/remotes/origin/main
+refs: refs/heads/dev
 version: 3.0.0-alpha.1
 source: ../femto
