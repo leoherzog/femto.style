@@ -27,8 +27,9 @@
       <!-- [html-validate-disable-next unique-landmark -- femto styles a breadcrumb only through nav[aria-label="breadcrumb"], so every breadcrumb on the page shares that name: this one and the Nav section's examples] -->
       <nav aria-label="breadcrumb" data-docs-breadcrumb>
         <ul>
-          <li><button type="button" aria-controls="documentation-menu" data-menu-open><span role="img" aria-hidden="true">☰</span>Documentation</button></li>
+          <li><button type="button" aria-controls="documentation-menu" data-menu-open><span role="img" aria-hidden="true">☰</span><span>Documentation</span></button></li>
           <li>Getting started</li>
+          <li>Quick start</li>
         </ul>
       </nav>
       <aside id="documentation-menu" aria-label="Documentation menu" data-docs-menu>
@@ -38,7 +39,7 @@
         </header>
         <nav class="is-sticky-above-lg" aria-label="Documentation"></nav>
       </aside>
-      <div id="content" role="document"></div>
+      <div id="content"></div>
     </main>
     <!-- include partials/footer.html -->
   </body>

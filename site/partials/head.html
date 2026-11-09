@@ -1,6 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#2a3140">
+<meta name="theme-color" content="#fff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="rgb(19, 22.5, 30.5)" media="(prefers-color-scheme: dark)">
 <meta name="color-scheme" content="light dark">
 <meta property="og:image" content="https://femto.style/opengraph.png">
 <meta property="og:image:type" content="image/png">
@@ -15,13 +16,13 @@
 <link rel="manifest" href="/site.webmanifest">
 <script>
   // The first of the page's two render-blocking scripts, the ?theme= script (criterion 15). On the
-  // docs page, ?theme=<color> adds that femto theme color (Decision 8, 02 §5), the color the Theme
+  // docs page, ?theme=<color> adds that femto theme color (Decision 8), the color the Theme
   // picker (/docs?theme=<color>#theme-picker, picker.js) sets and swaps in place. Its <link> is written
   // by document.write, so the parser inserts it, after femto's stylesheets (docs.html links them
   // before this partial), and the theme's :root tokens come after femto's. Chrome holds its first
   // paint for that <link> as a render-blocking stylesheet. Firefox holds its first paint for it only
   // because the next script, a parser-blocking one, waits for that pending stylesheet before it
-  // runs; so the color-scheme script stays a separate script after this one (probed in Phase 3 in
+  // runs; so the color-scheme script stays a separate script after this one (probed on 2026-11-04 in
   // headless Firefox 160 with jade.css held 300 ms: with one script the first contentful paint came
   // at 80 to 277 ms, before jade.css's responseEnd; with a static inline script after this one, at
   // 455 to 588 ms, after it; a script that document.write adds after the <link> did not hold the
@@ -38,7 +39,7 @@
 <script>
   // The second render-blocking script, the color-scheme script (criterion 15). The reader's
   // color-scheme choice is kept as JSON ("light" or "dark") in localStorage femtoColorScheme, the
-  // oracle's key and format (Decision 14); data-theme is set on <html> only when a choice is stored,
+  // Remix site's key and format (Decision 14); data-theme is set on <html> only when a choice is stored,
   // and before the first paint, so a stored choice never flashes. As a parser-blocking script after
   // the ?theme= script, it is also what holds Firefox's first paint for the theme's <link> (above).
   try {

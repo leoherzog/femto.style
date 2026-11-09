@@ -1,13 +1,13 @@
-// site.js: every page (loaded from partials/head.html). docs/research/01 §2 and 03 §5.
+// site.js: every page (loaded from partials/head.html).
 //
-// It rebuilds the oracle's page-wide behaviors, each attached through a data- attribute (PLAN.md
-// Conversion rules):
-// - the body's min-height, innerHeight in px (react-div-100vh in Body.jsx);
-// - the header theme toggle, button[data-scheme-toggle] (PageContext.jsx, Nav.jsx);
-// - the fixed header on docs pages, header[data-fixed-header] (Header.jsx);
+// It rebuilds the Remix site's page-wide behaviors, each attached through a data- attribute (PLAN.md
+// Rules, JavaScript):
+// - the header theme toggle, button[data-scheme-toggle] (PageContext.jsx, Nav.jsx), and the
+//   theme-color metas, which follow a stored choice;
 // - the copy buttons of code blocks, button[data-copy-link] (Code.jsx);
 // - the code blocks' focus, pre[data-scroll-focus]: only a block that scrolls takes focus;
-// - the submit of example forms, canceled (01 §2, last paragraph);
+// - the submit of example forms, canceled (each form also has method="dialog", so none submits
+//   without JavaScript either);
 // - the modal dialogs, <dialog data-modal> with its openers and closers (ModalContext.jsx).
 // Each does nothing when its markup is absent.
 //
@@ -15,6 +15,8 @@
 // - pageTheme(), switchTheme(), onThemeChange(fn): the page's color scheme;
 // - createModal(dialog, options): one modal helper per dialog (ModalContext.jsx);
 // - nameCopyButton(button): names a copy button by its icon, for one a module writes itself;
+// - announceCopy(): says "Copied" in the page's one copy status region, for a module's own copy
+//   control;
 // - perFrame(fn): a passive scroll or resize handler that runs fn at most once per frame.
 // Import them with `import { createModal } from "./site.js";` (the same URL, so the same instance as
 // the page's own <script type="module" src="/assets/js/site.js">).
@@ -32,11 +34,6 @@ export function perFrame(fn) {
       fn();
     });
   };
-}
-
-// Removes the attribute an empty class list or style leaves, as React does when the prop goes away.
-function dropEmpty(element, name) {
-  if (element.getAttribute(name) === "") element.removeAttribute(name);
 }
 
 // --- Color scheme (Decision 14) ----------------------------------------------------------------
@@ -74,18 +71,27 @@ export function onThemeChange(fn) {
   return () => themeListeners.delete(fn);
 }
 
-// The header toggle (button[data-scheme-toggle] in the header nav, a link in the oracle's Nav.jsx
-// until Phase 4): its icon, the button's one child, a span[role=img] (Decision 18), is the owner's
-// sun or moon emoji (Decision 16), not the oracle's animated SVG, and names the button. Its emoji
+// The header toggle (button[data-scheme-toggle] in the header nav, a link in the Remix site's
+// Nav.jsx): its icon, the button's one child, a span[role=img] (Decision 18), is the owner's
+// sun or moon emoji (Decision 16), not the Remix site's animated SVG, and names the button. Its emoji
 // and its aria-label follow the scheme. docs.js's Color schemes switcher shows the same emoji.
 export const SCHEME_EMOJI = { light: "\u2600\uFE0F", dark: "\u{1F319}" };
 const toggles = [...document.querySelectorAll("button[data-scheme-toggle]")];
+
+// The browser's own bar takes femto's background from the two theme-color metas (head.html), one
+// per OS scheme. A stored choice applies its own scheme's meta and turns the other off.
+const themeColors = [...document.querySelectorAll('head > meta[name="theme-color"][media]')]
+  .map((meta) => ({ meta, media: meta.media, scheme: meta.media.includes("dark") ? "dark" : "light" }));
 
 function applyTheme() {
   const stored = storedTheme();
   // The color-scheme head script has usually set it already: an unchanged value causes no mutation.
   if (stored && root.getAttribute("data-theme") !== stored) root.setAttribute("data-theme", stored);
   else if (!stored) root.removeAttribute("data-theme");
+  for (const { meta, media, scheme } of themeColors) {
+    const want = !stored ? media : scheme === stored ? "all" : "not all";
+    if (meta.media !== want) meta.media = want;
+  }
   const theme = pageTheme();
   const dark = theme === "dark";
   for (const toggle of toggles) {
@@ -120,48 +126,40 @@ addEventListener("storage", (event) => {
 darkOs.addEventListener("change", applyTheme);
 applyTheme();
 
-// --- Body height (react-div-100vh) ---------------------------------------------------------------
-// The oracle sets <body style="min-height: <innerHeight>px"> after hydration and on every resize.
-
-const fitBody = () => {
-  document.body.style.minHeight = `${innerHeight}px`;
-};
-fitBody();
-addEventListener("resize", fitBody);
-
-// --- Fixed header (docs pages) -------------------------------------------------------------------
-// The docs header (header[data-fixed-header]) carries is-fixed-above-lg in its markup; is-fixed is
-// added while scrollY > 20.
-
-const fixedHeader = document.querySelector("header[data-fixed-header]");
-if (fixedHeader) {
-  const update = () => fixedHeader.classList.toggle("is-fixed", scrollY > 20);
-  addEventListener("scroll", perFrame(update), { passive: true });
-  update();
-}
-
 // --- Copy buttons (Code.jsx) ---------------------------------------------------------------------
-// button[data-copy-link] (button.copy-to-clipboard, the first child of div.code or footer.code;
-// colors.js's color modal writes its own the same way; links with tabindex="-1" in the oracle, which
-// the keyboard could not reach): a click, or Enter or Space, copies the block's code text, shows the
+// button[data-copy-link] (the first child of div.code or footer.code; colors.js's color modal
+// writes its own the same way; links with tabindex="-1" in the Remix site, which the keyboard could
+// not reach): a click, or Enter or Space, copies the block's code text, shows the
 // animated check icon with the tooltip "Copied", and 1 s later restores the clipboard icon and "Copy
 // to clipboard" and blurs the button, unless it has keyboard focus (:focus-visible), which stays
 // where the reader left it. As in Code.jsx, every click schedules its own revert, so after repeated
 // clicks the first one's timer reverts (1 s after the first click) and each later one only blurs, or
 // reverts a "Copied" a still later click showed. A screen reader hears "Copied" too, which the
-// tooltip alone does not say: it is written into one visually hidden status region (p.visually-hidden
-// role="status", the last child of <body>, added once a page has a copy button) and cleared again at
-// the revert, so the next copy is announced again. The icons are Decision 18's: the button's one
-// child, a span[role=img] holding the copy character ⧉ and naming the button (aria-label "Copy
-// code"), which gives way to a check ✓ with the same name, since the button still copies; the
-// status region says "Copied". code.css draws the check in, by the "Copied" tooltip.
+// tooltip alone does not say, at every click, the later ones too (announceCopy, below). The icons
+// are Decision 18's: the button's one child, a span[role=img] holding the copy character ⧉ and
+// naming the button (aria-label "Copy code"), which gives way to a check ✓ with the same name,
+// since the button still copies. code.css draws the check in, by the "Copied" tooltip.
 // The button takes its name from the icon through aria-labelledby, not from its contents: femto's
 // tooltip draws data-tooltip as the button's ::before text, which a name from contents would read
 // first ("Copy to clipboard Copy code", "Copied Copy code"). nameCopyButton() gives the icon an id,
 // copy-icon-<n>, unique on the page, and points the button's aria-labelledby at it; the check that
 // swaps in carries the same id and aria-label, so the name stays the icon's label throughout. It runs
-// on load for the page's buttons, which do nothing without JavaScript, and colors.js calls it for the
-// color modal's.
+// on load for the page's buttons, which do nothing without JavaScript (common.css hides them then,
+// as it hides the theme toggle), and colors.js calls it for the color modal's.
+//
+// The status region is one visually hidden p.visually-hidden role="status", the last child of
+// <body>, added once a page has a copy button, before its first text, so that text is announced.
+// Every copy button's module announces through it: site.js's own, colors.js's (by site.js's click
+// handler) and examples.js's Copy as page, so a page has one region and one timer. While a dialog
+// is shown with showModal(), everything outside it leaves the accessibility tree, the region in
+// <body> too, so a screen reader would hear none of the color dialog's copies: createModal's
+// open() moves the region into the dialog, as its last child, before any copy there, and the
+// dialog's close moves it back to the end of <body>. announceCopy()
+// writes "Copied" and empties the region 1 s after the latest call, whoever made it: each call
+// restarts the timer, so an earlier copy's timer never empties it under a later one. A copy while
+// the region still says "Copied" would write the same text, which is no change, and a screen
+// reader would say nothing; so the region is emptied first and "Copied" written again in the next
+// frame.
 
 const COPIED_FOR = 1000;
 const copied = new WeakMap(); // button -> {icon, check} while it shows "Copied"
@@ -193,18 +191,45 @@ function checkIcon(icon) {
   return check;
 }
 
-let copyStatus = null; // the status region; it exists before its first text, so that text is announced
+let copyStatus = null; // the status region
+let statusHome = null; // the dialog shown with showModal() that holds the region, else null: <body>
+let statusTimer = 0; // empties it 1 s after the latest announceCopy()
+let statusFrame = 0; // writes "Copied" again, after a copy that found it already there
 
-function announceCopy(text) {
+// Puts the region, once it exists, at the end of the modal dialog shown, or else of <body>.
+function placeStatus() {
+  const home = statusHome ?? document.body;
+  if (copyStatus && copyStatus.parentElement !== home) home.append(copyStatus);
+}
+
+function statusRegion() {
   if (!copyStatus) {
     copyStatus = document.createElement("p");
     copyStatus.className = "visually-hidden";
     copyStatus.setAttribute("role", "status");
-    document.body.append(copyStatus);
   }
-  if (copyStatus.textContent !== text) copyStatus.textContent = text;
+  placeStatus();
+  return copyStatus;
 }
-if (document.querySelector("button[data-copy-link], [data-color-modal]")) announceCopy("");
+
+export function announceCopy() {
+  const region = statusRegion();
+  clearTimeout(statusTimer);
+  cancelAnimationFrame(statusFrame);
+  if (region.textContent === "Copied") {
+    region.textContent = "";
+    statusFrame = requestAnimationFrame(() => {
+      region.textContent = "Copied";
+    });
+  } else {
+    region.textContent = "Copied";
+  }
+  statusTimer = setTimeout(() => {
+    cancelAnimationFrame(statusFrame);
+    region.textContent = "";
+  }, COPIED_FOR);
+}
+if (document.querySelector("button[data-copy-link], [data-color-modal]")) statusRegion();
 for (const button of document.querySelectorAll("button[data-copy-link]")) nameCopyButton(button);
 
 document.addEventListener("click", (event) => {
@@ -219,15 +244,14 @@ document.addEventListener("click", (event) => {
     icon.replaceWith(check);
     button.setAttribute("data-tooltip", "Copied");
     copied.set(button, { icon, check });
-    announceCopy("Copied");
   }
+  announceCopy();
   setTimeout(() => {
     const state = copied.get(button);
     if (state) {
       state.check.replaceWith(state.icon);
       button.setAttribute("data-tooltip", "Copy to clipboard");
       copied.delete(button);
-      announceCopy("");
     }
     if (!button.matches(":focus-visible")) button.blur();
   }, COPIED_FOR);
@@ -242,12 +266,9 @@ document.addEventListener("click", (event) => {
 // unlike a region it is no landmark, so a page of code blocks does not fill the landmark list with
 // names that repeat (axe's landmark-unique). The others leave the tab order and carry no role or
 // name, so a screen reader neither stops at nor announces them. A ResizeObserver checks a block
-// whenever its box changes (the viewport, a closed <details> opening), and every block is checked
-// again once the code font, Fira Code (fonts.css), has loaded: it changes the code's width, not the
-// block's box. document.fonts.load() says when, in every target browser; Safari never fires the
-// FontFaceSet's loadingdone event (WebKit bug 304091), so it is not used (Decision 12). One load of
-// its latin face is enough: no code block holds text that only another Fira Code face covers.
-// A focused block keeps its tabindex until focus has left it.
+// whenever its box changes (the viewport, a closed <details> opening). Code is in femto's monospace
+// stack, a system font, so no font load changes its width later. A focused block keeps its
+// tabindex until focus has left it.
 
 const LANGUAGES = { html: "HTML", css: "CSS", scss: "SCSS", bash: "Bash" };
 const scrollers = [...document.querySelectorAll("pre[data-scroll-focus]")];
@@ -270,7 +291,6 @@ function fitFocus(pres) {
 if (scrollers.length) {
   const observer = new ResizeObserver((entries) => fitFocus(entries.map((entry) => entry.target)));
   for (const pre of scrollers) observer.observe(pre);
-  if (document.fonts) document.fonts.load('1em "Fira Code"').then(() => fitFocus(scrollers), () => {});
   document.addEventListener("focusout", (event) => {
     const pre = event.target instanceof Element && event.target.matches("pre[data-scroll-focus]") ? event.target : null;
     if (pre) setTimeout(() => fitFocus([pre])); // once focus has moved on
@@ -278,33 +298,36 @@ if (scrollers.length) {
 }
 
 // --- Example forms -------------------------------------------------------------------------------
-// Every form on the site is an example, inside <main>: none submits.
+// Every form on the site is an example, inside <main>: none submits. Each has method="dialog"
+// (criterion 9), whose submit does nothing outside a <dialog>, so without JavaScript none submits
+// either, and nothing typed reaches the URL. Its code sample keeps a plain <form>.
 
 document.addEventListener("submit", (event) => {
   if (event.target instanceof Element && event.target.closest("main")) event.preventDefault();
 });
 
 // --- Modal helper (ModalContext.jsx, one per dialog) ---------------------------------------------
-// The oracle's ModalContext was one flag for the whole site, which both of its dialogs (Modal's demo
-// and the color modal) bound to, so on one page opening either would open both (01 §2). Here each
+// The Remix site's ModalContext was one flag for the whole site, which both of its dialogs (Modal's
+// demo and the color modal) bound to, so on one page opening either would open both. Here each
 // dialog has a helper of its own with its own state, and createModal() returns the dialog's helper
 // when it already has one (its options are the first call's), so two modules that bind the same
 // dialog share it. <html>'s modal classes and --femto-scrollbar-width are the page's, so one dialog
 // holds them at a time: opening a dialog while another is shown hides that one at once, without its
 // animation, and only the dialog that holds them takes them away.
 // open(): when the page scrolls vertically, sets --femto-scrollbar-width on <html> to the scrollbar's
-// width (innerWidth minus <html>'s clientWidth; 0px with overlay scrollbars, as the oracle writes it);
+// width (innerWidth minus <html>'s clientWidth; 0px with overlay scrollbars, as the Remix site wrote it);
 // sets <html> class "modal-is-open modal-is-opening" and opens the dialog; 400 ms later the class is
 // "modal-is-open". close(): "modal-is-open modal-is-closing", and 400 ms later no modal class, no
 // --femto-scrollbar-width (the emptied style="" stays, as React leaves it), the dialog closed, then
-// onClosed(). The oracle's own test, body taller than the screen (isScrollbarVisible.js), missed a
+// onClosed(). The Remix site's own test, body taller than the screen (isScrollbarVisible.js), missed a
 // page taller than the viewport but not the screen; "the page scrolls" is what it meant, and the
 // docs page is taller than any screen.
-// Escape closes it while it is open, and so does a click on the dialog itself (its backdrop area)
-// unless backdrop is false. By default the dialog gets the open attribute, as the oracle's did
-// (focus stays where it was); with modal: true it is shown with showModal() and closed with close(),
-// so the browser moves focus into it and back, and its own Escape (the cancel event) runs the
-// animated close instead. femto's modal CSS styles these classes.
+// The dialog is a true modal, shown with showModal() and closed with close() (the Remix site's
+// only set the open attribute, so focus stayed under the overlay): the page behind is inert, the
+// browser moves focus into the dialog and back to the opener, and its own Escape (the cancel event)
+// runs the animated close instead. A click on the dialog itself (its backdrop area) closes it too,
+// unless backdrop is false. While it is shown it holds the copy status region (above), the only
+// place a screen reader can hear it then. femto's modal CSS styles these classes.
 // Returns {dialog, open(), close(), isOpen}.
 
 const MODAL_DURATION = 400;
@@ -315,10 +338,9 @@ let holder = null; // hide() of the helper whose dialog holds <html>'s modal cla
 function modalClasses(...names) {
   root.classList.remove(...MODAL_CLASSES);
   root.classList.add(...names);
-  dropEmpty(root, "class");
 }
 
-export function createModal(dialog, { modal = false, backdrop = true, onClosed } = {}) {
+export function createModal(dialog, { backdrop = true, onClosed } = {}) {
   if (modals.has(dialog)) return modals.get(dialog);
   let state = "closed"; // "opening", "open", "closing"
   let timer = 0;
@@ -327,7 +349,7 @@ export function createModal(dialog, { modal = false, backdrop = true, onClosed }
 
   const onKeydown = (event) => {
     if (event.key !== "Escape" || !isOpen()) return;
-    if (modal) event.preventDefault();
+    event.preventDefault();
     close();
   };
 
@@ -340,8 +362,11 @@ export function createModal(dialog, { modal = false, backdrop = true, onClosed }
       holder = null;
     }
     styled = false;
-    if (modal) dialog.close();
-    else dialog.removeAttribute("open");
+    dialog.close();
+    if (statusHome === dialog) {
+      statusHome = null;
+      placeStatus();
+    }
     document.removeEventListener("keydown", onKeydown);
     state = "closed";
     onClosed?.();
@@ -358,11 +383,9 @@ export function createModal(dialog, { modal = false, backdrop = true, onClosed }
     }
     holder = hide;
     modalClasses("modal-is-open", "modal-is-opening");
-    if (modal) {
-      if (!dialog.open) dialog.showModal();
-    } else {
-      dialog.setAttribute("open", "");
-    }
+    if (!dialog.open) dialog.showModal();
+    statusHome = dialog;
+    placeStatus();
     state = "opening";
     timer = setTimeout(() => {
       modalClasses("modal-is-open");
@@ -383,12 +406,10 @@ export function createModal(dialog, { modal = false, backdrop = true, onClosed }
       if (event.target === dialog) close();
     });
   }
-  if (modal) {
-    dialog.addEventListener("cancel", (event) => {
-      event.preventDefault();
-      close();
-    });
-  }
+  dialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    close();
+  });
 
   const helper = {
     dialog,
@@ -403,16 +424,16 @@ export function createModal(dialog, { modal = false, backdrop = true, onClosed }
 }
 
 // --- Modal dialogs (data-modal) ------------------------------------------------------------------
-// A <dialog data-modal="<name>"> gets its helper on load, as a true modal (modal: true, from Phase 4;
-// the oracle's demo only set the open attribute, so focus stayed under the overlay and Tab walked the
-// page behind it): showModal() makes the page behind inert and moves focus into the dialog, and the
+// A <dialog data-modal="<name>"> gets its helper on load, a true modal (the Remix site's demo only
+// set the open attribute, so focus stayed under the overlay and Tab walked the page behind it):
+// showModal() makes the page behind inert and moves focus into the dialog, and the
 // close gives focus back to the opener. A click on [data-modal-open="<name>"] opens it, and a click
 // on a [data-modal-close] inside it closes it; the helper adds the backdrop click and Escape (the
 // dialog's cancel event), both with the animated close. The Modal section's demo is the one on the
 // site.
 
 const dialogs = document.querySelectorAll("dialog[data-modal]");
-for (const dialog of dialogs) createModal(dialog, { modal: true });
+for (const dialog of dialogs) createModal(dialog);
 if (dialogs.length) {
   document.addEventListener("click", (event) => {
     const target = event.target instanceof Element ? event.target : null;

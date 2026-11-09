@@ -1,8 +1,8 @@
-// picker.js: the Theme picker, the docs page's #theme-picker section (loaded from docs.html).
-// docs/research/04 §1 (Theme picker) and 02 §5; PLAN.md Decision 8 and Open question 3.
+// picker.js: the Theme picker, the docs page's #theme-picker section (loaded from docs.html;
+// PLAN.md Decision 8 and Owner answers 3).
 //
 // It binds to the section's data- hooks: the theme example with the 20 swatches,
-// article[data-version-picker] (the hook keeps its Phase 3 name); the options,
+// article[data-version-picker] (the hook keeps the version picker's name); the options,
 // section[data-picker-options], one switch per file in femto's css/options/ (input[name=<option>]);
 // and the three code samples, section[data-picker-usage=cdn|combine|template]:
 // - cdn: the <link> tags in load order: femto, the theme (none for azure, which is built in), the
@@ -12,9 +12,9 @@
 // - template: femto's starter template, its femto <link> followed by the theme's and the options'.
 // The section file writes the samples as azure with the switches checked in its markup (responsive
 // spacings), the state a fresh load shows, so a fresh load rewrites nothing and shifts nothing.
-// The samples keep the spans build.mjs writes (step 4: Prism's markup tokens, flattened and split
-// at newlines): each <link> tag is written as those spans, and the template's other lines keep the
-// spans the build gave them. The package and its version range (@leoherzog/femto@3) are read from
+// The samples keep the spans build.mjs writes (step 4: one span per color, plain text unwrapped):
+// each <link> tag is written as those spans, and the template's other lines keep the spans the
+// build gave them. The package and its version range (@leoherzog/femto@3) are read from
 // the cdn sample as built, so the section file is their one source.
 //
 // - The theme color is the URL's ?theme=<color> (Decision 8). The ?theme= head script has already
@@ -73,19 +73,16 @@ export function packageOf(text) {
 const escape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const span = (cls, text) => `<span class="${cls}">${escape(text)}</span>`;
 
-// <link rel="stylesheet" href="<href>"> as Prism's markup tokens.
+// <link rel="stylesheet" href="<href>"> as the build highlights it: the tag name, the attribute
+// names and the quoted values in their colors, the rest plain.
 export function linkTag(href) {
-  const attribute = (name, value) => span("token tag", " ") + span("token tag attr-name", name)
-    + span("token tag attr-value punctuation attr-equals", "=") + span("token tag attr-value punctuation", '"')
-    + span("token tag attr-value", value) + span("token tag attr-value punctuation", '"');
-  return span("token tag punctuation", "<") + span("token tag", "link") + attribute("rel", "stylesheet")
-    + attribute("href", href) + span("token tag punctuation", ">");
+  const attribute = (name, value) => ` ${span("attr", name)}=${span("value", `"${value}"`)}`;
+  return `&lt;${span("tag", "link")}${attribute("rel", "stylesheet")}${attribute("href", href)}&gt;`;
 }
 
-// One <link> tag per href, one per line, each line after the first indented by `indent`: a line
-// break is a span of its own, then the next line's indent (an empty span without one).
+// One <link> tag per href, one per line, each line after the first indented by `indent`.
 export function linksHtml(hrefs, indent = "") {
-  return hrefs.map(linkTag).join(span("", "\n") + span("", indent));
+  return hrefs.map(linkTag).join(`\n${indent}`);
 }
 
 // --- The color -----------------------------------------------------------------------------------
@@ -190,9 +187,10 @@ function picker(article) {
     applyOptions();
   });
 
-  // The example form's links to the page itself: they carry the color's page. (The code blocks' copy
-  // controls were such links too until Phase 4; they are buttons now.)
+  // The example form's links to the page itself (its Privacy Policy link): they carry the color's
+  // page, and go nowhere.
   const selfLinks = [...form.querySelectorAll("a")];
+  for (const link of selfLinks) link.addEventListener("click", (event) => event.preventDefault());
 
   function show(next, animate) {
     color = next;
@@ -293,9 +291,6 @@ function picker(article) {
       if (ticket === swaps) location.assign(urlOf(next));
     });
   }
-
-  // The example's Privacy Policy link goes nowhere.
-  for (const link of form.querySelectorAll("a")) link.addEventListener("click", (event) => event.preventDefault());
 
   header.addEventListener("click", (event) => {
     const swatch = event.target instanceof Element ? event.target.closest("a") : null;

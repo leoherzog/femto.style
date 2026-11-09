@@ -1,5 +1,7 @@
 {
+  "id": "/",
   "name": "femto",
+  "description": "femto's documentation. Semantic HTML made beautiful: link one stylesheet, and plain HTML looks clean and readable.",
   "start_url": "/",
   "icons": [
     {
@@ -27,7 +29,7 @@
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#2a3140",
+  "theme_color": "#ffffff",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "browser"
 }

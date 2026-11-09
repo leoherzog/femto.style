@@ -1,4 +1,4 @@
-// npm run build [-- --out DIR]: site/ into dist/ (PLAN.md Decision 3, docs/research/03 §2).
+// npm run build [-- --out DIR]: site/ into dist/ (PLAN.md Decision 3).
 // Node built-ins and prismjs only. The same input always gives byte-identical output: no timestamps,
 // sorted listings, and the output folder is synced (stale files removed, changed files written), so a
 // server watching it never sees it vanish.
@@ -9,24 +9,23 @@
 //    marker (so partials hold no <pre> or <textarea>); partials may include partials. The placeholders
 //    are {{version}} and {{commit}} (femto's, from vendor/femto/SOURCE), {{title}} and {{description}}
 //    (a page's own <title> and description).
-//    Links in an included header or footer partial whose href is the page's own path (the oracle's
-//    rule: the path without its trailing slash, so "/" never matches) get aria-current="page".
-// 3. Assemble the docs page (02 §6), written to docs.html and served at /docs (never docs/index.html,
+//    Links in an included header or footer partial whose href is the page's own path (the Remix
+//    site's rule: the path without its trailing slash, so "/" never matches) get aria-current="page".
+// 3. Assemble the docs page (Decision 2), written to docs.html and served at /docs (never docs/index.html,
 //    Decision 11). From docs/menu.json, the build fills docs.html's two empty elements: the side nav
 //    (nav.is-sticky-above-lg) gets one open <details> per category, with its summary and one link to
 //    #<id> per section (its label, else its title, else its h1's content: the migration section's,
 //    whose title criterion 14 keeps out of menu.json), and #content every docs/sections/<id>.html in
-//    menu order, each wrapped in a <section>. A missing file, or one that does not begin with its
-//    hgroup (the chapter, then <h1 id="<id>">), fails the build. It also writes the Colors section's
+//    menu order, each wrapped in a <section> and ending with its "Edit this section on GitHub" link
+//    to the file. A missing file, one that does not begin with its hgroup (the chapter, then
+//    <h1 id="<id>">), or one with its own edit link fails the build. It also writes the Colors section's
 //    palette download, assets/femto-color-palette.json: colors.js's PALETTE hex values by family and
-//    shade, as JSON.stringify(palette, null, 2), the JSON the oracle's DownloadColorPalette made on
-//    load as a blob: URL (01 §2, 03 §5).
+//    shade, as JSON.stringify(palette, null, 2), the JSON the Remix site's palette download made on
+//    load as a blob: URL.
 // 4. Highlight. Every <code class="language-X"> holds escaped source text only; Prism tokenizes it and
-//    the build writes react-syntax-highlighter 15.6's spans: Prism's token tree flattened so each text run
-//    is one span whose class list is the union of its ancestors' (class="" for plain text), and then
-//    split at newlines exactly as its processLines() does (wrapLines off). The oracle's "html" was
-//    refractor's html, which is Prism's markup grammar with CSS and JavaScript inlined (prism-light's
-//    registerLanguage("html", jsx) ignores the name, so jsx was registered as jsx and never used).
+//    the build writes each run of one color as one span whose class names the color (colorOf: the
+//    four colors code.css draws); plain text, most punctuation among it, is not wrapped. "html" is
+//    Prism's markup grammar, which inlines CSS and JavaScript, as the Remix site's refractor html did.
 //    The <pre class="prismjs"> around such a code block gets tabindex="0" and the hook
 //    data-scroll-focus: a block whose code is wider than it scrolls sideways, and the keyboard can
 //    scroll it only once it takes focus (axe's scrollable-region-focusable, criterion 10). Which
@@ -54,43 +53,48 @@ const unesc = (s) => s.replace(/&(#x[\da-f]+|#\d+|\w+);/gi, (m, e) => e[0] !== "
   : String.fromCodePoint(e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : Number(e.slice(1))));
 const read = (path) => readFileSync(join(SITE, path), "utf8");
 
-// --- 4. Highlighting: refractor's hast, react-syntax-highlighter's flattenCodeTree and processLines.
-function hast(tokens) { // refractor stringify(): a Token becomes span.token.<type>.<alias>; "" is dropped
-  return (Array.isArray(tokens) ? tokens : [tokens]).filter((t) => t !== "").map((t) => typeof t === "string" ? t
-    : { cls: ["token", t.type].concat(t.alias ?? []), children: typeof t.content === "string" ? [t.content] : hast(t.content) });
-}
-function flatten(nodes, cls = [], out = []) {
-  for (const n of nodes) {
-    if (typeof n === "string") out.push({ cls: [...new Set(cls)], text: n });
-    else flatten(n.children, cls.concat(n.cls), out);
+// --- 4. Highlighting: Prism's tokens as runs of text, each run's color, one span per color run.
+function runs(tokens, types = [], out = []) { // each text run with the types and aliases of the tokens around it
+  for (const t of Array.isArray(tokens) ? tokens : [tokens]) {
+    if (typeof t !== "string") runs(t.content, types.concat(t.type, t.alias ?? []), out);
+    else if (t) out.push({ types: new Set(types), text: t });
   }
   return out;
 }
-function splitLines(tree) { // a run is a span ({cls, text}) or, for some lines of plain text, a bare string
-  const out = [];
-  let last = -1;
-  for (let i = 0; i < tree.length; i++) {
-    const { cls, text } = tree[i];
-    if (!text.includes("\n")) continue;
-    const parts = text.split("\n");
-    parts.forEach((part, k) => {
-      if (k === 0) out.push(...tree.slice(last + 1, i), { cls, text: `${part}\n` });
-      else if (k < parts.length - 1) out.push(cls.length ? { cls, text: `${part}\n` } : `${part}\n`);
-      else if (tree[i + 1]) tree.splice(i + 1, 0, { cls, text: part });
-      else out.push(cls.length ? { cls, text: part } : part);
-    });
-    last = i;
-  }
-  return out.concat(tree.slice(last + 1));
+// The four colors code.css draws, as the Remix site's rules on Prism's classes chose them: a tag's
+// punctuation (<, >, the attribute's =) is plain, an attribute value's quotes take its color, and so
+// does a whole doctype.
+function colorOf(types) {
+  const has = (...names) => names.some((name) => types.has(name));
+  if (has("doctype") || has("comment") && !has("punctuation")) return "comment";
+  if (has("attr-value", "string")) return has("attr-equals") ? null : "value";
+  if (has("keyword", "boolean", "function")) return "attr";
+  if (has("punctuation")) return null;
+  if (has("attr-name", "selector")) return "attr";
+  return has("tag", "property") ? "tag" : null;
 }
+const escText = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 export function highlight(code, language) {
   const grammar = Prism.languages[GRAMMARS[language]] ?? fail(`no grammar for language-${language}`);
   const env = { code, grammar, language };
   Prism.hooks.run("before-tokenize", env);
   env.tokens = Prism.tokenize(env.code, env.grammar);
   Prism.hooks.run("after-tokenize", env);
-  return splitLines(flatten(hast(env.tokens))).map((r) => typeof r === "string" ? esc(r)
-    : `<span class="${r.cls.join(" ")}">${esc(r.text)}</span>`).join("");
+  const list = runs(env.tokens).map(({ types, text }) => ({ color: /\S/.test(text) ? colorOf(types) : undefined, text }));
+  // Whitespace shows no color: it takes its neighbors' color when they share one, so the three are
+  // one span, and is plain text otherwise.
+  list.forEach((run, i) => {
+    if (run.color !== undefined) return;
+    const before = list[i - 1]?.color ?? null, after = list.slice(i + 1).find((r) => r.color !== undefined)?.color ?? null;
+    run.color = before === after ? before : null;
+  });
+  let html = "", open = null;
+  for (const { color, text } of list) {
+    if (color !== open) html += (open ? "</span>" : "") + (color ? `<span class="${color}">` : "");
+    open = color;
+    html += escText(text);
+  }
+  return open ? `${html}</span>` : html;
 }
 export const highlightAll = (html, where) => html.replace(/(<pre class="prismjs">)?<code class="language-([\w-]+)">([\s\S]*?)<\/code>/g, (m, pre, lang, body) =>
   body.includes("<") ? fail(`${where}: <code class="language-${lang}"> must hold escaped text only`)
@@ -126,6 +130,7 @@ function docsPage(menu) {
     const file = `docs/sections/${id}.html`;
     if (!existsSync(join(SITE, file))) fail(`docs/menu.json: no section file ${file}`);
     const text = read(file).trim();
+    if (text.includes('class="edit-on-github"')) fail(`${file}: the build writes the section's edit link`);
     const heading = new RegExp(`^<hgroup>\\n[ \\t]*<p class="chapter">[^<]*</p>\\n[ \\t]*<h1 id="${id}">([\\s\\S]*?)</h1>`);
     return { id, text, h1: text.match(heading)?.[1] ?? fail(`${file}: must begin with <hgroup>, its chapter, then <h1 id="${id}">`) };
   });
@@ -133,10 +138,11 @@ function docsPage(menu) {
     const links = c.sections.map((s) => `\n            <li><a class="secondary" href="#${s.id}">${s.label ?? (s.title == null ? files.find((f) => f.id === s.id).h1 : esc(s.title))}</a></li>`);
     return `<details open><summary>${esc(c.title)}</summary><ul>${links.join("")}\n          </ul></details>`;
   });
-  const sections = files.map(({ text }) => `<section>\n${text}\n</section>\n`);
+  const edit = (id) => `<section class="edit-on-github">\n  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/${id}.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this section on GitHub</small></a></p>\n</section>`;
+  const sections = files.map(({ id, text }) => `<section>\n${text}\n${edit(id)}\n</section>\n`);
   let html = read("docs.html");
   html = swap(html, '<nav class="is-sticky-above-lg" aria-label="Documentation"></nav>', `<nav class="is-sticky-above-lg" aria-label="Documentation">\n          ${nav.join("\n          ")}\n        </nav>`, "docs.html");
-  return swap(html, '<div id="content" role="document"></div>', `<div id="content" role="document">\n${sections.join("")}      </div>`, "docs.html");
+  return swap(html, '<div id="content"></div>', `<div id="content">\n${sections.join("")}      </div>`, "docs.html");
 }
 function palette() {
   const js = read("assets/js/colors.js");

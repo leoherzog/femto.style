@@ -1,14 +1,14 @@
-// docs.js: the one docs page, /docs (loaded from docs.html). docs/research/01 §2, 02 §4 and 03 §5.
+// docs.js: the one docs page, /docs (loaded from docs.html; PLAN.md Decisions 2 and 10).
 //
 // The base (above the regions) rebuilds the docs layout's behaviors:
-// - the spy (02 §4, from docs/research/spike/docs.js): the section being read is the last whose top
+// - the spy (Decision 2): the section being read is the last whose top
 //   has passed a line just below the scroll padding (where a link to #<id> puts its heading), or at
 //   the very bottom of the page the last section once its top is on screen. On a change it moves
 //   aria-current="true" to its side-nav link and to its category's summary, opens that category's
 //   <details> if the reader closed it (the build writes them open, so nothing in the nav moves on
-//   load), scrolls the side nav (never the page) to show the link, and sets the breadcrumb's
-//   chapter to the category and document.title to "<section> • femto" (the page's own title for
-//   the first section). 200 ms after scrolling last moved, once the section it settles on differs
+//   load), scrolls the side nav (never the page) to show the link, sets the breadcrumb's chapter
+//   to the category and its last item to the section's title, and sets document.title to
+//   "<section> • femto" (the page's own title for the first section). 200 ms after scrolling last moved, once the section it settles on differs
 //   from the URL's #hash, it writes the section's #<id> into the URL with replaceState (no hash for
 //   the first section; the path and ?theme= stay), inside try: WebKit throws past 100 calls in 10 s.
 //   Links, deep links, back, forward and reload are the browser's own fragment navigation. A click
@@ -19,36 +19,28 @@
 //   locks the spy, until 150 ms pass without a scroll event (except the popstate of a link's own
 //   fragment navigation, which keeps the link's lock). Nothing here pushes a history entry of its own. The one link it cancels is a
 //   link to /docs#<id> clicked on /docs?theme=<color>, whose #hash it then follows on this page;
-// - the side menu, aside[data-docs-menu]: its nav's --max-height (innerHeight minus its top, when
-//   the module runs, on the window's load and on resize), and the mobile off-canvas
-//   (is-open-on-mobile), opened by the breadcrumb's Documentation button and closed by its Close
-//   button, by any of its links and by Escape, with the opener's aria-expanded, focus moved into the
-//   menu and back, and the rest of the page inert while it is open, so focus stays in it (criterion 7;
-//   the oracle had no Escape, no aria-expanded and no focus handling, 01 §2). Its scroll lock is the
-//   CSS's :has();
-// - the breadcrumb, nav[data-docs-breadcrumb] (Breadcrumb.jsx): is-sticky while its top is -1 px or
-//   less, that is while it is stuck to the top of the viewport (its CSS sticks it at top: -1px).
-// The spy is main[data-docs-spy], the docs page's main: the sections in its [role=document], the
-// side menu's links and the breadcrumb's last item. Each part does nothing when its markup is absent.
+// - the side menu, aside[data-docs-menu]: the mobile off-canvas (is-open-on-mobile), opened by the
+//   breadcrumb's Documentation button and closed by its Close button, by any of its links and by
+//   Escape, with the opener's aria-expanded, focus moved into the menu and back, and the rest of the
+//   page inert while it is open, so focus stays in it (criterion 7; the Remix site had no Escape, no
+//   aria-expanded and no focus handling). Its scroll lock is the CSS's :has(), and its nav's height
+//   from lg up a calc() on 100dvh in docs.css.
+// The breadcrumb's sticking and its border are docs.css's alone. The spy is main[data-docs-spy], the
+// docs page's main: the sections in its div#content, the side menu's links and the breadcrumb's
+// last two items. Each part does nothing when its markup is absent.
 //
 // ROUTE-GROUP REGIONS. Below the base, each route group owns the text between its own two marker
 // lines, `// region:<group>` and `// endregion:<group>`, written as one widgets("<group>", ...) call
 // that declares nothing at the top level, adds no import (site.js's exports are the `site`
 // namespace) and keeps no state shared between widgets. Each widget finds its markup by a data-
-// attribute on its root in the section's file (PLAN.md Conversion rules: data- attributes from
-// Phase 3), narrowed by selectors under it; tests/README.md (Behavior, Editing docs.js) has the rule
-// and the protocol Phase 1's agents used to edit their regions.
+// attribute on its root in the section's file (PLAN.md Rules, JavaScript), narrowed by selectors
+// under it; tests/README.md (Behavior, Widget hooks) lists the hooks.
 
 import * as site from "./site.js";
 
 // Sets an attribute only when its value differs, so an unchanged state causes no mutation.
 function setAttr(element, name, value) {
   if (element.getAttribute(name) !== value) element.setAttribute(name, value);
-}
-
-// Removes the attribute an empty class list leaves, as React does when className goes away.
-function dropEmptyClass(element) {
-  if (element.getAttribute("class") === "") element.removeAttribute("class");
 }
 
 // Runs one group's widgets; an exception is reported (window error event, console) and does not
@@ -61,7 +53,7 @@ function widgets(group, init) {
   }
 }
 
-// --- The spy (02 §4) -----------------------------------------------------------------------------
+// --- The spy (Decision 2) ------------------------------------------------------------------------
 
 // The URL is written this long after scrolling last moved (every scroll frame starts the wait
 // again), once the section it settles on differs from the URL's #hash, so fast scrolling through
@@ -80,7 +72,7 @@ function spy() {
   const root = document.querySelector("main[data-docs-spy]");
   if (!root) return;
   const nav = root.querySelector("[data-docs-menu] > nav");
-  const sections = [...root.querySelectorAll(":scope > [role=document] > section")].flatMap((element) => {
+  const sections = [...root.querySelectorAll(":scope > #content > section")].flatMap((element) => {
     const heading = element.querySelector(":scope > hgroup > h1[id]");
     if (!heading) return [];
     const link = nav?.querySelector(`a[href="#${CSS.escape(heading.id)}"]`) ?? null;
@@ -90,7 +82,9 @@ function spy() {
   });
   if (!sections.length) return;
   const page = document.documentElement;
-  const chapter = root.querySelector("[data-docs-breadcrumb] li:last-child");
+  // The breadcrumb's second item names the category and its third the section.
+  const chapter = root.querySelector("[data-docs-breadcrumb] li:nth-child(2)");
+  const crumb = root.querySelector("[data-docs-breadcrumb] li:nth-child(3)");
   const baseTitle = document.title;
   const titleSuffix = " • femto";
 
@@ -141,6 +135,7 @@ function spy() {
     revealInNav(next.link);
     const category = next.summary?.textContent.trim();
     if (chapter && category && chapter.textContent !== category) chapter.textContent = category;
+    if (crumb && crumb.textContent !== next.title) crumb.textContent = next.title;
     document.title = next === sections[0] ? baseTitle : next.title + titleSuffix;
   }
 
@@ -193,7 +188,6 @@ function spy() {
     until = null;
     clearTimeout(lockTimer);
     page.classList.remove("is-scrolling-to-link");
-    dropEmptyClass(page);
     show(sectionInView());
     syncUrl();
   }
@@ -228,7 +222,7 @@ function spy() {
   // class; mark the target now and lock until the scroll ends. A link another handler canceled (a
   // picker swatch) is not followed. A link to /docs#<id> from /docs?theme=<color> would
   // load the page again without its theme, so it becomes the fragment navigation it means, keeping
-  // the query (02 §5: the theme lasts as long as the URL carries it).
+  // the query (Decision 8: the theme lasts as long as the URL carries it).
   document.addEventListener("click", (event) => {
     const link = event.target instanceof Element ? event.target.closest("a[href*='#']") : null;
     if (!link || event.defaultPrevented || link.origin !== location.origin || link.pathname !== location.pathname) return;
@@ -268,18 +262,6 @@ function sideMenu() {
   const menu = document.querySelector("aside[data-docs-menu]");
   const nav = menu?.querySelector(":scope > nav");
   if (!nav) return;
-
-  // --max-height: what is left of the viewport below the nav's top.
-  const fit = () => {
-    const maxHeight = innerHeight - nav.getBoundingClientRect().top;
-    if (maxHeight !== 0) nav.style.setProperty("--max-height", `${maxHeight}px`);
-    else nav.style.removeProperty("--max-height");
-  };
-  fit();
-  // Safari can run this module before the page's stylesheets apply, so the nav's top is not yet
-  // its own (tests/README.md, Phase 2, Safari): measure again once the page has loaded.
-  if (document.readyState !== "complete") addEventListener("load", fit, { once: true });
-  addEventListener("resize", fit);
 
   // The off-canvas menu below lg (docs.css's max-width: 1023px), opened by the breadcrumb's
   // Documentation button (data-menu-open) and closed by its Close button (data-menu-close), by any
@@ -351,7 +333,6 @@ function sideMenu() {
     if (next === open) return;
     open = next;
     menu.classList.toggle("is-open-on-mobile", open);
-    dropEmptyClass(menu);
     if (opener) setAttr(opener, "aria-expanded", String(open));
     if (open) {
       document.addEventListener("keydown", onKeydown);
@@ -377,27 +358,8 @@ function sideMenu() {
   });
 }
 
-// --- Breadcrumb (Breadcrumb.jsx) -----------------------------------------------------------------
-
-function breadcrumb() {
-  const crumb = document.querySelector("nav[data-docs-breadcrumb]");
-  if (!crumb) return;
-  // It is sticky at top: -1px, so stuck means a top of -1 px or less. A scroll and resize check
-  // rather than an IntersectionObserver: a box that moves in sub-pixel steps can pass from not
-  // stuck (top between -1 and 0) to stuck without crossing an observer threshold.
-  const update = () => {
-    crumb.classList.toggle("is-sticky", crumb.getBoundingClientRect().top <= -1);
-    dropEmptyClass(crumb);
-  };
-  const queue = site.perFrame(update);
-  addEventListener("scroll", queue, { passive: true });
-  addEventListener("resize", queue);
-  update();
-}
-
 widgets("spy", spy);
 widgets("side menu", sideMenu);
-widgets("breadcrumb", breadcrumb);
 
 // region:getting-started
 widgets("getting-started", () => {
@@ -425,35 +387,32 @@ widgets("getting-started", () => {
 
 // region:layout
 widgets("layout", () => {
-  // Grid (docs.grid.jsx), section[data-grid-example]: "Add column" and "Remove column", its
-  // p.btn-group, set the columns of its example between 1 and 10 (4 on load), and the code sample
-  // follows. The sample is rebuilt from its own load-time spans: the opening tag, one row per
-  // column (column 1's nine spans, "\n", "  ", <, div, >, the number, </, div, >, with the number
-  // changed), then the closing line, as the oracle re-highlights it.
+  // Grid (docs.grid.jsx), section[data-grid-example]: "Add column" and "Remove column", in a femto
+  // div.grid of their own, set the columns of its example between 1 and 10 (4 on load), and the code sample
+  // follows. The sample is rebuilt from its own load-time lines as the build highlighted them (no
+  // span holds a line break): the opening tag's line, one row per column (column 1's line,
+  // <div>1</div>, with its number changed), then the closing line, as the Remix site re-highlighted it.
   // The count lives as long as the page: links within it are fragment links, which keep it, and
   // back from another page restores it from the bfcache.
   const demo = document.querySelector("[data-grid-example]");
-  const example = demo?.querySelector(":scope > article.component");
+  const example = demo?.querySelector(":scope > article");
   const grid = example?.querySelector(":scope > .grid");
   const code = example?.querySelector(":scope > footer.code > pre > code");
-  const buttons = demo?.querySelectorAll(":scope > p.btn-group > button") ?? [];
+  const buttons = demo?.querySelectorAll(":scope > .grid > button") ?? [];
   if (!grid || !code || buttons.length !== 2) return;
 
-  const ROW = 9, NUMBER = 5, MIN = 1, MAX = 10;
+  const MIN = 1, MAX = 10;
   let columns = grid.querySelectorAll(":scope > div").length;
-  const spans = [...code.childNodes];
-  const first = spans.findIndex((span, i) => span.textContent === "\n" && /^\d+$/.test(spans[i + NUMBER]?.textContent ?? ""));
+  const lines = code.innerHTML.split("\n");
+  const rowTexts = code.textContent.split("\n").slice(1, -1);
   // The markup is there, so a sample in another shape (a highlighting change) is a defect for
   // widgets() to report, not a page without the demo: it needs one row per column, numbered 1 to n.
-  const isRow = (k) => spans[first + k * ROW]?.textContent === "\n" && spans[first + k * ROW + NUMBER]?.textContent === String(k + 1);
-  let rowsFound = 0;
-  while (first >= 0 && isRow(rowsFound)) rowsFound++;
-  if (rowsFound < MIN || rowsFound !== columns) {
-    throw new Error(`grid sample tokens not recognized: ${rowsFound} highlighted rows for ${columns} columns`);
+  if (columns < MIN || rowTexts.length !== columns || rowTexts.some((text, i) => text !== `  <div>${i + 1}</div>`)
+    || !lines[1].includes("&gt;1&lt;")) {
+    throw new Error(`grid sample not recognized: ${rowTexts.length} rows for ${columns} columns`);
   }
-  const opening = spans.slice(0, first);
-  const row = spans.slice(first, first + ROW);
-  const closing = spans.slice(first + ROW * columns);
+  const [opening, row] = lines;
+  const closing = lines.at(-1);
 
   const render = () => {
     const cells = [...grid.querySelectorAll(":scope > div")].slice(0, columns);
@@ -463,15 +422,8 @@ widgets("layout", () => {
       cells.push(cell);
     }
     grid.replaceChildren(...cells);
-    const rows = [];
-    for (let n = 1; n <= columns; n++) {
-      for (const [i, span] of row.entries()) {
-        const copy = span.cloneNode(true);
-        if (i === NUMBER) copy.textContent = String(n);
-        rows.push(copy);
-      }
-    }
-    code.replaceChildren(...opening, ...rows, ...closing);
+    const rows = Array.from({ length: columns }, (_, i) => row.replace("&gt;1&lt;", `&gt;${i + 1}&lt;`));
+    code.innerHTML = [opening, ...rows, closing].join("\n");
   };
   const set = (n) => {
     const next = Math.min(Math.max(n, MIN), MAX);
@@ -505,7 +457,7 @@ widgets("content", () => {
     for (const td of fontSizes.querySelectorAll(":scope > tbody > tr > td")) {
       const terms = td.querySelector(":scope > span[data-tooltip]")?.getAttribute("data-tooltip").split(" * ");
       if (!terms) continue;
-      // The px content as loaded, restored as is; the rem content, as the oracle renders it.
+      // The px content as loaded, restored as is; the rem content, as the Remix site rendered it.
       const px = [...td.childNodes];
       const rem = () => {
         if (terms.length === 2) return [terms[0].replace(/%$/, ""), small("%")];
@@ -518,9 +470,9 @@ widgets("content", () => {
       for (const { td, px, rem } of cells) td.replaceChildren(...(inRem.checked ? rem() : px));
     };
     inRem.addEventListener("change", show);
-    // An oracle-bug fix (PLAN.md, oracle-bug): Firefox restores the switch as checked on a reload,
-    // and the oracle's useState(false) ignores it, so it shows the px table under a checked switch
-    // and its first click unchecks the switch without changing the table. Here the table follows
+    // A fix over the Remix site: Firefox restores the switch as checked on a reload, and the
+    // Remix site's useState(false) ignored it, so it showed the px table under a checked switch
+    // and its first click unchecked the switch without changing the table. Here the table follows
     // the switch from the start (the font-size-restored-switch behavior check).
     if (inRem.checked) show();
   }
@@ -532,12 +484,12 @@ widgets("content", () => {
   if (thead) {
     const sample = thead.closest("div.overflow-auto").nextElementSibling;
     const code = sample?.matches("div.code") ? sample.querySelector(":scope > pre > code") : null;
-    // The sample's one attribute value token: `dark` in <thead data-theme="dark">.
-    const token = [...(code?.querySelectorAll("span.attr-value") ?? [])].find((span) => /^(light|dark)$/.test(span.textContent));
+    // The sample's one attribute value: `"dark"` in <thead data-theme="dark">, with its quotes.
+    const token = [...(code?.querySelectorAll("span.value") ?? [])].find((span) => /^"(light|dark)"$/.test(span.textContent));
     const show = (theme) => {
       const inverse = theme === "dark" ? "light" : "dark";
       setAttr(thead, "data-theme", inverse);
-      if (token && token.textContent !== inverse) token.textContent = inverse;
+      if (token && token.textContent !== `"${inverse}"`) token.textContent = `"${inverse}"`;
     };
     show(site.pageTheme());
     site.onThemeChange(show);
@@ -585,57 +537,5 @@ widgets("components-b", () => {
   // the default, so they show the page's own path and go nowhere: the links of every example nav,
   // each a nav[data-nav-example] (the breadcrumbs and the two overflow examples among them).
   for (const link of document.querySelectorAll("[data-nav-example] a")) link.addEventListener("click", (event) => event.preventDefault());
-
-  // The Progress section (docs.progress.jsx), article[data-progress-example]: the example's value is
-  // a random whole number from 5 to 94, drawn again every 5 s, and its code sample prints it: the
-  // token right after value=" in <progress value="N" max="100"></progress>. A value is drawn on
-  // load (the oracle's client render draws its own), and the interval runs only while the example
-  // is on screen (PLAN.md Conversion rules) and not paused. button[data-progress-pause], before the
-  // example in its section, pauses and plays it as the homepage demo's button[data-demo-pause] does
-  // (demo.js): hidden in the markup, where nothing changes without JavaScript (docs.css lays its
-  // box out, invisible, where scripts run, so showing it moves nothing), its label says what it
-  // does, "Pause" or "Play", and it starts paused under prefers-reduced-motion: reduce, or pauses
-  // when that setting turns on (WCAG 2.2.2). Play starts the 5 s interval again, from the click.
-  const example = document.querySelector("[data-progress-example]");
-  const progress = example?.querySelector(":scope > progress");
-  const token = example?.querySelector(":scope > footer.code > pre > code > span.attr-value:not(.punctuation)");
-  const toggle = document.querySelector("button[data-progress-pause]");
-  if (progress && token) {
-    const draw = () => {
-      const value = String(Math.floor(Math.random() * 90) + 5);
-      setAttr(progress, "value", value);
-      if (token.textContent !== value) token.textContent = value;
-    };
-    draw();
-    let interval = 0;
-    let onScreen = false;
-    let paused = false;
-    const run = () => {
-      const running = onScreen && !paused;
-      if (running && !interval) {
-        interval = setInterval(draw, 5000);
-      } else if (!running && interval) {
-        clearInterval(interval);
-        interval = 0;
-      }
-    };
-    new IntersectionObserver((entries) => {
-      onScreen = entries.at(-1).isIntersecting;
-      run();
-    }).observe(progress);
-    if (toggle) {
-      const pause = (value) => {
-        paused = value;
-        const label = paused ? "Play" : "Pause";
-        if (toggle.textContent !== label) toggle.textContent = label;
-        run();
-      };
-      const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-      if (reduce.matches) pause(true);
-      toggle.hidden = false;
-      reduce.addEventListener("change", () => reduce.matches && pause(true));
-      toggle.addEventListener("click", () => pause(!paused));
-    }
-  }
 });
 // endregion:components-b
