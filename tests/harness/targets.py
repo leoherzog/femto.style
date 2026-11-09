@@ -1,38 +1,19 @@
-"""The two sides of a comparison: named targets from tests/harness/targets.json, or base URLs.
+"""The target a run loads its pages from: a named target from tests/harness/targets.json, or a
+base URL.
 
-Side A is <base A><path> and side B is <base B><path>. A side is one of:
-
-* `oracle`: the Remix site at tag remix-final, built if needed and served by harness.oracle.serve()
-  (its own wrangler pages dev); readiness hook oracle.wait_ready().
-* `fixture` or `fixture:<control>`: the selftest site in tests/fixtures/site/, served by the harness,
-  optionally changed by a named control from tests/fixtures/controls.json.
-* `command` targets such as `dist`: a server the harness starts from a command line in its own
-  process group and stops with every child when the run ends. `dist:<path>` serves any built
-  folder exactly as `dist` serves dist/ (the same wrangler, options, readiness and same-origin
-  rule), so several agents can compare their own builds at once.
-* a command target with `build_tag`, such as `static-multipage`, `static-femto` or
-  `static-one-page`: the harness first builds that tag
-  of this repository into the target's folder (harness.tagbuild: a temporary git worktree, node
-  build.mjs --out), rebuilding when the folder's index.html or build.json is missing, the tag's
-  commit or the prismjs version differs from the one build.json records, or the folder no longer
-  matches its recorded tree hash (tagbuild.stale_reason), then serves the folder exactly as `dist`
-  serves dist/.
+* `dist`: wrangler pages dev dist, a server the harness starts in its own process group and stops
+  with every child when the run ends. `dist:<path>` serves any built folder exactly as `dist`
+  serves dist/ (the same wrangler, options and readiness), so several agents can test their own
+  builds at once.
 * a base URL (`http://127.0.0.1:8788`): a server someone else runs; nothing is started or stopped.
-
-A target may also name a `menu` (the sections mode reads side A's routes and their sections from it,
-harness.sections), a `one_page` (the one docs page the sections mode loads side B's sections from)
-and a `comparison` (what a pages or sections run is when the target is side A: static-femto makes it
-one-page, which decides the registry entries that apply).
 
 wrangler is always the repository's own: `npm exec --no -- wrangler`, checked first against the exact
 version package.json pins. FEMTO_WRANGLER=<path to a wrangler executable> replaces it (only for
-testing the harness before the repository has one); every run that uses it says so in a cap line.
+testing the harness before the repository has one).
 
-Every named target that a run names is started once per side, so `--a oracle --b oracle` (the
-self mode) runs two separate oracle servers. Readiness hooks run before the collector reads a side:
-`oracle` (the oracle's own hydration check, run inside the iframe), `static` (the document is
-complete, document.fonts.ready resolved and two animation frames passed, with a timer standing in
-for a frame where rAF never runs) or `none`.
+Readiness hooks run before a check reads the page: `static` (the document is complete,
+document.fonts.ready resolved and two animation frames passed, with a timer standing in for a frame
+where rAF never runs) or `none`.
 """
 import json
 import os
@@ -47,14 +28,14 @@ from pathlib import Path
 
 from .paths import REPO, TARGETS
 
-READY = ("oracle", "static", "none")
+READY = ("static", "none")
 FORBIDDEN_PORTS = {8790}
 WRANGLER_ENV = "FEMTO_WRANGLER"
 NPM_WRANGLER = ["npm", "exec", "--no", "--", "wrangler"]
 
 
 class TargetError(Exception):
-    """A side cannot be resolved or started; the run stops before any browser starts (exit 2)."""
+    """The target cannot be resolved or started; the run stops before any browser starts (exit 2)."""
 
 
 def load_targets():
@@ -105,7 +86,7 @@ def wrangler_info():
         raise TargetError("package.json has no devDependencies.wrangler: the dist targets run the repository's own "
                           "pinned wrangler (npm exec --no never downloads one)")
     if not EXACT_VERSION.match(pin):
-        raise TargetError(f"package.json pins wrangler as {pin!r}, not an exact version (PLAN.md Repo changes: every "
+        raise TargetError(f"package.json pins wrangler as {pin!r}, not an exact version (PLAN.md criterion 4: every "
                           "version pinned exactly)")
     pj = REPO / "node_modules" / "wrangler" / "package.json"
     if not (REPO / "node_modules" / ".bin" / "wrangler").exists() or not pj.is_file():
@@ -118,36 +99,29 @@ def wrangler_info():
 
 
 class Side:
-    def __init__(self, spec, ready=None, root=None):
+    """The target of a run: its server, once started (start()), is at self.base."""
+
+    def __init__(self, spec, ready=None):
         self.spec = spec
-        self.root = root or None
-        self.share = None   # "a": serve this side from side A's server (self --one-server)
-        self.root_note = None  # the sections mode: side B's root is each cell's section, side A's takes grafts
         self.base = None
-        self.control = None
         self.dir = None       # the folder a command target serves (dist, or dist:<path>)
         self.wrangler = None  # wrangler_info(), for a command that runs wrangler
         if spec.startswith(("http://", "https://")):
             self.kind, self.name, self.conf = "url", spec.rstrip("/"), {}
             self.base = spec.rstrip("/")
         else:
-            name, _, control = spec.partition(":")
+            name, _, folder = spec.partition(":")
             targets = load_targets()
             if name not in targets:
                 raise TargetError(f"unknown target {spec!r}: name one of {', '.join(sorted(targets))} or a base URL")
             self.name, self.conf = name, targets[name]
             self.kind = self.conf["kind"]
-            if self.conf.get("build_tag") and control:
-                raise TargetError(f"target {name} serves its own build of tag {self.conf['build_tag']}; it takes no "
-                                  f"folder (got {spec!r})")
             if "dir" in self.conf:
                 # dist:<path>: any built folder, served exactly as the target serves its own.
-                d = Path(control or self.conf["dir"]).expanduser()
+                d = Path(folder or self.conf["dir"]).expanduser()
                 self.dir = (d if d.is_absolute() else REPO / d).resolve()
-            elif control:
-                if self.kind != "fixture":
-                    raise TargetError(f"target {name} takes no control (got {spec!r})")
-                self.control = control
+            elif folder:
+                raise TargetError(f"target {name} takes no folder (got {spec!r})")
         self.ready = ready or self.conf.get("ready", "static")
         if self.ready not in READY:
             raise TargetError(f"unknown readiness hook {self.ready!r} (use {', '.join(READY)})")
@@ -155,33 +129,12 @@ class Side:
     def uses_wrangler(self):
         return self.kind == "command" and "{wrangler}" in self.conf.get("command", [])
 
-    def caps(self):
-        """Cap lines for the run: a side whose wrangler is not the repository's."""
-        if self.uses_wrangler() and os.environ.get(WRANGLER_ENV):
-            return [f"side {self.spec}: wrangler from {WRANGLER_ENV}={os.environ[WRANGLER_ENV]}, not the repository's "
-                    "pinned one (a harness test, not a gate)"]
-        return []
-
     def describe(self):
         d = {"spec": self.spec, "kind": self.kind, "base": self.base, "ready": self.ready}
-        if self.root:
-            d["root"] = self.root + (f" ({self.root_note})" if self.root_note else "")
-        elif self.root_note:
-            d["root"] = self.root_note
-        if self.control:
-            d["control"] = self.control
         if self.dir is not None:
             d["dir"] = _rel(self.dir)
-        if self.conf.get("build_tag"):
-            from .tagbuild import BUILDS
-            try:
-                d["build"] = json.loads((BUILDS / self.conf["build_tag"] / "build.json").read_text())
-            except (OSError, ValueError):
-                d["build"] = None
         if self.wrangler:
             d["wrangler"] = {k: v for k, v in self.wrangler.items() if k != "argv"}
-        if self.conf.get("same_origin"):
-            d["same_origin"] = True
         return d
 
     def fill(self, s, **more):
@@ -190,20 +143,7 @@ class Side:
 
     def check(self):
         """Setup checks that need no server (run before any browser or server starts)."""
-        if self.kind == "fixture":
-            from .server import SITE, build_overrides, ControlError
-            try:
-                build_overrides(SITE, self.control)
-            except ControlError as e:
-                raise TargetError(str(e)) from None
-        elif self.kind == "command":
-            tag = self.conf.get("build_tag")
-            if tag:
-                from .tagbuild import BuildError, ensure
-                try:
-                    ensure(tag, log=lambda m: print(m, flush=True))
-                except BuildError as e:
-                    raise TargetError(f"target {self.spec}: {e}") from None
+        if self.kind == "command":
             if self.dir is not None and not self.dir.is_dir():
                 raise TargetError(f"target {self.spec}: {_rel(self.dir)} is not a folder (build it first)")
             req = self.conf.get("requires")
@@ -214,11 +154,6 @@ class Side:
                     raise TargetError(f"target {self.spec} needs {_rel(path)}, which does not exist (build it first)")
             if self.uses_wrangler():
                 self.wrangler = wrangler_info()
-        elif self.kind == "oracle":
-            try:
-                from . import oracle  # noqa: F401
-            except ImportError as e:
-                raise TargetError(f"target oracle needs tests/harness/oracle.py: {e}") from None
 
 
 def free_port():
@@ -326,45 +261,13 @@ class _Command:
 
 
 def start(stack, side, log, log_dir):
-    """Start the side's server (if any) inside an ExitStack and set side.base."""
+    """Start the target's server (if any) inside an ExitStack and set side.base."""
     if side.kind == "url":
         return
-    if side.kind == "oracle":
-        from . import oracle
-        t0 = time.time()
-        side.base = stack.enter_context(oracle.serve())
-        log(f"oracle server {side.base} answered after {time.time() - t0:.1f}s")
-    elif side.kind == "fixture":
-        from .server import StaticServer
-        srv = StaticServer(control=side.control)
-        stack.callback(srv.close)
-        side.base = srv.base
-    elif side.kind == "command":
-        if side.conf.get("build_tag"):
-            # Hold the tag's build lock shared while the server reads the folder (tagbuild.serving).
-            from .tagbuild import BuildError, serving
-            try:
-                stack.enter_context(serving(side.conf["build_tag"], log))
-            except BuildError as e:
-                raise TargetError(str(e)) from None
+    if side.kind == "command":
         c = _Command(side, log, log_dir)
         stack.callback(c.stop)
         side.base = c.base
     else:
         raise TargetError(f"target {side.name}: unknown kind {side.kind!r}")
 
-
-def run_ready(sess, side, timeout=30):
-    """Run the side's readiness hook on the document in the session's iframe. Returns a list of errors."""
-    errors = []
-    if side.ready == "oracle":
-        from . import oracle
-        with sess.in_frame():
-            try:
-                oracle.wait_ready(sess.driver, timeout=timeout)
-            except Exception as e:
-                errors.append(f"oracle.wait_ready: {type(e).__name__}: {str(e).splitlines()[0] if str(e) else ''}")
-    if side.ready in ("oracle", "static"):
-        r = sess.ajs("ready", int(timeout * 1000))
-        errors += r.get("errors", [])
-    return errors

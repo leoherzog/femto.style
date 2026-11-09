@@ -9,9 +9,7 @@ node_modules
 .DS_Store
 Thumbs.db
 
-# Static conversion
+# The build and the test results
 /dist/
-tests/oracle/
 tests/results/
-tests/builds/
 __pycache__/

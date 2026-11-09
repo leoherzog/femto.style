@@ -1,50 +1,42 @@
-"""The behavior mode: scripted checks of every widget against one target (tests/behavior/).
+"""The behavior mode: scripted checks of every widget and of the page loads against one target
+(tests/behavior/).
 
-    uv run tests/run.py behavior --target <oracle | dist | dist:<path> | base URL>
+    uv run tests/run.py behavior --target <dist | dist:<path> | base URL>
                                  [--groups g,..] [--checks name,..] [--browsers chrome,firefox]
 
-Unlike the pages mode, a check drives a top-level document (no host page, no iframe, no proxy): the
-URL, history, focus, storage events between tabs and window resizes are the browser's own. Each
-browser runs headless, which keeps timers and animation frames at full rate (hidden or background
-tabs throttle them to about once a second; docs/research/05-spike.md), and holds one of the
-machine-wide harness slots for its whole life (harness.locks), with WebDriver start-up serialized.
+A check drives a top-level document: the URL, history, focus, storage events between tabs and
+window resizes are the browser's own. Each browser runs headless, which keeps timers and animation
+frames at full rate (hidden or background tabs throttle them to about once a second), and holds one
+of the machine-wide harness slots for its whole life (harness.locks), with WebDriver start-up
+serialized.
 
 For every check and route the page is reset first: a fresh tab (its own history and sessionStorage)
 with every other tab closed, the viewport set to the check's innerWidth and innerHeight (WebDriver
 BiDi browsingContext.setViewport), prefers-color-scheme emulated (CDP in Chrome, the content pref in
-Firefox, as in harness.browsers), storage on the target's origin emptied (from a same-origin static
-file, /favicon.svg) and the check's items stored, then the route loaded and its readiness hook run
-(oracle: harness.oracle.wait_ready; static: load, fonts and two frames).
+Firefox), storage on the target's origin emptied (from a same-origin static file, /favicon.svg) and
+the check's items stored, then the route loaded and its readiness hook run (static: load, fonts and
+two frames). A check's routes are the site's URLs: /docs#<id>, /docs (Quick start),
+/docs?theme=<color>#theme-picker, /, /examples. Every script a check runs sees `S`, the element its
+route's content lives in: on /docs the route's section, document.getElementById(id).closest("section");
+on the other pages the whole document (document.documentElement).
 
-Safari (--browsers safari) runs under femto's Safari rules, as the other modes do (tests/README.md,
-Rig notes, Safari): one session at a time machine-wide (the Safari lock, held for the session's
-life), never while the user's own Safari is open, and only on an unlocked screen, since input never
-reaches a hidden page. It is visible, not headless; it has no prefers-color-scheme emulation, so a
-check whose media is not the OS scheme is skipped (status skip, `media:<scheme>`) and runs in the
-owner's pass of the other appearance; nor prefers-reduced-motion emulation, so the session reads the
-OS motion with matchMedia as it reads the OS scheme (logged as `OS motion reduce` or `OS motion
-no-preference`), and a check whose motion is not the OS motion is skipped (`motion:<motion>`): the
-reduce checks run in the owner's pass with macOS's Reduce Motion on (tests/owner-safari.sh reduced),
-every other check in the passes with it off. --expect-os-motion stops a Safari session that reads
-another OS motion before its first check. It has no WebDriver BiDi, so the viewport is sized
-through the window and a check that needs a preload script is skipped there (`preload`), as is one
-that says what else Safari's WebDriver cannot do (safari_skip: `safari`). Its Tab is Option+Tab
-(Page.tab).
+Safari (--browsers safari) runs under femto's Safari rules (tests/README.md, Rig notes, Safari): one
+session at a time machine-wide (the Safari lock, held for the session's life), never while the
+user's own Safari is open, and only on an unlocked screen, since input never reaches a hidden page.
+It is visible, not headless; it has no prefers-color-scheme emulation, so a check whose media is not
+the OS scheme is skipped (status skip, `media:<scheme>`) and runs in the owner's pass of the other
+appearance; nor prefers-reduced-motion emulation, so the session reads the OS motion with matchMedia
+as it reads the OS scheme (logged as `OS motion reduce` or `OS motion no-preference`), and a check
+whose motion is not the OS motion is skipped (`motion:<motion>`): the reduce checks run in the
+owner's pass with macOS's Reduce Motion on (tests/owner-safari.sh reduced), every other check in the
+passes with it off. --expect-os-motion stops a Safari session that reads another OS motion before
+its first check. It has no WebDriver BiDi, so the viewport is sized through the window, a check that
+needs a preload script is skipped there (`preload`), as is one that says what else Safari's
+WebDriver cannot do (safari_skip: `safari`), and a check's request log (netlog) stays empty. Its Tab
+is Option+Tab (Page.tab).
 
-The target has one of two layouts (--layout; the target's by default). On `one-page` (the static
-site from Phase 3: targets.json one_page) the docs are the one page /docs, and a check's routes are
-written in its URLs: /docs#<id>, /docs (Quick start), /docs?theme=<color>#theme-picker. On `routes`
-(the oracle, static-femto, static-multipage: one page per docs route) each such URL is loaded at its
-old route instead, through static-femto's menu.json (the map PLAN.md's sections comparison uses):
-/docs#modal at /docs/modal, /docs?theme=jade#theme-picker at /docs/version-picker/jade (Phase 4's
-Theme picker is the old version picker's section, SECTION_ALIASES). Every
-script a check runs sees `S`, the element its route's content lives in: on the one page the
-route's section, document.getElementById(id).closest("section"); on routes the whole document
-(document.documentElement). A check that can run on one layout only says why, and is recorded as
-skip there with that reason.
-
-Results go to tests/results/<run-id>/ like every other mode: result.json, summary.txt, log.txt, and
-for a failed check a screenshot of the viewport under shots/.
+Results go to tests/results/<run-id>/: result.json, summary.txt, log.txt, and for a failed check a
+screenshot of the viewport under shots/.
 """
 import contextlib
 import importlib.util
@@ -60,8 +52,7 @@ from .paths import REPO, RESULTS, TESTS
 
 BEHAVIOR_DIR = TESTS / "behavior"
 BROWSERS = ("chrome", "firefox", "safari")
-LAYOUTS = ("one-page", "routes")
-STATUSES = ("pass", "xfail", "fail", "xpass", "error", "skip")
+STATUSES = ("pass", "fail", "error", "skip")
 SCRIPT_TIMEOUT = 180     # the longest in-page wait is a few seconds; generous for a loaded machine
 FF_SCHEME_PREF = "layout.css.prefers-color-scheme.content-override"
 FF_SCHEME_VALUES = {"dark": 0, "light": 1}
@@ -71,14 +62,9 @@ MOTIONS = ("no-preference", "reduce")         # prefers-reduced-motion, as behav
 MOTION_PASS = {"reduce": "the owner's pass with macOS's Reduce Motion on (tests/owner-safari.sh reduced) runs it",
                "no-preference": "the owner's passes with Reduce Motion off (tests/owner-safari.sh final) run it"}
 FF_JS_PREF = "javascript.enabled"
-RESET_PATH = "/favicon.svg"   # a static same-origin file on every side: storage is emptied from it
+RESET_PATH = "/favicon.svg"   # a static same-origin file of the target: storage is emptied from it
 ONE_PAGE = "/docs"            # the one docs page (PLAN.md Decision 2)
 FIRST_SECTION = "quick-start"  # the section at the top of /docs, which has no hash
-ROUTES_MENU = ("static-femto", "site/docs/menu.json")   # the old routes' menu: tag and path in it
-# Phase 4's section ids whose section an old route showed under another id: the Theme picker is the
-# version picker reworked (PLAN.md Open questions 3), so /docs?theme=jade#theme-picker is the old
-# /docs/version-picker/jade on the routes layout.
-SECTION_ALIASES = {"theme-picker": "version-picker"}
 
 
 def route_parts(route):
@@ -92,28 +78,6 @@ def route_parts(route):
     return (u.fragment or FIRST_SECTION, theme)
 
 
-def old_routes():
-    """{(section id, theme color or None): old route} from static-femto's menu.json, read from the tag
-    (harness.sections.route_map): the oracle's kept docs routes, which the routes layout loads."""
-    import types
-    from .sections import route_map
-    tag, path = ROUTES_MENU
-    routes, _ = route_map(types.SimpleNamespace(spec=tag, conf={"menu": path, "build_tag": tag}))
-    return {v: k for k, v in routes.items()}
-
-
-def to_old_route(route, table):
-    """The old route that showed what a one-page check route shows, or None when none did (another
-    query, a theme on a section other than the picker's)."""
-    parts = route_parts(route)
-    if parts is None:
-        return route
-    u = urllib.parse.urlsplit(route)
-    if set(urllib.parse.parse_qs(u.query)) - {"theme"}:
-        return None
-    return table.get((SECTION_ALIASES.get(parts[0], parts[0]), parts[1]))
-
-
 def csv(s):
     return [x.strip() for x in s.split(",") if x.strip()] if s else []
 
@@ -121,8 +85,8 @@ def csv(s):
 # -- command line --------------------------------------------------------------------------------
 
 def add_parser(sub):
-    p = sub.add_parser("behavior", help="scripted checks of every widget against one target (tests/behavior/)")
-    p.add_argument("--target", help="oracle, dist, dist:<path> (wrangler pages dev <path>) or a base URL")
+    p = sub.add_parser("behavior", help="scripted checks of every widget and of the page loads (tests/behavior/)")
+    p.add_argument("--target", help="dist, dist:<path> (wrangler pages dev <path>) or a base URL")
     p.add_argument("--groups", help="comma list of groups (default: all): " + ", ".join(_groups()))
     p.add_argument("--checks", help="comma list of check names (default: all in the groups)")
     p.add_argument("--browsers", default="chrome,firefox",
@@ -132,14 +96,7 @@ def add_parser(sub):
                    help="Safari only: the prefers-reduced-motion macOS must give (Reduce Motion off: no-preference, on: "
                         "reduce); a Safari session that reads another stops before its first check. Chrome and Firefox "
                         "emulate each check's motion and ignore it")
-    p.add_argument("--ready", help="readiness hook (oracle, static, none; default: the target's)")
-    p.add_argument("--layout", choices=LAYOUTS,
-                   help="one-page (the docs are /docs; a target with targets.json one_page, and a base URL) or routes "
-                        "(one page per old docs route: the oracle and the other named targets, and a base URL with "
-                        "--expect-oracle-bugs); default: the target's")
-    p.add_argument("--expect-oracle-bugs", action="store_true",
-                   help="treat the target as the oracle for oracle_bug checks (for a base URL serving it); "
-                        "the named target oracle always does")
+    p.add_argument("--ready", help="readiness hook (static, none; default: the target's)")
     p.add_argument("--workers", help="sessions per browser, e.g. chrome=2,firefox=2 (default 1 each)")
     p.add_argument("--run-id", help="name of the results folder (default: timestamp-behavior-pid)")
     p.add_argument("--label", help="free text stored in result.json")
@@ -208,43 +165,32 @@ class CheckFailed(Exception):
 class Page:
     """One browser session's top-level tab, as a check sees it."""
 
-    def __init__(self, sess, base, ready, layout=None, routes=None):
+    def __init__(self, sess, base, ready, scoped=True):
         self.sess, self.driver, self.browser = sess, sess.driver, sess.browser
         self.base, self.ready_hook = base, ready
-        self.layout = layout      # one-page, routes, or None (no check: harness.a11y loads plain pages)
-        self.old_routes = routes  # the routes layout's {(section, theme): old route}
+        self.scoped = scoped      # the check scripts see S (False: harness.a11y, whose axe source declares its own names)
         self.assertions = []
         self.notes = []
         self.cleanups = []
         self.loads = 0
         self.check = None
-        self.route = None         # the check's route, in the one page's URLs
-        self.section = None       # its section id on the one page (None off the docs)
+        self.route = None         # the check's route, a site URL
+        self.section = None       # its section id on /docs (None off the docs)
         self.theme = None         # its ?theme= color
         self.scope = None         # the JavaScript expression every check script sees as S
         self.delayed = False      # the check holds some responses (delay_responses)
-
-    def address(self, route):
-        """Where a check route is loaded on this target: itself on the one page, its old route on
-        routes (a route no old route showed is a harness error: such a check runs on the one page
-        only, and says so)."""
-        if self.layout != "routes":
-            return route
-        old = to_old_route(route, self.old_routes)
-        if old is None:
-            raise RuntimeError(f"no old route shows {route}: a check on it runs on the one page only (layouts)")
-        return old
+        self.netlog = None        # the check's request log (start_netlog), or None
 
     def _set_route(self, route):
         self.route = route
-        parts = route_parts(route) if self.layout else None
+        parts = route_parts(route)
         self.section, self.theme = parts if parts else (None, None)
-        if self.layout == "one-page" and self.section:
-            self.scope = f"document.getElementById({json.dumps(self.section)})?.closest('section') ?? null"
-        elif self.layout:
-            self.scope = "document.documentElement"
-        else:
+        if not self.scoped:
             self.scope = None
+        elif self.section:
+            self.scope = f"document.getElementById({json.dumps(self.section)})?.closest('section') ?? null"
+        else:
+            self.scope = "document.documentElement"
 
     def _scoped(self, body):
         return body if self.scope is None else f"const S = {self.scope};\n{body}"
@@ -300,16 +246,15 @@ class Page:
 
     def url_kept(self, label, before, /, **detail):
         """Assert that nothing navigated since the URL was `before`, a page.url(): no new history
-        entry, and the same URL. On the one page the spy writes the hash of the section being read
-        whenever a check scrolls (replaceState, no history entry), so there the path and query must be
-        the same and the hash either the same or a section's id (or none, the spy's plain /docs at the
-        top); elsewhere the URL must be exactly the same."""
+        entry, and the same URL. On /docs the spy writes the hash of the section being read whenever a
+        check scrolls (replaceState, no history entry), so the path and query must be the same and the
+        hash either the same or a section's id (or none, the spy's plain /docs at the top)."""
         now = self.js("""const u = new URL(arguments[0], location.href);
           const ids = [...document.querySelectorAll("#content > section > hgroup > h1[id]")].map(h => "#" + h.id);
           return {url: location.pathname + location.search + location.hash, history: history.length,
                   spy: location.pathname + location.search === u.pathname + u.search
                       && (location.hash === u.hash || location.hash === "" || ids.includes(location.hash))};""", before)
-        ok = now["spy"] if self.layout == "one-page" else now["url"] == before
+        ok = now["spy"]
         history = getattr(before, "history", None)
         if history is None:
             raise RuntimeError(f"{label}: url_kept takes a page.url(), which carries history.length")
@@ -382,6 +327,7 @@ class Page:
         self.assertions, self.notes = [], []
         self.preloaded = False
         self.delayed = False
+        self.netlog = None
         d = self.driver
         handles = d.window_handles
         d.switch_to.new_window("tab")
@@ -408,18 +354,26 @@ class Page:
             self.delay_responses(check.delay)
         if getattr(check, "javascript", True) is False:
             self.disable_javascript()
+        if getattr(check, "netlog", False):
+            self.start_netlog()
         self.load(route)
-        if self.layout == "one-page" and self.section and getattr(check, "javascript", True) is not False:
+        if self.scoped and self.section and getattr(check, "javascript", True) is not False:
             self.expect(f"the page has the #{self.section} section", self.js("return !!S"))
 
     def clear_cache(self):
-        """Empty the browser's HTTP cache, so the next load is a cold one (Chrome: CDP; Firefox: the
-        cache service, from its chrome context). Safari has no way to: noted, and the load is warm."""
+        """Empty the browser's caches, so the next load is a cold one (Chrome: CDP's
+        Network.clearBrowserCache; Firefox: every cache, the in-memory stylesheet, image and script
+        caches included, through the clear-data service from its chrome context: the HTTP cache
+        alone, Services.cache2.clear(), leaves a stylesheet a page loaded in memory, and the next
+        document takes it from there; the rig's cache check shows it). Safari has no way to: noted,
+        and the load is warm."""
         if self.browser == "chrome":
             self.driver.execute_cdp_cmd("Network.clearBrowserCache", {})
         elif self.browser == "firefox":
             with self.driver.context(self.driver.CONTEXT_CHROME):
-                self.driver.execute_script("Services.cache2.clear()")
+                self.driver.execute_async_script(
+                    "const done = arguments[arguments.length - 1];"
+                    "Services.clearData.deleteData(Ci.nsIClearDataService.CLEAR_ALL_CACHES, () => done(true));")
         else:
             self.note("Safari's cache cannot be emptied over WebDriver: this load may be warm")
 
@@ -436,6 +390,48 @@ class Page:
             handler = net.add_request_handler([self.base + path], lambda request, s=seconds: time.sleep(s))
             self.cleanups.append(lambda h=handler: net.remove_request_handler(h))
         self.delayed = True
+
+    def start_netlog(self):
+        """Log every request the browser starts from now on, from outside the page, for the rest of
+        the check: WebDriver BiDi's network.beforeRequestSent (every fetch the browser starts, a
+        document's, a frame's or a worker's, whether the network or the HTTP cache answers it) and
+        network.fetchError (a load that fails before any response), subscribed for the whole session,
+        so requests that belong to no tab (a worker's) are logged too. page.requests() reads the log.
+        Safari has no BiDi: noted, and nothing is logged."""
+        if self.browser == "safari":
+            self.note("Safari has no WebDriver BiDi: no request log, only the pages' own performance entries")
+            return
+        log, lock = [], threading.Lock()
+
+        def handler(event):
+            def on(params):
+                req = params.get("request") if isinstance(params, dict) else getattr(params, "request", None)
+                url = req.get("url") if isinstance(req, dict) else getattr(req, "url", None)
+                error = params.get("errorText") if isinstance(params, dict) else getattr(params, "error_text", None)
+                with lock:
+                    log.append({"event": event, "url": url, **({"error": error} if error else {})})
+            return on
+        net = self.driver.network
+        ids = [(e, net.add_event_handler(e, handler(kind))) for e, kind in (("before_request_sent", "request"),
+                                                                             ("fetch_error", "error"))]
+
+        def stop():
+            for e, i in ids:
+                try:
+                    net.remove_event_handler(e, i)
+                except Exception:
+                    pass
+        self.cleanups.append(stop)
+        self.netlog = (log, lock)
+
+    def requests(self):
+        """The check's request log so far (start_netlog): [{event, url, error?}], or None when the
+        browser keeps none (Safari) or the check asked for none."""
+        if self.netlog is None:
+            return None
+        log, lock = self.netlog
+        with lock:
+            return list(log)
 
     def disable_javascript(self):
         """Turn the page's JavaScript off for this tab's loads (Chrome: CDP, for this tab only; Firefox:
@@ -456,11 +452,10 @@ class Page:
             raise RuntimeError("WebDriver cannot turn JavaScript off in Safari")
 
     def load(self, route, fresh=True):
-        """Navigate this tab to the route (its old route on the routes layout) and run the readiness
-        hook. With `fresh`, a route that differs from the current document's URL only by its hash is
+        """Navigate this tab to the route and run the readiness hook. With `fresh`, a route that differs from the current document's URL only by its hash is
         reached through RESET_PATH, so it is a new document (going to a hash on the same page is a
         fragment navigation in the same document, which runs no preload script and no page script)."""
-        url = self.base + self.address(route)
+        url = self.base + route
         if fresh:
             try:
                 here = self.driver.execute_script("return location.origin + location.pathname + location.search")
@@ -482,16 +477,7 @@ class Page:
             self.wait_ready()
 
     def wait_ready(self, timeout=30):
-        if self.ready_hook == "oracle":
-            from . import oracle
-            # Headless Chrome can stop scheduling idle periods until a frame is produced, and the
-            # oracle hydrates from requestIdleCallback (tests/README.md, Rig notes, Chrome: idle
-            # periods); request frames until it has.
-            self.js("""if (!window.__bhPump) { window.__bhPump = 1; const end = performance.now() + 30000;
-                       (function f() { const r = window.__remixRouter;
-                         if (performance.now() < end && !(r && r.state && r.state.initialized)) requestAnimationFrame(f); })(); }""")
-            oracle.wait_ready(self.driver, timeout=timeout)
-        elif self.ready_hook == "static":
+        if self.ready_hook == "static":
             r = self.ajs("""
               const frame = () => new Promise(res => { let f = false; const go = () => { if (!f) { f = true; res(); } };
                 requestAnimationFrame(go); setTimeout(go, 100); });
@@ -503,13 +489,10 @@ class Page:
                 raise RuntimeError(f"static readiness: {r}")
 
     def wait_navigated(self, path, timeout=10, label=None):
-        """After a click that navigates (a full load or a client-side route change), wait until
-        location.pathname is `path` and the document is loaded and idle, then run the readiness
-        hook again."""
+        """After a click that navigates, wait until location.pathname is `path` and the document is
+        loaded, then run the readiness hook again."""
         self.wait(label or f"navigated to {path}",
-                  "location.pathname === arguments[0] && document.readyState === 'complete' && "
-                  "(!window.__remixRouter || window.__remixRouter.state.navigation.state === 'idle')",
-                  timeout, args=(path,))
+                  "location.pathname === arguments[0] && document.readyState === 'complete'", timeout, args=(path,))
         self.wait_ready()
 
     # -- window and input --------------------------------------------------------------------
@@ -831,17 +814,12 @@ def _slug(route):
     return route.strip("/").replace("/", "--") or "index"
 
 
-def run_one(page, check, route, oracle_side, shots_dir):
+def run_one(page, check, route, shots_dir):
     """Run one check on one route; return its result record."""
     t0 = time.time()
     rec = {"check": check.name, "group": check.group, "route": route, "browser": page.browser}
-    if page.layout == "routes" and route_parts(route) is not None:
-        rec["loaded"] = to_old_route(route, page.old_routes)
     skip = None
-    if page.layout not in check.layouts:
-        # A check of what only one layout has (the one page's spy and URLs, say): recorded, with why.
-        skip = (f"layout:{page.layout}", check.layout_reason)
-    elif page.browser == "safari" and check.media != page.sess.os_scheme:
+    if page.browser == "safari" and check.media != page.sess.os_scheme:
         # Safari runs the OS scheme only: the owner's pass of the other appearance runs this check.
         skip = (f"media:{check.media}", f"Safari cannot emulate prefers-color-scheme: {check.media}; the OS scheme is "
                                         f"{page.sess.os_scheme}")
@@ -881,16 +859,10 @@ def run_one(page, check, route, oracle_side, shots_dir):
             page.sess.remove_preloads()
         except Exception:
             pass
-    bug = check.oracle_bug if oracle_side else None
-    if bug:
-        rec["oracle_bug"] = bug
-        if status == "fail" and failed == bug["fails"]:
-            status = "xfail"
-        elif status == "pass":
-            status = "xpass"
+    page.netlog = None
     rec.update(status=status, failed=failed, duration_s=round(time.time() - t0, 2),
                assertions=page.assertions, notes=page.notes)
-    if status in ("fail", "error", "xpass") and shots_dir is not None:
+    if status in ("fail", "error") and shots_dir is not None:
         try:
             shot = shots_dir / f"{page.browser}__{check.name}__{_slug(route)}.png"
             page.screenshot(shot)
@@ -901,11 +873,9 @@ def run_one(page, check, route, oracle_side, shots_dir):
 
 
 class Runner:
-    def __init__(self, jobs, base, ready, oracle_side, workers, run_dir, shots, log, run_id, layout, routes,
-                 expect_os_motion=None):
-        self.base, self.ready, self.oracle_side = base, ready, oracle_side
+    def __init__(self, jobs, base, ready, workers, run_dir, shots, log, run_id, expect_os_motion=None):
+        self.base, self.ready = base, ready
         self.expect_os_motion = expect_os_motion
-        self.layout, self.routes = layout, routes
         self.run_dir, self.shots, self.log, self.run_id = run_dir, shots, log, run_id
         self.lock = threading.Lock()
         self.queues = {}
@@ -929,7 +899,7 @@ class Runner:
             self.results.append(rec)
             n = len(self.results)
         tail = ""
-        if rec["status"] in ("fail", "xfail", "xpass"):
+        if rec["status"] == "fail":
             last = next((a for a in reversed(rec["assertions"]) if not a["ok"]), None)
             tail = f" at {rec['failed']!r}" + (f": {json.dumps(last.get('detail'))[:300]}" if last and last.get("detail") else "")
         elif rec["status"] == "error":
@@ -951,7 +921,7 @@ class Runner:
                             break
                         if sess is None:
                             sess = Session(browser, self.log)
-                            page = Page(sess, self.base, self.ready, self.layout, self.routes)
+                            page = Page(sess, self.base, self.ready)
                             if browser == "safari":
                                 sess.read_os_media(self.base)
                             with self.lock:
@@ -969,7 +939,7 @@ class Runner:
                                     "Settings > Accessibility > Display > Reduce motion) and run again; no check ran")
                         check, route = job
                         loads = page.loads
-                        rec = run_one(page, check, route, self.oracle_side, self.run_dir / "shots" if self.shots else None)
+                        rec = run_one(page, check, route, self.run_dir / "shots" if self.shots else None)
                         rec["loads"] = page.loads - loads   # documents loaded by page.load and reset
                         self._record(rec)
                         if rec["status"] == "error" and rec.get("webdriver_error"):
@@ -1011,30 +981,21 @@ class Runner:
         return self.results
 
 
-def default_layout(side, expect_oracle_bugs):
-    """The target's layout: one-page for a target whose targets.json names its one_page (dist), and for
-    a base URL unless it serves the oracle (--expect-oracle-bugs); routes for the oracle and every
-    other named target (static-femto, static-multipage, the fixture)."""
-    if side.kind == "url":
-        return "routes" if expect_oracle_bugs else "one-page"
-    return "one-page" if side.kind == "command" and side.conf.get("one_page") else "routes"
-
-
 def resolve_target(spec, ready):
-    """A harness Side for --target: a named target (oracle, dist), dist:<path> (dist's own server
-    on another built folder; harness.targets handles it) or a base URL."""
+    """A harness Side for --target: dist, dist:<path> (dist's own server on another built folder;
+    harness.targets handles it) or a base URL."""
     from .targets import Side
     return Side(spec, ready)
 
 
 def summary_text(result):
-    lines = [f"{result['status']}  behavior {result['target']} ({result['base']}, layout {result['layout']}), run "
+    lines = [f"{result['status']}  behavior {result['target']} ({result['base']}), run "
              f"{result['run_id']}, {result['duration_s']} s"]
     t = result["totals"]
     lines.append("totals: " + ", ".join(f"{k} {v}" for k, v in t.items()))
     for b, d in result["by_browser"].items():
         lines.append(f"  {b:7} " + ", ".join(f"{k} {v}" for k, v in d.items()))
-    bad = [r for r in result["checks"] if r["status"] in ("fail", "error", "xpass")]
+    bad = [r for r in result["checks"] if r["status"] in ("fail", "error")]
     if bad:
         lines.append("")
         lines.append("FAILED CHECKS")
@@ -1045,22 +1006,14 @@ def summary_text(result):
             last = next((a for a in reversed(r["assertions"]) if not a["ok"]), None)
             if last and last.get("detail"):
                 lines.append("      " + json.dumps(last["detail"])[:600])
-            if r["status"] == "xpass":
-                lines.append(f"      expected the oracle to fail at {r['oracle_bug']['fails']!r}: {r['oracle_bug']['reason']}")
     sk = [r for r in result["checks"] if r["status"] == "skip"]
     if sk:
         lines.append("")
-        lines.append(f"SKIPPED (a check of the other layout; in Safari, the other appearance's or the other motion's, "
-                     f"which the owner's pass of that appearance or with Reduce Motion set the other way runs, or one "
-                     f"that needs what Safari's WebDriver cannot do, which Chrome and Firefox run): {len(sk)}")
+        lines.append(f"SKIPPED (in Safari, the other appearance's or the other motion's, which the owner's pass of that "
+                     f"appearance or with Reduce Motion set the other way runs, or one that needs what Safari's "
+                     f"WebDriver cannot do, which Chrome and Firefox run): {len(sk)}")
         for r in sk:
             lines.append(f"  {r['browser']} {r['check']} {r['route']}: {r['skipped']}: {(r.get('notes') or [''])[0]}")
-    xf = [r for r in result["checks"] if r["status"] == "xfail"]
-    if xf:
-        lines.append("")
-        lines.append("EXPECTED FAILURES (oracle bugs the conversion fixes)")
-        for r in xf:
-            lines.append(f"  {r['browser']} {r['check']} {r['route']}: at {r['failed']!r}: {r['oracle_bug']['reason']}")
     if result["errors"]:
         lines.append("")
         lines.append("HARNESS ERRORS")
@@ -1091,18 +1044,17 @@ def run_behavior(args):
     if args.list:
         for c in checks:
             extra = [x for x in (c.motion != "no-preference" and f"motion {c.motion}",
-                                 not c.javascript and "JavaScript off", c.cold and "cold cache") if x]
+                                 not c.javascript and "JavaScript off", c.cold and "cold cache",
+                                 c.netlog and "request log") if x]
             print(f"{c.group:15} {c.name:28} {','.join(c.routes)}  {c.width}x{c.height} {c.media}"
-                  + "".join(f", {x}" for x in extra)
-                  + (f"  {' and '.join(c.layouts)} only: {c.layout_reason}" if len(c.layouts) < len(LAYOUTS) else "")
-                  + (f"  oracle_bug fails at {c.oracle_bug['fails']!r}" if c.oracle_bug else ""))
+                  + "".join(f", {x}" for x in extra))
             for line in c.doc.splitlines():
                 print(f"{'':17}{line}")
         print(f"{len(checks)} checks, {sum(len(c.routes) for c in checks)} check-routes, {len(jobs)} runs "
               f"in {', '.join(browsers)}")
         return 0
     if not args.target:
-        print("error: behavior needs --target (oracle, dist, dist:<path> or a base URL)", file=sys.stderr)
+        print("error: behavior needs --target (dist, dist:<path> or a base URL)", file=sys.stderr)
         return 2
     if "safari" in browsers:
         # femto's Safari rules (tests/README.md, Rig notes, Safari): never while the user's own Safari
@@ -1121,21 +1073,6 @@ def run_behavior(args):
     except TargetError as e:
         print(f"error: {e}", file=sys.stderr)
         return 2
-    oracle_side = side.kind == "oracle" or args.expect_oracle_bugs
-    layout = args.layout or default_layout(side, args.expect_oracle_bugs)
-    routes = None
-    if layout == "routes":
-        try:
-            routes = old_routes()
-        except TargetError as e:
-            print(f"error: the routes layout reads the old routes from {ROUTES_MENU[0]}:{ROUTES_MENU[1]}: {e}",
-                  file=sys.stderr)
-            return 2
-        missing = sorted({r for c in checks if layout in c.layouts for r in c.routes if to_old_route(r, routes) is None})
-        if missing:
-            print(f"error: no old route shows {', '.join(missing)}: a check on such a route runs on the one page "
-                  "only (its layouts)", file=sys.stderr)
-            return 2
     workers = {b: 1 for b in BROWSERS}
     for kv in csv(args.workers):
         k, _, v = kv.partition("=")
@@ -1154,8 +1091,7 @@ def run_behavior(args):
             log_f.flush()
 
     log(f"run {run_id}: behavior, {len(checks)} checks, {len(jobs)} runs in {', '.join(browsers)}; target "
-        f"{args.target}{' (oracle bugs expected)' if oracle_side else ''}, layout {layout}; results in "
-        f"{run_dir.relative_to(REPO)}")
+        f"{args.target}; results in {run_dir.relative_to(REPO)}")
     t0 = time.time()
     results, errors, sessions = [], [], []
     try:
@@ -1167,8 +1103,8 @@ def run_behavior(args):
                 log_f.close()
                 return 2
             log(f"target {side.spec} at {side.base} (ready: {side.ready})")
-            runner = Runner(jobs, side.base, side.ready, oracle_side, workers, run_dir, not args.no_shots, log, run_id,
-                            layout, routes, getattr(args, "expect_os_motion", None))
+            runner = Runner(jobs, side.base, side.ready, workers, run_dir, not args.no_shots, log, run_id,
+                            getattr(args, "expect_os_motion", None))
             results = runner.run()
             errors, sessions = runner.errors, runner.sessions
     except KeyboardInterrupt:
@@ -1181,14 +1117,13 @@ def run_behavior(args):
     for b in browsers:
         rs = [r for r in results if r["browser"] == b]
         by_browser[b] = {s: sum(1 for r in rs if r["status"] == s) for s in STATUSES}
-    # A skip is the other layout's check or, in Safari, the other appearance's or the other motion's
-    # (the owner's pass of that appearance, or with Reduce Motion set the other way, runs it) or one
-    # Safari's WebDriver cannot run (Chrome and Firefox run it).
-    ok =not errors and len(results) == len(jobs) and all(r["status"] in ("pass", "xfail", "skip") for r in results)
+    # A skip is, in Safari, the other appearance's or the other motion's check (the owner's pass of
+    # that appearance, or with Reduce Motion set the other way, runs it) or one Safari's WebDriver
+    # cannot run (Chrome and Firefox run it).
+    ok = not errors and len(results) == len(jobs) and all(r["status"] in ("pass", "skip") for r in results)
     result = {"run_id": run_id, "mode": "behavior", "status": "PASS" if ok else "FAIL", "argv": sys.argv[1:],
               "label": args.label, "target": args.target, "base": side.base, "ready": side.ready, "side": side.describe(),
-              "layout": layout,
-              "oracle_bugs_expected": oracle_side, "browsers": browsers,
+              "browsers": browsers,
               "expect_os_motion": getattr(args, "expect_os_motion", None),
               "groups": sorted({c.group for c in checks}), "checks_selected": [c.describe() for c in checks],
               "started": time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(t0)),

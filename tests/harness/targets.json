@@ -1,26 +1,9 @@
 {
-  "description": "Named comparison sides for tests/run.py (--a, --b). kind oracle: harness.oracle.serve(); kind fixture: the selftest site in tests/fixtures/site/ (fixture:<control> applies a control from tests/fixtures/controls.json); kind command: a server the harness starts in its own process group ({port} and {inspector_port} are free ports, never 8790; {dir} is the target's folder; {log_dir} the run's result folder; an argument \"{wrangler}\" is the repository's pinned wrangler, npm exec --no -- wrangler, or FEMTO_WRANGLER) and stops with every child; dir: the folder a command serves, which <name>:<path> replaces (dist:<path> serves any built folder exactly like dist); requires: a path that must exist first ({dir} filled in); env: environment variables for the command ({port}, {dir} and {log_dir} filled in). ready: the readiness hook run before collecting (oracle, static, none). max_documents: the most documents one server instance serves; a longer run is split into chunks, each with freshly started servers and browser sessions. build_tag: a tag of this repository that the harness builds first into dir (tests/harness/tagbuild.py: a temporary git worktree of the tag, node build.mjs --out dir, rebuilt when dir/index.html or build.json beside it is missing, the tag's commit or the repository's prismjs version differs from the one build.json records, or dir no longer matches its recorded tree hash; the build holds tests/builds/<tag>.lock exclusively and every server of it holds the lock shared). menu: the menu.json a sections run reads side A's routes and their sections from (a path in the repository; for a build_tag target, the path inside the tag). one_page: the one docs page a sections run loads side B's sections from. comparison: the comparison a pages or sections run is when this target is side A (default pages), which decides the registry entries that apply. same_origin: every document this side serves must load only same-origin resources (PLAN.md criterion 15); a cross-origin load in its Resource Timing entries fails the run outside the diff, where no registry entry applies. See tests/README.md, Modes.",
+  "description": "The named target for tests/run.py --target. kind command: a server the harness starts in its own process group ({port} and {inspector_port} are free ports, never 8790; {dir} is the target's folder; {log_dir} the run's result folder; an argument \"{wrangler}\" is the repository's pinned wrangler, npm exec --no -- wrangler, or FEMTO_WRANGLER) and stops with every child; dir: the folder it serves, which <name>:<path> replaces (dist:<path> serves any built folder exactly like dist); requires: a path that must exist first ({dir} filled in); env: environment variables for the command ({port}, {dir} and {log_dir} filled in). ready: the readiness hook run before a check (static, none). See tests/README.md.",
   "targets": {
-    "oracle": {
-      "kind": "oracle",
-      "ready": "oracle",
-      "max_documents": 400,
-      "about": "The Remix site at tag remix-final, built with its locked toolchain and served by its own wrangler pages dev (tests/harness/oracle.py).",
-      "max_documents_why": "wrangler 4.0.0's InspectorProxyWorker keeps every DevTools event of the worker (Network.enable: several per request) in runtimeMessageBuffer until a DevTools client connects, which none does. Its workerd isolate reached the V8 heap limit (about 1.4 GB) after about 1,240 page loads (43,000 requests) on 2026-10-30 (run p0-gate-self-cf, first attempt). A run therefore restarts every server, with fresh browser sessions, at most every 400 documents per server (tests/README.md, Rig notes)."
-    },
-    "fixture": {
-      "kind": "fixture",
-      "ready": "static",
-      "same_origin": true,
-      "about": "The harness's selftest site, tests/fixtures/site/. Its sections/ folder is a one-page docs site in miniature for the sections controls: route pages listed in sections/menu.json and the one page sections/docs.html.",
-      "menu": "tests/fixtures/site/sections/menu.json",
-      "one_page": "/sections/docs.html"
-    },
     "dist": {
       "kind": "command",
       "ready": "static",
-      "same_origin": true,
-      "same_origin_why": "PLAN.md criterion 15: every page loads only same-origin resources. The harness reads each document's own network log (Resource Timing), so a script that only displays a CDN URL passes and a fetch() or inserted <link> to another origin fails, whatever builds the URL.",
       "requires": "{dir}/index.html",
       "command": [
         "{wrangler}",
@@ -37,122 +20,15 @@
         "{log_dir}/wrangler-state-{port}",
         "--show-interactive-dev-session=false"
       ],
-      "about": "The static site: wrangler pages dev dist (or dist:<path>, any built folder), with the wrangler pinned in package.json. Phase 1 points side B here.",
+      "about": "The static site: wrangler pages dev dist (or dist:<path>, any built folder), with the wrangler pinned in package.json.",
       "env": {
         "WRANGLER_SEND_METRICS": "false",
         "WRANGLER_LOG_PATH": "{log_dir}/wrangler-debug-{port}.log"
       },
       "env_why": "wrangler writes a debug log on every run; WRANGLER_LOG_PATH keeps it in the run's result folder instead of ~/Library/Preferences/.wrangler/logs.",
       "dir": "dist",
-      "dir_why": "dist:<path> serves another built folder (a relative path is read from the repository root) exactly like dist: the same wrangler, options, readiness and same-origin rule, so several agents can each compare their own build at once.",
-      "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state.",
-      "one_page": "/docs",
-      "one_page_why": "The one docs page (PLAN.md Decision 2): the sections mode's side B loads each section at /docs#<id>, and a color route's at /docs?theme=<color>#version-picker."
-    },
-    "static-multipage": {
-      "kind": "command",
-      "ready": "static",
-      "same_origin": true,
-      "same_origin_why": "PLAN.md criterion 15: every page loads only same-origin resources. The harness reads each document's own network log (Resource Timing), so a script that only displays a CDN URL passes and a fetch() or inserted <link> to another origin fails, whatever builds the URL.",
-      "requires": "{dir}/index.html",
-      "command": [
-        "{wrangler}",
-        "pages",
-        "dev",
-        "{dir}",
-        "--ip",
-        "127.0.0.1",
-        "--port",
-        "{port}",
-        "--inspector-port",
-        "{inspector_port}",
-        "--persist-to",
-        "{log_dir}/wrangler-state-{port}",
-        "--show-interactive-dev-session=false"
-      ],
-      "about": "The static site at tag static-multipage (the Phase 1 commit, with the oracle's compiled CSS frozen in site/assets/legacy/), built by the harness into tests/builds/static-multipage/dist and served exactly as dist is. The styles mode's side A (tests/README.md, Modes).",
-      "env": {
-        "WRANGLER_SEND_METRICS": "false",
-        "WRANGLER_LOG_PATH": "{log_dir}/wrangler-debug-{port}.log"
-      },
-      "env_why": "wrangler writes a debug log on every run; WRANGLER_LOG_PATH keeps it in the run's result folder instead of ~/Library/Preferences/.wrangler/logs.",
-      "dir": "tests/builds/static-multipage/dist",
-      "dir_why": "Gitignored (.gitignore: tests/builds/). The folder is the harness's own: a run never builds into dist/, and the build is redone only when the tag moves.",
-      "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state.",
-      "build_tag": "static-multipage",
-      "build_tag_why": "PLAN.md Workflow, 2 Styles: the Phase 2 gate compares the Phase 2 site against the Phase 1 commit, tagged static-multipage. Building the tag, not reading the working tree, keeps side A fixed while the site's CSS changes."
-    },
-    "static-femto": {
-      "kind": "command",
-      "ready": "static",
-      "same_origin": true,
-      "same_origin_why": "PLAN.md criterion 15: every page loads only same-origin resources. The harness reads each document's own network log (Resource Timing), so a script that only displays a CDN URL passes and a fetch() or inserted <link> to another origin fails, whatever builds the URL.",
-      "requires": "{dir}/index.html",
-      "command": [
-        "{wrangler}",
-        "pages",
-        "dev",
-        "{dir}",
-        "--ip",
-        "127.0.0.1",
-        "--port",
-        "{port}",
-        "--inspector-port",
-        "{inspector_port}",
-        "--persist-to",
-        "{log_dir}/wrangler-state-{port}",
-        "--show-interactive-dev-session=false"
-      ],
-      "about": "The static site at tag static-femto (the Phase 2 commit 7587a7e: vendored femto and the five site CSS files, one page per oracle route), built by the harness into tests/builds/static-femto/dist and served exactly as dist is. Side A of Phase 3's comparisons (tests/README.md, Modes): the sections mode's route pages, and a pages run's whole pages.",
-      "env": {
-        "WRANGLER_SEND_METRICS": "false",
-        "WRANGLER_LOG_PATH": "{log_dir}/wrangler-debug-{port}.log"
-      },
-      "env_why": "wrangler writes a debug log on every run; WRANGLER_LOG_PATH keeps it in the run's result folder instead of ~/Library/Preferences/.wrangler/logs.",
-      "dir": "tests/builds/static-femto/dist",
-      "dir_why": "Gitignored (.gitignore: tests/builds/). The folder is the harness's own: a run never builds into dist/, and the build is redone only when the tag moves.",
-      "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state.",
-      "build_tag": "static-femto",
-      "build_tag_why": "PLAN.md Workflow, 3 One page: the Phase 3 gate compares each docs section of the one page against its old route at the Phase 2 commit, tagged static-femto. Building the tag, not reading the working tree, keeps side A fixed while site/ becomes the one page.",
-      "menu": "site/docs/menu.json",
-      "menu_why": "The sections mode maps each old docs route to its section through side A's menu.json, read from the tag (git show static-femto:site/docs/menu.json): its route and variants fields, which Phase 3 removes from the working tree's menu.json.",
-      "comparison": "one-page",
-      "comparison_why": "A pages or sections run whose side A is this target is a one-page comparison: only the registry entries whose where.comparisons names one-page apply (and skipped checks), so neither Phase 1's entries (the oracle against the static site) nor Phase 2's (the frozen CSS against femto) hide a difference between the Phase 2 site and the one page (tests/README.md, Divergence registry)."
-    },
-    "static-one-page": {
-      "kind": "command",
-      "ready": "static",
-      "same_origin": true,
-      "same_origin_why": "PLAN.md criterion 15: every page loads only same-origin resources. The harness reads each document's own network log (Resource Timing), so a script that only displays a CDN URL passes and a fetch() or inserted <link> to another origin fails, whatever builds the URL.",
-      "requires": "{dir}/index.html",
-      "command": [
-        "{wrangler}",
-        "pages",
-        "dev",
-        "{dir}",
-        "--ip",
-        "127.0.0.1",
-        "--port",
-        "{port}",
-        "--inspector-port",
-        "{inspector_port}",
-        "--persist-to",
-        "{log_dir}/wrangler-state-{port}",
-        "--show-interactive-dev-session=false"
-      ],
-      "about": "The static site at tag static-one-page (the Phase 3 commit 7b90883, \"Merge Docs Into One Page\": the one docs page, before Phase 4 rewrote the content), built by the harness into tests/builds/static-one-page/dist and served exactly as dist is. Side B of Phase 3's comparisons when they are rerun between the tags (tests/owner-safari.sh parity): the sections mode's one page, and a pages run's whole pages.",
-      "env": {
-        "WRANGLER_SEND_METRICS": "false",
-        "WRANGLER_LOG_PATH": "{log_dir}/wrangler-debug-{port}.log"
-      },
-      "env_why": "wrangler writes a debug log on every run; WRANGLER_LOG_PATH keeps it in the run's result folder instead of ~/Library/Preferences/.wrangler/logs.",
-      "dir": "tests/builds/static-one-page/dist",
-      "dir_why": "Gitignored (.gitignore: tests/builds/). The folder is the harness's own: a run never builds into dist/, and the build is redone only when the tag moves.",
-      "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state.",
-      "build_tag": "static-one-page",
-      "build_tag_why": "PLAN.md Workflow, 3 One page: Phase 3's gate compared the one page at that phase's commit against static-femto. From Phase 4 dist/ describes femto 3 and matches neither, so criterion 2's Safari legs are rerun between the commits the gates compared: static-femto against this tag, the Phase 3 commit (the owner, 2026-11-06). Building the tag, not reading the working tree, keeps side B fixed.",
-      "one_page": "/docs",
-      "one_page_why": "The one docs page at the Phase 3 commit (PLAN.md Decision 2): the sections mode's side B loads each section at /docs#<id>, and a color route's at /docs?theme=<color>#version-picker, as it did from dist at Phase 3's gate."
+      "dir_why": "dist:<path> serves another built folder (a relative path is read from the repository root) exactly like dist: the same wrangler, options and readiness, so several agents can each test their own build at once.",
+      "command_why": "{wrangler} is npm exec --no -- wrangler, the wrangler pinned in package.json (--no never downloads one; targets.py checks node_modules/wrangler against the exact pin first). --persist-to gives each server its own state folder in the run's folder, so concurrent servers never share .wrangler/state."
     }
   }
 }

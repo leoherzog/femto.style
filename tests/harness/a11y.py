@@ -1,7 +1,7 @@
 """The a11y mode: acceptance criterion 10, "axe-core finds no serious or critical violation on any
 page, in Chrome and Firefox, light and dark, at 375 and 1300".
 
-    uv run tests/run.py a11y [--target dist | dist:<path> | static-femto | <base URL>]
+    uv run tests/run.py a11y [--target dist | dist:<path> | <base URL>]
                              [--pages /,/docs] [--browsers chrome,firefox] [--schemes light,dark]
                              [--widths 375,1300]
 
@@ -30,13 +30,12 @@ from .paths import REPO, RESULTS
 
 AXE = REPO / "node_modules" / "axe-core"
 # Criterion 10's pages: every page of the URL inventory (the 404 page through a path that has none),
-# and the docs page once more with a theme, so the theme stylesheet's colors are covered too. /demo
-# is not built from Phase 4 (PLAN.md Open questions 5); --pages /demo checks an older build.
+# and the docs page once more with a theme, so the theme stylesheet's colors are covered too.
 PAGES = ("/", "/examples", "/does-not-exist", "/docs", "/docs?theme=jade")
 BROWSERS = ("chrome", "firefox")
 SCHEMES = ("light", "dark")
 WIDTHS = (375, 1300)
-HEIGHT = 800             # the parity matrix's one viewport height
+HEIGHT = 800             # one viewport height for every cell
 FAILING = ("critical", "serious")
 IMPACTS = ("critical", "serious", "moderate", "minor")
 
@@ -47,12 +46,12 @@ def csv(s):
 
 def add_parser(sub):
     p = sub.add_parser("a11y", help="axe-core on every page of one target (criterion 10)")
-    p.add_argument("--target", default="dist", help="dist (default), dist:<path>, a named target or a base URL")
+    p.add_argument("--target", default="dist", help="dist (default), dist:<path> or a base URL")
     p.add_argument("--pages", help="comma list of paths (default: " + ",".join(PAGES) + ")")
     p.add_argument("--browsers", default="chrome,firefox", help="comma list of chrome, firefox (default both)")
     p.add_argument("--schemes", default="light,dark", help="comma list of light, dark (default both)")
     p.add_argument("--widths", default="375,1300", help="comma list of viewport widths (default 375,1300)")
-    p.add_argument("--ready", help="readiness hook (oracle, static, none; default: the target's)")
+    p.add_argument("--ready", help="readiness hook (static, none; default: the target's)")
     p.add_argument("--workers", help="sessions per browser, e.g. chrome=2,firefox=2 (default 1 each)")
     p.add_argument("--run-id", help="name of the results folder (default: timestamp-a11y-pid)")
     p.add_argument("--label", help="free text stored in result.json")
@@ -235,7 +234,7 @@ def run_a11y(args):
                             break
                         if sess is None:
                             sess = Session(browser, log)
-                            page = Page(sess, side.base, side.ready)
+                            page = Page(sess, side.base, side.ready, scoped=False)
                             with lock:
                                 sessions.append(sess.describe())
                             log(f"{label}: {browser} {sess.version} ({sess.driver_version}), launch {sess.launch_s}s")

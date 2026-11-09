@@ -4,44 +4,23 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>rig probe</title>
-<!-- Harness-owned rig probe (not a fixture): checks which pseudo-elements getComputedStyle reads,
-     the color-scheme mechanisms and whether hover, active and focus-visible input reach the iframe.
-     Like the site (PLAN.md Decision 14), a theme stored in localStorage femtoColorScheme (JSON)
-     sets data-theme on <html> before the first paint. -->
+<!-- The rig's probe (harness/rig.py), served by the rig's own server: whether page scripts run, and
+     after a preload script; the color-scheme mechanisms; whether hover, active and focus-visible
+     input reach the page; and probe.css, which the rig loads warm, cold and held. -->
 <script>
-  try {
-    var t = JSON.parse(localStorage.getItem("femtoColorScheme"));
-    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
-  } catch (e) {}
+  window.__rigScript = {ran: true, afterPreload: window.__rigPreload === true};
 </script>
+<link rel="stylesheet" href="/__rig/probe.css">
 <style>
-  li::marker { color: rgb(1, 2, 3); }
-  summary::marker { color: rgb(19, 20, 21); }
-  .ph::placeholder { color: rgb(4, 5, 6); }
-  .fb::file-selector-button { color: rgb(7, 8, 9); }
-  dialog::backdrop { background-color: rgb(10, 11, 12); }
-  .b::before { content: "b"; color: rgb(13, 14, 15); }
-  .b::after { content: "a"; color: rgb(16, 17, 18); }
   .cs { color-scheme: light dark; color: light-dark(rgb(0, 0, 1), rgb(0, 0, 2)); }
-  [data-theme=light] .cs { color-scheme: light; }
-  [data-theme=dark] .cs { color-scheme: dark; }
-  #hv { color: rgb(0, 0, 0); transition: color 10s; }
+  #hv { color: rgb(0, 0, 0); }
   #hv:hover { color: rgb(255, 0, 0); }
   #ac:active { color: rgb(0, 255, 0); }
   #fv:focus-visible { color: rgb(0, 0, 255); }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  #spin { display: inline-block; animation: spin 1s linear infinite; }
 </style>
 </head>
 <body>
-<ul><li id="li">item</li></ul>
-<details open><summary id="sum">summary</summary>details</details>
-<input id="ph" class="ph" placeholder="placeholder">
-<input id="fb" class="fb" type="file">
-<dialog id="dlg">dialog</dialog>
-<p id="b" class="b">before and after</p>
 <p id="cs" class="cs">light-dark</p>
-<p><span id="spin">spin</span></p>
 <p>
   <a href="#x" id="pre">previous link</a>
   <button id="hv" type="button">hover</button>

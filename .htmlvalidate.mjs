@@ -3,10 +3,8 @@
 // element metadata, carries its reason in the comment above it; static_checks.py checks that each
 // one has one.
 //
-// Phases 1 to 3 turned off ten rules whose fixes would have changed the oracle's markup (Decision
-// 6). Phase 4 rewrites the content, so parity no longer binds and those rules are on again, as
-// html-validate:recommended has them. What is left here follows from femto's own markup hooks and
-// from one example's design, not from the oracle.
+// Every other rule is on, as html-validate:recommended has it. What is left here follows from
+// femto's own markup hooks and from one example's design.
 export default {
   root: true,
   extends: ["html-validate:recommended"],
