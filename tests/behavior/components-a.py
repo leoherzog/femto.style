@@ -1,4 +1,4 @@
-"""Components, first half (accordion, card, dropdown, group, loading; 01 §1). Their examples are
+"""Components, first half (accordion, card, dropdown, group, loading). Their examples are
 native HTML: the accordions and dropdowns are <details>, the loading indicators are CSS, and the
 group forms' submits are site.js's (shell's example-forms covers Group). The one widget is the
 Dropdown section's menu items: docs.dropdown.jsx's Item is a Link to="#" with an onClick that
@@ -8,15 +8,14 @@ from behavior import check, self_href
 
 GROUP = "components-a"
 
-# The example links of /docs/dropdown, in document order: every <a> inside an example
-# (article.component) but the copy links of the code footers. That is the four Items of each of the
-# link dropdowns and the nav example's "Services" Item (21 links in five dropdowns on the one page,
-# 45 in eleven on routes). Each link comes with the
-# index of its dropdown's summary in `summaries` (-1 outside a dropdown), so a dropdown is told
+# The example links of /docs/dropdown, in document order: every <a> inside an example (each of the
+# section's articles is one) but the copy links of the code footers. That is the four Items of each of the
+# link dropdowns and the nav example's "Services" Item (21 links in five dropdowns). Each link comes
+# with the index of its dropdown's summary in `summaries` (-1 outside a dropdown), so a dropdown is told
 # apart by its index, never by comparing the WebElements that two script calls return.
 ITEMS = """
 const summaries = [];
-const items = [...S.querySelectorAll("#content article.component a:not(.copy-to-clipboard)")].map(a => {
+const items = [...S.querySelectorAll("#content article a:not([data-copy-link])")].map(a => {
   const details = a.closest("details");
   const summary = details ? details.querySelector(":scope > summary") : null;
   if (summary && !summaries.includes(summary)) summaries.push(summary);
@@ -77,9 +76,8 @@ def _state(page, label, summary, link):
 @check("dropdown-items", "/docs#dropdown")
 def dropdown_items(page):
     """Every example link of Dropdown (the four menu items of each link dropdown and the nav
-    example's "Services": on routes eleven dropdowns and 45 links, on the one page five and 21 since
-    the 2026-11-07 cleanup dropped the six-dropdown button-variants gallery; each points at its own
-    place: href="/docs/dropdown" on routes, /docs or /docs#dropdown on the one page) goes nowhere,
+    example's "Services": five dropdowns and 21 links since the 2026-11-07 cleanup dropped the
+    six-dropdown button-variants gallery; each points at its own place, /docs or /docs#dropdown) goes nowhere,
     with the pointer and with the keyboard. Pointer: each dropdown is opened once with a click on its
     summary, then each of its items is clicked in turn inside that open dropdown, and the dropdown is
     closed with its summary again. Keyboard: each dropdown's summary is focused and Enter opens it,
@@ -89,7 +87,7 @@ def dropdown_items(page):
     the scroll position are as they were, its dropdown is still open, and the click event was
     canceled (defaultPrevented); after an Enter, focus is still on the item."""
     items, summaries, names = page.js(ITEMS)
-    want, dropdowns = (45, 11) if page.layout == "routes" else (21, 5)
+    want, dropdowns = 21, 5
     page.eq(f"{want} example links", len(items), want, labels=[f"{i[3]}: {i[2]}" for i in items])
     page.eq(f"{dropdowns} link dropdowns", len(summaries), dropdowns, summaries=names)
     page.expect("every example link points at the route itself", all(self_href(page, i[0]) for i in items))

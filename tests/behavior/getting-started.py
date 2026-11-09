@@ -1,16 +1,12 @@
-"""Getting started: the Theme picker (04 §1, Theme picker; picker.js) and the color-schemes section's
-own toggle (01 §2, small widgets; Customization since the 2026-11-07 reorder).
+"""Getting started: the Theme picker (picker.js) and the color-schemes section's own toggle
+(Customization since the 2026-11-07 reorder).
 
-Phase 4 reworked the version picker into the Theme picker (PLAN.md Open questions 3), section id
+The Theme picker is the Remix site's version picker reworked (PLAN.md Owner answers 3), section id
 theme-picker: the 20 theme colors, a switch for each of femto's three option files, and three samples
-of what to copy (the <link> tags in load order, one jsDelivr combine URL, the starter template). The
-base select (class-less builds), the Conditional switch and the Sass sample are gone, and with them
-the checks that held the oracle's version picker to them (picker-configuration and the Sass half of
-picker-code-highlight). A color is /docs?theme=<color>#theme-picker (Decision 8): a swatch swaps the
-theme's <link> and replaceStates ?theme= (no history entry; azure, the default, has none), and links to
-#theme-picker are the browser's fragment navigation. The checks of what Phase 4 reworked run on the
-one page only; the swatches' focus and the logo animation, which the oracle's version picker had too,
-still run on both layouts (on routes /docs#theme-picker is the old /docs/version-picker)."""
+of what to copy (the <link> tags in load order, one jsDelivr combine URL, the starter template). A
+color is /docs?theme=<color>#theme-picker (Decision 8): a swatch swaps the theme's <link> and
+replaceStates ?theme= (no history entry; azure, the default, has none), and links to #theme-picker
+are the browser's fragment navigation."""
 from behavior import HEADING_LINE, SNAPSHOT, TOKENS, check
 
 GROUP = "getting-started"
@@ -23,10 +19,10 @@ OPTIONS = ["responsive-spacings", "fixed-typography", "no-transitions"]   # femt
 DEFAULT = ["responsive-spacings"]
 STYLESHEET = "styles.css"    # the reader's own stylesheet, after femto's files
 PICKER = "/docs#theme-picker"   # azure; a color is /docs?theme=<color>#theme-picker
-ONLY = ("one-page",)
-REWORKED = ("Phase 4 reworked the oracle's version picker into the Theme picker (PLAN.md Open questions 3; 04 §1): "
-            "option switches and three samples in place of the base select, the Conditional switch and the Sass sample, "
-            "?theme= URLs in place of color routes")
+# Every stylesheet <link> on the page has loaded: a loading one has no sheet yet (Chrome), or one
+# whose cssRules throw (Firefox).
+SHEETS_LOADED = """[...document.querySelectorAll("link[rel=stylesheet]")].every(l => {
+  try { return !!l.sheet && l.sheet.cssRules !== null; } catch (e) { return false; } })"""
 
 
 def picker_route(color):
@@ -38,11 +34,10 @@ def picker_url(color, hash_="#theme-picker"):
     return f"/docs{'' if color == 'azure' else '?theme=' + color}{hash_}"
 
 
-# The theme stylesheets on the page: every <link> to femto's css/themes/ (the one page), or to the
-# oracle's custom-themes/ (a color route), with its color.
+# The theme stylesheets on the page: every <link> to femto's css/themes/, with its color.
 THEME_LINKS = r"""
 return [...document.querySelectorAll("link[rel=stylesheet]")].map(l => l.getAttribute("href"))
-  .filter(h => /\/(css\/themes|custom-themes)\//.test(h)).map(h => h.replace(/^.*\//, "").replace(/\.css$/, ""));
+  .filter(h => /\/css\/themes\//.test(h)).map(h => h.replace(/^.*\//, "").replace(/\.css$/, ""));
 """
 STYLESHEETS = "return [...document.querySelectorAll('link[rel=stylesheet]')].map(l => l.getAttribute('href'))"
 # The page's femto option stylesheets, by option name, in document order; and its other stylesheets.
@@ -52,11 +47,8 @@ ROOT_FONT = "return getComputedStyle(document.documentElement).fontSize"
 
 
 def swapped(page, color, label):
-    """Wait until a swap to `color` is done: on routes the route's URL (wait_navigated), on the one
-    page ?theme= in the URL (none for azure) and the page in that color's theme stylesheet only."""
-    if page.layout == "routes":
-        page.wait_navigated("/docs/version-picker" + ("" if color == "azure" else f"/{color}"), label=label)
-        return
+    """Wait until a swap to `color` is done: ?theme= in the URL (none for azure) and the page in that
+    color's theme stylesheet only."""
     search = "" if color == "azure" else f"?theme={color}"
     page.wait(f"{label}: the URL's query is {search or 'empty'}", "location.pathname === '/docs' && location.search === arguments[0]", 3,
               args=(search,), url=page.url())
@@ -159,9 +151,13 @@ def choose(page, options):
             page.js("arguments[0].scrollIntoView({block: 'center', behavior: 'instant'})", el)
             page.click(el, scroll=False)
             page.wait(f"{o} turns {'on' if o in options else 'off'}", f"S.querySelector('{sel}').checked === {'true' if o in options else 'false'}", 1)
+            # The switch links its stylesheet at once, and it applies once loaded: fixed-typography's
+            # shrinks every font size, which moved the next switch ~580 px up, off screen, between its
+            # scroll and its click (2026-11-09, in Chrome and Firefox). So the page holds still first.
+            page.wait(f"{o}: the page's stylesheets have loaded", SHEETS_LOADED, 3)
 
 
-@check("picker-options", PICKER, layouts=ONLY, layout_reason=REWORKED)
+@check("picker-options", PICKER)
 def picker_options(page):
     """The Theme picker's options (`section[data-picker-options]`): one switch per file in femto's
     css/options/ (`input[type=checkbox][role=switch]` named responsive-spacings, fixed-typography and
@@ -193,24 +189,39 @@ def picker_options(page):
                   args=(want,), got=page.js(ROOT_FONT))
 
 
-# Prism's markup tokens for <link rel="stylesheet" href="...">, as build.mjs writes them and picker.js
-# regenerates them (TOKENS: [className, text] per child of code), and the two tokens between lines:
-# a line break, then the next line's indent (an empty span without one).
+# The highlighted <link rel="stylesheet" href="..."> lines, as build.mjs writes them and picker.js
+# regenerates them (TOKENS: [className, text] per child of code, "#text" for plain text): the tag
+# name in span.tag, each attribute name in span.attr and its quoted value in span.value, the rest
+# plain text, with a line break and the next line's indent between lines. A token list is compared
+# as runs: chars() splits it into [class, character] pairs, runs() joins the neighbors of one class,
+# as the page's text nodes join (the build writes no two spans of one class side by side).
+def chars(tokens):
+    return [(cls, ch) for cls, text in tokens for ch in text]
+
+
+def runs(pairs):
+    out = []
+    for cls, ch in pairs:
+        if out and out[-1][0] == cls:
+            out[-1][1] += ch
+        else:
+            out.append([cls, ch])
+    return out
+
+
 def link_tokens(href):
     def attribute(name, value):
-        return [["token tag", " "], ["token tag attr-name", name], ["token tag attr-value punctuation attr-equals", "="],
-                ["token tag attr-value punctuation", '"'], ["token tag attr-value", value], ["token tag attr-value punctuation", '"']]
-    return ([["token tag punctuation", "<"], ["token tag", "link"]] + attribute("rel", "stylesheet") + attribute("href", href)
-            + [["token tag punctuation", ">"]])
+        return [["#text", " "], ["attr", name], ["#text", "="], ["value", f'"{value}"']]
+    return [["#text", "<"], ["tag", "link"]] + attribute("rel", "stylesheet") + attribute("href", href) + [["#text", ">"]]
 
 
 def lines_tokens(hrefs, indent=""):
     out = []
     for i, h in enumerate(hrefs):
         if i:
-            out += [["", "\n"], ["", indent]]
+            out += [["#text", "\n" + indent]]
         out += link_tokens(h)
-    return out
+    return runs(chars(out))
 
 
 TOKEN_LISTS = TOKENS + CODES + "return Object.fromEntries(Object.entries({cdn, combine, template}).map(([k, v]) => [k, tokens(v)]));"
@@ -221,27 +232,27 @@ def expected_tokens(initial_template, color, options):
     load-time tokens of its other lines, with the load-time switches' link lines (femto's, then
     responsive spacings') replaced by the links' lines."""
     fs = files(color, options)
-    loaded = lines_tokens([CDN + f for f in files("azure", DEFAULT)], "    ")
-    t = initial_template
+    loaded = chars(lines_tokens([CDN + f for f in files("azure", DEFAULT)], "    "))
+    t = chars(initial_template)
     i = next(k for k in range(len(t)) if t[k:k + len(loaded)] == loaded)
     return {"cdn": lines_tokens([CDN + f for f in fs] + [STYLESHEET]), "combine": lines_tokens([combine_href(fs)]),
-            "template": t[:i] + lines_tokens([CDN + f for f in fs], "    ") + t[i + len(loaded):]}
+            "template": runs(t[:i] + chars(lines_tokens([CDN + f for f in fs], "    ")) + t[i + len(loaded):])}
 
 
-@check("picker-code-highlight", PICKER, layouts=ONLY, layout_reason=REWORKED)
+@check("picker-code-highlight", PICKER)
 def picker_code_highlight(page):
     """The regenerated samples stay highlighted the way the build highlights them (each child of
-    `pre code` as [class, text]): on load the cdn and combine samples are exactly Prism's markup
-    tokens for their <link> lines (the model link_tokens: punctuation, tag, attr-name, attr-equals and
-    attr-value spans, a line break and an indent span between lines) and the template holds femto's
-    link line's tokens; after option changes and swaps (all options; jade with all options; jade with
+    `pre code` as [class, text]): on load the cdn and combine samples are exactly the build's
+    highlighting of their <link> lines (the model link_tokens: tag, attr and value spans, plain text
+    between them, and a line break and the next line's indent between lines) and the template holds
+    femto's link line's tokens; after option changes and swaps (all options; jade with all options; jade with
     fixed-typography; azure with none; azure with the load-time responsive spacings) every sample is
     exactly the model again, the template's other lines keeping their load-time tokens, and the last
     gives the load-time tokens."""
     initial = page.js(TOKEN_LISTS)
     want = expected_tokens(initial["template"], "azure", DEFAULT)
     for k in ("cdn", "combine", "template"):
-        page.eq(f"on load: {k} tokens are Prism's", initial[k], want[k])
+        page.eq(f"on load: {k} tokens are the build's", initial[k], want[k])
     steps = [("azure", OPTIONS), ("jade", OPTIONS), ("jade", ["fixed-typography"]), ("azure", []), ("azure", DEFAULT)]
     color = "azure"
     for c, opts in steps:
@@ -291,7 +302,7 @@ return {article: tree(article), cdn: tree(cdn), combine: tree(combine), template
         url: location.pathname + location.search + location.hash, history: history.length, y: Math.round(scrollY)};
 """
 # The swatches' labels in order: rainbow order (ROYGBIV) by hue, then the neutrals from lightest to
-# darkest (the owner, 2026-11-08; the oracle's ran from red through pink and blue to orange).
+# darkest (the owner, 2026-11-08; the Remix site's ran from red through pink and blue to orange).
 NAMES = ["Red", "Orange", "Pumpkin", "Amber", "Yellow", "Lime", "Green", "Jade", "Cyan", "Azure", "Blue", "Indigo",
          "Violet", "Purple", "Fuchsia", "Pink", "Sand", "Grey", "Zinc", "Slate"]
 
@@ -318,7 +329,7 @@ def expect_like_loaded(page, color, label, options=()):
     return now
 
 
-@check("picker-swatch", PICKER, layouts=ONLY, layout_reason=REWORKED)
+@check("picker-swatch", PICKER)
 def picker_swatch(page):
     """A theme color swatch (`article.color-picker > header a`, aria-label its own color's name)
     switches the theme in place (criterion 7: the picker swaps the theme and updates ?theme=): with
@@ -408,17 +419,12 @@ def picker_logo(page):
     page.expect("animated for 1 s", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
 
 
-@check("picker-swatch-focus", PICKER,
-       oracle_bug={"fails": "focus stays on pumpkin's swatch",
-                   "reason": "the oracle remounts the theme example on a color change, which removes the focused swatch "
-                             "and drops focus to <body> (Tab then starts over at the first swatch); picker.js swaps the "
-                             "color in place, so focus stays (PLAN.md, oracle-bug)"})
+@check("picker-swatch-focus", PICKER)
 def picker_swatch_focus(page):
-    """Keyboard use of the swatches: with pumpkin's swatch focused, Enter swaps to pumpkin (the
-    route /docs/version-picker/pumpkin, or ?theme=pumpkin on the one page) and focus stays on that
-    swatch; Tab then moves focus to the next swatch (amber's on the one page, whose swatches are in
-    rainbow order; orange's on routes) and Enter on it swaps to that color with focus on it."""
-    after = "orange" if page.layout == "routes" else "amber"
+    """Keyboard use of the swatches: with pumpkin's swatch focused, Enter swaps to pumpkin
+    (?theme=pumpkin) and focus stays on that swatch; Tab then moves focus to the next swatch (amber's,
+    since the swatches are in rainbow order) and Enter on it swaps to that color with focus on it."""
+    after = "amber"
     page.focus(swatch("pumpkin"))
     page.key("ENTER")
     swapped(page, "pumpkin", "pumpkin")
@@ -434,8 +440,7 @@ def picker_swatch_focus(page):
 CURRENT_SWATCH = "S.querySelector('article.color-picker > header a[aria-current=page]').className"
 
 
-@check("picker-unknown-theme", ("/docs?theme=bogus#theme-picker", "/docs?theme=JADE#theme-picker"), layouts=ONLY,
-       layout_reason="?theme= exists only on the one page (Decision 8); no old route shows /docs?theme=bogus")
+@check("picker-unknown-theme", ("/docs?theme=bogus#theme-picker", "/docs?theme=JADE#theme-picker"))
 def picker_unknown_theme(page):
     """An unknown ?theme= (bogus, or JADE: the names are lowercase) is ignored by the picker as by
     the head script (criterion 7): no theme stylesheet, azure's swatch current, the heading "Azure",
@@ -450,7 +455,7 @@ def picker_unknown_theme(page):
     swapped(page, "jade", "jade")
 
 
-@check("picker-popstate", PICKER, layouts=ONLY, layout_reason=REWORKED)
+@check("picker-popstate", PICKER)
 def picker_popstate(page):
     """Back and forward between entries of the one page whose ?theme= differ show each entry's
     color: after jade's swatch (?theme=jade, replaceState), a fragment navigation to #themes (a new
@@ -479,7 +484,7 @@ def picker_popstate(page):
 NO_RELOAD = "window.__bhSameDocument === true"
 
 
-@check("picker-links", PICKER, layouts=ONLY, layout_reason=REWORKED)
+@check("picker-links", PICKER)
 def picker_links(page):
     """The other links to the picker keep its options (fixed-typography here) and color. They are
     fragment links in the same document: after pumpkin's swatch, scrolled 600 px below the picker's
@@ -540,8 +545,7 @@ HEADER_TOGGLE = "body > header nav ul.icons button:has(> span[role=img][aria-lab
 
 @check("color-schemes-toggle", "/docs#color-schemes")
 def color_schemes_toggle(page):
-    """The Color schemes section's own switcher (`#theme-switcher button`; its icon, the oracle's
-    SVG, is a decorative `span[role=img]` of Decision 18 holding the emoji of Decision 16) reads
+    """The Color schemes section's own switcher (`#theme-switcher button`; its icon is a decorative `span[role=img]` of Decision 18 holding the emoji of Decision 16) reads
     "Turn on dark mode" with the sun on a light OS; a click sets data-theme="dark", stores
     '"dark"', and both it ("Turn off dark mode", with the moon) and the header toggle relabel; a
     second click returns to light. The header toggle drives it too."""

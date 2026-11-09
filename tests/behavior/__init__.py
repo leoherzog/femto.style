@@ -1,43 +1,29 @@
-"""The behavior suite: scripted checks of every widget the static site rebuilds (docs/research/01
-§2) and of the one docs page (criterion 7), run by `uv run tests/run.py behavior`
-(tests/harness/behavior.py) against one target at a time: the oracle, the static site in dist/, or
-any base URL. tests/README.md, Behavior, lists every check.
+"""The behavior suite: scripted checks of every widget on the site and of the one docs page
+(criterion 7), and the run-time half of criterion 15, run by `uv run tests/run.py behavior`
+(tests/harness/behavior.py) against one build at a time. tests/README.md, Behavior, lists every
+check.
 
 Each group module (shell.py, getting-started.py, ...) sets GROUP and registers its checks with
 @check. A check is a function of one argument, the page (harness.behavior.Page), already loaded at
 the check's route with the check's viewport, color scheme and storage. It drives the page with real
-WebDriver input (clicks, keys, scrolling, window resizes) and asserts only what any side can be held
-to: DOM state, focus, the URL, history and storage. It never reads React state, a framework global
-or a script's source, so the same check runs against the oracle and the static site.
+WebDriver input (clicks, keys, scrolling, window resizes) and asserts what a reader sees and can do:
+DOM state, focus, the URL, history, storage and the page's loads. It never reads a script's source.
 
 Assertions are page.expect(label, ok, **detail), page.eq(label, actual, expected) and
 page.wait(label, js, timeout): the first one that fails ends the check, and its label is what the
-result names. Routes are written in the one page's URLs (/docs#modal, /docs, /docs?theme=jade#
-theme-picker); on a target with one page per route each is loaded at its old route
-(harness.behavior, layouts), and the check's scripts find its content in S, the route's section on
-the one page or the whole document there. layouts=("one-page",) with layout_reason marks a check of
-what only the one page has; it is recorded as skipped, with that reason, on the other layout.
-oracle_bug={"fails": label, "reason": ...} marks a check whose assertion `label` is
-an oracle bug the conversion fixes (PLAN.md, Divergence categories, oracle-bug): against the oracle
-the check must fail at exactly that assertion (XFAIL); passing there (XPASS) or failing elsewhere
-fails the run.
-
-From Phase 4 the static site describes femto 3 and no longer matches the oracle's markup and text
-(PLAN.md Decision 6). A check whose assertions hold the Phase 4 markup branches on page.layout where
-the oracle's own markup can still be held to the same behavior (a link that became a button, a
-count that changed), and runs on the one page only (layouts) where the widget itself is new or
-reworked: the Theme picker, the /examples mockups.
+result names. Routes are the site's URLs (/docs#modal, /docs, /docs?theme=jade#theme-picker), and on
+the docs page a check's scripts find its section in S.
 """
 import dataclasses
 import inspect
 import textwrap
 import time
+from urllib.parse import urlsplit
 
 GROUPS = ("shell", "one-page", "getting-started", "customization", "layout", "content", "forms", "components-a",
-          "components-b", "landing", "examples")
+          "components-b", "landing", "examples", "loads")
 MEDIA = ("light", "dark")
 MOTION = ("no-preference", "reduce")
-LAYOUTS = ("one-page", "routes")
 
 
 @dataclasses.dataclass
@@ -51,23 +37,19 @@ class Check:
     height: int = 900
     media: str = "light"
     storage: dict | None = None
-    oracle_bug: dict | None = None
     preload: str | None = None
     module: str = ""
-    layouts: tuple = LAYOUTS
-    layout_reason: str | None = None
     motion: str = "no-preference"
     javascript: bool = True
     cold: bool = False
     preload_optional: bool = False
     delay: dict | None = None
     safari_skip: str | None = None
+    netlog: bool = False
 
     def describe(self):
         d = {"name": self.name, "group": self.group, "routes": list(self.routes),
              "viewport": [self.width, self.height], "media": self.media, "doc": self.doc}
-        if self.layouts != LAYOUTS:
-            d["layouts"], d["layout_reason"] = list(self.layouts), self.layout_reason
         if self.motion != "no-preference":
             d["motion"] = self.motion
         if not self.javascript:
@@ -78,22 +60,22 @@ class Check:
             d["delay"] = self.delay
         if self.storage:
             d["storage"] = self.storage
-        if self.oracle_bug:
-            d["oracle_bug"] = self.oracle_bug
         if self.preload:
             d["preload"] = True
         if self.safari_skip:
             d["safari_skip"] = self.safari_skip
+        if self.netlog:
+            d["netlog"] = True
         return d
 
 
 REGISTRY: list[Check] = []
 
 
-def check(name, routes, *, width=1300, height=900, media="light", storage=None, oracle_bug=None, preload=None,
-          layouts=LAYOUTS, layout_reason=None, motion="no-preference", javascript=True, cold=False,
-          preload_optional=False, delay=None, safari_skip=None):
-    """Register a check. routes: one URL or several, in the one page's URLs (the check runs once per
+def check(name, routes, *, width=1300, height=900, media="light", storage=None, preload=None,
+          motion="no-preference", javascript=True, cold=False, preload_optional=False, delay=None, safari_skip=None,
+          netlog=False):
+    """Register a check. routes: one URL or several, the site's URLs (the check runs once per
     route). width and height: the document viewport (innerWidth, innerHeight). media:
     prefers-color-scheme. motion: prefers-reduced-motion. storage: localStorage items (raw strings)
     set on the target's origin before the first load. preload: a JavaScript function declaration
@@ -102,24 +84,18 @@ def check(name, routes, *, width=1300, height=900, media="light", storage=None, 
     preload_optional: it then runs the check without it (page.preloaded says which). safari_skip: why
     the check cannot run in Safari for another reason (what its WebDriver cannot do): skipped there
     (`safari`) with that reason. javascript=False: the page's JavaScript is off (Chrome and Firefox;
-    skipped in Safari). cold: the browser's HTTP cache is emptied before the route loads. delay:
+    skipped in Safari). cold: the browser's caches are emptied before the route loads (Page.clear_cache). delay:
     {path: seconds}, the target's responses for those exact paths held that long (WebDriver BiDi
-    network interception, as 05's serve.py slowed the theme file; Safari, which has no BiDi, loads
-    them at once and the check notes it). layouts and layout_reason: see the module docstring.
-    oracle_bug: see the module docstring."""
+    network interception, which slows a file as a slow server would; Safari, which has no BiDi, loads
+    them at once and the check notes it). netlog: every request the browser starts for the check's
+    loads, from the route's load on, is logged from outside the page (WebDriver BiDi network events;
+    page.requests() reads the log; Safari, which has no BiDi, logs nothing and the check notes it)."""
     if isinstance(routes, str):
         routes = (routes,)
     if media not in MEDIA:
         raise ValueError(f"{name}: media must be one of {MEDIA}")
     if motion not in MOTION:
         raise ValueError(f"{name}: motion must be one of {MOTION}")
-    layouts = tuple(layouts)
-    if not layouts or set(layouts) - set(LAYOUTS):
-        raise ValueError(f"{name}: layouts must be some of {LAYOUTS}")
-    if len(layouts) < len(LAYOUTS) and not layout_reason:
-        raise ValueError(f"{name}: a check that runs on one layout only says why (layout_reason)")
-    if oracle_bug is not None and not (oracle_bug.get("fails") and oracle_bug.get("reason")):
-        raise ValueError(f"{name}: oracle_bug needs 'fails' (an assertion label) and 'reason'")
 
     def deco(fn):
         group = fn.__globals__.get("GROUP")
@@ -130,9 +106,8 @@ def check(name, routes, *, width=1300, height=900, media="light", storage=None, 
         doc = textwrap.dedent(inspect.getdoc(fn) or "").strip()
         if not doc:
             raise ValueError(f"{name}: a check states what it asserts in its docstring")
-        REGISTRY.append(Check(name, group, tuple(routes), fn, doc, width, height, media, storage,
-                              oracle_bug, preload, fn.__module__, layouts, layout_reason, motion, javascript, cold,
-                              preload_optional, delay, safari_skip))
+        REGISTRY.append(Check(name, group, tuple(routes), fn, doc, width, height, media, storage, preload,
+                              fn.__module__, motion, javascript, cold, preload_optional, delay, safari_skip, netlog))
         return fn
     return deco
 
@@ -191,6 +166,14 @@ TOKENS = r"""
 const tokens = (code) => [...code.childNodes].map(n => n.nodeType === 1 ? [n.className, n.textContent] : ["#text", n.data]);
 """
 
+# The docs' Theme picker's colors in its order, read from /docs (its swatches' aria-labels,
+# lowercased): the order every list of femto's theme colors a reader chooses from follows, the
+# homepage's swatches and /examples' theme select among them. An async script (page.ajs).
+PICKER_ORDER = r"""
+const doc = new DOMParser().parseFromString(await (await fetch("/docs")).text(), "text/html");
+done([...doc.querySelectorAll("article[data-version-picker] > header a")].map(a => a.getAttribute("aria-label").toLowerCase()));
+"""
+
 # A function of a section id, run in the page: how far its heading's top is below the line a link to
 # #<id> puts it on, html's scroll-padding-top (0 there; negative above). A heading the page cannot
 # scroll up to that line, near the page's end, counts as on it.
@@ -224,20 +207,110 @@ def expect_name(page, label, el, want, timeout=0.5, /, **detail):
         time.sleep(0.05)
 
 
-def nav_href(page, sid):
-    """The side menu's link to a section: #<id> on the one page, the old route's path on routes."""
-    if page.layout == "routes":
-        return page.address(f"/docs#{sid}") if sid != "quick-start" else "/docs"
-    return f"#{sid}"
+FORCED_FOCUS = r"""
+const e = document.activeElement, cs = getComputedStyle(e);
+const rgba = (cs.outlineColor.match(/[\d.]+/g) || []).map(Number);
+return {focusVisible: e.matches(":focus-visible"), forced: matchMedia("(forced-colors: active)").matches,
+        outline: `${cs.outlineStyle} ${cs.outlineWidth} ${cs.outlineColor}`,
+        drawn: cs.outlineStyle !== "none" && parseFloat(cs.outlineWidth) > 0 && (rgba.length < 4 || rgba[3] > 0)};
+"""
+
+
+def expect_forced_focus(page, label):
+    """In forced colors, which drop box-shadow, the focused element still marks its focus: it
+    matches :focus-visible and its computed outline has a style other than none, a width above 0
+    and a color that is not transparent (forced colors draw a transparent outline in a system
+    color). Chrome only, with forced-colors: active emulated over CDP Emulation.setEmulatedMedia and
+    the check's own scheme and motion put back after; Firefox has no WebDriver way to emulate forced
+    colors, and records a note."""
+    if page.browser != "chrome":
+        page.note(f"{label}: {page.browser} cannot emulate forced colors over WebDriver")
+        return
+    def features(forced):
+        return [{"name": "prefers-color-scheme", "value": page.check.media},
+                {"name": "prefers-reduced-motion", "value": page.check.motion}, {"name": "forced-colors", "value": forced}]
+    page.driver.execute_cdp_cmd("Emulation.setEmulatedMedia", {"features": features("active")})
+    try:
+        got = page.js(FORCED_FOCUS)
+        page.eq(f"{label}: in forced colors the focus shows as an outline", {"forced": got["forced"], "focusVisible": got["focusVisible"],
+                "drawn": got["drawn"]}, {"forced": True, "focusVisible": True, "drawn": True}, outline=got["outline"])
+    finally:
+        page.driver.execute_cdp_cmd("Emulation.setEmulatedMedia", {"features": features("none")})
 
 
 def self_href(page, link, section_only=False):
-    """Whether an example link points at its own route or section, as docs.*.jsx's Link to="#" did:
-    href="/docs/<route>" on routes (the page's own path), and on the one page the page itself, /docs,
-    or its section, /docs#<section> (only the section with `section_only`)."""
-    r = page.js("const a = arguments[0]; return {href: a.getAttribute('href'), path: new URL(a.href).pathname,"
-                " hash: new URL(a.href).hash, here: location.pathname}", link)
-    if page.layout == "one-page":
-        return r["path"] == "/docs" and r["hash"] in ((f"#{page.section}",) if section_only else ("", f"#{page.section}"))
-    return r["href"] == r["here"]
+    """Whether an example link points at its own section, as an empty example link does: the page
+    itself, /docs, or its section, /docs#<section> (only the section with `section_only`)."""
+    r = page.js("const a = arguments[0]; return {path: new URL(a.href).pathname, hash: new URL(a.href).hash}", link)
+    return r["path"] == "/docs" and r["hash"] in ((f"#{page.section}",) if section_only else ("", f"#{page.section}"))
 
+
+# Criterion 15's loads (loads.py; the rig proves the collector): every load the document and the
+# frames it can reach list in their own performance entries, each document's navigation entry and
+# every resource entry, with its initiator and, where the browser has it (Chrome), its
+# renderBlockingStatus. Frames are read at any depth, those of the document tree
+# (window.frames) and the iframe, frame, object and embed elements of every open shadow root, which
+# window.frames leaves out. A frame that cannot be read (another origin, or sandboxed without
+# allow-same-origin) is listed under unreadable; a document whose resource buffer is full (later
+# loads dropped) under full.
+LOADS = """
+const limit = 250;   // each document's default Resource Timing buffer; later entries are dropped
+const out = {docs: [], entries: [], full: [], unreadable: [], limit};
+const seen = new Set();
+const roots = (d) => {
+  const found = [];
+  const walk = (n) => { for (const el of n.querySelectorAll("*")) if (el.shadowRoot) { found.push(el.shadowRoot); walk(el.shadowRoot); } };
+  walk(d);
+  return found;
+};
+const visit = (w, where) => {
+  if (seen.has(w)) return;
+  seen.add(w);
+  let href, nav, res;
+  try {
+    href = w.location.href;
+    nav = w.performance.getEntriesByType("navigation");
+    res = w.performance.getEntriesByType("resource");
+  } catch (e) { out.unreadable.push(where); return; }
+  out.docs.push(href);
+  if (res.length >= limit) out.full.push(href);
+  for (const e of [...nav, ...res]) {
+    out.entries.push({url: e.name, type: e.entryType === "navigation" ? "navigation" : e.initiatorType, doc: href,
+                      blocking: "renderBlockingStatus" in e ? e.renderBlockingStatus : null});
+  }
+  const kids = [];
+  let n = 0;
+  try { n = w.frames.length; } catch (e) { n = 0; }
+  for (let i = 0; i < n; i++) kids.push([() => w.frames[i], "frame " + i + " of " + where]);
+  let d = null;
+  try { d = w.document; } catch (e) { d = null; }
+  if (d) {
+    for (const r of [d, ...roots(d)]) {
+      for (const el of r.querySelectorAll("iframe, frame, object, embed")) {
+        kids.push([() => (el.localName === "embed" && el.getSVGDocument && el.getSVGDocument()
+                          ? el.getSVGDocument().defaultView : el.contentWindow),
+                   el.localName + " in " + where]);
+      }
+    }
+  }
+  for (const [get, label] of kids) {
+    let f = null;
+    try { f = get(); } catch (e) { out.unreadable.push(label); continue; }
+    if (f) visit(f, label);
+  }
+};
+visit(window, "the page");
+return out;
+"""
+
+
+def origin(url):
+    """(scheme, host, port) of an http(s) or ws(s) URL, or None for any other (data:, blob:, about:)."""
+    u = urlsplit(url or "")
+    if u.scheme not in ("http", "https", "ws", "wss"):
+        return None
+    try:
+        port = u.port
+    except ValueError:
+        port = None
+    return (u.scheme, (u.hostname or "").lower(), port or {"http": 80, "https": 443, "ws": 80, "wss": 443}[u.scheme])

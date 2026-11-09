@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>rig loads probe</title>
+<!-- The rig's control for criterion 15's loads checks (tests/behavior/loads.py): four loads from
+     another origin ({other}, the rig's second server), each of a kind that one way of reading the
+     loads may miss: an image in the page, an image that fails before any response ({refused}, a port
+     nothing listens on), an image in a srcdoc frame inside a closed shadow root, which no script can reach,
+     and a fetch() from a dedicated worker, which keeps its own timeline. The rig asserts which of
+     them the pages' performance entries and the browser's request log see. -->
+</head>
+<body>
+<img id="img" alt="" src="{other}/__rig/pixel.svg?img">
+<img id="fail" alt="" src="{refused}/__rig/pixel.svg?fail">
+<div id="closed"></div>
+<script>
+  const root = document.getElementById("closed").attachShadow({mode: "closed"});
+  const frame = document.createElement("iframe");
+  frame.srcdoc = '<img alt="" src="{other}/__rig/pixel.svg?closed">';
+  root.append(frame);
+  const worker = new Worker("/__rig/worker.js");
+  window.__rigWorker = new Promise((resolve) => { worker.onmessage = (e) => resolve(e.data); });
+</script>
+</body>
+</html>

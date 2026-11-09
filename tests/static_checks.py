@@ -3,13 +3,12 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Mechanical checks for PLAN.md acceptance criteria 1 to 15.
+"""Mechanical checks for PLAN.md acceptance criteria 4 to 15, the link check and femto's release check.
 
-  uv run tests/static_checks.py                        every criterion
+  uv run tests/static_checks.py                        every criterion and the link check
   uv run tests/static_checks.py --criteria 4,5,12      some of them
   uv run tests/static_checks.py --json out.json        also write the results as JSON
-  uv run tests/static_checks.py --strict               NOT-YET counts as a failure (for gates)
-  uv run tests/static_checks.py --phase 3              check as of a phase (default: inferred, below)
+  uv run tests/static_checks.py --strict               NOT-YET counts as a failure
   uv run tests/static_checks.py --femto DIR            femto checkout for 12 and 13 (default: SOURCE's
                                                        source, then $FEMTO_REPO, then ../femto)
   uv run tests/static_checks.py --root DIR             check another checkout
@@ -17,6 +16,8 @@
                                                        instead of ROOT/dist; criterion 5 builds into DIR
   uv run tests/static_checks.py --criteria links       the link check of dist/ (also in the default run)
   uv run tests/static_checks.py --criteria links --external   ... and fetch every external link once
+  uv run tests/static_checks.py --criteria release --external  femto has no newer release tag than
+                                                       SOURCE's version (only when named)
 
 From tests/run.py: `import static_checks; static_checks.main(argv) -> int` (argv without the program name).
 
@@ -25,62 +26,67 @@ status is 1 if any criterion fails (or, with --strict, is not yet checkable), 2 
 and 0 otherwise. A criterion with several parts fails if any part fails, is NOT-YET if no part
 fails and some part cannot run yet, and passes only when every part ran and passed.
 
-Phase. Some parts depend on the phase (PLAN.md Workflow). The phase is inferred from the Workflow
-table's commit subjects reachable from HEAD and its tags: "Add Oracle And Parity Harness" (Phase 0
-done, so 1), tag static-multipage or "Convert Pages To Static HTML" (2), tag static-femto or "Move
-Styles To femto 3" (3), tag static-one-page or "Merge Docs Into One Page" (4), "Describe femto 3"
-(5), "Finish Static Site" (6), and "Address Final Review" (still 6, the last phase: Phase 6 done).
-Before Phase 2, site/assets/legacy/ is allowed in git (the Phase 1 gate's exception to 4) and in
-dist/ (03 §2 copies it during Phase 1). From Phase 3, dist/ has no per-route docs/ pages, 6 expects
-the old routes to 404, and 9 checks the one page's section ids and side nav. 13 applies from Phase 4,
-and from Phase 4 6 expects /demo to 404 (PLAN.md Open questions 5: not built).
+Criteria 1 to 3 (the oracle compared with itself, the parity gates and the divergence registry) are
+retired with the rest of the conversion's scaffolding, whose record is the tag conversion-final (the
+owner, 2026-11-09). There are no phases any more: every criterion here always applies, and
+--criteria 1, 2 or 3 is a usage error.
 
-Browser and server criteria (1, 2, 7, 10, and the layout-shift part of 15) are the harness's; this
-script reports them NOT-YET with the harness command. From Phase 4, 2's gates are historical (the
-site no longer matches the oracle or the tags), so it names their records in tests/README.md and the
-owner's Safari rerun between the tags, tests/owner-safari.sh parity. 6 starts `wrangler pages dev
-dist` itself.
+Browser criteria (7, 10, and the run-time parts of 15) are the harness's; this script reports them
+NOT-YET with the harness command, so they are NOT-YET in the GitHub check too. 6 starts `wrangler
+pages dev dist` itself.
 
-The link check (PLAN.md Workflow, Phase 4's gate: "link check of dist/") is not a numbered
-criterion; it runs with the others, or alone with --criteria links. Every internal href, src and
-fragment in every dist page resolves (check_links: an extensionless page URL as Pages serves it, a
-file in dist/, an id or <a name> in the target page's own tree, ?theme= only on /docs with one of
-femto's colors; a link to a page's .html name or to /docs/ fails, since Pages redirects it), and so do
-dist CSS url()s and the web app manifest's icons. External links are listed; --external fetches each
-once (HEAD, then GET when HEAD fails, redirects followed) and fails on any that answers 400 or more or
-not at all, except the npm and jsDelivr URLs of femto's package before its first publish and edit
-links to files this branch adds before it is on GitHub's main, which are listed. Each run first
-proves the check: LINK_CONTROLS plant six broken links in copies of dist/ (a missing asset, page and
-fragment, a missing fragment on the page itself, a redirecting .html name, an unknown ?theme=), and
-each must fail with exactly its planted link.
+The link check is not a numbered criterion; it runs with the others, or alone with --criteria links.
+Every internal href, src and fragment in every dist page resolves (check_links: an extensionless
+page URL as Pages serves it, a file in dist/, an id or <a name> in the target page's own tree,
+?theme= only on /docs with one of femto's colors; a link to a page's .html name or to /docs/ fails,
+since Pages redirects it), and so do dist CSS url()s and the web app manifest's icons. External links
+are listed; --external fetches each once (HEAD, then GET when HEAD fails, redirects followed) and
+fails on any that answers 400 or more or not at all, except femto's npm and jsDelivr URLs while
+they cannot answer yet, keyed to SOURCE's version (awaits_publish), which are listed: a range or
+tag URL (@3, @alpha, or none) only while that version is a prerelease, and an exact-version URL
+only while that version is not on npm, which --external asks registry.npmjs.org (unreachable: only
+while it is a prerelease). An "Edit this section on GitHub" link (EDIT_LINK) that answers 404 fails
+too, a file this branch adds included: it answers once the owner pushes main. Each run first proves the check: LINK_CONTROLS plant
+six broken links in copies of dist/ (a missing asset, page and fragment, a missing fragment on the
+page itself, a redirecting .html name, an unknown ?theme=), and each must fail with exactly its
+planted link.
+
+The release check runs only when named, with --external, by hand: `git
+ls-remote --tags` of femto's GitHub repository lists no version tag newer than SOURCE's version, by
+semver precedence. A prerelease tag counts only while SOURCE's version is a prerelease too: the site
+vendors femto from release tags (the owner, 2026-11-09), so a newer release means re-vendoring.
 
 Interpretations, where PLAN's wording leaves a choice:
-- 4: "git ls-files shows none of" is checked on the files that would be tracked after committing
-  the working tree (the index minus files deleted on disk, plus untracked files that are not
-  ignored), so a gate passes before its commit. `app/`, `scripts/`, `public/`, `functions/` and
-  `site/assets/legacy/` are folders at those paths; `*.jsx` and `*.scss` match at any depth;
-  `remix.config.js`, `server.js`, `jsconfig.json`, `.eslintrc.cjs` and `yarn.lock` are top-level (git
-  pathspec semantics); `_redirects` matches at any depth (Decision 11). "The check tools" are eslint,
-  @eslint/css, html-validate and axe-core (PLAN Repo changes), and all four are required. "A JS
-  compat lint if one fits" (03 §7, checked in Phase 0 on 2026-10-30): eslint 10.14.0 is current, and
-  two maintained plugins accept it, eslint-plugin-compat 7.0.2 (peer eslint ^9 || ^10, browserslist
-  targets) and eslint-plugin-baseline-js 0.7.6 (peer eslint >=9.29 <11, Baseline targets). The check
-  accepts COMPAT_LINT, eslint-plugin-baseline-js, because Decision 12's target is Baseline Widely
-  Available, the same target @eslint/css's use-baseline checks; @eslint/js and globals are accepted
-  as ESLint's own config support. Any other package fails. Pinned means an exact version, and
-  optionalDependencies, peerDependencies and bundleDependencies must be empty. The scripts are
-  exactly build, dev, vendor and lint: Cloudflare Pages' Git integration deploys the pushed commits
-  (Decision 11, the owner, 2026-11-06), so there is no deploy script, and a script that runs
-  `wrangler pages deploy` or its alias `wrangler pages publish` (DIRECT_UPLOAD) fails.
+- 4: "The check tools" are eslint, @eslint/css, html-validate and axe-core (PLAN criterion 4), and
+  all four are required. The JS compat lint (PLAN criterion 4, checked on 2026-10-30): eslint
+  10.14.0 is current, and two maintained plugins accept it, eslint-plugin-compat 7.0.2 (peer eslint
+  ^9 || ^10, browserslist targets) and eslint-plugin-baseline-js 0.7.6 (peer eslint >=9.29 <11,
+  Baseline targets). The check accepts COMPAT_LINT, eslint-plugin-baseline-js, because Decision 12's
+  target is Baseline Widely Available, the same target @eslint/css's use-baseline checks; @eslint/js
+  and globals are accepted as ESLint's own config support. Any other package fails. Pinned means an
+  exact version, and optionalDependencies, peerDependencies and bundleDependencies must be empty.
+  The scripts are exactly build, dev, vendor and lint: Cloudflare Pages' Git integration deploys the
+  pushed commits (Decision 11, the owner, 2026-11-06), so there is no deploy script, and a script
+  that runs `wrangler pages deploy` or its alias `wrangler pages publish` (DIRECT_UPLOAD) fails.
+  Pages configuration (Decision 11): no file tracked or to be tracked (the index minus deletions,
+  plus untracked files that are not ignored) is a _redirects, _routes.json or _worker.js at any
+  depth, a folder of that name included (PAGES_FEATURES), or sits under a functions/ folder at the
+  root, which Pages' build compiles into Functions; 5 holds dist/ to the same three names.
+  wrangler.jsonc is there, not ignored, and the only Wrangler configuration file at the root (no
+  wrangler.json, which wrangler reads in its place, and no wrangler.toml). Read as JSON with comments
+  and trailing commas, a repeated key failing, it has exactly name femto-style,
+  pages_build_output_dir dist (./dist and dist/ too) and a compatibility_date that is a real
+  YYYY-MM-DD day. The pinned wrangler's `pages functions build-env`, run on a copy in a temporary
+  folder, reads the file as Pages' build does: it must exit 0 and write pages_build_output_dir dist.
 - 11: the forbidden-syntax scans look at code only (comments removed, strings blanked), as femto's
   own checks do; mentions in comments are notes. Every scan (forbidden syntax, color functions,
-  smooth scrolling) covers site/**/*.css outside site/vendor/ and site/assets/legacy/ (the frozen
-  oracle CSS, deleted in Phase 2), plus <style> and style="" in site HTML; PLAN names site/assets/css/
-  for the at-rules, and the site's own CSS anywhere follows the same rules (PROMPT.md, CSS). Decision
-  10's class is the class a rule `html.X`, `:root.X` or `.X` sets `scroll-behavior: smooth` on,
-  inside `@media (prefers-reduced-motion: no-preference)`, where X appears in site/assets/js/docs.js.
-  The lint part proves coverage, not only an exit status, on site/**/*.css and site/**/*.js outside
-  vendor/ and assets/legacy/ (PLAN names those globs). The site's other CSS and JS sources, which
+  smooth scrolling) covers site/**/*.css outside site/vendor/, plus <style> and style="" in site
+  HTML; PLAN names site/assets/css/ for the at-rules, and the site's own CSS anywhere follows the
+  same rules. Decision 10's class is the class a rule `html.X`, `:root.X` or `.X` sets
+  `scroll-behavior: smooth` on, inside `@media (prefers-reduced-motion: no-preference)`, where X
+  appears in site/assets/js/docs.js. The lint part proves coverage, not only an exit status, on
+  site/**/*.css and site/**/*.js outside vendor/ (PLAN names those globs). The site's other CSS
+  and JS sources, which
   `npm run lint` never reads, are listed in one note: <style> and style="" in site HTML (the
   forbidden-syntax scans above read them, use-baseline does not), CSS that site JS writes
   (.style.<property> =, .style.cssText, .style.setProperty(), insertRule(), replaceSync(), a
@@ -105,23 +111,24 @@ Interpretations, where PLAN's wording leaves a choice:
   inline and through a variable, focus({preventScroll}) with a name key and a string key, and
   FontFaceSet's loadingdone event), alone, in the next site JS file in turn, must fail `npm run
   lint` with one more no-restricted-* report than the clean copy gave. A note says what neither
-  probe set can show: Phase 6's review checked those members in the site's JS by hand. (e) The inline scripts in site HTML are written to files in the copy and
-  linted with the copy's eslint.config.js as site JS (sourceType script, as the browser runs them):
-  no report, and NEVER_PROBES' first planted in each must be reported. Before Phase 1 there is no
-  lint script, so the lint part is NOT-YET.
+  probe set can show: the final review checked those members in the site's JS by hand. (e) The
+  inline scripts in site HTML are written to files in the copy and linted with the copy's
+  eslint.config.js as site JS (sourceType script, as the browser runs them):
+  no report, and NEVER_PROBES' first planted in each must be reported. Without a lint script the
+  lint part is NOT-YET.
   Exceptions in the files: an eslint-disable directive needs "-- reason"; an inline rule
   configuration comment (`/* eslint rule: [...] */`, which print-config never shows) needs one too,
   and one that configures a use-baseline rule fails outright (the level and allow lists belong in
   the config file).
 - 14 and 13's No Pico: `git grep -il pico` as PLAN gives it, run once on tracked files and once with
-  --untracked (new files a gate has not committed yet), and the union is compared with the list.
+  --untracked (new files not committed yet), and the union is compared with the list.
 - 9: declarative shadow roots (<template shadowrootmode>, the /examples mockups) are part of their
   page for the duplicate-id check (ids across shadow roots count page-wide) and their section.example
   is the example a radio or details name belongs to; ids in other <template>s are excluded. With
   --dist, html-validate is given the repository's .htmlvalidate.mjs explicitly (it would look for a
   config upward from the folder). html-validate must be shown to run: `--version` answers the pinned version, and its JSON report
   parses, names only the files given, and (exit 1) holds an error. Empty or unparsable output is a
-  tool failure, never a pass. From Phase 3 the config is `.htmlvalidate.mjs`, the only one
+  tool failure, never a pass. The config is `.htmlvalidate.mjs`, the only one
   html-validate can find (no other `.htmlvalidate.*`, no flat `html-validate.config.*`, no
   `.htmlvalidateignore`). It is loaded with Node and compared with the pinned html-validate's
   html-validate:recommended: it must extend that preset, and every rule it turns off or changes
@@ -130,9 +137,36 @@ Interpretations, where PLAN's wording leaves a choice:
   comment of at least REASON_WORDS words on the lines right above its key, or after it on the same
   line. A rule that restates the preset is a note. An inline `html-validate-` directive in a dist
   page needs a comment after `--` or `:`, html-validate's own syntax for one.
+  The one-page structure (structure_checks): every link in the Elements index's cells
+  (site/docs/sections/elements.html) is /docs#<id> of a section in menu.json; every section.example
+  in site/examples.html has exactly one direct, closed <details> holding <summary>HTML</summary> and
+  div.code (button[data-copy-link], pre > code.language-html) and nothing else, and one header with
+  exactly one button[type=button][data-copy-page]; no <select multiple> or <select size> inside a
+  declarative shadow root there has a preselected <option> (Firefox starts its layout before the
+  head stylesheets apply); no element inside site/docs/sections/colors.html's
+  section[data-color-modal] has tabindex, role or aria-label (colors.js adds them at run time); and
+  the Media section's live <pre>s (outside a .code sample) hold a <code> with no class and a <samp>,
+  so the build never highlights them.
+- 8: also the shell (shell_checks): site/partials/head.html has exactly two meta[name=theme-color],
+  media (prefers-color-scheme: light) and (prefers-color-scheme: dark), whose content equals, as a
+  color (hex, rgb() and rgba() read to channels, compared exactly), femto's
+  --femto-light-background-color and --femto-dark-background-color in css/tokens/schemes.css at the
+  vendored commit, read with git (site.js may change the media at run time); site/site.webmanifest
+  is valid JSON with display "browser", a non-empty id and a non-empty description; and
+  site/opengraph.png's IHDR is 1200 x 630, equal to og:image:width and og:image:height in the head
+  partial, and the file is at most OG_IMAGE_MAX bytes (32,000).
+- 11: also site_rule_checks: no file in site/assets/js sets role="group" (read as tokens:
+  setAttribute("role", "group"), .role = "group", { role: "group" }, or role="group" in a string's
+  markup; a comment is not code), and no dist page has role=group on an element outside example
+  markup (an article on /docs and /, a section.example on /examples, a shadow root, a code sample),
+  since femto styles [role=group] as its Group component. In the stylesheets under /assets/css/
+  that more than one dist page links, no top-level rule's selector list holds a bare section,
+  article or footer.
 - 12: also fails when git ignores a vendored file (it would never be committed), whatever the
-  working tree holds.
-- 13: from Phase 4 (04 §3), on the docs page; the package-name part reads every dist page and
+  working tree holds. Decision 4 (release_tag_checks): when SOURCE's version has no "-" (a
+  release), SOURCE's tag must name v<version> and its commit must be that tag's commit in the femto
+  checkout; while it is a prerelease the check says it runs only for a release.
+- 13: the content checks, on the docs page; the package-name part reads every dist page and
   dist script outside dist/vendor/. A file path named pico.*css (Pico's own files, in the Migrating
   from Pico table) is listed, not looked up in vendor/femto/. A module @import relative to femto's
   css/ folder (@import "tokens/base.css", url(themes/jade.css), url(femto.css)) must name a file in
@@ -158,9 +192,76 @@ Interpretations, where PLAN's wording leaves a choice:
   clause denies ("You cannot install femto with Composer", "Nothing is listed on Packagist for
   femto"; a negation before the mention, with no clause break or "but" between them). Other packages (@picocss/pico, wrangler) are listed,
   not judged.
+  The prerelease part keys femto's prerelease wording to SOURCE's version: while it is a prerelease
+  (it has a "-"), Quick start keeps the paragraph that copies femto README's alpha note (it names
+  "prereleases" and @<SOURCE's prerelease tag>, the tag of 3.0.0-alpha.1 being alpha) and its
+  exact-version link, and no page names another prerelease tag; once it is a release, no dist page
+  outside dist/vendor/ has any of PRERELEASE_WORDING (@alpha, @beta or @rc, "prerelease", "until
+  3.0.0 is released", "the alpha"), so the note goes when femto is released.
+  The drift part (femto changed, so the docs must follow) reads femto's files at the vendored commit
+  with git, as 12 does, and each failure names the file to change: (a) every hand-written list of
+  theme colors is femto's css/themes/*.css names plus azure, the default (THEME_LISTS: the ?theme=
+  script's array in site/partials/head.html, which may leave azure out; the Theme picker's swatch
+  links, each with its class, label and href; the Themes table's css/themes/ files; the Colors
+  section's family headers; PALETTE's families in site/assets/js/colors.js; and any array of three or
+  more color names in site JS or in site HTML's inline scripts, site/assets/js/picker.js's among
+  them); (b) PALETTE's SHADES, and each family's hex values and main shade, are femto.colors.css's
+  --femto-color-<family>-<shade> and --femto-color-<family>, and the Colors section's swatch buttons
+  are every family's shades; (c) every css/options/*.css file is named (<name>.css) in the docs
+  page's main; (d) site/docs/menu.json's optional `readme` key (a string, or a list of strings, on a
+  section) names femto README's headings: every H2 but Contributing and License is named by one,
+  and every value is the exact text of an H2 or H3 there (code fences skipped). A section with
+  neither readme nor title names its file's h1: the migration section, whose name criterion 14
+  keeps out of menu.json (vendor.mjs's review reads the keys by the same rules). (a) also reads
+  site/examples.html's p[data-examples-theme] select (each option's text its value capitalized,
+  azure the one selected) and the All theme colors example's css/themes/<color>.css links, and the
+  lists a reader chooses from (the select, those roots and demo.js's THEMES, which SWATCHES follows,
+  with azure checked) must follow the Theme picker's swatch order; the Themes table and the
+  ?theme= script's array may be in any order.
+  femto's facts (femto_fact_checks), read at the vendored commit with git, each failure starting
+  "drift:" and naming the file: the Tokens table's <code> tokens (site/docs/sections/tokens.html)
+  are, each once, the --femto-* names declared (`--femto-x:`) in the files css/femto.css imports,
+  minus every --femto-light-* and --femto-dark-* name, and a row's Pair cell is Yes exactly when
+  both --femto-light-<rest> and --femto-dark-<rest> are declared; each `<p><small><code>MODULE</code>
+  reads <code>T</code>, ...` line in site/docs/sections/*.html lists exactly the sorted
+  var(--femto-…) names that module reads, or says "reads no tokens", and each of READS_SECTIONS has
+  one; the module map's rows (site/docs/sections/modules.html) are css/femto.css's @imports in
+  order, each Bytes cell (commas dropped) the file's size, each summary the first sentence of the
+  file's opening comment (its lines joined, " * " dropped, whitespace collapsed, up to the first ". "
+  or the comment's end), the tfoot total their sum, and the copyable list css/femto.css's @import
+  lines; every element the Elements index names in a row's first cell is a type selector in some
+  imported module (INHERITED_ONLY may list one femto styles only through inheritance, with its
+  reason; none does); site/assets/js/demo.js's SWATCHES[i] is the 6-digit lowercase hex of
+  --femto-primary-background in css/themes/<THEMES[i]>.css; and every prose count in site/ HTML
+  (tags dropped) and JS that PROSE_COUNTS reads ("20 theme colors", "19 other theme colors", "19
+  shades each", "On 31 shades", "380 shades", "3 options", "36 modules", "150 tokens", "58 with a
+  pair", "266 custom properties" and the rest) equals the measured number.
+  The example markup (markup_pair_checks): each /docs example, an <article> whose last child is
+  its footer.code sample, shows the same markup as the sample, compared as femto reads it: the same
+  elements, text (whitespace collapsed; the sample's "..." stands for any text or content),
+  classes and attributes, but ids, names, for, href, src, alt, placeholder, list, form,
+  aria-label, aria-labelledby, aria-describedby, aria-controls, loading and the site's data- hooks,
+  which the live copy changes on purpose (Decision 13's prefixes, links to /docs); comments are
+  dropped, and a sample that is a single <article> is compared with the live article itself. A pair
+  that differs on purpose is in MARKUP_DIFFERS with its reason, and an entry that matches or names
+  no pair fails. Each /examples mockup's inner shadow root, after exactly femto's link, equals its
+  HTML sample, whitespace collapsed, and so does the homepage's femto off/on block with
+  section.proof's sample, with no class in it. The homepage (homepage_checks): the hero's link
+  snippet is Quick start's From a CDN block, /examples' <template data-starter-page> is its Starter
+  template, and the homepage states no size (a number before KB, kB, KiB, MB or bytes) unless "N KB
+  gzipped" with N femto.min.css's size at WIRE_GZIP_LEVEL in KB. The "Used in" lines
+  (used_in_checks): every /examples#<id> link in a section names an id in site/examples.html, and
+  each example a "Used in" line links holds what USED_IN says the section shows. The Pacifico subset
+  (pacifico_checks): site/assets/fonts/pacifico-music-fest-mania.woff2's cmap, read from its WOFF2
+  table directory and its stream inflated with Node's zlib, maps every character of the elements
+  that a dist CSS file, <style> or style attribute gives a font-family or --femto-font-family
+  naming Pacifico, resolved by simple_select() (tags, ids and classes, descendant and child
+  combinators); a selector it cannot resolve fails.
 - 15: the /docs HTML budget is read from PLAN.md's "Risks" section: the first sentence that says
   "budget" and gives one or more sizes after it ("400 KB", "60 KB with Brotli", "90 KB gzipped";
   a size without a qualifier is the file's raw size). Until one is recorded that part is NOT-YET.
+  The sizes are on the wire: gzip and Brotli at the levels Cloudflare Pages serves /docs at
+  (WIRE_GZIP_LEVEL and WIRE_BROTLI_QUALITY, measured; the owner, 2026-11-09), not at their maximum.
   Same-origin loading, static part, which fails unless on https://femto.style: URLs that markup
   loads (src, srcset, poster, data, background, loading <link>s, SVG href and <script href>, <base
   href>, which moves every relative URL, <iframe srcdoc> documents and data: documents in an
@@ -187,12 +288,10 @@ Interpretations, where PLAN's wording leaves a choice:
   SVG, XHTML, XLink and MathML namespace URIs excepted), and a URL whose host is built at run time,
   is a note, not judged: a string can be a fetch(), an inserted element or text a script only
   displays (the picker's CDN <link> sample), which a static read cannot tell apart. Loads made at
-  run time are the harness's: `pages --b dist` reads every dist document's Resource Timing entries
-  and the proxy's CSP reports (workers, frames in closed shadow roots), and fails on a cross-origin
-  load whatever started it (targets.json same_origin). Render-blocking: the only render-blocking
+  run time need a browser (HARNESS_15_LOADS). Render-blocking: the only render-blocking
   scripts allowed are PLAN's two inline head scripts, the ?theme= script then the color-scheme script
   (Decisions 8 and 14): a page's inline classic scripts in <head> are none, or exactly those two in
-  that order (before Phase 3, which adds ?theme=, the color-scheme script alone). head_script_role()
+  that order. head_script_role()
   tells them apart by content: the ?theme= script hands the parser only <link rel=stylesheet>
   elements into /vendor/femto/css/themes/, only through document.write() or writeln(); the
   color-scheme script names femtoColorScheme in a string and hands the parser no HTML. A third
@@ -203,15 +302,14 @@ Interpretations, where PLAN's wording leaves a choice:
   that document.write() writes (an inline one, or one with a source and neither async nor defer; any
   string that holds a classic script once HTML is read from every string), and blocking="render" on
   any element (a Decision 12 violation); scripts in <template> or <noscript> never run on load. The
-  run-time loads and the layout-shift part (the behavior mode, Phase 1) need a browser, so 15 stays
-  NOT-YET here, like 1, 2, 7 and 10.
+  run-time loads and the layout-shift part (the behavior mode) need a browser, so 15 stays NOT-YET
+  here, like 7 and 10.
 """
 
 from __future__ import annotations
 
 import argparse
 import atexit
-import gzip
 import hashlib
 import html
 import http.client
@@ -221,6 +319,7 @@ import re
 import shutil
 import signal
 import socket
+import struct
 import subprocess
 import sys
 import tempfile
@@ -237,8 +336,6 @@ SITE_ORIGIN = "https://femto.style"
 DOCS_URL = "https://femto.style/docs"
 FEMTO_GITHUB = "github.com/leoherzog/femto"
 SECTION_ID = re.compile(r"^[a-z]+(-[a-z]+)?$")
-CATEGORIES = ("dropped-route", "femto-divergence", "merge-layout", "id-rename", "oracle-bug", "highlight", "asset-path",
-              "browser-limit", "owner-change")
 PICO_ALLOWED = (
     "LICENSE.md",
     "README.md",
@@ -249,14 +346,27 @@ PICO_ALLOWED = (
 # femto's own files, which criterion 12 pins to its commit: its LICENSE.md and the MIT banners in its
 # CSS keep Pico's copyright line (from 74e65f6e on).
 PICO_ALLOWED_DIR = "site/vendor/femto/"
-PICO_SPEC = ["--", ".", ":!docs/research", ":!tests", ":!PLAN.md", ":!PROMPT.md"]
+PICO_SPEC = ["--", ".", ":!tests", ":!PLAN.md"]
 SCRIPTS = {"build", "dev", "vendor", "lint"}  # criterion 4; no deploy script since Decision 11's change (2026-11-06)
 # wrangler pages deploy, its hidden alias publish (wrangler 4.158.0 still accepts it), and either through
 # a versioned package name (npx wrangler@4.158.0 pages deploy)
 DIRECT_UPLOAD = re.compile(r"(?<![\w-])wrangler(?:@[\w.^~-]+)?\s+pages\s+(?:deploy|publish)(?![\w-])")
+# Criteria 4 and 5: files that turn on a Pages feature Decision 11 leaves out. Pages reads _redirects,
+# _routes.json and _worker.js (a file, or a folder in advanced mode) from the build output directory,
+# and its Git build compiles a functions/ folder at the project's root into Functions, so any of them
+# changes what production serves. The conversion's criterion 4 held _redirects and functions/ in its
+# list of Remix paths; they are Decision 11's, so they stayed when that list was retired.
+PAGES_FEATURES = ("_redirects", "_routes.json", "_worker.js")
+PAGES_FUNCTIONS = "functions/"
+# Criterion 4: wrangler.jsonc, the Pages project's configuration (Decision 11; the owner, 2026-11-09).
+WRANGLER_CONFIG = "wrangler.jsonc"
+WRANGLER_OTHER = ("wrangler.json", "wrangler.toml")  # wrangler 4.158.0 reads wrangler.json in its place
+WRANGLER_FIELDS = {"name": "femto-style", "pages_build_output_dir": "dist", "compatibility_date": None}
+WRANGLER_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
 REQUIRED_DEV = {"prismjs", "wrangler"}
 CHECK_TOOLS = {"eslint", "@eslint/css", "html-validate", "axe-core"}
-COMPAT_LINT = "eslint-plugin-baseline-js"  # Phase 0's choice (docstring, 4); 0.7.7 on 2026-11-05
+COMPAT_LINT = "eslint-plugin-baseline-js"  # chosen on 2026-10-30 (docstring, 4); 0.7.7 on 2026-11-05
 LINT_SUPPORT = {"@eslint/js", "globals", COMPAT_LINT}
 SVG_NS = re.compile(r"^https?://www\.w3\.org/(2000/svg|1999/xhtml|1999/xlink|1998/Math/MathML|XML/1998/namespace)$")
 EXACT_VERSION = re.compile(r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$")
@@ -264,7 +374,8 @@ VENDORED = ("dist", "css", "LICENSE.md")
 COLORS = ("amber", "azure", "blue", "cyan", "fuchsia", "green", "grey", "indigo", "jade", "lime", "orange",
           "pink", "pumpkin", "purple", "red", "sand", "slate", "violet", "yellow", "zinc")
 
-# The oracle's docs routes (01 §1, 02 §1). /docs itself is Quick start.
+# The Remix site's docs paths, which answer 404 since the docs became one page (criterion 6). /docs
+# itself was Quick start.
 KEPT_ROUTES = (
     "version-picker", "color-schemes", "rtl", "css-variables", "colors", "container", "landmarks-section",
     "grid", "overflow-auto", "typography", "link", "button", "table", "forms", "forms/input", "forms/textarea",
@@ -273,39 +384,20 @@ KEPT_ROUTES = (
 )
 DROPPED_ROUTES = ("classless", "conditional", "sass", "maintenance", "v2", "mission", "usage-scenarios", "brand", "built-with")
 COLOR_ROUTES = tuple(f"version-picker/{c}" for c in COLORS if c != "azure")
-
-PHASE_COMMITS = (
-    (1, "Add Oracle And Parity Harness"),
-    (2, "Convert Pages To Static HTML"),
-    (3, "Move Styles To femto 3"),
-    (4, "Merge Docs Into One Page"),
-    (5, "Describe femto 3"),
-    (6, "Finish Static Site"),
-    (6, "Address Final Review"),  # Phase 6 done: no later phase, so the checks stay at 6
-)
-PHASE_TAGS = ((2, "static-multipage"), (3, "static-femto"), (4, "static-one-page"))
+# Its static Pico v1 pages, under /docs/v1/.
+V1_PAGES = ("accordions", "buttons", "cards", "classless", "containers", "customization", "dropdowns", "forms", "grid",
+            "loading", "modal", "navs", "progress", "rtl", "scroller", "tables", "themes", "tooltips", "typography",
+            "we-love-classes")
 
 HARNESS = {  # tests/run.py modes (tests/harness/cli.py) that the criteria below need a browser for
-    1: "uv run tests/run.py self --full (the oracle against itself in the PLAN.md matrix: Chrome, Firefox, then Safari serialized, through tests/owner-safari.sh final, the owner's light and dark passes)",
     7: "uv run tests/run.py behavior --target dist (Chrome and Firefox; Safari through tests/owner-safari.sh final, the owner's light and dark passes, and tests/owner-safari.sh reduced, in Light with Reduce Motion on for the prefers-reduced-motion checks, all of them light ones)",
     10: "uv run tests/run.py a11y --target dist (axe-core from node_modules on /, /examples, the 404 page, /docs and /docs?theme=jade; Chrome and Firefox, light and dark, 375 and 1300; a serious or critical violation fails)",
     15: "uv run tests/run.py behavior --target dist --checks deep-link-cold (a cold load of /docs#input: layout shift < 0.01 in Chrome, Input's heading within 2 px of its scroll-padding line in Chrome and Firefox)",
 }
-HARNESS_15_LOADS = ("uv run tests/run.py pages --a dist --b dist --full --routes "
-                    "'/,/docs,/docs?theme=jade,/examples,/does-not-exist' --browsers chrome,firefox (p6-base-loads-1; "
-                    "p4-gate-loads-1 ran it without --full; Phase 3's gate read them in sections --full and pages --a "
-                    "static-femto --b dist, and Phases 1 and 2 in pages --a oracle --b dist --full and styles --full): every "
-                    "dist document's Resource Timing entries and the proxy's CSP reports (workers and frames the page "
-                    "cannot read included), where a cross-origin load fails the run whatever code or markup started it; "
-                    "Safari's are in tests/owner-safari.sh final")
-# Criterion 2's Safari legs, rerun on the current harness between the commits each gate compared
-# (tags static-multipage 9383e6b, static-femto 7587a7e, static-one-page 7b90883), once per appearance.
-PARITY_SAFARI = (
-    "uv run tests/run.py styles --full --a static-multipage --b static-femto --browsers safari (Phase 2's gate)",
-    "uv run tests/run.py sections --full --a static-femto --b static-one-page --browsers safari (Phase 3's gate, sections)",
-    "uv run tests/run.py pages --full --a static-femto --b static-one-page --routes /,/examples,/demo,/does-not-exist "
-    "--browsers safari (Phase 3's gate, whole pages)",
-)
+HARNESS_15_LOADS = ("uv run tests/run.py behavior --target dist --groups loads (its same-origin-loads and "
+                    "render-blocking-scripts checks: every page's loads as the browser made them, from the pages' "
+                    "performance entries and, in Chrome and Firefox, the browser's request log, where a cross-origin load "
+                    "fails whatever code or markup started it; Safari's are in tests/owner-safari.sh final)")
 
 FORBIDDEN = [
     ("@layer", re.compile(r"@layer\b", re.I)),
@@ -771,8 +863,8 @@ def menu_ids(menu) -> list[str]:
 
 
 class Context:
-    def __init__(self, root: Path, phase: int, phase_why: str, femto: str | None, dist: Path | None = None):
-        self.root, self.phase, self.phase_why, self.femto_arg = root, phase, phase_why, femto
+    def __init__(self, root: Path, femto: str | None, dist: Path | None = None):
+        self.root, self.femto_arg = root, femto
         self.site, self.dist = root / "site", dist or root / "dist"
         self.dist_given = dist is not None  # --dist: a built folder of its own, which criterion 5 builds into
         self.external = False  # --external: the link check fetches external URLs
@@ -810,6 +902,20 @@ class Context:
                 out[k.strip()] = v.strip()
         return out
 
+    def wrangler(self) -> tuple[list[str], str]:
+        """The pinned wrangler, as a command and a label. It is node_modules' when that is the pinned
+        version, so the GitHub check runs the tree package-lock.json pins; npx, run from a temporary
+        folder, never sees node_modules and would resolve its own tree into ~/.npm/_npx."""
+        version = self.pinned("wrangler", WRANGLER)
+        local = self.root / "node_modules/.bin/wrangler"
+        try:
+            local_version = json.loads((self.root / "node_modules/wrangler/package.json").read_text(encoding="utf-8")).get("version")
+        except (OSError, ValueError, AttributeError):
+            local_version = None
+        if local.is_file() and local_version == version:
+            return [str(local)], f"node_modules' wrangler {version}"
+        return ["npx", "--yes", f"wrangler@{version}"], f"npx wrangler@{version}"
+
     def femto_repo(self, commit: str) -> tuple[Path | None, list[str]]:
         """The first femto checkout that holds commit: --femto, SOURCE's source, $FEMTO_REPO, ../femto."""
         src = (self.source() or {}).get("source")
@@ -827,151 +933,162 @@ class Context:
         return None, tried
 
 
-def infer_phase(root: Path) -> tuple[int, str]:
-    subjects = set(git(root, "log", "--format=%s").stdout.splitlines())
-    tags = set(git(root, "tag", "--merged", "HEAD").stdout.split())
-    phase, why = 0, "no Workflow commit or tag yet"
-    for n, subject in PHASE_COMMITS:
-        # >=: of two subjects for one phase, the later one in the table names it ("Address Final Review").
-        if subject in subjects and n >= phase:
-            phase, why = n, f'commit "{subject}"'
-    for n, tag in PHASE_TAGS:
-        if tag in tags and n > phase:
-            phase, why = n, f"tag {tag}"
-    return phase, why
-
-
-# ---------------------------------------------------------------------------- criteria 1, 2, 7, 10
+# ---------------------------------------------------------------------------- criteria 7, 10
 
 
 def harness_only(cid: int, title: str, command: str):
     def check(ctx: Context) -> Result:
         r = Result(cid, title)
         r.not_yet(f"needs browsers: {command}")
-        run_py = ctx.root / "tests/run.py"
-        r.note("tests/run.py " + ("exists" if run_py.is_file() else "does not exist yet") + "; command names follow 03 §7's modes")
         return r
 
     return check
 
 
-criterion_1 = harness_only(1, "The harness compares the oracle against itself with zero differences in Chrome, Firefox and Safari", HARNESS[1])
 criterion_7 = harness_only(7, "Docs behavior: the suite passes in Chrome, Firefox and Safari", HARNESS[7])
 criterion_10 = harness_only(10, "Accessibility: axe-core finds no serious or critical violation", HARNESS[10])
-
-
-def criterion_2(ctx: Context) -> Result:
-    r = Result(2, "Each parity gate (Phases 1, 2 and 3) reports zero unregistered differences in its full matrix")
-    gates = {
-        1: "uv run tests/run.py pages --a oracle --b dist --full (the static routes against the oracle; Chrome and Firefox)",
-        2: "uv run tests/run.py styles --full --browsers chrome,firefox (dist against tag static-multipage: everything pages compares, plus femto's tokens and interactive states; tests/README.md, Tokens and states)",
-        3: "uv run tests/run.py sections --full --browsers chrome,firefox (each docs section of dist's one page against its old route's [role=document] at tag static-femto) and uv run tests/run.py pages --a static-femto --b dist --full --browsers chrome,firefox --routes /,/examples,/demo,/does-not-exist (the whole pages whose links into the docs changed); then Safari, light and dark (tests/owner-safari.sh one-page then; tests/owner-safari.sh parity from Phase 6)",
-    }
-    if ctx.phase < 4:
-        current = gates.get(min(max(ctx.phase, 1), 3))
-        r.not_yet(f"needs browsers; the gate for phase {ctx.phase} is: {current}")
-        for n, cmd in gates.items():
-            r.note(f"Phase {n} gate: {cmd}")
-        return r
-    # From Phase 4 the site describes femto 3 (Decision 6): HEAD's dist/ matches neither the oracle nor
-    # the tags, so the three gates are a record, and only their Safari legs are rerun, between the tags.
-    r.not_yet(f"needs browsers; at phase {ctx.phase} the Phase 1 to 3 gates are historical: from Phase 4 the site describes "
-              "femto 3 (Decision 6), so HEAD's dist/ cannot match the oracle or the tags. Their records are in "
-              "tests/README.md, Harness proof: \"Phase 1 gate after fix round 2\" (p1g3-pages-full-1), \"Phase 2: styles\" "
-              "(p2-gate-styles-full-3) and \"Phase 3: one page\" (p3-gate-sections-full-1 and p3-gate-pages-full-1). "
-              "The Safari legs of Phases 2 and 3 are rerun between the gates' commits by the owner's "
-              "tests/owner-safari.sh parity, light and dark")
-    for n, cmd in gates.items():
-        r.note(f"Phase {n} gate (historical; dist was that phase's build): {cmd}")
-    for cmd in PARITY_SAFARI:
-        r.note(f"Safari parity rerun (tests/owner-safari.sh parity): {cmd}")
-    return r
-
-
-# ---------------------------------------------------------------------------- criterion 3
-
-
-def criterion_3(ctx: Context) -> Result:
-    r = Result(3, "Every registry entry has a category from the list and a reason")
-    d = ctx.root / "tests/divergences"
-    files = sorted(p for p in d.glob("*.json") if p.name != "schema.json") if d.is_dir() else []
-    if not d.is_dir():
-        r.not_yet("tests/divergences/ does not exist yet (the harness port writes it)")
-        return r
-    counts: dict[str, int] = {}
-    total, ids, bad = 0, {}, []
-    for p in files:
-        try:
-            data = json.loads(p.read_text(encoding="utf-8"))
-        except (OSError, ValueError) as exc:
-            r.fail(f"{rel(ctx.root, p)}: not valid JSON: {exc}")
-            continue
-        if not isinstance(data, list):
-            r.fail(f"{rel(ctx.root, p)}: not a JSON array of entries")
-            continue
-        for i, e in enumerate(data):
-            total += 1
-            where = f"{p.name}[{i}]" + (f" {e.get('id')}" if isinstance(e, dict) and e.get("id") else "")
-            if not isinstance(e, dict):
-                bad.append(f"{where}: not an object")
-                continue
-            cat, reason = e.get("category"), e.get("reason")
-            if cat not in CATEGORIES:
-                bad.append(f"{where}: category {cat!r} is not one of {', '.join(CATEGORIES)}")
-            else:
-                counts[cat] = counts.get(cat, 0) + 1
-            if not isinstance(reason, str) or not reason.strip():
-                bad.append(f"{where}: no reason")
-            if isinstance(e.get("id"), str):
-                ids.setdefault(e["id"], []).append(where)
-    r.fails(f"{len(bad)} registry entr{'y' if len(bad) == 1 else 'ies'} without a listed category or a reason:", bad, "more entries")
-    r.ok(f"{total} entries in {len(files)} files under tests/divergences/ (schema.json excluded)")
-    if counts:
-        r.ok("by category: " + ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
-    if total == 0:
-        r.note("the registry has no entries yet, so the criterion holds vacuously")
-    dups = [f"{k}: {', '.join(v)}" for k, v in ids.items() if len(v) > 1]
-    for line in capped(dups):
-        r.note(f"repeated id {line}")
-    return r
 
 
 # ---------------------------------------------------------------------------- criterion 4
 
 
-def criterion_4(ctx: Context) -> Result:
-    r = Result(4, "Tree and packages")
-    root = ctx.root
-    files = effective_files(root)
-    r.ok(f"{len(files)} files tracked or to be tracked (git ls-files, minus deleted, plus untracked not ignored)")
-    top = lambda name: (lambda f: f == name)
-    patterns = [
-        ("app/", lambda f: f.startswith("app/")),
-        ("*.jsx", lambda f: f.endswith(".jsx")),
-        ("*.scss", lambda f: f.endswith(".scss")),
-        ("remix.config.js", top("remix.config.js")),
-        ("server.js", top("server.js")),
-        ("jsconfig.json", top("jsconfig.json")),
-        (".eslintrc.cjs", top(".eslintrc.cjs")),
-        ("yarn.lock", top("yarn.lock")),
-        ("scripts/", lambda f: f.startswith("scripts/")),
-        ("public/", lambda f: f.startswith("public/")),
-        ("functions/", lambda f: f.startswith("functions/")),
-        ("_redirects", lambda f: f.rsplit("/", 1)[-1] == "_redirects"),
-        ("site/assets/legacy/", lambda f: f.startswith("site/assets/legacy/")),
-    ]
-    clean = []
-    for label, match in patterns:
-        hits = [f for f in files if match(f)]
-        if not hits:
-            clean.append(label)
-        elif label == "site/assets/legacy/" and ctx.phase < 2:
-            r.note(f"{len(hits)} files under site/assets/legacy/: allowed before Phase 2 (the Phase 1 gate's exception)")
-        else:
-            r.fails(f"git ls-files shows {len(hits)} {label} file(s):", hits, "more files")
-    if clean:
-        r.ok("none of: " + ", ".join(clean))
+def pages_feature_paths(files: list[str]) -> list[str]:
+    """The paths of PAGES_FEATURES at any depth, a file or a folder (_worker.js/index.js)."""
+    return [f for f in files if any(part in PAGES_FEATURES for part in f.split("/"))]
 
+
+def jsonc_loads(text: str):
+    """JSON with // and /* */ comments and trailing commas, as wrangler reads wrangler.jsonc. Strings
+    are set aside first, so a comma or slash inside one is never touched."""
+    strings: list[str] = []
+    out, i, n = [], 0, len(text)
+    while i < n:
+        if text[i] == '"':
+            j = i + 1
+            while j < n and text[j] not in '"\n':
+                j += 2 if text[j] == "\\" else 1
+            if j >= n or text[j] != '"':
+                raise ValueError(f"an unclosed string on line {line_of(text, i)}")
+            out.append(f"\0{len(strings)}\0")
+            strings.append(text[i:j + 1])
+            i = j + 1
+        elif text.startswith("//", i):
+            j = text.find("\n", i)
+            i = n if j < 0 else j
+        elif text.startswith("/*", i):
+            j = text.find("*/", i + 2)
+            if j < 0:
+                raise ValueError(f"an unclosed /* comment on line {line_of(text, i)}")
+            out.append(" ")
+            i = j + 2
+        else:
+            out.append(text[i])
+            i += 1
+    code = re.sub(r",(\s*[}\]])", r"\1", "".join(out))
+
+    def unique(pairs):  # a repeated key is read as its last value, so a reader sees two answers
+        keys = [k for k, _ in pairs]
+        if len(set(keys)) != len(keys):
+            raise ValueError(f"key {next(k for k in keys if keys.count(k) > 1)!r} appears twice")
+        return dict(pairs)
+
+    return json.loads(re.sub(r"\0(\d+)\0", lambda m: strings[int(m.group(1))], code), object_pairs_hook=unique)
+
+
+def wrangler_config(ctx: Context, r: Result, files: list[str]) -> None:
+    """Criterion 4's wrangler.jsonc part (Decision 11): the file is there and committed, the only
+    Wrangler configuration file, with exactly the project's name, the build output directory dist
+    and a compatibility_date; and the pinned wrangler's `pages functions build-env`, which reads it as
+    Pages' build does, reads pages_build_output_dir dist from it."""
+    path = ctx.root / WRANGLER_CONFIG
+    if not path.is_file():
+        r.fail(f"{WRANGLER_CONFIG} is missing: it pins the Pages project's build output directory, dist (Decision 11)")
+        return
+    if WRANGLER_CONFIG not in files:
+        r.fail(f"git ignores {WRANGLER_CONFIG}, so Pages' build, which reads the pushed commit, never sees it")
+    others = [name for name in WRANGLER_OTHER if (ctx.root / name).exists()]
+    r.fails(f"{len(others)} other Wrangler configuration file(s) at the root: {WRANGLER_CONFIG} must be the only one, since "
+            "wrangler reads wrangler.json in its place and either one leaves the project's settings in two files:", others)
+    try:
+        data = jsonc_loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as e:
+        r.fail(f"{WRANGLER_CONFIG} does not parse as JSON with comments: {e}")
+        return
+    if not isinstance(data, dict):
+        r.fail(f"{WRANGLER_CONFIG} is not an object")
+        return
+    bad = []
+    extra, lack = sorted(set(data) - set(WRANGLER_FIELDS)), sorted(set(WRANGLER_FIELDS) - set(data))
+    if extra:
+        bad.append(f"it has key(s) {', '.join(extra)}: a Pages Wrangler file here holds only {', '.join(WRANGLER_FIELDS)} "
+                   "(a Workers key such as main fails Pages' build; the build command and branches stay in the dashboard)")
+    if lack:
+        bad.append(f"it lacks {', '.join(lack)}")
+    if "name" in data and data["name"] != WRANGLER_FIELDS["name"]:
+        bad.append(f"name is {data['name']!r}, not the Pages project's, {WRANGLER_FIELDS['name']!r}")
+    out_dir = data.get("pages_build_output_dir")
+    if "pages_build_output_dir" in data and (not isinstance(out_dir, str) or PurePosixPath(out_dir).as_posix() != "dist"):
+        bad.append(f"pages_build_output_dir is {out_dir!r}, not dist (./dist and dist/ are the same)")
+    date = data.get("compatibility_date")
+    if "compatibility_date" in data:
+        ok = isinstance(date, str) and bool(WRANGLER_DATE.match(date))
+        if ok:
+            try:
+                time.strptime(date, "%Y-%m-%d")  # a real day: 2026-11-31 fails
+            except ValueError:
+                ok = False
+        if not ok:
+            bad.append(f"compatibility_date is {date!r}, not a YYYY-MM-DD date")
+    r.fails(f"{WRANGLER_CONFIG} is not the Pages project's configuration (Decision 11):", bad)
+    if not bad:
+        r.ok(f"{WRANGLER_CONFIG}: name {data['name']}, pages_build_output_dir {out_dir}, compatibility_date {date}, "
+             "and nothing else")
+    # build-env reads the file as Pages' build does. It runs on a copy, so wrangler writes nothing into
+    # the repository (its .wrangler/ folder, its log).
+    wrangler, label = ctx.wrangler()
+    tmp = Path(tempfile.mkdtemp(prefix="femto-style-wrangler-config-"))
+    try:
+        project = tmp / "project"
+        project.mkdir()
+        shutil.copyfile(path, project / WRANGLER_CONFIG)
+        env = {**os.environ, "WRANGLER_SEND_METRICS": "false", "CI": "true", "NO_COLOR": "1", "FORCE_COLOR": "0",
+               "WRANGLER_LOG_PATH": str(tmp / "wrangler-debug.log")}
+        cmd = [*wrangler, "pages", "functions", "build-env", str(project), "--outfile", str(tmp / "env.json")]
+        try:
+            proc = subprocess.run(cmd, cwd=tmp, capture_output=True, text=True, timeout=180, env=env)
+        except (OSError, subprocess.TimeoutExpired) as e:
+            r.fail(f"{label} pages functions build-env did not run: {e}")
+            return
+        said = ANSI.sub("", proc.stdout + proc.stderr).strip()
+        try:
+            env_out = json.loads((tmp / "env.json").read_text(encoding="utf-8")) if proc.returncode == 0 else None
+        except (OSError, ValueError):
+            env_out = None
+        got = env_out.get("pages_build_output_dir") if isinstance(env_out, dict) else None
+        if got != "dist":
+            r.fail(f"{label} pages functions build-env exited {proc.returncode} and read pages_build_output_dir "
+                   f"{got!r} from {WRANGLER_CONFIG}, not dist: {' '.join(said.split())[-400:]}")
+        else:
+            r.ok(f"{label} pages functions build-env reads pages_build_output_dir: dist from {WRANGLER_CONFIG}, as Pages' "
+                 "build does")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def criterion_4(ctx: Context) -> Result:
+    # Its list of Remix paths that git must not show was retired with the conversion's scaffolding
+    # (the owner, 2026-11-09). Two of its entries, _redirects and functions/, were Decision 11's, and
+    # stay below with the Pages features like them.
+    r = Result(4, "Packages and Pages configuration")
+    files = effective_files(ctx.root)
+    features = pages_feature_paths(files) + [f for f in files if f.startswith(PAGES_FUNCTIONS)]
+    r.fails(f"{len(features)} file(s) tracked or to be tracked turn on a Pages feature (Decision 11: no _redirects, "
+            "_routes.json, _worker.js or root functions/ folder, which Pages' build compiles into Functions):",
+            sorted(set(features)), "more files")
+    if not features:
+        r.ok(f"none of {len(files)} files tracked or to be tracked is a _redirects, _routes.json or _worker.js, or under a "
+             "root functions/ folder (Decision 11)")
+    wrangler_config(ctx, r, files)
     pkg = ctx.package()
     if pkg is None:
         r.fail("package.json is missing")
@@ -995,7 +1112,7 @@ def criterion_4(ctx: Context) -> Result:
         if name in REQUIRED_DEV or name in CHECK_TOOLS:
             continue
         if name in LINT_SUPPORT:
-            r.note(f"devDependency {name} accepted as " + ("the JS compat lint (Phase 0's choice)" if name == COMPAT_LINT
+            r.note(f"devDependency {name} accepted as " + ("the JS compat lint (chosen on 2026-10-30)" if name == COMPAT_LINT
                                                            else "ESLint config support"))
         else:
             other.append(name)
@@ -1072,32 +1189,33 @@ def criterion_5(ctx: Context) -> Result:
     if not changed and not only:
         r.ok("the two dist/ trees are byte-identical")
     files = [k for k in b if not k.endswith("/")]
-    for label, prefix in (("partials/", "partials/"), ("docs/sections/", "docs/sections/"), ("assets/legacy/", "assets/legacy/")):
+    for prefix in ("partials/", "docs/sections/"):
         hits = [f for f in files if f.startswith(prefix)]
-        if hits and prefix == "assets/legacy/" and ctx.phase < 2:
-            r.note(f"dist/ holds {len(hits)} files from assets/legacy/: 03 §2 copies them during Phase 1")
-        else:
-            r.fails(f"dist/ holds {len(hits)} file(s) from {label}:", hits, "more files")
+        r.fails(f"dist/ holds {len(hits)} file(s) from {prefix}:", hits, "more files")
     # Copies of those sources under another name.
     sources = {}
-    for sub in ("partials", "docs/sections", "assets/legacy"):
+    for sub in ("partials", "docs/sections"):
         folder = ctx.site / sub
-        if (sub == "assets/legacy" and ctx.phase < 2) or not folder.is_dir():
+        if not folder.is_dir():
             continue
         for p in sorted(folder.rglob("*")):
             if p.is_file() and p.stat().st_size > 0:
                 sources.setdefault(hashlib.sha256(p.read_bytes()).hexdigest(), rel(root, p))
     copies = [f"dist/{f} is a copy of {sources[b[f]]}" for f in files if b[f] in sources]
-    r.fails(f"{len(copies)} dist/ file(s) are copies of partials, section or legacy files:", copies, "more files")
+    r.fails(f"{len(copies)} dist/ file(s) are copies of partials or section files:", copies, "more files")
     if not any(f.startswith(("partials/", "docs/sections/")) for f in files) and not copies:
-        r.ok("dist/ holds nothing from partials/ or docs/sections/" + ("" if ctx.phase < 2 else " or assets/legacy/"))
+        r.ok("dist/ holds nothing from partials/ or docs/sections/")
     per_route = [f for f in files if f.startswith("docs/") and f.endswith(".html")]
-    if ctx.phase >= 3:
-        r.fails(f"dist/docs/ holds {len(per_route)} per-route page(s) (none from Phase 3):", per_route, "more pages")
-        if not per_route:
-            r.ok("no per-route docs/ pages (Phase 3 on)")
-    elif per_route:
-        r.note(f"dist/docs/ holds {len(per_route)} per-route pages, expected before Phase 3")
+    r.fails(f"dist/docs/ holds {len(per_route)} per-route page(s) (the docs are one page, Decision 2):", per_route, "more pages")
+    if not per_route:
+        r.ok("no per-route docs/ pages")
+    # What Pages reads from the build output directory, wherever the build copied it from (criterion 4
+    # reads the repository).
+    features = pages_feature_paths(files)
+    r.fails(f"dist/ holds {len(features)} file(s) that turn on a Pages feature (Decision 11: no _redirects, _routes.json or "
+            "_worker.js):", features, "more files")
+    if not features:
+        r.ok("dist/ holds no _redirects, _routes.json or _worker.js (Decision 11)")
     if "docs/index.html" in files:
         r.note("dist/docs/index.html exists: Decision 11 says never write it (/docs/ must 308 to /docs)")
     return r
@@ -1117,7 +1235,7 @@ PAGES_INHERENT = {
     "/index": (308, "/", "redirects an index page's name to its folder"),
     "/index.html": (308, "/", "redirects index.html to its folder"),
     "/docs/index": (308, "/docs/", "redirects an index page's name to its folder, which then redirects to /docs"),
-    # A page of every phase: from Phase 3 /docs/forms/input.html has no page, so it answers 404 (below).
+    # A page that exists; /docs/forms/input.html has no page, so it answers 404 (below).
     "/examples.html": (308, "/examples", "redirects a page's .html name to its clean URL"),
 }
 
@@ -1137,39 +1255,18 @@ def criterion_6(ctx: Context) -> Result:
     ok_200 |= {f"/docs?theme={c}" for c in themes}
     old = {f"/docs/{x}" for x in KEPT_ROUTES + COLOR_ROUTES}
     gone = {f"/docs/{x}" for x in DROPPED_ROUTES} | {"/docs/v1/", "/no-such-page", "/docs/no-such-section", "/assets/no-such-file.css"}
-    # The oracle's static Pico v1 pages (tests/oracle-routes.json, kind v1-page) are old paths too.
-    routes_file = ctx.root / "tests/oracle-routes.json"
-    if routes_file.is_file():
-        gone |= {r["path"] for r in json.loads(routes_file.read_text(encoding="utf-8")).get("routes", [])
-                 if r.get("kind") == "v1-page"}
-    if ctx.phase >= 3:
-        # An old route's .html name too: with no page behind it Pages has nothing to redirect to.
-        gone |= old | {"/docs/forms/input.html"}
-        ok_200 -= old
-    else:
-        ok_200 |= old
-    if ctx.phase >= 4:
-        # PLAN.md URL inventory and Open question 5: from Phase 4 /demo is not built, so it is a 404.
-        gone.add("/demo")
-        if "/demo" in pages:
-            r.fail("dist/ has a /demo page, which Phase 4 drops (PLAN.md Open questions 5: not built, 404)")
-        ok_200.discard("/demo")
-    for name in ("/examples",) + (("/demo",) if ctx.phase < 4 else ()):
-        if name not in pages:
-            r.note(f"{name} is not in dist/ (PLAN: per the Open questions), so it is not expected to answer 200")
-    version = ctx.pinned("wrangler", WRANGLER)
-    # The wrangler that npm ci or npm install put in node_modules, when it is the pinned version, so the
-    # GitHub check runs the tree package-lock.json pins. npx, run from the temporary folder below, never
-    # sees node_modules and would resolve its own tree into ~/.npm/_npx.
-    local = ctx.root / "node_modules/.bin/wrangler"
-    try:
-        local_version = json.loads((ctx.root / "node_modules/wrangler/package.json").read_text(encoding="utf-8")).get("version")
-    except (OSError, ValueError, AttributeError):
-        local_version = None
-    if local.is_file() and local_version == version:
-        wrangler, label = [str(local)], f"node_modules' wrangler {version}"
-    else:
-        wrangler, label = ["npx", "--yes", f"wrangler@{version}"], f"npx wrangler@{version}"
+    gone |= {f"/docs/v1/{x}" for x in V1_PAGES}
+    # An old route's .html name too: with no page behind it Pages has nothing to redirect to.
+    gone |= old | {"/docs/forms/input.html"}
+    ok_200 -= old
+    # PLAN.md URL inventory and Owner answers 5: /demo is not built, so it is a 404.
+    gone.add("/demo")
+    if "/demo" in pages:
+        r.fail("dist/ has a /demo page, which is not built (PLAN.md Owner answers 5: 404)")
+    ok_200.discard("/demo")
+    if "/examples" not in pages:
+        r.note("/examples is not in dist/, so it is not expected to answer 200")
+    wrangler, label = ctx.wrangler()
     tmp = Path(tempfile.mkdtemp(prefix="femto-style-wrangler-"))
     port, inspector = free_port(), free_port()
     log_path = tmp / "wrangler.log"
@@ -1233,13 +1330,12 @@ def criterion_6(ctx: Context) -> Result:
         r.fails(f"{len(bad308)} of /docs/ and /docs.html do not 308 to /docs:", bad308)
         r.fails(f"{len(bad404)} path(s) do not answer 404 with the 404.html body:", bad404, "more paths")
         if not bad200:
-            r.ok(f"{len(ok_200)} URLs answer 200 with no redirect ({len(pages)} pages in dist/, /docs?theme= for {len(themes)} colors"
-                 + (", the 30 kept routes and 19 color routes" if ctx.phase < 3 else "") + ")")
+            r.ok(f"{len(ok_200)} URLs answer 200 with no redirect ({len(pages)} pages in dist/, /docs?theme= for {len(themes)} colors)")
         if not bad308:
             r.ok("/docs/ and /docs.html answer 308 to /docs")
         if not bad404:
-            r.ok(f"{len(gone)} paths answer 404 with the 404.html body (dropped routes, /docs/v1/ and its pages, unknown paths"
-                 + (", and the old per-route docs paths" if ctx.phase >= 3 else "") + ")")
+            r.ok(f"{len(gone)} paths answer 404 with the 404.html body (dropped routes, /docs/v1/ and its pages, unknown paths, "
+                 "/demo and the old per-route docs paths)")
     finally:
         stop(proc)
         shutil.rmtree(tmp, ignore_errors=True)
@@ -1282,7 +1378,7 @@ def stop(proc: subprocess.Popen):
 # ---------------------------------------------------------------------------- criterion 8
 
 
-def criterion_8(ctx: Context) -> Result:
+def head_checks(ctx: Context) -> Result:
     r = Result(8, "Head: docs.html's title, description, og:* and canonical; sitemap.xml lists only page URLs")
     docs = ctx.dist / "docs.html"
     if not docs.is_file():
@@ -1346,14 +1442,106 @@ def criterion_8(ctx: Context) -> Result:
     return r
 
 
+OG_IMAGE_MAX = 32_000  # bytes: site/opengraph.png was 14,690 on 2026-11-09 (the home agent's limit, 32 KB)
+
+
+def shell_checks(ctx: Context, r: Result) -> None:
+    """Criterion 8: the head partial's two theme-color metas are femto's light and dark background
+    colors, the web app manifest's fields, and the social preview image's size."""
+    site = ctx.site
+    head_path = site / "partials/head.html"
+    head = ctx.page(head_path) if head_path.is_file() else None
+    metas = [m for m in head.find_all("meta") if m.attrs.get("name", "").lower() == "theme-color"] if head else []
+    src = ctx.source() or {}
+    commit = src.get("commit", "")
+    repo = ctx.femto_repo(commit)[0] if commit else None
+    if head is None:
+        r.fail("site/partials/head.html is missing")
+    elif repo is None:
+        r.not_yet(f"theme-color: no femto checkout holds {commit[:12] or 'SOURCE’s commit'}, so css/tokens/schemes.css cannot be "
+                  "read; pass --femto DIR or set FEMTO_REPO")
+    else:
+        short = commit[:8]
+        schemes = scan_css(femto_blobs(ctx, repo, commit, ["css/tokens/schemes.css"]).get("css/tokens/schemes.css", b"").decode("utf-8", "replace"))[0]
+        bad, shown = [], []
+        if len(metas) != 2:
+            bad.append(f"{len(metas)} <meta name=\"theme-color\">, not 2 (one per color scheme, each with its media)")
+        for scheme in ("light", "dark"):
+            media = f"(prefers-color-scheme: {scheme})"
+            found = [m for m in metas if collapse(m.attrs.get("media", "")).lower() == media]
+            decl = re.search(rf"--femto-{scheme}-background-color\s*:\s*([^;}}]+)", schemes)
+            want = decl.group(1).strip() if decl else None
+            if len(found) != 1:
+                bad.append(f"{len(found)} theme-color metas with media=\"{media}\", not 1")
+            elif css_rgba(want) is None:
+                bad.append(f"femto's css/tokens/schemes.css at {short} gives --femto-{scheme}-background-color "
+                           f"{want!r}, which is not a color this check reads")
+            elif not same_color(css_rgba(found[0].attrs.get("content")), css_rgba(want)):
+                bad.append(f"line {found[0].line}: the {scheme} theme-color is {found[0].attrs.get('content')!r}; femto's "
+                           f"--femto-{scheme}-background-color at {short} is {want!r}: set content to it")
+            else:
+                shown.append(f"{scheme} {found[0].attrs.get('content')!r}")
+        r.fails(f"site/partials/head.html: {len(bad)} theme-color problem(s); change its <meta name=\"theme-color\"> lines:", bad)
+        if not bad:
+            r.ok(f"site/partials/head.html: 2 theme-color metas, (prefers-color-scheme: light) and (prefers-color-scheme: dark), "
+                 f"equal femto's --femto-light-background-color and --femto-dark-background-color in css/tokens/schemes.css at "
+                 f"{short}, compared as colors ({', '.join(shown)})")
+    man_path = site / "site.webmanifest"
+    try:
+        man = json.loads(man_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        r.fail(f"site/site.webmanifest is not valid JSON: {exc}")
+    else:
+        bad = []
+        if not isinstance(man, dict):
+            bad.append("it is not a JSON object")
+            man = {}
+        if man.get("display") != "browser":
+            bad.append(f"display is {man.get('display')!r}; it must be \"browser\" (the site is a website, not an app)")
+        for key in ("id", "description"):
+            if not isinstance(man.get(key), str) or not man[key].strip():
+                bad.append(f"{key} is {man.get(key)!r}; give it a non-empty string")
+        r.fails(f"site/site.webmanifest: {len(bad)} field problem(s):", bad)
+        if not bad:
+            r.ok(f"site/site.webmanifest: valid JSON with display \"browser\", id {man['id']!r} and a description "
+                 f"({len(man['description'])} characters)")
+    png = site / "opengraph.png"
+    og = {m.attrs.get("property"): m.attrs.get("content", "") for m in (head.find_all("meta") if head else [])
+          if m.attrs.get("property", "").startswith("og:image:")}
+    data = png.read_bytes() if png.is_file() else b""
+    if data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
+        r.fail("site/opengraph.png is missing or not a PNG (no signature and IHDR chunk)")
+    else:
+        width, height = struct.unpack(">II", data[16:24])
+        bad = []
+        if (width, height) != (1200, 630):
+            bad.append(f"site/opengraph.png is {width} x {height}; a social preview is 1200 x 630")
+        if og.get("og:image:width") != str(width) or og.get("og:image:height") != str(height):
+            bad.append(f"site/partials/head.html: og:image:width and og:image:height are {og.get('og:image:width')!r} and "
+                       f"{og.get('og:image:height')!r}; site/opengraph.png is {width} x {height}")
+        if len(data) > OG_IMAGE_MAX:
+            bad.append(f"site/opengraph.png is {len(data):,} bytes, over {OG_IMAGE_MAX:,}: compress it")
+        r.fails(f"{len(bad)} social preview problem(s):", bad)
+        if not bad:
+            r.ok(f"site/opengraph.png's IHDR is {width} x {height}, as og:image:width and og:image:height say, and it is "
+                 f"{len(data):,} bytes (at most {OG_IMAGE_MAX:,})")
+
+
+def criterion_8(ctx: Context) -> Result:
+    r = head_checks(ctx)
+    shell_checks(ctx, r)
+    return r
+
+
 # ---------------------------------------------------------------------------- criterion 9
 
 
 def example_container(node: Node) -> Node | None:
-    """The live example a node belongs to: its nearest article.component (the docs' example card), or
-    on /examples its section.example (the mockup's shadow roots included)."""
-    return next((a for a in node.ancestors() if (a.tag == "article" and "component" in a.classes())
-                 or (a.tag == "section" and "example" in a.classes())), None)
+    """The live example a node belongs to: on /examples its section.example (the mockup's shadow roots
+    included), elsewhere its outermost article (the docs' example card, never inside another article)."""
+    up = list(node.ancestors())
+    return (next((a for a in up if a.tag == "section" and "example" in a.classes()), None)
+            or next((a for a in reversed(up) if a.tag == "article"), None))
 
 
 HTMLVALIDATE_CONFIG = ".htmlvalidate.mjs"
@@ -1434,12 +1622,9 @@ def htmlvalidate_reasons(ctx: Context, r: Result, pages: list[Path]):
             comment = re.split(r"\s*(?:--|:)\s*", body, maxsplit=1)
             if len(comment) < 2 or len(comment[1].split()) < REASON_WORDS:
                 r.fail(f"{rel(root, p)}: html-validate-{m.group(1)} directive without a reason (-- <reason>): {m.group(0)[:100]!r}")
-    if ctx.phase < 3:
-        r.note(f"{HTMLVALIDATE_CONFIG} and its reasons apply from Phase 3; phase is {ctx.phase} ({ctx.phase_why})")
-        return
     config = root / HTMLVALIDATE_CONFIG
     if not config.is_file():
-        r.fail(f"{HTMLVALIDATE_CONFIG} is missing (PLAN.md criterion 9, from Phase 3)")
+        r.fail(f"{HTMLVALIDATE_CONFIG} is missing (PLAN.md criterion 9)")
         return
     others = sorted(p.name for p in root.glob(".htmlvalidate*") if p.name != HTMLVALIDATE_CONFIG)
     others += [n for n in HTMLVALIDATE_FLAT if (root / n).exists()]
@@ -1494,7 +1679,7 @@ def htmlvalidate_reasons(ctx: Context, r: Result, pages: list[Path]):
         r.note(f"{HTMLVALIDATE_CONFIG} restates the preset for: {', '.join(restated)}")
 
 
-def criterion_9(ctx: Context) -> Result:
+def html_and_ids(ctx: Context) -> Result:
     r = Result(9, "Valid HTML and ids")
     pages = ctx.dist_pages()
     if not pages:
@@ -1513,8 +1698,8 @@ def criterion_9(ctx: Context) -> Result:
                f"{probe.stderr.strip()[-300:]}")
     else:
         # The report goes to a file, not a pipe: on macOS Node writes to a pipe asynchronously, and
-        # html-validate's process.exit() cut its multi-megabyte JSON report short (the Phase 1
-        # integration found a report of dist/ ending mid-string).
+        # html-validate's process.exit() cut its multi-megabyte JSON report short (a report of
+        # dist/ once ended mid-string).
         # html-validate finds its config upward from each file, so a --dist folder outside the
         # repository is given the repository's config explicitly.
         config = ["--config", str(root / HTMLVALIDATE_CONFIG)] if (root / HTMLVALIDATE_CONFIG).is_file() else []
@@ -1577,15 +1762,12 @@ def criterion_9(ctx: Context) -> Result:
     if not dup_lines:
         r.ok(f"no duplicate id on any of {len(pages)} pages (declarative shadow roots counted with their page; ids inside "
              "other <template>s excluded)")
-    r.fails(f"{len(name_lines)} radio or details name(s) repeat across separate examples (an example is its nearest "
-            "article.component, or section.example on /examples):", name_lines, "more names")
+    r.fails(f"{len(name_lines)} radio or details name(s) repeat across separate examples (an example is its outermost "
+            "article, or section.example on /examples):", name_lines, "more names")
     if not name_lines:
         r.ok("no radio name or details name repeats across separate examples")
 
     # The one docs page: section heading ids and the side nav.
-    if ctx.phase < 3:
-        r.not_yet(f"section heading ids and side nav apply from Phase 3 (the one docs page); phase is {ctx.phase} ({ctx.phase_why})")
-        return r
     docs = dist / "docs.html"
     menu_path = ctx.site / "docs/menu.json"
     if not docs.is_file():
@@ -1641,13 +1823,129 @@ def criterion_9(ctx: Context) -> Result:
     return r
 
 
+def structure_checks(ctx: Context, r: Result) -> None:
+    """Criterion 9: the Elements index links to sections, /examples' example structure, the Colors
+    grid's no-JavaScript markup, the Media section's plain code block and forms that never submit."""
+    site = ctx.site
+    menu_path = site / "docs/menu.json"
+    ids = set(menu_ids(json.loads(menu_path.read_text(encoding="utf-8")))) if menu_path.is_file() else set()
+    el_rel, el_path = section_source(ctx, "elements")
+    bad, links = [], 0
+    if el_path.is_file():
+        for td in ctx.page(el_path).find_all("td"):
+            for a in td.find_all("a"):
+                links += 1
+                if section_target(a.attrs.get("href", "")) not in ids:
+                    bad.append(f"{el_rel}:{a.line}: {a.attrs.get('href')!r} is not /docs#<id> of a section (site/docs/menu.json): "
+                               "link the section that shows the element")
+    else:
+        bad.append(f"{el_rel} is missing")
+    r.fails(f"{len(bad)} Elements index link(s) do not target a section:", bad, "more")
+    if not bad:
+        r.ok(f"the Elements index's {links} links ({el_rel}) each target a section's h1")
+
+    # /examples: each example's code sample, its Copy as page button, and no preselected list box option.
+    ex_path = site / "examples.html"
+    ex = ctx.page(ex_path) if ex_path.is_file() else None
+    bad, count = [], 0
+    for sec in (ex.iter() if ex else []):
+        if sec.tag != "section" or "example" not in sec.classes():
+            continue
+        count += 1
+        where = f"site/examples.html:{sec.line}: #{sec.attrs.get('id', '')}"
+        kids = [c for c in sec.children if isinstance(c, Node)]
+        details = [c for c in kids if c.tag == "details"]
+        if len(details) != 1 or "open" in details[0].attrs:
+            bad.append(f"{where}: {len(details)} direct <details>" + (" with open" if details and "open" in details[0].attrs else "")
+                       + "; it needs exactly one, closed, holding the HTML sample")
+        else:
+            inner = [c for c in details[0].children if isinstance(c, Node)]
+            box = inner[1] if len(inner) == 2 else None
+            ok = (len(inner) == 2 and inner[0].tag == "summary" and collapse(inner[0].text()) == "HTML" and box.tag == "div"
+                  and "code" in box.classes() and any("data-copy-link" in b.attrs for b in box.find_all("button"))
+                  and any("language-html" in c.classes() and c.parent is not None and c.parent.tag == "pre" for c in box.find_all("code")))
+            if not ok:
+                bad.append(f"{where}: its <details> must hold <summary>HTML</summary>, then div.code with button[data-copy-link] "
+                           "and pre > code.language-html, and nothing else")
+        headers = [c for c in kids if c.tag == "header"]
+        copies = [b for h in headers for b in h.find_all("button") if "data-copy-page" in b.attrs]
+        if len(headers) != 1 or len(copies) != 1 or copies[0].attrs.get("type") != "button":
+            bad.append(f"{where}: its header needs exactly one button[type=button][data-copy-page] ({len(headers)} header(s), "
+                       f"{len(copies)} Copy as page button(s))")
+    preselected = [f"site/examples.html:{o.line}: <option selected> in a <select {'multiple' if 'multiple' in s.attrs else 'size'}> "
+                   "in a shadow root: Firefox starts its layout before the head stylesheets apply; drop selected"
+                   for s in (ex.iter() if ex else []) if s.tag == "select" and ("multiple" in s.attrs or "size" in s.attrs)
+                   and any(a.tag == "template" and "shadowrootmode" in a.attrs for a in s.ancestors())
+                   for o in s.find_all("option") if "selected" in o.attrs]
+    if ex is None:
+        bad.append("site/examples.html is missing")
+    elif not count:
+        bad.append("site/examples.html: no section.example")
+    r.fails(f"{len(bad)} /examples structure problem(s):", bad, "more")
+    r.fails(f"{len(preselected)} preselected option(s) in a list box inside a shadow root on /examples:", preselected)
+    if not bad and not preselected:
+        r.ok(f"site/examples.html: each of {count} section.example has one closed <details> with <summary>HTML</summary> and "
+             "div.code (button[data-copy-link], pre > code.language-html), and one button[type=button][data-copy-page] in its "
+             "header; no <select multiple> or <select size> in a shadow root has a preselected option")
+
+    # The Colors grid: colors.js adds the roving tabindex, the toolbar role and the names at run time.
+    c_rel, c_path = section_source(ctx, "colors")
+    grid = next((n for n in ctx.page(c_path).iter() if n.tag == "section" and "data-color-modal" in n.attrs), None) if c_path.is_file() else None
+    if grid is None:
+        r.fail(f"{c_rel}: no section[data-color-modal] (the Colors grid)")
+    else:
+        marked = [f"{c_rel}:{n.line}: <{n.tag}> has {', '.join(a for a in ('tabindex', 'role', 'aria-label') if a in n.attrs)}"
+                  for n in grid.iter() if n is not grid and any(a in n.attrs for a in ("tabindex", "role", "aria-label"))]
+        r.fails(f"{len(marked)} element(s) in the Colors grid carry tabindex, role or aria-label in the markup; colors.js adds them "
+                "at run time, so without JavaScript the swatches stay plain buttons: drop them from the markup", marked, "more")
+        if not marked:
+            r.ok(f"{c_rel}: no element inside section[data-color-modal] has tabindex, role or aria-label "
+                 f"({sum(1 for n in grid.iter() if n.tag == 'button')} buttons)")
+
+    # The Media section's live code block: a plain <code> and a <samp>, which the build never highlights.
+    m_rel, m_path = section_source(ctx, "media")
+    pres = [p for p in ctx.page(m_path).find_all("pre") if not any("code" in a.classes() for a in p.ancestors())
+            and "prismjs" not in p.classes()] if m_path.is_file() else []
+    codes = [c for p in pres for c in p.find_all("code")]
+    samps = [s for p in pres for s in p.find_all("samp")]
+    if not any("class" not in c.attrs for c in codes) or not samps or any("class" in c.attrs for c in codes):
+        r.fail(f"{m_rel}: the live <pre> examples need a plain <code> (no class, so the build does not highlight it) and a "
+               f"<samp>; they hold {len(codes)} <code> ({sum(1 for c in codes if 'class' in c.attrs)} with a class) and "
+               f"{len(samps)} <samp>")
+    else:
+        r.ok(f"{m_rel}: the {len(pres)} live <pre> examples hold {len(codes)} <code> with no class and {len(samps)} <samp>, so "
+             "the build leaves them as written")
+
+    # No example form submits, even without JavaScript: every live <form> in site/ has method="dialog",
+    # whose submit does nothing outside a <dialog>. A code sample is escaped (&lt;form), so a literal
+    # <form is live markup. site.js, examples.js and demo.js cancel the submit with JavaScript on.
+    bad, forms = [], 0
+    for p in files_under(site, (".html",), (site / "vendor",)):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        for m in re.finditer(r"<form\b[^>]*>", text, re.I):
+            forms += 1
+            if not re.search(r'\smethod="dialog"', m.group(0)):
+                bad.append(f"{rel(ctx.root, p)}:{line_of(text, m.start())}: {m.group(0)} has no method=\"dialog\", so without "
+                           "JavaScript it submits and puts what was typed in the URL: add method=\"dialog\" (its code sample "
+                           "keeps a plain <form>)")
+    r.fails(f"{len(bad)} example form(s) can submit:", bad, "more")
+    if not bad:
+        r.ok(f"all {forms} live <form>s in site/ have method=\"dialog\", so none submits, with JavaScript or without")
+
+
+def criterion_9(ctx: Context) -> Result:
+    r = html_and_ids(ctx)
+    structure_checks(ctx, r)
+    return r
+
+
 # ---------------------------------------------------------------------------- criterion 11
 
 
 def site_css_sources(ctx: Context) -> list[tuple[str, str, bool]]:
-    """(label, css text, is_attribute) for site CSS outside vendor/ and assets/legacy/, plus <style>
-    elements and style attributes in site HTML."""
-    skip = (ctx.site / "vendor", ctx.site / "assets/legacy")
+    """(label, css text, is_attribute) for site CSS outside vendor/, plus <style> elements and style
+    attributes in site HTML."""
+    skip = (ctx.site / "vendor",)
     out = [(rel(ctx.root, p), p.read_text(encoding="utf-8", errors="replace"), False) for p in files_under(ctx.site, (".css",), skip)]
     for p in files_under(ctx.site, (".html",), skip):
         doc = ctx.page(p)
@@ -1661,9 +1959,9 @@ def site_css_sources(ctx: Context) -> list[tuple[str, str, bool]]:
 
 def inline_scripts(ctx: Context) -> list[tuple[str, str, str]]:
     """(label, kind, text) for every inline classic or module script in site HTML outside vendor/
-    and assets/legacy/ (the two head scripts in site/partials/head.html), which npm run lint never
-    reads (it lints site/**/*.js)."""
-    skip = (ctx.site / "vendor", ctx.site / "assets/legacy")
+    (the two head scripts in site/partials/head.html), which npm run lint never reads (it lints
+    site/**/*.js)."""
+    skip = (ctx.site / "vendor",)
     return [(f"{rel(ctx.root, p)}:{n.line}", script_kind(n), n.text()) for p in files_under(ctx.site, (".html",), skip)
             for n in ctx.page(p).iter()
             if n.tag == "script" and "src" not in n.attrs and script_kind(n) in ("classic", "module")]
@@ -1676,8 +1974,8 @@ JS_CSS_WRITE = re.compile(r"\.style\s*\.\s*(?:setProperty\s*\(|[A-Za-z]+\s*=(?!=
 
 
 def js_written_css(ctx: Context) -> list[str]:
-    """file:line of every place site JS (outside vendor/ and assets/legacy/) writes CSS (JS_CSS_WRITE)."""
-    skip = (ctx.site / "vendor", ctx.site / "assets/legacy")
+    """file:line of every place site JS (outside vendor/) writes CSS (JS_CSS_WRITE)."""
+    skip = (ctx.site / "vendor",)
     out = []
     for p in files_under(ctx.site, (".js", ".mjs"), skip):
         text = p.read_text(encoding="utf-8", errors="replace")
@@ -1685,14 +1983,14 @@ def js_written_css(ctx: Context) -> list[str]:
     return out
 
 
-def criterion_11(ctx: Context) -> Result:
+def lint_checks(ctx: Context) -> Result:
     r = Result(11, "Lint")
     root, site = ctx.root, ctx.site
     css_dir = site / "assets/css"
     css_files = files_under(css_dir, (".css",))
     sources = site_css_sources(ctx) if site.is_dir() else []
     if not css_files:
-        r.not_yet("no site/assets/css/*.css yet (Phase 2 writes them)")
+        r.not_yet("no site/assets/css/*.css")
     if sources:
         counts = {"color functions": 0, "color-mix": 0}
         before = len(r.failures)
@@ -1716,7 +2014,7 @@ def criterion_11(ctx: Context) -> Result:
                     if not re.match(r"\s*in\s+srgb\s*,", args, re.I):
                         r.fail(f"{where(m.start())}: color-mix without 'in srgb': color-mix({args.strip()[:60]})")
         what = (f"{len(sources)} site CSS sources ({sum(1 for _, _, a in sources if not a)} files and <style> elements, "
-                f"{sum(1 for _, _, a in sources if a)} style attributes; vendor/ and assets/legacy/ excluded)")
+                f"{sum(1 for _, _, a in sources if a)} style attributes; vendor/ excluded)")
         r.ok(f"{what}: no forbidden at-rule or function in code; {counts['color functions']} color function calls, "
              f"{counts['color-mix']} of them color-mix()" if len(r.failures) == before else f"{what} scanned")
 
@@ -1756,11 +2054,9 @@ def criterion_11(ctx: Context) -> Result:
     r.fails(f"{len(smooth_bad)} scroll-behavior: smooth outside Decision 10's class:", smooth_bad, "more")
     if sources and not smooth_bad:
         r.ok(f"scroll-behavior: smooth appears {smooth_ok} time(s), each under a class docs.js sets, inside prefers-reduced-motion: no-preference")
-    if (site / "assets/legacy").is_dir():
-        r.note("site/assets/legacy/ is not scanned (the frozen oracle CSS, deleted in Phase 2)")
 
     # Every lint exception carries a reason: eslint-disable directives need "-- reason".
-    skip = (site / "vendor", site / "assets/legacy")
+    skip = (site / "vendor",)
     unexplained = []
     for p in files_under(site, (".js", ".mjs", ".css", ".html"), skip):
         text = p.read_text(encoding="utf-8", errors="replace")
@@ -1811,7 +2107,7 @@ def criterion_11(ctx: Context) -> Result:
     r.note("npm run lint reads site/**/*.css and site/**/*.js only (PLAN.md criterion 11), so use-baseline never sees "
            "the site's other CSS and JS; Decision 12 still applies to them: " + "; ".join(unread))
     if "lint" not in scripts:
-        r.not_yet("package.json has no lint script yet (Phase 1 writes it)")
+        r.not_yet("package.json has no lint script")
         return r
     lint = scripts["lint"]
     if not re.search(r"(?<![\w-])eslint(?![\w-])", lint):
@@ -1828,7 +2124,7 @@ def criterion_11(ctx: Context) -> Result:
     css = files_under(site, (".css",), skip)
     js = files_under(site, (".js", ".mjs"), skip)
     if not js:
-        r.not_yet("no site JS outside vendor/ and assets/legacy/ to lint yet")
+        r.not_yet("no site JS outside vendor/ to lint")
     if not css and not js:
         return r
     eslint = root / "node_modules/.bin/eslint"
@@ -1870,6 +2166,77 @@ def inline_rule_names(rules: str) -> list[str]:
                 names.append(key)
         i += 1
     return names
+
+
+SHARED_BARE = {"section", "article", "footer"}
+
+
+def site_rule_checks(ctx: Context, r: Result) -> None:
+    """Criterion 11: no site script or site widget uses role=group, which femto styles as its Group
+    component, and no stylesheet more than one page loads styles every section, article or footer."""
+    site = ctx.site
+    bad = []
+    for p in files_under(site / "assets/js", (".js", ".mjs")):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        toks = js_tokens(text)
+        val = lambda i, kind=None: toks[i][3] if 0 <= i < len(toks) and (kind is None or toks[i][0] == kind) else None
+        for i, (kind, start, _, v) in enumerate(toks):
+            # setAttribute("role", "group"), x.role = "group", { role: "group" }, or role="group" in markup a string holds.
+            hit = ((kind == "name" and v == "setAttribute" and val(i + 1) == "(" and val(i + 2, "str") == "role"
+                    and val(i + 3) == "," and val(i + 4, "str") == "group")
+                   or (kind in ("name", "str") and v == "role" and val(i - 1) != "." and val(i + 1) == ":" and val(i + 2, "str") == "group")
+                   or (kind == "name" and v == "role" and val(i - 1) == "." and val(i + 1) == "=" and val(i + 2) != "="
+                       and val(i + 2, "str") == "group")
+                   or (kind == "str" and re.search(r"(?<![\w-])role\s*=\s*[\"']?group(?![\w-])", v)))
+            if hit:
+                bad.append(f"{rel(ctx.root, p)}:{line_of(text, start)}: sets role=\"group\"; femto styles [role=group] as its Group "
+                           "component (no focus ring on its buttons): use another role, such as toolbar")
+    for p in ctx.dist_pages():
+        for n in ctx.page(p).iter():
+            if (n.tag != "#document" and "group" in n.attrs.get("role", "").split() and example_container(n) is None
+                    and not n.in_template() and not any(a.tag == "template" for a in n.ancestors())
+                    and not any(a.tag in CODE_TAGS for a in n.ancestors())):
+                bad.append(f"{rel(ctx.root, p)}:{n.line}: <{n.tag} role=\"group\"> outside example markup (built from site/{p.name}, "
+                           "its partials" + (" or site/docs/sections/" if p.name == "docs.html" else "") + "); femto styles "
+                           "[role=group] as its Group component: use another role")
+    r.fails(f"{len(bad)} role=group use(s) outside example markup:", bad, "more")
+    if not bad:
+        r.ok(f"none of the {len(files_under(site / 'assets/js', ('.js', '.mjs')))} files in site/assets/js sets role=\"group\", "
+             f"and none of the {len(ctx.dist_pages())} dist pages uses role=group outside example markup (an article on /docs "
+             "and /, a section.example on /examples, a shadow root)")
+    # Stylesheets more than one page loads: no rule's selector is a bare section, article or footer.
+    loads: dict[str, set[str]] = {}
+    for p in ctx.dist_pages():
+        for link in ctx.page(p).find_all("link"):
+            href = link.attrs.get("href", "")
+            if "stylesheet" in link.attrs.get("rel", "").split() and href.startswith("/assets/css/"):
+                loads.setdefault(href, set()).add(p.name)
+    shared = sorted(h for h, pages in loads.items() if len(pages) > 1)
+    bare = []
+    for href in shared:
+        f = site / href.lstrip("/")
+        if not f.is_file():
+            continue
+        _, masked, _ = scan_css(f.read_text(encoding="utf-8", errors="replace"))
+        rules = rule_preludes(masked)
+        blocks = enclosing_blocks(masked, [o for o, _ in rules])
+        for o, prelude in rules:
+            if prelude.startswith("@") or any(not b.startswith("@") for b in blocks[o]):
+                continue
+            for sel in split_selectors(prelude):
+                if sel.lower() in SHARED_BARE:
+                    bare.append(f"site{href}:{line_of(masked, o)}: `{sel}` styles every {sel} on the {len(loads[href])} pages "
+                                f"that load it ({', '.join(sorted(loads[href]))}), the footer's included: scope it")
+    r.fails(f"{len(bare)} rule(s) in a stylesheet more than one page loads style a bare section, article or footer:", bare, "more")
+    if not bare:
+        r.ok(f"no rule in the {len(shared)} stylesheets more than one page loads ({', '.join(s.removeprefix('/assets/css/') for s in shared)}) "
+             "has a bare section, article or footer selector")
+
+
+def criterion_11(ctx: Context) -> Result:
+    r = lint_checks(ctx)
+    site_rule_checks(ctx, r)
+    return r
 
 
 # Criterion 11's planted-violation probe. Each probe is Baseline newly available but not widely
@@ -1936,7 +2303,7 @@ def compat_key(plugins: list) -> str | None:
 
 
 def lint_config(ctx: Context, r: Result, eslint: Path, css: list[Path], js: list[Path]) -> None:
-    """eslint --print-config on every site CSS and JS file (vendor/ and assets/legacy/ excluded):
+    """eslint --print-config on every site CSS and JS file (vendor/ excluded):
     each CSS file has @eslint/css css/use-baseline as an error at available "widely", and each JS
     file has rules on, among them COMPAT_LINT's use-baseline as an error at Baseline "widely".
     Allow lists and ignored features are exceptions, listed as notes."""
@@ -2040,7 +2407,7 @@ def lint_copy(root: Path, dest: Path) -> None:
             keep = []
             for x in dirnames:
                 path = x if here == "." else f"{here}/{x}"
-                if x in ("node_modules", ".git", ".wrangler", "__pycache__") or path in ("dist", "tests/oracle", "tests/results"):
+                if x in ("node_modules", ".git", ".wrangler", "__pycache__") or path in ("dist", "tests/results"):
                     continue
                 (files.append(path) if (d / x).is_symlink() else keep.append(x))
             dirnames[:] = keep
@@ -2137,7 +2504,7 @@ def lint_probe(ctx: Context, r: Result, css: list[Path], js: list[Path]) -> None
             r.note(f"{COMPAT_LINT} checks JavaScript syntax, globals and static members only: no instance member "
                    "(Set.prototype.union, element.moveBefore()), event name or option member, which needs its type-aware "
                    "preset, so JS_PROBES are static members and NEVER_PROBES test only eslint.config.js's never-list. "
-                   "Phase 6's review checked the site's JS for the rest by hand against @mdn/browser-compat-data 8.1.8 "
+                   "The final review checked the site's JS for the rest by hand against @mdn/browser-compat-data 8.1.8 "
                    "(2026-11-06)")
         never_probe(r, root, tmp, copy, js, control)
         lint_inline(ctx, r, copy)
@@ -2250,7 +2617,7 @@ def lint_inline(ctx: Context, r: Result, copy: Path) -> None:
 # ---------------------------------------------------------------------------- criterion 12
 
 
-def criterion_12(ctx: Context) -> Result:
+def vendored_checks(ctx: Context) -> Result:
     r = Result(12, "Vendored femto: every file in site/vendor/femto/ equals the commit named in its SOURCE, byte for byte")
     vendor = ctx.site / "vendor/femto"
     src = ctx.source()
@@ -2318,6 +2685,39 @@ def criterion_12(ctx: Context) -> Result:
     resolved = (ctx.root / src_path).resolve() if src_path and not os.path.isabs(src_path) else Path(src_path)
     if resolved != repo:
         r.note(f"checked against {repo}; SOURCE's source {src_path} " + ("does not exist" if not resolved.exists() else "was not used"))
+    return r
+
+
+def release_tag_checks(ctx: Context, r: Result) -> None:
+    """Criterion 12 and Decision 4: a release is vendored from its tag. When SOURCE's version has no
+    "-", SOURCE's tag names v<version> and its commit is that tag's commit in the femto checkout."""
+    src = ctx.source() or {}
+    version, commit = src.get("version", ""), src.get("commit", "")
+    if not version or not commit:
+        return
+    if "-" in version:
+        r.ok(f"Decision 4: SOURCE's version {version} is a prerelease, vendored from a recorded commit; the release tag check "
+             "runs only for a release")
+        return
+    tag = f"v{version}"
+    repo, tried = ctx.femto_repo(commit)
+    if tag not in [t.strip() for t in src.get("tag", "").split(",")]:
+        r.fail(f"Decision 4: SOURCE's version {version} is a release, but its tag is {src.get('tag')!r}, not {tag}: vendor the "
+               f"release tag (npm run vendor -- ../femto {tag})")
+    if repo is None:
+        r.not_yet(f"Decision 4: no femto checkout holds {commit[:12]} (tried {', '.join(tried)}), so {tag} cannot be read")
+        return
+    at = git(repo, "rev-parse", "--verify", "--quiet", f"refs/tags/{tag}^{{commit}}").stdout.strip()
+    if at != commit:
+        r.fail(f"Decision 4: SOURCE's commit {commit[:12]} is not {tag}'s commit in {repo} ({at[:12] or 'no such tag'}): vendor the "
+               f"release tag (npm run vendor -- ../femto {tag})")
+    elif tag in src.get("tag", ""):
+        r.ok(f"Decision 4: SOURCE names {tag}, and its commit {commit[:12]} is {tag}'s in {repo}")
+
+
+def criterion_12(ctx: Context) -> Result:
+    r = vendored_checks(ctx)
+    release_tag_checks(ctx, r)
     return r
 
 
@@ -2620,7 +3020,7 @@ def package_checks(ctx: Context, r: Result, repo: Path | None, commit: str):
 
 
 def content_checks(ctx: Context, r: Result) -> None:
-    root, dist, vendor = ctx.root, ctx.dist, ctx.site / "vendor/femto"
+    dist, vendor = ctx.dist, ctx.site / "vendor/femto"
     docs = dist / "docs.html"
     if not docs.is_file():
         r.not_yet("no dist/docs.html (npm run build writes it)")
@@ -2776,16 +3176,1327 @@ def content_checks(ctx: Context, r: Result) -> None:
     if not bad:
         r.ok("git grep -il pico lists only allowed places")
 
+    # 7. femto's prerelease wording follows SOURCE's version.
+    prerelease_checks(ctx, r, doc, version)
+
+    # 8. The examples show their samples' markup; the homepage and /examples follow Quick start; the
+    # "Used in" lines; the Pacifico subset.
+    markup_pair_checks(ctx, r)
+    homepage_checks(ctx, r)
+    used_in_checks(ctx, r)
+    pacifico_checks(ctx, r)
+
+    # 9. Drift: the docs follow femto's files at the vendored commit.
+    if repo is None:
+        held = commit[:12] or "SOURCE's commit"
+        r.not_yet(f"drift: no femto checkout holds {held}, so the docs cannot be compared with femto's files; pass --femto DIR "
+                  "or set FEMTO_REPO")
+    else:
+        drift_checks(ctx, r, repo, commit, readme, main)
+        femto_fact_checks(ctx, r, repo, commit)
+
+
+# ---------------------------------------------------------------------------- criterion 13: prerelease wording
+
+# femto's prerelease wording, as Quick start copies it from femto README's alpha note: a prerelease
+# dist-tag (@alpha, in prose or in a package URL), the word prerelease, a release still to come
+# ("until 3.0.0 is released") and the alpha as a thing to load ("load the alpha", "a later alpha").
+PRERELEASE_TAG = re.compile(r"(?:(?<![\w.@/-])|(?<=femto))@(alpha|beta|rc)\b", re.I)
+PRERELEASE_WORDING = (
+    ("a prerelease dist-tag", PRERELEASE_TAG),
+    ("the word prerelease", re.compile(r"\bpre-?releases?\b", re.I)),
+    ("a release still to come", re.compile(r"\b(?:until|once|before)\s+v?\d+\.\d+\.\d+\s+is\s+(?:out|released)\b", re.I)),
+    ("an alpha, beta or release candidate to use",
+     re.compile(r"\b(?:the|this|a later|is in)\s+(?:alpha|beta|release candidate)\b(?!\s+(?:channel|value|component))", re.I)),
+)
+
+
+def section_of(doc: Node, sid: str) -> Node | None:
+    """The docs page's <section> around a section's h1#<sid>: the one that is a child of #content (each
+    section file, as build.mjs wraps it), else the nearest section."""
+    head = next((n for n in doc.iter() if n.attrs.get("id") == sid and not n.in_template()), None)
+    if head is None:
+        return None
+    sections = [a for a in head.ancestors() if a.tag == "section"]
+    return next((a for a in sections if a.parent is not None and a.parent.attrs.get("id") == "content"),
+                sections[0] if sections else None)
+
+
+def prerelease_checks(ctx: Context, r: Result, doc: Node, version: str) -> None:
+    """Criterion 13: femto's prerelease wording follows SOURCE's version (docstring, 13)."""
+    dist = ctx.dist
+    skip = (dist / "vendor",)
+    pieces: list[tuple[str, str]] = []  # (where, text)
+    for p in files_under(dist, (".html",), skip):
+        pieces += [(f"{rel(ctx.root, p)}:{line}", text) for _, line, text in page_texts(ctx.page(p))]
+    for p in files_under(dist, (".js", ".mjs"), skip):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        pieces += [(f"{rel(ctx.root, p)}:{line_of(text, o)}", v) for o, v in js_strings(text)]
+    tag = re.split(r"[.\d]", version.split("-", 1)[1], maxsplit=1)[0].lower() if "-" in version else ""  # alpha
+    hits, stale, seen = [], [], set()
+    for where, text in pieces:
+        for what, pattern in PRERELEASE_WORDING:
+            for m in pattern.finditer(text):
+                if (where, what, m.group(0).lower()) in seen:  # a code sample's text is also its block's prose
+                    continue
+                seen.add((where, what, m.group(0).lower()))
+                line = f"{where}: {what}: …{' '.join(text[max(0, m.start() - 40):m.end() + 40].split())}…"
+                hits.append(line)
+                if pattern is PRERELEASE_TAG and m.group(1).lower() != tag:
+                    stale.append(line)
+    if not tag:
+        r.fails(f"{len(hits)} place(s) keep femto's prerelease wording, but SOURCE's version {version} is a release: drop the "
+                "alpha note from site/docs/sections/quick-start.html, and every @alpha and 'until it is released' "
+                "(site/docs/sections/theme-picker.html and wherever these are):", list(dict.fromkeys(hits)), "more")
+        if not hits:
+            r.ok(f"SOURCE's version {version} is a release, and no page has femto's prerelease wording")
+        return
+    r.fails(f"{len(stale)} prerelease dist-tag(s) are not SOURCE's @{tag} ({version}): change them to @{tag}:", stale, "more")
+    quick = section_of(doc, "quick-start")
+    if quick is None:
+        r.fail("docs.html has no Quick start section (h1#quick-start), so femto's prerelease note cannot be found")
+        return
+    note = [p for p in quick.find_all("p") if re.search(r"\bprereleases?\b", p.text(), re.I) and f"@{tag}" in p.text().lower()]
+    pinned = f"{FEMTO_PACKAGE}@{version}" in quick.text()
+    if not note:
+        r.fail(f"SOURCE's version {version} is a prerelease, but Quick start has no paragraph naming prereleases and @{tag}: "
+               "keep femto README's alpha note in site/docs/sections/quick-start.html")
+    if not pinned:
+        r.fail(f"Quick start does not name {FEMTO_PACKAGE}@{version}, the exact version to load while {version} is a "
+               "prerelease (site/docs/sections/quick-start.html)")
+    if note and pinned and not stale:
+        r.ok(f"SOURCE's version {version} is a prerelease: Quick start keeps femto's prerelease note (line {note[0].line}) "
+             f"and {FEMTO_PACKAGE}@{version}, and every dist-tag is @{tag}")
+
+
+# ---------------------------------------------------------------------------- criterion 13: drift from femto
+
+# The hand-written lists of theme colors (docstring, 13, drift (a)), by the source file to change.
+THEME_LISTS = ("site/partials/head.html", "site/docs/sections/theme-picker.html", "site/docs/sections/themes.html",
+               "site/docs/sections/colors.html", "site/assets/js/colors.js", "site/assets/js/picker.js", "site/examples.html")
+# The lists a reader chooses a theme color from, which follow the Theme picker's swatch order (drift
+# (a), order); the Themes table, a file reference, and the ?theme= script's array may be alphabetical.
+README_UNDOCUMENTED = ("Contributing", "License")  # README H2s no docs section has to name (vendor.mjs too)
+PALETTE_FAMILY = re.compile(r'^ {2}(\w+): \["(\d+)",\n([^\]]*)\],$', re.M)  # build.mjs's palette(), the same shape
+
+
+def string_arrays(text: str) -> list[tuple[int, list[str]]]:
+    """(offset, values) of each array literal in a script whose items are all string literals."""
+    toks, out = js_tokens(text), []
+    for i, t in enumerate(toks):
+        if t[0] != "punct" or t[3] != "[":
+            continue
+        values, j = [], i + 1
+        while j < len(toks) and toks[j][0] == "str":
+            values.append(toks[j][3])
+            j += 1
+            if j < len(toks) and toks[j][0] == "punct" and toks[j][3] == ",":
+                j += 1
+            else:
+                break
+        if values and j < len(toks) and toks[j][0] == "punct" and toks[j][3] == "]":
+            out.append((t[1], values))
+    return out
+
+
+def readme_headings(text: str) -> list[tuple[int, str]]:
+    """(level, text) of each H2 and H3 in a README, as vendor.mjs's readme() reads them: a fenced code
+    block's lines are never headings, and a closing #s run is dropped."""
+    out, fence = [], None
+    for line in text.split("\n"):
+        if fence:
+            close = re.match(r"^ {0,3}(`{3,}|~{3,})[ \t]*$", line)
+            if close and close.group(1)[0] == fence[0] and len(close.group(1)) >= len(fence):
+                fence = None
+            continue
+        opened = re.match(r"^ {0,3}(`{3,}|~{3,})", line)
+        if opened:
+            fence = opened.group(1)
+            continue
+        m = re.match(r"^ {0,3}(#{2,3})[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$", line)
+        if m and m.group(2):
+            out.append((len(m.group(1)), m.group(2)))
+    return out
+
+
+def drift_checks(ctx: Context, r: Result, repo: Path, commit: str, readme: str, main: Node) -> None:
+    """Criterion 13: the docs follow femto's files at the vendored commit (docstring, 13, drift)."""
+    root, site, short = ctx.root, ctx.site, commit[:8]
+    tree = [p for p in git(repo, "ls-tree", "-r", "--name-only", "--full-tree", commit, "--", "css").stdout.split("\n") if p]
+    themes = sorted(PurePosixPath(p).stem for p in tree if PurePosixPath(p).parent.as_posix() == "css/themes" and p.endswith(".css"))
+    options = sorted(PurePosixPath(p).stem for p in tree if PurePosixPath(p).parent.as_posix() == "css/options" and p.endswith(".css"))
+    colors = set(themes) | {"azure"}
+
+    # (a) Hand-written lists of theme colors: (file, what, colors in order, may it leave azure out).
+    lists: list[tuple[str, str, list[str], bool]] = []
+    shapes: list[str] = []  # a list whose shape the check expects and cannot find
+
+    def scripts_of(path: str) -> list[tuple[str, int, str]]:  # (where, line, script) for a JS file or HTML's inline scripts
+        p = root / path
+        if not p.is_file():
+            return []
+        if p.suffix == ".js":
+            return [(path, 1, p.read_text(encoding="utf-8", errors="replace"))]
+        return [(f"{path}:{n.line}", n.line, n.text()) for n in parse_html(p.read_text(encoding="utf-8", errors="replace")).iter()
+                if n.tag == "script" and "src" not in n.attrs and script_kind(n) in ("classic", "module")]
+
+    js_files = [rel(root, p) for p in files_under(site, (".js", ".mjs"), (site / "vendor",))]
+    html_files = [rel(root, p) for p in files_under(site, (".html",), (site / "vendor",))]
+    known = colors | set(COLORS)
+    for path in js_files + html_files:
+        for where, line0, text in scripts_of(path):
+            for o, values in string_arrays(text):
+                if sum(v in known for v in values) >= 3:
+                    lists.append((path, f"the array at line {line0 + line_of(text, o) - 1}", values, True))
+    if not any(path == "site/partials/head.html" for path, _, _, _ in lists):
+        shapes.append("site/partials/head.html: no array of color names in an inline script (the ?theme= script's colors)")
+
+    def page(path: str) -> Node | None:
+        p = root / path
+        return parse_html(p.read_text(encoding="utf-8", errors="replace")) if p.is_file() else None
+
+    bad: list[str] = []
+    picker = page("site/docs/sections/theme-picker.html")
+    box = next((n for n in picker.iter() if "data-version-picker" in n.attrs), None) if picker else None
+    if box is None:
+        shapes.append("site/docs/sections/theme-picker.html: no element with data-version-picker (the swatch links)")
+    else:
+        found = []
+        for a in box.find_all("a"):
+            c = next((x.removeprefix("femto-background-") for x in a.classes() if re.fullmatch(r"femto-background-[a-z]+", x)), None)
+            if c is None:
+                continue
+            found.append(c)
+            want = "/docs#theme-picker" if c == "azure" else f"/docs?theme={c}#theme-picker"
+            if a.attrs.get("href") != want or a.attrs.get("aria-label") != c.capitalize():
+                bad.append(f"site/docs/sections/theme-picker.html:{a.line}: the {c} swatch has href {a.attrs.get('href')!r} and "
+                           f"aria-label {a.attrs.get('aria-label')!r}; it needs {want!r} and {c.capitalize()!r}")
+        lists.append(("site/docs/sections/theme-picker.html", "the swatch links", found, False))
+    # The Themes table: a row per color, its swatch and name, then its file in css/themes/ (azure's
+    # may say it is built in instead, as femto's README does).
+    table = page("site/docs/sections/themes.html")
+    rows = [tr for tr in table.find_all("tr") if any(x.startswith("femto-background-") for sp in tr.find_all("span")
+                                                     for x in sp.classes())] if table else []
+    if not rows:
+        shapes.append("site/docs/sections/themes.html: no table row with a femto-background-<color> swatch (the colors)")
+    else:
+        found = []
+        for tr in rows:
+            c = next(x.removeprefix("femto-background-") for sp in tr.find_all("span") for x in sp.classes()
+                     if x.startswith("femto-background-"))
+            cells = [" ".join(td.text().split()) for td in tr.find_all("td")]
+            found.append(c)
+            want = f"css/themes/{c}.css"
+            if cells[:1] != [c.capitalize()] or not (cells[1:2] == [want] or (c == "azure" and cells[1:2] == ["Built in"])):
+                bad.append(f"site/docs/sections/themes.html:{tr.line}: the {c} row reads {' | '.join(cells)!r}; it needs "
+                           f"{c.capitalize()!r} and {want!r}" + (" or 'Built in'" if c == "azure" else ""))
+        lists.append(("site/docs/sections/themes.html", "the table of colors and their css/themes/ files", found, False))
+    grid = page("site/docs/sections/colors.html")
+    families = [a for a in grid.iter() if a.tag == "article" and "family" in a.classes()] if grid else []
+    grid_shades: dict[str, list[str]] = {}
+    if not families:
+        shapes.append("site/docs/sections/colors.html: no article.family (the palette's families)")
+    else:
+        found = []
+        for art in families:
+            head = next(iter(art.find_all("header")), None)
+            c = next((x.removeprefix("femto-background-") for x in (head.classes() if head else [])
+                      if re.fullmatch(r"femto-background-[a-z]+", x)), None)
+            if c is None:
+                bad.append(f"site/docs/sections/colors.html:{art.line}: a family whose header has no femto-background-<color> class")
+                continue
+            found.append(c)
+            if " ".join(head.text().split()) != c.capitalize():
+                bad.append(f"site/docs/sections/colors.html:{head.line}: the {c} family's header reads {head.text().strip()!r}, "
+                           f"not {c.capitalize()!r}")
+            odd = []
+            for b in art.find_all("button"):
+                m = next((re.fullmatch(rf"femto-background-{c}-(\d+)", x) for x in b.classes()
+                          if re.fullmatch(rf"femto-background-{c}-\d+", x)), None)
+                if m is None or b.text().strip() != m.group(1):
+                    odd.append(str(b.line))
+                    continue
+                grid_shades.setdefault(c, []).append(m.group(1))
+            if odd:
+                bad.append(f"site/docs/sections/colors.html: {len(odd)} of the {c} family's swatch buttons are not "
+                           f"femto-background-{c}-<shade> showing their shade (lines {', '.join(odd[:6])}"
+                           + (" ..." if len(odd) > 6 else "") + ")")
+        lists.append(("site/docs/sections/colors.html", "the family headers", found, False))
+    # /examples' theme select (each option's text its name capitalized, azure selected) and the All
+    # theme colors example's roots, each linking its css/themes/<color>.css.
+    ordered: list[tuple[str, str, list[str]]] = []
+    ex = page("site/examples.html")
+    holder = next((n for n in ex.iter() if "data-examples-theme" in n.attrs), None) if ex else None
+    select = next(iter(holder.find_all("select")), None) if holder else None
+    if select is None:
+        shapes.append("site/examples.html: no select in p[data-examples-theme] (the theme select)")
+    else:
+        options_ = select.find_all("option")
+        found = [o.attrs.get("value", "") for o in options_]
+        for o in options_:
+            if collapse(o.text()) != o.attrs.get("value", "").capitalize():
+                bad.append(f"site/examples.html:{o.line}: the theme select's {o.attrs.get('value')!r} option reads "
+                           f"{collapse(o.text())!r}, not {o.attrs.get('value', '').capitalize()!r}")
+        chosen = [o.attrs.get("value") for o in options_ if "selected" in o.attrs]
+        if chosen != ["azure"]:
+            bad.append(f"site/examples.html:{select.line}: the theme select has {', '.join(map(str, chosen)) or 'no option'} "
+                       "selected; azure, the default, must be the one option selected")
+        lists.append(("site/examples.html", "the theme select's options", found, False))
+        ordered.append(("site/examples.html", "the theme select's options", found))
+    every = next((n for n in ex.iter() if n.tag == "section" and n.attrs.get("id") == "all-themes"), None) if ex else None
+    mock = next((n for n in every.iter() if "data-example" in n.attrs), None) if every else None
+    if mock is None:
+        shapes.append("site/examples.html: no section#all-themes with a div[data-example] mockup (the All theme colors example)")
+    else:
+        found = [m.group(1) for link in mock.find_all("link")
+                 if (m := re.fullmatch(r"/vendor/femto/css/themes/([a-z]+)\.css", link.attrs.get("href", "")))]
+        lists.append(("site/examples.html", "the All theme colors example's css/themes/ links", found, False))
+        ordered.append(("site/examples.html", "the All theme colors example's roots", found))
+    demo_path = "site/assets/js/demo.js"
+    demo = (root / demo_path).read_text(encoding="utf-8", errors="replace") if (root / demo_path).is_file() else ""
+    at = re.search(r"\bconst THEMES\s*=\s*\[", demo)
+    themes_js = next((v for o, v in string_arrays(demo) if at and o == at.end() - 1), None)
+    if themes_js is None:
+        shapes.append(f"{demo_path}: no `const THEMES = [...]` array of strings (the homepage's swatches)")
+    else:
+        ordered.append((demo_path, "THEMES (and SWATCHES, which follows it)", themes_js))
+        if not re.search(r"\.checked\s*=\s*\w+\s*===\s*[\"']azure[\"']", demo):
+            bad.append(f"{demo_path}: no swatch is checked for azure, the default (`radio.checked = color === \"azure\"`)")
+    js_path = "site/assets/js/colors.js"
+    js = (root / js_path).read_text(encoding="utf-8", errors="replace") if (root / js_path).is_file() else ""
+    shades_m = re.search(r"^const SHADES = (\[[^\]]*\]);$", js, re.M)
+    palette = [(m.group(1), m.group(2), re.findall(r'"([\da-f]{6}) ', m.group(3)), line_of(js, m.start()))
+               for m in PALETTE_FAMILY.finditer(js)]
+    if not shades_m or not palette:
+        shapes.append(f"{js_path}: no SHADES array or PALETTE families in the shape build.mjs reads (`  <name>: [\"<main>\",`)")
+    else:
+        lists.append((js_path, "PALETTE's families", [f for f, _, _, _ in palette], False))
+    for path in THEME_LISTS:
+        if not any(p == path for p, _, _, _ in lists) and not any(s.startswith(path) for s in shapes) and path != "site/assets/js/picker.js":
+            shapes.append(f"{path}: no list of theme colors found")
+    for path, what, found, omit in lists:
+        dups = sorted({c for c in found if found.count(c) > 1})
+        lack = sorted(colors - set(found) - ({"azure"} if omit else set()))
+        extra = sorted(set(found) - colors)
+        if lack or extra or dups:
+            bad.append(f"{path}: {what} " + "; ".join(x for x in (
+                f"lacks {', '.join(lack)}" if lack else "", f"has {', '.join(extra)}, not in femto's css/themes/" if extra else "",
+                f"repeats {', '.join(dups)}" if dups else "") if x)
+                + f" (femto {short}: {', '.join(sorted(colors))})")
+    reference = next((f for p, w, f, _ in lists if p == "site/docs/sections/theme-picker.html"), None)
+    misordered = [f"{path}: {what} run {', '.join(found)}; list them in the Theme picker's swatch order "
+                  f"(site/docs/sections/theme-picker.html): {', '.join(reference)}"
+                  for path, what, found in ordered if reference and sorted(found) == sorted(reference) and found != reference]
+    r.fails(f"drift: {len(misordered)} list(s) a reader chooses a theme color from are not in the Theme picker's order:", misordered)
+    if reference and not misordered:
+        which = "; ".join(p.removeprefix("site/") + ": " + w for p, w, _ in ordered)
+        r.ok(f"drift: {len(ordered)} lists a reader chooses a theme color from follow the Theme picker's {len(reference)} swatches "
+             f"in order ({which}), with azure the one selected or checked, and the select's options named by their color, "
+             "capitalized")
+    r.fails(f"drift: {len(shapes)} hand-written list(s) of theme colors not found where the check reads them; update the "
+            "file or THEME_LISTS' readers:", shapes)
+    r.fails(f"drift: {len(bad)} hand-written list(s) of theme colors do not match femto's css/themes/ at {short} plus azure; "
+            "change the file named:", bad, "more")
+    if not bad and not shapes:
+        r.ok(f"drift: {len(lists)} hand-written lists of theme colors equal femto's {len(colors)} at {short} ("
+             + "; ".join(f"{p.removeprefix('site/')}: {w}" for p, w, _, _ in lists) + ")")
+
+    # (b) PALETTE's hex values and the Colors grid's shades are femto.colors.css's.
+    css_path = next((p for p in ("css/femto.colors.css", "dist/femto.colors.css")
+                     if git(repo, "cat-file", "-e", f"{commit}:{p}").returncode == 0), None)
+    css = git(repo, "show", f"{commit}:{css_path}").stdout if css_path else ""
+    code, _, _ = scan_css(css)
+    shaded = {(m.group(1), m.group(2)): m.group(3).lower()
+              for m in re.finditer(r"--femto-color-([a-z]+)-(\d+)\s*:\s*(#[0-9a-fA-F]{6})\b", code)}
+    main_hex = {m.group(1): m.group(2).lower() for m in re.finditer(r"--femto-color-([a-z]+)\s*:\s*(#[0-9a-fA-F]{6})\b", code)}
+    bad = []
+    if not shaded:
+        bad.append(f"femto's femto.colors.css at {short} has no --femto-color-<family>-<shade>: #rrggbb values")
+    elif shades_m and palette:
+        try:
+            shades = [str(x) for x in json.loads(shades_m.group(1))]
+        except ValueError:
+            shades = []
+        femto_families = list(dict.fromkeys(f for f, _ in shaded))
+        femto_shades = {f: [s for g, s in shaded if g == f] for f in femto_families}
+        want_shades = sorted({s for v in femto_shades.values() for s in v}, key=int)
+        if sorted(shades, key=lambda x: int(x) if x.isdigit() else -1) != want_shades:
+            bad.append(f"{js_path}: SHADES is {', '.join(shades)}; femto.colors.css's shades are {', '.join(want_shades)}")
+        else:
+            for family, main_shade, hexes, line in palette:
+                where = f"{js_path}:{line}: PALETTE.{family}"
+                if family not in femto_shades:
+                    continue  # (a) names it
+                if len(hexes) != len(shades):
+                    bad.append(f"{where} has {len(hexes)} colors, not {len(shades)}")
+                    continue
+                wrong = [f"{s} is #{h}, femto's {shaded[(family, s)]}" for s, h in zip(shades, hexes)
+                         if (family, s) in shaded and f"#{h}" != shaded[(family, s)]]
+                if wrong:
+                    bad.append(f"{where}: " + "; ".join(wrong[:4]) + (f"; and {len(wrong) - 4} more" if len(wrong) > 4 else ""))
+                main_color = shaded.get((family, main_shade))
+                if main_hex.get(family) and main_color != main_hex[family]:
+                    bad.append(f"{where}: its main shade {main_shade} is {main_color}, but femto's --femto-color-{family} is "
+                               f"{main_hex[family]} (" + ", ".join(s for (f, s), h in shaded.items()
+                                                                  if f == family and h == main_hex[family]) + ")")
+            order = [f for f, _, _, _ in palette if f in femto_families]
+            if order != [f for f in femto_families if f in order]:
+                r.note(f"drift: {js_path}: PALETTE's families are not in femto.colors.css's order ({', '.join(femto_families)})")
+        for family, got in sorted(grid_shades.items()):
+            want = femto_shades.get(family)
+            if want is not None and sorted(got, key=int) != sorted(want, key=int):
+                lack, extra = sorted(set(want) - set(got), key=int), sorted(set(got) - set(want), key=int)
+                bad.append(f"site/docs/sections/colors.html: the {family} family's swatches "
+                           + "; ".join(x for x in (f"lack {', '.join(lack)}" if lack else "",
+                                                   f"have {', '.join(extra)}, not femto's" if extra else "",
+                                                   "repeat a shade" if len(got) != len(set(got)) else "") if x)
+                           + f" (femto.colors.css: {len(want)} shades)")
+    r.fails(f"drift: {len(bad)} palette value(s) differ from femto's {css_path or 'femto.colors.css'} at {short}; change the "
+            "file named:", bad, "more")
+    if not bad and shaded and palette:
+        r.ok(f"drift: {js_path}'s PALETTE ({len(palette)} families, {sum(len(h) for _, _, h, _ in palette)} hex values and "
+             f"each main shade) and the Colors grid's {sum(len(v) for v in grid_shades.values())} swatches equal femto's "
+             f"{css_path} at {short}")
+
+    # (c) Every option file is named in the docs page.
+    text = main.text()
+    unnamed = [f"css/options/{o}.css" for o in options if not re.search(rf"(?<![\w-]){re.escape(o)}\.css\b", text)]
+    r.fails(f"drift: {len(unnamed)} of femto's css/options/ files at {short} are named nowhere in docs.html's main; describe "
+            "each in site/docs/sections/options.html:", unnamed)
+    if options and not unnamed:
+        r.ok(f"drift: all {len(options)} of femto's option files at {short} are named in docs.html ({', '.join(options)})")
+    elif not options:
+        r.note(f"drift: femto has no css/options/*.css at {short}")
+
+    # (d) site/docs/menu.json's readme keys name femto README's headings.
+    heads = readme_headings(readme)
+    texts = {t for _, t in heads}
+    menu_path = site / "docs/menu.json"
+    try:
+        menu = json.loads(menu_path.read_text(encoding="utf-8"))
+        sections = [s for c in menu.get("categories", []) for s in c.get("sections", [])]
+    except (OSError, ValueError, AttributeError) as exc:
+        r.fail(f"drift: site/docs/menu.json cannot be read for its readme keys: {exc}")
+        return
+    names: dict[str, list[str]] = {}
+    bad = []
+    for s in sections:
+        key = s.get("readme")
+        if key is None and "title" not in s:
+            # The migration section names its file's h1, as its nav link takes it: criterion 14 keeps
+            # that section's name out of menu.json (vendor.mjs's readmeNames(), the same rule).
+            f = site / "docs/sections" / f"{s.get('id')}.html"
+            h1 = next(iter(parse_html(f.read_text(encoding="utf-8")).find_all("h1")), None) if f.is_file() else None
+            keys = [" ".join(h1.text().split())] if h1 is not None else []
+        elif key is None:
+            keys = []
+        elif isinstance(key, str) or (isinstance(key, list) and key and all(isinstance(k, str) for k in key)):
+            keys = [key] if isinstance(key, str) else key
+        else:
+            bad.append(f"section {s.get('id')!r}: readme is {key!r}, not a heading's text or a list of them")
+            keys = []
+        for k in keys:
+            names.setdefault(k, []).append(f"#{s.get('id')}")
+    stale = [f"{k!r} ({', '.join(ids)})" for k, ids in names.items() if k not in texts]
+    unnamed = [t for level, t in heads if level == 2 and t not in README_UNDOCUMENTED and t not in names]
+    if not any("readme" in s for s in sections):
+        r.fail("drift: no section in site/docs/menu.json has a readme key, so femto README's headings are unmapped: give each "
+               "section that describes a README section its heading's text (\"readme\": \"Themes\")")
+    r.fails(f"drift: {len(bad)} readme key(s) in site/docs/menu.json are not a string or a list of strings:", bad)
+    r.fails(f"drift: {len(stale)} readme key(s) in site/docs/menu.json name no H2 or H3 of femto's README at {short}; change "
+            "them to its headings' exact text:", stale, "more")
+    r.fails(f"drift: {len(unnamed)} H2(s) of femto's README at {short} are named by no section's readme key in "
+            "site/docs/menu.json; name each in a section, or write a section for it:", unnamed, "more")
+    if names and not stale and not unnamed and not bad:
+        r.ok(f"drift: every README H2 at {short} but {' and '.join(README_UNDOCUMENTED)} is named by a section's readme key, "
+             f"and all {len(names)} names are README headings")
+
+
+# ---------------------------------------------------------------------------- criterion 13: what the site states about femto
+
+# The facts the docs state about femto's files at the vendored commit (docstring, 13, femto's facts):
+# the Tokens table and its counts, each section's "reads" line, the module map, the Elements index,
+# the homepage's swatches and the prose counts. Each is read from femto's files with git, as the
+# drift checks are, and each failure line starts with "drift:" and names the file to change.
+
+
+def femto_blobs(ctx: Context, repo: Path, commit: str, paths: list[str]) -> dict[str, bytes]:
+    """femto's files at commit, by path from femto's root, read with one git cat-file call; a path
+    that is not there is left out."""
+    cache = ctx.cache.setdefault(f"blobs:{repo}:{commit}", {})
+    want = [p for p in dict.fromkeys(paths) if p not in cache]
+    if want:
+        shas: dict[str, str] = {}
+        for line in filter(None, git(repo, "ls-tree", "-z", "--full-tree", commit, "--", *want).stdout.split("\0")):
+            meta, path = line.split("\t", 1)
+            _, kind, sha = meta.split()
+            if kind == "blob":
+                shas[path] = sha
+        for path, data in zip(shas, read_blobs(repo, list(shas.values())) if shas else []):
+            cache[path] = data
+        for p in want:
+            cache.setdefault(p, None)
+    return {p: cache[p] for p in paths if cache.get(p) is not None}
+
+
+CSS_NAMED = {"white": (255.0, 255.0, 255.0, 1.0), "black": (0.0, 0.0, 0.0, 1.0)}
+
+
+def css_rgba(value: str | None) -> tuple[float, float, float, float] | None:
+    """A CSS color as (r, g, b, alpha), from a hex color, rgb() or rgba() (commas or spaces, numbers
+    or percentages) or white or black; None for anything else (light-dark(), var())."""
+    v = (value or "").strip().lower()
+    if v in CSS_NAMED:
+        return CSS_NAMED[v]
+    m = re.fullmatch(r"#([0-9a-f]{3,8})", v)
+    if m:
+        h = m.group(1)
+        h = "".join(c * 2 for c in h) if len(h) in (3, 4) else h
+        if len(h) not in (6, 8):
+            return None
+        parts = [int(h[i:i + 2], 16) for i in range(0, len(h), 2)]
+        return (float(parts[0]), float(parts[1]), float(parts[2]), parts[3] / 255 if len(parts) == 4 else 1.0)
+    m = re.fullmatch(r"rgba?\((.*)\)", v)
+    parts = [p for p in re.split(r"[\s,/]+", m.group(1).strip()) if p] if m else []
+    if len(parts) not in (3, 4):
+        return None
+    out = []
+    for i, p in enumerate(parts):
+        try:
+            out.append(float(p[:-1]) * (2.55 if i < 3 else 0.01) if p.endswith("%") else float(p))
+        except ValueError:
+            return None
+    return (out[0], out[1], out[2], out[3] if len(out) == 4 else 1.0)
+
+
+def same_color(a, b) -> bool:
+    return a is not None and b is not None and all(abs(x - y) < 1e-6 for x, y in zip(a, b))
+
+
+def contrast(a, b) -> float:
+    """WCAG 2's contrast ratio of two opaque colors."""
+    def lum(c):
+        ch = [x / 255 for x in c[:3]]
+        ch = [x / 12.92 if x <= 0.04045 else ((x + 0.055) / 1.055) ** 2.4 for x in ch]
+        return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2]
+    hi, lo = sorted((lum(a), lum(b)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def type_selectors(prelude: str) -> set[str]:
+    """The element names a selector list matches by type: identifiers that are not a class, an id, a
+    pseudo-class or an attribute (a pseudo-class argument such as :lang(ar) adds a harmless name)."""
+    s = re.sub(r"\[[^\]]*\]", "", prelude)
+    return {m.group(1).lower() for m in re.finditer(r"(?<![\w.#:\\-])([a-zA-Z][a-zA-Z0-9-]*)(?![\w(-])", s)}
+
+
+def femto_facts(ctx: Context, repo: Path, commit: str) -> dict:
+    """What the docs state about femto, measured at commit: css/femto.css's @import list and lines,
+    each module's size, opening sentence, tokens read and type selectors, the tokens declared, the
+    theme and option files, each theme's --femto-primary-background, and femto.colors.css's shades."""
+    key = f"facts:{repo}:{commit}"
+    if key in ctx.cache:
+        return ctx.cache[key]
+    tree = [p for p in git(repo, "ls-tree", "-r", "--name-only", "--full-tree", commit, "--", "css").stdout.split("\n") if p]
+    in_dir = lambda d: sorted(PurePosixPath(p).stem for p in tree if PurePosixPath(p).parent.as_posix() == d and p.endswith(".css"))
+    themes, options = in_dir("css/themes"), in_dir("css/options")
+    entry = femto_blobs(ctx, repo, commit, ["css/femto.css"]).get("css/femto.css", b"").decode("utf-8", "replace")
+    code = scan_css(entry)[0]
+    imports = re.findall(r"""@import\s+(?:url\(\s*)?["']([^"']+)["']""", code)
+    blobs = femto_blobs(ctx, repo, commit, [f"css/{p}" for p in imports] + [f"css/themes/{t}.css" for t in themes]
+                        + ["css/femto.colors.css"])
+    modules = {p: blobs[f"css/{p}"] for p in imports if f"css/{p}" in blobs}
+    declared: set[str] = set()
+    reads, summary, types = {}, {}, {}
+    for p, data in modules.items():
+        text = data.decode("utf-8", "replace")
+        plain, masked, _ = scan_css(text)
+        declared |= set(re.findall(r"(--femto-[\w-]+)\s*:", plain))
+        reads[p] = sorted(set(re.findall(r"var\(\s*(--femto-[\w-]+)", plain)))
+        for _, prelude in rule_preludes(masked):
+            if not prelude.startswith("@"):
+                for name in type_selectors(prelude):
+                    types.setdefault(name, set()).add(p)
+        # The first sentence of the file's opening comment: its lines joined with their " * "
+        # prefixes removed, whitespace collapsed, up to the first ". " or the comment's end.
+        m = re.match(r"\s*/\*!?(.*?)\*/", text, re.S)
+        body = " ".join(" ".join(re.sub(r"^\s*\*(?!/) ?", "", line) for line in m.group(1).split("\n")).split()) if m else ""
+        cut = body.find(". ")
+        summary[p] = body if cut < 0 else body[:cut + 1]
+    tokens = sorted(d for d in declared if not re.match(r"--femto-(?:light|dark)-", d))
+    paired = sorted(d for d in tokens if f"--femto-light-{d[8:]}" in declared and f"--femto-dark-{d[8:]}" in declared)
+    primary = {}
+    for t in themes:
+        m = re.search(r"--femto-primary-background\s*:\s*([^;}]+)", scan_css(blobs.get(f"css/themes/{t}.css", b"").decode("utf-8", "replace"))[0])
+        primary[t] = m.group(1).strip() if m else None
+    colors = scan_css(blobs.get("css/femto.colors.css", b"").decode("utf-8", "replace"))[0]
+    shaded = {(m.group(1), m.group(2)): m.group(3) for m in re.finditer(r"--femto-color-([a-z]+)-(\d+)\s*:\s*(#[0-9a-fA-F]{3,8})\b", colors)}
+    light = css_rgba(next(iter(re.findall(r"--femto-color-light\s*:\s*([^;}]+)", colors)), None))
+    # The shades whose .femto-background-<family>-<shade> sets femto's light text color with a
+    # contrast below 4.5:1 (the Colors section's "On 31 shades" sentence).
+    low = sorted(f"{f}-{s}" for f, s, which in re.findall(
+        r"\.femto-background-([a-z]+)-(\d+)\s*\{[^}]*?(?<![\w-])color\s*:\s*var\(\s*--femto-color-(light|dark)\s*\)", colors)
+        if which == "light" and light and (f, s) in shaded and contrast(light, css_rgba(shaded[(f, s)])) < 4.5)
+    families = list(dict.fromkeys(f for f, _ in shaded))
+    shades = sorted({s for _, s in shaded}, key=int)
+    facts = {"imports": imports, "import_lines": [l.strip() for l in code.split("\n") if l.strip().startswith("@import")],
+             "sizes": {p: len(d) for p, d in modules.items()}, "summary": summary, "reads": reads, "types": types,
+             "declared": declared, "tokens": tokens, "paired": paired,
+             "pair_props": sorted(d for d in declared if re.match(r"--femto-(?:light|dark)-", d)),
+             "themes": themes, "options": options, "primary": primary, "families": families, "shades": shades,
+             "swatches": len(shaded), "low_contrast": low}
+    ctx.cache[key] = facts
+    return facts
+
+
+def section_source(ctx: Context, sid: str) -> tuple[str, Path]:
+    return f"site/docs/sections/{sid}.html", ctx.site / "docs/sections" / f"{sid}.html"
+
+
+def code_after(text: str, heading: str) -> str | None:
+    """The unescaped text of the first <code class="language-…"> after <h2>heading</h2> in raw HTML."""
+    m = re.search(rf"<h2>{re.escape(heading)}</h2>", text)
+    c = re.compile(r'<code class="language-[\w-]+">(.*?)</code>', re.S).search(text, m.end()) if m else None
+    return html.unescape(c.group(1)) if c else None
+
+
+TEMPLATE_TAG = re.compile(r"<(/?)template\b[^>]*>", re.I)
+
+
+def inner_root(text: str, start: int) -> tuple[int, int] | None:
+    """The raw markup of the second, nested declarative shadow root after offset start, as the
+    homepage's block and /examples' mockups write it (div > template > div > template): (start, end)."""
+    outer = TEMPLATE_TAG.search(text, start)
+    inner = TEMPLATE_TAG.search(text, outer.end()) if outer and not outer.group(1) else None
+    if not inner or inner.group(1):
+        return None
+    depth = 0
+    for m in TEMPLATE_TAG.finditer(text, inner.start()):
+        depth += -1 if m.group(1) else 1
+        if depth == 0:
+            return inner.end(), m.start()
+    return None
+
+
+def collapse(s: str) -> str:
+    return " ".join(s.split())
+
+
+# Criterion 13: a docs example (an <article> whose last child is its footer.code sample) and the
+# markup its sample shows are compared as femto reads them (markup_projection): the same elements
+# and text, the same classes, and the same attributes but those that only name or link things, which
+# the live copy changes on purpose: Decision 13 prefixes its ids and names with the section's id,
+# its links go to /docs, its fields carry labels and placeholders a sample leaves out, and the site's
+# data- hooks bind its widgets; a live <form> also has method="dialog", which its sample leaves
+# out (structure_checks: no example form submits). Comments are dropped, and a
+# sample's "..." stands for any text or any content. A pair that differs in what femto styles,
+# on purpose, is listed here with the reason: (section file, the article's aria-label): reason.
+MARKUP_NOT_COMPARED = {"id", "name", "for", "href", "src", "alt", "placeholder", "list", "form", "aria-label", "aria-labelledby",
+                       "aria-describedby", "aria-controls", "loading"}
+FEMTO_DATA_ATTRS = {"data-theme", "data-tooltip", "data-placement"}  # the data- attributes femto reads
+MARKUP_DIFFERS = {
+    ("accordion", "Accordion example"): "the sample shows two of the second panel's five list items",
+    ("checkboxes", "Indeterminate checkbox example"): "the sample sets indeterminate with an inline script; docs.js sets it here",
+    ("css-variables", "CSS variables example"): "the sample sets the tokens on :root; the live copy scopes them to #css-var-example, or they would restyle the page",
+    ("dropdown", "Dropdowns as selects"): "the live copy sets the dropdown and the select side by side in a .grid",
+    ("loading", "Loading button examples"): "the live copy sets the buttons in two .grid rows",
+    ("media", "Inline SVG example"): "the sample also shows <video>, <audio> and <iframe>, which would load media files from another origin (criterion 15)",
+    ("tooltip", "Tooltip placement example"): "the live copy sets the four buttons in a <p>",
+}
+ELLIPSIS = ("...", "…")
+
+
+def markup_projection(nodes: list, live: bool = False) -> list:
+    """The nodes as femto reads them. live: they are the live copy, whose <form>s have the
+    method="dialog" their samples leave out."""
+    out: list = []
+    for c in nodes:
+        if isinstance(c, str):
+            t = collapse(c)
+            if t:
+                if out and out[-1][0] == "#text":
+                    out[-1] = ("#text", out[-1][1] + " " + t)
+                else:
+                    out.append(("#text", t))
+            continue
+        attrs = []
+        for k, v in c.attrs.items():
+            if k in MARKUP_NOT_COMPARED or (k.startswith("data-") and k not in FEMTO_DATA_ATTRS):
+                continue
+            if live and c.tag == "form" and k == "method" and v == "dialog":
+                continue
+            v = " ".join(sorted(v.split())) if k == "class" else re.sub(r"\s*([:;])\s*", r"\1", collapse(v)).rstrip(";") if k == "style" else collapse(v)
+            attrs.append((k, v))
+        out.append((c.tag, tuple(sorted(attrs)), markup_projection(c.children, live)))
+    return out
+
+
+def markup_difference(live: list, shown: list, path: str = "") -> str | None:
+    """Where the live projection first differs from the sample's, or None."""
+    if len(shown) == 1 and shown[0][0] == "#text" and shown[0][1] in ELLIPSIS:
+        return None
+    if len(live) != len(shown):
+        names = lambda xs: ", ".join(f"<{x[0]}>" if x[0] != "#text" else "text" for x in xs[:6]) + (" ..." if len(xs) > 6 else "")
+        return f"{path or 'the top'}: {len(live)} node(s) live ({names(live)}), {len(shown)} in the sample ({names(shown)})"
+    for a, b in zip(live, shown):
+        if a[0] != b[0]:
+            return f"{path or 'the top'}: <{a[0]}> live, <{b[0]}> in the sample"
+        if a[0] == "#text":
+            pattern = ".*".join(re.escape(x) for x in re.split(r"\.\.\.|…", b[1]))
+            if not re.fullmatch(pattern, a[1]):
+                return f"{path or 'the top'}: the text {a[1][:50]!r} live, {b[1][:50]!r} in the sample"
+            continue
+        if a[1] != b[1]:
+            return f"{path}/{a[0]}: attributes {dict(a[1])} live, {dict(b[1])} in the sample"
+        d = markup_difference(a[2], b[2], f"{path}/{a[0]}")
+        if d:
+            return d
+    return None
+
+
+ARTICLE_TAG = re.compile(r"<(/?)article\b[^>]*>", re.I)
+CODE_FOOTER = re.compile(r'<footer class="code\b[^"]*"[^>]*>.*?</footer>', re.S)
+HTML_SAMPLE = re.compile(r'<code class="language-html">(.*?)</code>', re.S)
+FEMTO_LINK = '<link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">'
+LIVE_FORM_METHOD = re.compile(r'(<form\b[^>]*?) method="dialog"')  # a live form's method, which its sample leaves out
+
+
+def markup_pair_checks(ctx: Context, r: Result) -> None:
+    """Criterion 13: every live example shows the markup its sample shows (MARKUP_DIFFERS), on /docs and
+    on /examples, and the homepage's block shows its sample's markup."""
+    bad, pairs, listed, seen = [], 0, 0, set()
+    strip = lambda s: re.sub(r"<!--.*?-->", "", s, flags=re.S)
+    for p in files_under(ctx.site / "docs/sections", (".html",)):
+        text, sid = p.read_text(encoding="utf-8", errors="replace"), p.stem
+        for m in CODE_FOOTER.finditer(text):
+            if not re.match(r"\s*</article>", text[m.end():]):
+                continue
+            depth, start = 0, None
+            for a in reversed(list(ARTICLE_TAG.finditer(text, 0, m.start()))):
+                if a.group(1):
+                    depth += 1
+                elif depth == 0:
+                    start = a
+                    break
+                else:
+                    depth -= 1
+            sample = HTML_SAMPLE.search(m.group(0))
+            if start is None or sample is None:
+                continue
+            pairs += 1
+            label = re.search(r'aria-label="([^"]*)"', start.group(0))
+            key = (sid, label.group(1) if label else "")
+            where = f"site/docs/sections/{sid}.html:{line_of(text, start.start())}"
+            shown = parse_html(strip(html.unescape(sample.group(1)))).children
+            live = parse_html(strip(text[start.end():m.start()])).children
+            if len(shown) == 1 and isinstance(shown[0], Node) and shown[0].tag == "article":
+                # The sample is the card itself: compare it with the live article, its sample left out.
+                art = parse_html(strip(text[start.start():m.start()]) + "</article>").children
+                live = [n for n in art if isinstance(n, Node)][:1]
+            d = markup_difference(markup_projection(live, live=True), markup_projection(shown))
+            if key in MARKUP_DIFFERS:
+                listed += 1
+                seen.add(key)
+                if d is None:
+                    r.note(f"{where}: the {key[1]!r} pair is in MARKUP_DIFFERS but now matches its sample; drop its entry")
+            elif d:
+                bad.append(f"{where}: <article aria-label={key[1]!r}>: {d}; make the live example and its footer.code sample "
+                           "show the same markup, or list the pair in MARKUP_DIFFERS with the reason")
+    stale = sorted(set(MARKUP_DIFFERS) - seen)
+    bad += [f"site/docs/sections/{s}.html: MARKUP_DIFFERS lists a pair {a!r} the section no longer has; drop its entry"
+            for s, a in stale]
+    # /examples: each mockup's inner shadow root, after femto's link, is its HTML sample's markup.
+    ex_path = ctx.site / "examples.html"
+    ex_pairs = 0
+    if ex_path.is_file():
+        text = ex_path.read_text(encoding="utf-8", errors="replace")
+        for sec in re.finditer(r'<section class="example" id="([\w-]+)"', text):
+            at = text.find("<div data-example>", sec.end())
+            span = inner_root(text, at) if at >= 0 else None
+            sample = HTML_SAMPLE.search(text, span[1]) if span else None
+            where = f"site/examples.html:{line_of(text, sec.start())}: #{sec.group(1)}"
+            if not span or not sample:
+                bad.append(f"{where}: no div[data-example] > template > div > template mockup with an HTML sample after it")
+                continue
+            body = LIVE_FORM_METHOD.sub(r"\1", text[span[0]:span[1]])
+            link = re.match(r"\s*(<link\b[^>]*>)", body)
+            ex_pairs += 1
+            if not link or link.group(1) != FEMTO_LINK:
+                bad.append(f"{where}: the inner shadow root starts with {link.group(1) if link else 'no <link>'}, not {FEMTO_LINK}")
+            elif collapse(body[link.end():]) != collapse(html.unescape(sample.group(1))):
+                a, b = collapse(body[link.end():]), collapse(html.unescape(sample.group(1)))
+                i = next((k for k in range(min(len(a), len(b))) if a[k] != b[k]), min(len(a), len(b)))
+                bad.append(f"{where}: the mockup's markup after femto's link and its HTML sample differ at {a[max(0, i - 30):i + 40]!r} "
+                           f"against {b[max(0, i - 30):i + 40]!r}; change both the same way")
+    # The homepage's femto off/on block: the inner shadow root after its link, and section.proof's sample.
+    home_path = ctx.site / "index.html"
+    if home_path.is_file():
+        text = home_path.read_text(encoding="utf-8", errors="replace")
+        at = text.find("<div data-femto-demo>")
+        span = inner_root(text, at) if at >= 0 else None
+        proof = re.search(r'<section class="proof">.*?</section>', text, re.S)
+        sample = HTML_SAMPLE.search(proof.group(0)) if proof else None
+        if not span or not sample:
+            bad.append("site/index.html: no div[data-femto-demo] > template > div > template block, or no HTML sample in section.proof")
+        else:
+            body = LIVE_FORM_METHOD.sub(r"\1", text[span[0]:span[1]])
+            link = re.match(r"\s*(<link\b[^>]*>)", body)
+            live = body[link.end():] if link else body
+            classed = [n for n in parse_html(live).iter() if n.tag != "#document" and "class" in n.attrs]
+            if not link or link.group(1) != FEMTO_LINK:
+                bad.append(f"site/index.html:{line_of(text, span[0])}: the block's inner shadow root starts with "
+                           f"{link.group(1) if link else 'no <link>'}; it must be exactly {FEMTO_LINK}")
+            elif collapse(live) != collapse(html.unescape(sample.group(1))):
+                bad.append(f"site/index.html:{line_of(text, span[0])}: the femto off/on block's markup after its link differs from "
+                           "section.proof's code sample (whitespace collapsed); change both the same way")
+            if classed:
+                bad.append(f"site/index.html: the block's markup gives {len(classed)} element(s) a class (<{classed[0].tag}> "
+                           f"class={classed[0].attrs['class']!r}); its heading says it needs no classes")
+    r.fails(f"{len(bad)} live example(s) do not show the markup their code sample shows:", bad, "more")
+    if not bad:
+        r.ok(f"{pairs} /docs examples and their footer.code samples show the same elements, text, classes and attributes "
+             f"({pairs - listed} compared, {listed} in MARKUP_DIFFERS; ids, names, links, labels, placeholders, the site's data- hooks "
+             f"and the live forms' method=\"dialog\" are not compared), {ex_pairs} /examples mockups equal their HTML samples after femto's link, and the homepage's "
+             "block equals section.proof's sample after exactly femto's link, with no class")
+
+
+def homepage_checks(ctx: Context, r: Result) -> None:
+    """Criterion 13: the homepage's link snippet is Quick start's "From a CDN" block, /examples' starter
+    page is Quick start's Starter template, and the homepage states no size for femto, or the measured
+    one."""
+    qs_rel, qs = section_source(ctx, "quick-start")
+    qs_text = qs.read_text(encoding="utf-8", errors="replace") if qs.is_file() else ""
+    bad = []
+    cdn, starter = code_after(qs_text, "From a CDN"), code_after(qs_text, "Starter template")
+    home_path = ctx.site / "index.html"
+    home = ctx.page(home_path) if home_path.is_file() else None
+    hero = next((n for n in home.iter() if n.tag == "section" and "hero" in n.classes()), None) if home else None
+    hook = next((n for n in hero.iter() if "hook" in n.classes()), None) if hero else None
+    box = next((n for n in hook.iter() if "code" in n.classes()), None) if hook else None
+    snippet = next((c for pre in box.find_all("pre") for c in pre.find_all("code")), None) if box else None
+    if cdn is None:
+        bad.append(f"{qs_rel}: no code block after <h2>From a CDN</h2>")
+    elif snippet is None:
+        bad.append("site/index.html: no section.hero .hook .code pre code (the hero's link snippet)")
+    elif snippet.text() != cdn:
+        bad.append(f"site/index.html:{snippet.line}: the hero's snippet is {snippet.text()[:90]!r}; Quick start's From a CDN block "
+                   f"({qs_rel}) is {cdn[:90]!r}: make them the same")
+    ex_path = ctx.site / "examples.html"
+    tpl = next((n for n in ctx.page(ex_path).iter() if n.tag == "template" and "data-starter-page" in n.attrs), None) if ex_path.is_file() else None
+    if starter is None:
+        bad.append(f"{qs_rel}: no code block after <h2>Starter template</h2>")
+    elif tpl is None:
+        bad.append("site/examples.html: no <template data-starter-page> (the Copy as page template)")
+    elif tpl.text() != starter:
+        a, b = tpl.text(), starter
+        i = next((k for k in range(min(len(a), len(b))) if a[k] != b[k]), min(len(a), len(b)))
+        bad.append(f"site/examples.html:{tpl.line}: <template data-starter-page> differs from Quick start's Starter template "
+                   f"({qs_rel}) at {a[max(0, i - 30):i + 30]!r} against {b[max(0, i - 30):i + 30]!r}: copy the block's text")
+    # The homepage states no size for femto (femto README's figures are stale): a number with a size
+    # unit fails, unless it is "N KB gzipped" with N femto.min.css's gzip size at WIRE_GZIP_LEVEL, in KB.
+    sizes = []
+    if home_path.is_file():
+        prose = collapse(html.unescape(re.sub(r"<[^>]*>", " ", home_path.read_text(encoding="utf-8", errors="replace"))))
+        minified = ctx.site / "vendor/femto/dist/femto.min.css"
+        for m in re.finditer(r"\b(\d+(?:[.,]\d+)?)\s*(KB|kB|KiB|MB|bytes)\b([^.]{0,40})", prose):
+            sentence = prose[prose.rfind(".", 0, m.start()) + 1:m.end()].strip()
+            if minified.is_file() and "gzip" in m.group(3).lower() and m.group(2) in ("KB", "kB"):
+                want = round(compressed_size(minified.read_bytes(), "gzip") / 1000)
+                if float(m.group(1).replace(",", "")) == want:
+                    sizes.append(f"{m.group(1)} {m.group(2)} gzipped")
+                    continue
+                bad.append(f"site/index.html: {sentence[-120:]!r} states femto's size; dist/femto.min.css is {want} KB "
+                           f"{wire_label('gzip')}: drop the size, or make it {want} KB")
+            else:
+                bad.append(f"site/index.html: {sentence[-120:]!r} states a size; the homepage states none of femto's, since femto "
+                           "README's figures are stale: drop it")
+    r.fails(f"{len(bad)} homepage or /examples text(s) do not follow Quick start or femto's measured size:", bad)
+    if not bad:
+        r.ok(f"the hero's link snippet (site/index.html) is Quick start's From a CDN block, /examples' <template "
+             f"data-starter-page> is its Starter template, and the homepage states "
+             + (f"femto's measured size ({', '.join(sizes)})" if sizes else "no size (a number followed by KB, kB, KiB, MB or bytes)"))
+
+
+# Criterion 13: the "Used in ... examples" lines. Each linked /examples mockup holds what the section
+# shows: (section id: (what, the test on a mockup element)).
+USED_IN = {
+    "accordion": ("details that is not .dropdown", lambda n: n.tag == "details" and "dropdown" not in n.classes()),
+    "button": ("button", lambda n: n.tag == "button"),
+    "card": ("article", lambda n: n.tag == "article"),
+    "checkboxes": ("input[type=checkbox] that is not a switch",
+                   lambda n: n.tag == "input" and n.attrs.get("type") == "checkbox" and n.attrs.get("role") != "switch"),
+    "dropdown": ("details.dropdown", lambda n: n.tag == "details" and "dropdown" in n.classes()),
+    "forms": ("form", lambda n: n.tag == "form"),
+    "grid": (".grid", lambda n: "grid" in n.classes()),
+    "group": ("[role=group] or [role=search]", lambda n: n.attrs.get("role") in ("group", "search")),
+    "input": ("a text-like input", lambda n: n.tag == "input" and n.attrs.get("type", "text") not in
+              ("checkbox", "radio", "range", "hidden", "submit", "button", "reset")),
+    "link": ("a", lambda n: n.tag == "a"),
+    "loading": ("[aria-busy=true]", lambda n: n.attrs.get("aria-busy") == "true"),
+    "media": ("figure, img, svg, video, audio, iframe or pre", lambda n: n.tag in ("figure", "img", "svg", "video", "audio", "iframe", "pre")),
+    "modal": ("dialog", lambda n: n.tag == "dialog"),
+    "nav": ("nav", lambda n: n.tag == "nav"),
+    "overflow-auto": (".overflow-auto", lambda n: "overflow-auto" in n.classes()),
+    "progress": ("progress", lambda n: n.tag == "progress"),
+    "radios": ("input[type=radio]", lambda n: n.tag == "input" and n.attrs.get("type") == "radio"),
+    "range": ("input[type=range]", lambda n: n.tag == "input" and n.attrs.get("type") == "range"),
+    "select": ("select", lambda n: n.tag == "select"),
+    "switch": ("input[role=switch]", lambda n: n.tag == "input" and n.attrs.get("role") == "switch"),
+    "table": ("table", lambda n: n.tag == "table"),
+    "textarea": ("textarea", lambda n: n.tag == "textarea"),
+    "tooltip": ("[data-tooltip]", lambda n: "data-tooltip" in n.attrs),
+    "typography": ("a heading or a p", lambda n: n.tag in HEADINGS or n.tag == "p"),
+}
+
+
+def used_in_checks(ctx: Context, r: Result) -> None:
+    """Criterion 13: every /examples#<id> link in a docs section names an id in examples.html, and each
+    example a "Used in" line links holds what its section shows (USED_IN)."""
+    ex_path = ctx.site / "examples.html"
+    if not ex_path.is_file():
+        r.fail("site/examples.html is missing")
+        return
+    ex = ctx.page(ex_path)
+    ids = {n.attrs["id"] for n in ex.iter() if "id" in n.attrs and not n.in_template()}
+    mockups = {}
+    for sec in ex.iter():
+        if sec.tag == "section" and "example" in sec.classes() and sec.attrs.get("id"):
+            box = next((n for n in sec.iter() if "data-example" in n.attrs), None)
+            mockups[sec.attrs["id"]] = [n for n in box.iter() if n is not box and n.tag != "link"] if box else []
+    bad, links, lines = [], 0, 0
+    for p in files_under(ctx.site / "docs/sections", (".html",)):
+        sid, doc = p.stem, ctx.page(p)
+        for a in doc.find_all("a"):
+            m = re.fullmatch(r"/examples#([\w-]+)", a.attrs.get("href", ""))
+            if not m:
+                continue
+            links += 1
+            if m.group(1) not in ids:
+                bad.append(f"site/docs/sections/{sid}.html:{a.line}: /examples#{m.group(1)} names no id in site/examples.html")
+        for para in doc.find_all("p"):
+            if not collapse(para.text()).startswith("Used in"):
+                continue
+            lines += 1
+            if sid not in USED_IN:
+                bad.append(f"site/docs/sections/{sid}.html:{para.line}: a Used in line in a section USED_IN has no test for; add one")
+                continue
+            what, test = USED_IN[sid]
+            for a in para.find_all("a"):
+                m = re.fullmatch(r"/examples#([\w-]+)", a.attrs.get("href", ""))
+                if m and m.group(1) in mockups and not any(test(n) for n in mockups[m.group(1)]):
+                    bad.append(f"site/docs/sections/{sid}.html:{a.line}: the {m.group(1)} example has no {what}; link an example "
+                               "that uses it")
+    r.fails(f"{len(bad)} link(s) from the docs to /examples do not hold:", bad, "more")
+    if not bad:
+        r.ok(f"{links} /examples#<id> links in the docs sections name ids in site/examples.html, and each example linked from "
+             f"the {lines} Used in lines holds what its section shows (USED_IN)")
+
+
+# The site's prose counts that derive from femto, across site/ (outside vendor/), each phrase with
+# the measured number it states. They are matched in order, so a phrase an earlier one matched is
+# not read again: (the phrase, its pattern, the measure or measures it may state).
+PROSE_COUNTS = (
+    ("N other theme colors", r"\b(?P<n>\d+) other theme colou?rs\b", ("other_themes",)),
+    ("N theme colors", r"\b(?P<n>\d+) theme colou?rs\b", ("themes",)),
+    ("N color names", r"\b(?P<n>\d+) colou?r names\b", ("themes",)),
+    ("The N colors", r"\bThe (?P<n>\d+) colou?rs\b", ("themes",)),
+    ("N families", r"\b(?P<n>\d+) (?:colou?r )?families\b", ("themes",)),
+    ("N swatches", r"\b(?P<n>\d+) swatch(?:es)?\b", ("themes", "swatches")),
+    ("N shades each", r"\b(?:in )?(?P<n>\d+) shades each\b", ("shades",)),
+    ("On N shades (white text below 4.5:1)", r"\bOn (?P<n>\d+) shades\b", ("low_contrast",)),
+    ("N shades, N shade buttons, N colors (the palette)", r"\b(?P<n>\d+) (?:shades|shade buttons|colou?rs)\b", ("swatches",)),
+    ("N options", r"\b(?P<n>\d+) options\b", ("options",)),
+    ("N modules, N @import lines, N files instead of one", r"\b(?P<n>\d+) (?:modules|@import lines|files instead of one)\b", ("modules",)),
+    ("N (tokens) with a pair", r"\b(?P<n>\d+)(?: tokens)? with a pair\b", ("paired",)),
+    ("N tokens", r"\b(?P<n>\d+) tokens\b", ("tokens",)),
+    ("N pair properties", r"\b(?P<n>\d+) pair properties\b", ("pair_props",)),
+    ("N custom properties", r"\b(?P<n>\d+) custom properties\b", ("properties",)),
+)
+
+
+def prose_count_checks(ctx: Context, r: Result, facts: dict, short: str) -> None:
+    measured = {"themes": len(set(facts["themes"]) | {"azure"}), "other_themes": len(set(facts["themes"]) | {"azure"}) - 1,
+                "shades": len(facts["shades"]), "swatches": facts["swatches"], "low_contrast": len(facts["low_contrast"]),
+                "options": len(facts["options"]), "modules": len(facts["imports"]), "tokens": len(facts["tokens"]),
+                "paired": len(facts["paired"]), "pair_props": len(facts["pair_props"]),
+                "properties": len(facts["tokens"]) + len(facts["pair_props"])}
+    bad, found = [], {}
+    skip = (ctx.site / "vendor",)
+    for p in files_under(ctx.site, (".html", ".js", ".mjs"), skip):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        if p.suffix == ".html":
+            text = html.unescape(re.sub(r"<[^>]*>", " ", text))
+        text = collapse(text.replace(" ", " "))
+        taken: list[tuple[int, int]] = []
+        for label, pattern, keys in PROSE_COUNTS:
+            # A number in a longer one ("5,421") or a noun in a path ("tokens/base.css") is not a count.
+            for m in re.finditer(r"(?<![\d,.])" + pattern + r"(?![\w/-]|\.\w)", text):
+                if any(a < m.end() and m.start() < b for a, b in taken):
+                    continue
+                taken.append(m.span())
+                n = int(m.group("n"))
+                found[label] = found.get(label, 0) + 1
+                if n not in [measured[k] for k in keys]:
+                    want = " or ".join(str(measured[k]) for k in keys)
+                    bad.append(f"{rel(ctx.root, p)}: {m.group(0)!r} ({label}): femto at {short} has {want}; change the number")
+    r.fails(f"drift: {len(bad)} prose count(s) in site/ differ from femto at {short}; change the file named:", bad, "more")
+    if not bad:
+        r.ok(f"drift: {sum(found.values())} prose counts in site/ equal femto at {short} ("
+             + "; ".join(f"{label}: {found.get(label, 0)}" for label, _, _ in PROSE_COUNTS) + ")")
+
+
+def femto_fact_checks(ctx: Context, r: Result, repo: Path, commit: str) -> None:
+    """Criterion 13: the Tokens table, the "reads" lines, the module map, the Elements index, the
+    homepage's swatches and the prose counts follow femto's files at the vendored commit."""
+    facts, short, site = femto_facts(ctx, repo, commit), commit[:8], ctx.site
+    if not facts["imports"]:
+        r.fail(f"drift: femto's css/femto.css at {short} has no @import lines, so its modules are unknown")
+        return
+    tokens, paired = set(facts["tokens"]), set(facts["paired"])
+
+    # The Tokens table: each token once, its Pair cell Yes exactly when it has a light and a dark token.
+    rel_path, path = section_source(ctx, "tokens")
+    bad, rows = [], []
+    if not path.is_file():
+        bad.append(f"{rel_path} is missing")
+    else:
+        for tr in ctx.page(path).find_all("tr"):
+            tds = tr.find_all("td")
+            code = next(iter(tds[0].find_all("code")), None) if tds else None
+            if code is not None and len(tds) >= 2:
+                rows.append((code.text().strip(), collapse(tds[1].text()), tr.line))
+        listed = [t for t, _, _ in rows]
+        lack, extra = sorted(tokens - set(listed)), sorted(set(listed) - tokens)
+        dups = sorted({t for t in listed if listed.count(t) > 1})
+        if lack:
+            bad.append(f"{rel_path}: the Tokens table lacks {len(lack)} token(s) femto declares: {', '.join(lack[:8])}"
+                       + (" ..." if len(lack) > 8 else "") + "; add a row for each")
+        if extra:
+            bad.append(f"{rel_path}: the Tokens table lists {', '.join(extra[:8])}, which no module css/femto.css imports declares "
+                       "(or a light or dark pair token); drop or rename the row")
+        if dups:
+            bad.append(f"{rel_path}: the Tokens table lists {', '.join(dups)} more than once")
+        for t, cell, line in rows:
+            want = "Yes" if t in paired else "No"
+            if t in tokens and cell != want:
+                bad.append(f"{rel_path}:{line}: {t}'s Pair cell is {cell!r}; it is {want!r}, since femto declares "
+                           + ("both" if want == "Yes" else "not both") + f" --femto-light-{t[8:]} and --femto-dark-{t[8:]}")
+    r.fails(f"drift: {len(bad)} Tokens table problem(s) against femto at {short}:", bad, "more")
+    if not bad:
+        r.ok(f"drift: the Tokens table ({rel_path}) lists femto's {len(tokens)} tokens at {short}, each once (the --femto-* names "
+             f"declared in the {len(facts['imports'])} files css/femto.css imports, but the {len(facts['pair_props'])} "
+             f"--femto-light-* and --femto-dark-* ones), its Pair cell Yes for exactly the {len(paired)} with both")
+
+    # The "reads" lines: <code>MODULE</code> reads <code>T</code>, ... in each section.
+    bad, count, covered = [], 0, {}
+    for p in files_under(site / "docs/sections", (".html",)):
+        text = p.read_text(encoding="utf-8", errors="replace")
+        for small in re.finditer(r"<p><small>(.*?)</small></p>", text, re.S):
+            for m in re.finditer(r"<code>([\w-]+/[\w-]+\.css)</code> reads ([^.]*)\.", small.group(1)):
+                count += 1
+                module, where = m.group(1), f"site/docs/sections/{p.name}:{line_of(text, small.start())}"
+                covered.setdefault(p.stem, []).append(module)
+                names = re.findall(r"<code>(--femto-[\w-]+)</code>", m.group(2))
+                if module not in facts["reads"]:
+                    bad.append(f"{where}: {module} is not a module css/femto.css imports at {short}")
+                    continue
+                want = facts["reads"][module]
+                if m.group(2).strip() == "no tokens" and not want:
+                    continue
+                if names != want:
+                    lack, extra = sorted(set(want) - set(names)), sorted(set(names) - set(want))
+                    bad.append(f"{where}: the line for {module} " + "; ".join(x for x in (
+                        f"lacks {', '.join(lack)}" if lack else "", f"has {', '.join(extra)}, which it does not read" if extra else "",
+                        "is not sorted or repeats a name" if not lack and not extra else "",
+                        "says it reads no tokens" if m.group(2).strip() == "no tokens" and want else "") if x)
+                        + f"; list exactly the var(--femto-…) names femto's {module} reads at {short}, sorted"
+                        + (" (it reads none: say 'reads no tokens')" if not want else ""))
+    missing = [f"site/docs/sections/{s}.html" for s in READS_SECTIONS if s not in covered]
+    r.fails(f"drift: {len(bad)} 'reads' line(s) differ from what femto's modules read at {short}:", bad, "more")
+    r.fails(f"drift: {len(missing)} component section(s) have no '<code>MODULE</code> reads ...' line; add one for its module:", missing)
+    if not bad and not missing:
+        r.ok(f"drift: {count} 'reads' lines in {len(covered)} sections list exactly the var(--femto-…) names their module reads "
+             f"at {short}, sorted; each of the {len(READS_SECTIONS)} component sections has one")
+
+    # The module map: rows in css/femto.css's order, sizes, opening sentences, the total, the copy list.
+    rel_path, path = section_source(ctx, "modules")
+    bad = []
+    if not path.is_file():
+        bad.append(f"{rel_path} is missing")
+    else:
+        doc = ctx.page(path)
+        rows = [tr for body in doc.find_all("tbody") for tr in body.find_all("tr") if tr.find_all("td")]
+        names = [collapse(next(iter(tr.find_all("td")[0].find_all("code")), Node("code", {}, None, 0)).text()) for tr in rows]
+        if names != facts["imports"]:
+            bad.append(f"{rel_path}: the module rows are {len(names)} ({', '.join(names[:4])} ...); css/femto.css imports "
+                       f"{len(facts['imports'])} at {short}, in this order: {', '.join(facts['imports'][:4])} ...; list them so")
+        total = 0
+        for tr, name in zip(rows, names):
+            tds = tr.find_all("td")
+            cell = tds[0].children
+            br = next((i for i, c in enumerate(cell) if isinstance(c, Node) and c.tag == "br"), None)
+            text = collapse("".join(c if isinstance(c, str) else c.text() for c in cell[br + 1:])) if br is not None else ""
+            size = collapse(tds[1].text()).replace(",", "") if len(tds) > 1 else ""
+            want_size = facts["sizes"].get(name)
+            total += int(size) if size.isdigit() else 0
+            if want_size is None:
+                continue
+            if size != str(want_size):
+                bad.append(f"{rel_path}:{tr.line}: {name} is {size or 'no'} bytes in the table; femto's file is {want_size:,} at {short}")
+            if text != facts["summary"][name]:
+                bad.append(f"{rel_path}:{tr.line}: {name}'s summary reads {text[:70]!r}; the first sentence of its opening comment "
+                           f"at {short} is {facts['summary'][name][:70]!r}: copy it")
+        foot = next((collapse(td.text()) for f in doc.find_all("tfoot") for td in f.find_all("td")), "")
+        want_total = sum(facts["sizes"].values())
+        if foot.replace(",", "") != str(want_total):
+            bad.append(f"{rel_path}: the tfoot total is {foot or 'missing'}; the {len(facts['sizes'])} modules are {want_total:,} bytes at {short}")
+        copy = next((c.text() for c in doc.find_all("code") if "language-css" in c.classes() and "@import" in c.text()), None)
+        if copy is None or [l.strip() for l in copy.split("\n") if l.strip()] != facts["import_lines"]:
+            bad.append(f"{rel_path}: the copyable @import list is not css/femto.css's {len(facts['import_lines'])} @import lines at "
+                       f"{short}; copy them, in order")
+    r.fails(f"drift: {len(bad)} module map problem(s) against femto's css/femto.css at {short}:", bad, "more")
+    if not bad:
+        r.ok(f"drift: the module map ({rel_path}) lists css/femto.css's {len(facts['imports'])} @imports at {short} in order, each "
+             f"with its size and its opening comment's first sentence, a total of {sum(facts['sizes'].values()):,} bytes, and the "
+             f"copyable list is its {len(facts['import_lines'])} @import lines")
+
+    # The Elements index: every element a row is about is a type selector in some femto module.
+    rel_path, path = section_source(ctx, "elements")
+    bad, named = [], []
+    if path.is_file():
+        for tr in ctx.page(path).find_all("tr"):
+            tds = tr.find_all("td")
+            if not tds:
+                continue
+            first = [m.group(1) for c in tds[0].find_all("code") if (m := re.fullmatch(r"<([a-z][a-z0-9]*)>", c.text().strip()))]
+            if re.search(r"<h1>\s+to\s+<h6>", collapse(tds[0].text())):
+                first += ["h2", "h3", "h4", "h5"]
+            for name in first:
+                if name in named:
+                    continue
+                named.append(name)
+                if name not in facts["types"] and name not in INHERITED_ONLY:
+                    bad.append(f"{rel_path}:{tr.line}: <{name}> is a type selector in no module css/femto.css imports at {short}; "
+                               "drop its row, or list it in INHERITED_ONLY with the reason")
+    else:
+        bad.append(f"{rel_path} is missing")
+    r.fails(f"drift: {len(bad)} element(s) in the Elements index femto does not style by name at {short}:", bad, "more")
+    if not bad:
+        r.ok(f"drift: the {len(named)} elements the Elements index ({rel_path}) names in its first column are each a type "
+             f"selector in a module css/femto.css imports at {short}" + (f" ({len(INHERITED_ONLY)} in INHERITED_ONLY)" if INHERITED_ONLY else ""))
+
+    # The homepage's swatches: demo.js's SWATCHES[i] is THEMES[i]'s --femto-primary-background.
+    js_path = "site/assets/js/demo.js"
+    js = (ctx.root / js_path).read_text(encoding="utf-8", errors="replace") if (ctx.root / js_path).is_file() else ""
+    themes_m = re.search(r"\bconst THEMES\s*=\s*\[([^\]]*)\]", js)
+    swatch_m = re.search(r"\bconst SWATCHES\s*=\s*\(((?:\s*\+?\s*\"[^\"]*\")+)\s*\)\s*\.split\(\s*\"\s\"\s*\)", js)
+    bad = []
+    if not themes_m or not swatch_m:
+        bad.append(f"{js_path}: no `const THEMES = [...]` and `const SWATCHES = (\"...\" + \"...\").split(\" \")` (the shape this check reads)")
+    else:
+        themes = re.findall(r"\"([a-z]+)\"", themes_m.group(1))
+        swatches = "".join(re.findall(r"\"([^\"]*)\"", swatch_m.group(1))).split()
+        if len(swatches) != len(themes):
+            bad.append(f"{js_path}: SWATCHES has {len(swatches)} colors and THEMES {len(themes)}; give each theme its swatch")
+        for i, (theme, hexa) in enumerate(zip(themes, swatches)):
+            rgba = css_rgba(facts["primary"].get(theme))
+            want = "".join(f"{round(x):02x}" for x in rgba[:3]) if rgba else None
+            if want is None:
+                bad.append(f"{js_path}: THEMES[{i}] {theme!r} has no css/themes/{theme}.css with a --femto-primary-background color at {short}")
+            elif hexa != want:
+                bad.append(f"{js_path}: SWATCHES[{i}] is {hexa!r}; {theme}'s --femto-primary-background at {short} is #{want}")
+    r.fails(f"drift: {len(bad)} homepage swatch(es) differ from femto's themes at {short}:", bad, "more")
+    if not bad:
+        r.ok(f"drift: {js_path}'s {len(swatches)} SWATCHES are, in THEMES' order, each theme's --femto-primary-background in "
+             f"css/themes/<color>.css at {short}, as 6-digit lowercase hex")
+
+    prose_count_checks(ctx, r, facts, short)
+
+
+# Criterion 13: the component sections that each have a "<code>MODULE</code> reads ..." line.
+READS_SECTIONS = ("accordion", "card", "checkboxes", "container", "dropdown", "forms", "grid", "group", "input", "landmarks",
+                  "link", "loading", "media", "modal", "nav", "overflow-auto", "progress", "range", "tooltip", "typography",
+                  "button", "table")
+# Criterion 13: elements the Elements index may name though femto styles them only through
+# inheritance, never as a type selector: (element: reason). None today.
+INHERITED_ONLY: dict[str, str] = {}
+
+# Criterion 13: the Pacifico subset covers what the site draws in it. WOFF2's known table tags, by
+# the index its table directory gives (W3C WOFF2, 5.1); only cmap, glyf and loca matter here.
+WOFF2_TAGS = ("cmap head hhea hmtx maxp name OS/2 post cvt  fpgm glyf loca prep CFF  VORG EBDT EBLC gasp hdmx kern LTSH "
+              "PCLT VDMX vhea vmtx BASE GDEF GPOS GSUB EBSC JSTF MATH CBDT CBLC COLR CPAL SVG  sbix acnt avar bdat bloc bsln "
+              "cvar fdsc feat fmtx fvar gvar hsty just lcar mort morx opbd prop trak Zapf Silf Glat Gloc Feat Sill")
+WOFF2_TAG_LIST = [WOFF2_TAGS[i:i + 4] for i in range(0, len(WOFF2_TAGS), 5)]
+BROTLI_INFLATE_JS = r"""
+const zlib = require("node:zlib");
+const chunks = [];
+process.stdin.on("data", (d) => chunks.push(d));
+process.stdin.on("end", () => process.stdout.write(zlib.brotliDecompressSync(Buffer.concat(chunks))));
+"""
+
+
+def woff2_cmap(data: bytes) -> set[int]:
+    """The code points a WOFF2 font maps to a glyph, from its cmap (format 4 or 12), its table stream
+    inflated with Node's zlib (Python's stdlib has no Brotli)."""
+    if data[:4] != b"wOF2":
+        raise ValueError("not a WOFF2 file (no wOF2 signature)")
+    flavor, _, num_tables, _, _, compressed = struct.unpack(">IIHHII", data[4:24])
+    if flavor == 0x74746366:
+        raise ValueError("a font collection, which this reader does not read")
+    pos, tables = 48, []
+
+    def base128(o: int) -> tuple[int, int]:
+        v = 0
+        for _ in range(5):
+            b = data[o]
+            o += 1
+            v = (v << 7) | (b & 0x7F)
+            if not b & 0x80:
+                return v, o
+        raise ValueError("a bad UIntBase128 in the table directory")
+
+    for _ in range(num_tables):
+        flags = data[pos]
+        pos += 1
+        if flags & 0x3F == 63:
+            tag = data[pos:pos + 4].decode("latin-1")
+            pos += 4
+        else:
+            tag = WOFF2_TAG_LIST[flags & 0x3F].strip()
+        length, pos = base128(pos)
+        if (flags >> 6 != 3) if tag in ("glyf", "loca") else (flags >> 6 != 0):
+            length, pos = base128(pos)
+        tables.append((tag, length))
+    stream = subprocess.run(["node", "-e", BROTLI_INFLATE_JS], input=data[pos:pos + compressed], capture_output=True, check=True).stdout
+    at = 0
+    for tag, length in tables:
+        if tag == "cmap":
+            cmap = stream[at:at + length]
+            break
+        at += length
+    else:
+        raise ValueError("no cmap table")
+    covered: set[int] = set()
+    _, count = struct.unpack(">HH", cmap[:4])
+    for i in range(count):
+        platform, encoding, offset = struct.unpack(">HHI", cmap[4 + 8 * i:12 + 8 * i])
+        fmt = struct.unpack(">H", cmap[offset:offset + 2])[0]
+        if fmt == 4 and (platform, encoding) in ((3, 1), (0, 3), (0, 4)):
+            seg = struct.unpack(">H", cmap[offset + 6:offset + 8])[0] // 2
+            arr = lambda k: struct.unpack(f">{seg}H", cmap[offset + 14 + 2 * seg * k + (2 if k else 0):offset + 14 + 2 * seg * (k + 1) + (2 if k else 0)])
+            ends, starts, deltas, ranges = arr(0), arr(1), arr(2), arr(3)
+            range_at = offset + 16 + 6 * seg
+            for s in range(seg):
+                for c in range(starts[s], ends[s] + 1):
+                    if c == 0xFFFF:
+                        continue
+                    if ranges[s] == 0:
+                        g = (c + deltas[s]) & 0xFFFF
+                    else:
+                        o = range_at + 2 * s + ranges[s] + 2 * (c - starts[s])
+                        g = struct.unpack(">H", cmap[o:o + 2])[0]
+                        g = (g + deltas[s]) & 0xFFFF if g else 0
+                    if g:
+                        covered.add(c)
+        elif fmt == 12:
+            groups = struct.unpack(">I", cmap[offset + 12:offset + 16])[0]
+            for k in range(groups):
+                start, end, glyph = struct.unpack(">III", cmap[offset + 16 + 12 * k:offset + 28 + 12 * k])
+                covered |= {c for c in range(start, end + 1) if glyph + c - start}
+    return covered
+
+
+PACIFICO_FONT = "site/assets/fonts/pacifico-music-fest-mania.woff2"
+
+
+def simple_select(doc: Node, selector: str) -> list[Node] | None:
+    """The elements a selector of compounds (a tag, #ids, .classes) joined by descendant or child
+    combinators matches in doc; None for any other selector, which a static read does not resolve."""
+    compounds = []
+    for comb, comp in re.findall(r"\s*(>)?\s*([^\s>]+)", selector.strip()):
+        m = re.fullmatch(r"([a-z][a-z0-9-]*|\*)?((?:[#.][\w-]+)*)", comp)
+        if not m or not comp:
+            return None
+        compounds.append((comb or " ", m.group(1), re.findall(r"#([\w-]+)", m.group(2)), re.findall(r"\.([\w-]+)", m.group(2))))
+    if not compounds:
+        return None
+
+    def fits(n, c) -> bool:
+        return (n.tag != "#document" and c[1] in (None, "*", n.tag) and all(n.attrs.get("id") == i for i in c[2])
+                and all(x in n.classes() for x in c[3]))
+
+    def at(n, i) -> bool:
+        if not fits(n, compounds[i]):
+            return False
+        if i == 0:
+            return True
+        if compounds[i][0] == ">":
+            return n.parent is not None and at(n.parent, i - 1)
+        return any(at(a, i - 1) for a in n.ancestors())
+
+    return [n for n in doc.iter() if at(n, len(compounds) - 1)]
+
+
+def pacifico_checks(ctx: Context, r: Result) -> None:
+    """Criterion 13: site/assets/fonts/'s Pacifico subset maps every character the site draws in it:
+    the text of every element a site CSS rule (a file, a <style>, a style attribute) gives a font-family
+    or --femto-font-family naming Pacifico, on every dist page."""
+    font = ctx.root / PACIFICO_FONT
+    pages = ctx.dist_pages()
+    if not font.is_file():
+        r.fail(f"{PACIFICO_FONT} is missing (site/assets/css/fonts.css loads it)")
+        return
+    try:
+        covered = woff2_cmap(font.read_bytes())
+    except (ValueError, IndexError, struct.error, subprocess.CalledProcessError) as exc:
+        r.fail(f"{PACIFICO_FONT}: its cmap cannot be read: {exc}")
+        return
+    sources = [(rel(ctx.root, p), p.read_text(encoding="utf-8", errors="replace"), None) for p in files_under(ctx.dist / "assets/css", (".css",))]
+    for p in pages:
+        for n in ctx.page(p).iter():
+            if n.tag == "style" and not n.in_template():
+                sources.append((f"{rel(ctx.root, p)}:{n.line} <style>", n.text(), None))
+            elif "style" in n.attrs and n.tag != "#document":
+                sources.append((f"{rel(ctx.root, p)}:{n.line} style=\"\"", n.attrs["style"], n))
+    selectors, unresolved, elements = [], [], []
+    for label, text, owner in sources:
+        plain, masked, _ = scan_css(text)
+        for m in re.finditer(r"(?<![\w-])((?:--femto-)?font(?:-family)?)\s*:\s*([^;}]*)", plain):
+            if "pacifico" not in m.group(2).lower():
+                continue
+            if owner is not None:
+                elements.append(owner)
+                selectors.append(f"{label}")
+                continue
+            rules = [b for b in enclosing_blocks(masked, [m.start()])[m.start()] if not b.startswith("@")]
+            for sel in (split_selectors(rules[-1]) if rules else []):
+                selectors.append(f"{sel} ({label})")
+                if not pages or simple_select(ctx.page(pages[0]), sel) is None:
+                    unresolved.append(f"{sel} ({label})")
+                    continue
+                elements += [x for p in pages for x in simple_select(ctx.page(p), sel)]
+    if unresolved:
+        r.fail(f"{PACIFICO_FONT}: {len(unresolved)} selector(s) naming Pacifico cannot be resolved statically ({'; '.join(unresolved[:4])}); "
+               "write them as tags, ids and classes joined by spaces or >, or teach simple_select() the form")
+        return
+    if not selectors:
+        r.note(f"no site CSS names Pacifico, so {PACIFICO_FONT} draws nothing")
+        return
+    if not elements:
+        r.fail(f"{PACIFICO_FONT}: no element on any dist page matches the rules naming Pacifico ({'; '.join(selectors[:4])}); "
+               "fix the selector, or drop the rule and the font")
+        return
+    text = collapse(" ".join(n.text() for n in elements))
+    missing = sorted({c for c in text if ord(c) not in covered})
+    r.fails(f"{PACIFICO_FONT} lacks {len(missing)} character(s) the site draws in Pacifico ({text[:60]!r}); subset the font "
+            "again with them, under a new file name (site/assets/css/fonts.css):", [f"{c!r} U+{ord(c):04X}" for c in missing], "more")
+    if not missing:
+        r.ok(f"{PACIFICO_FONT} maps all {len(set(text))} distinct characters of the {len(elements)} element(s) the site draws in "
+             f"Pacifico ({text[:60]!r}; from {', '.join(selectors[:3])}); its cmap has {len(covered)} code points")
+
 
 def criterion_13(ctx: Context) -> Result:
-    r = Result(13, "Content: the content checks in 04 §3 pass")
-    if ctx.phase < 4:
-        preview = Result(13, "")
-        content_checks(ctx, preview)
-        r.not_yet(f"the content checks apply from Phase 4 (04 §3); phase is {ctx.phase} ({ctx.phase_why}); run with --phase 4 to apply them now")
-        r.note(f"preview: {len(preview.failures)} failing line(s), {len(preview.pending)} part(s) not yet checkable"
-               + (f": {preview.pending[0]}" if preview.pending else ""))
-        return r
+    r = Result(13, "Content: the content checks pass, and the docs follow femto at the vendored commit")
     content_checks(ctx, r)
     return r
 
@@ -2810,7 +4521,7 @@ def pico_grep(ctx: Context) -> tuple[list[str], list[str]]:
 def criterion_14(ctx: Context) -> Result:
     r = Result(14, "No Pico: git grep -il pico lists only the allowed files")
     hits, bad = pico_grep(ctx)
-    r.ok(f"git grep -il pico -- . ':!docs/research' ':!tests' ':!PLAN.md' ':!PROMPT.md': {ctx.cache['pico'][2]} tracked files; "
+    r.ok(f"git grep -il pico -- . ':!tests' ':!PLAN.md': {ctx.cache['pico'][2]} tracked files; "
          f"{len(hits)} with --untracked")
     r.fails(f"{len(bad)} file(s) outside the allow-list mention pico:", bad, "more files")
     allowed = [h for h in hits if pico_allowed(h)]
@@ -3010,15 +4721,46 @@ def budget(plan: Path) -> list[tuple[float, str, str]]:
     return []
 
 
+# Criterion 15's budget is on the wire: the size Cloudflare Pages serves /docs at, not gzip's or
+# Brotli's maximum (the owner, 2026-11-09). Measured on 2026-11-09 with curl -s -H 'Accept-Encoding:
+# br' (then gzip) -H 'Accept: text/html' | wc -c. https://femto.style/docs is the 646,012-byte build of
+# 776cce2, which production runs, plus the zone's 367-byte analytics beacon: 646,379 bytes, served as
+# 55,900 with Brotli and 55,386 gzipped. https://femto-style.pages.dev/docs is the build byte for
+# byte, served as 55,562 and 55,086. Node's zlib (24.22, Brotli 1.2.0) gives the build 59,721 bytes at
+# Brotli quality 2, 56,107 at 3 and 51,872 at 4, and 55,754 at gzip level 7 and 54,858 at 8; the
+# femto.style page 56,390 and 52,147 at quality 3 and 4, and 56,038 and 55,143 at level 7 and 8. Pages
+# serves HTML between those levels on both hosts, so the check compresses at the closest level that is
+# not smaller than what it serves: Brotli quality 3 and gzip level 7 (at quality 11 and level 9, the
+# old measure, the build was 38,835 and 54,830). Node does both, so the sizes follow the pinned
+# .node-version, not the zlib that a Python build carries; Python's stdlib has no Brotli.
+WIRE_BROTLI_QUALITY = 3
+WIRE_GZIP_LEVEL = 7
+WIRE_SIZE_JS = r"""
+const zlib = require("node:zlib");
+const [kind, level] = process.argv.slice(1);
+const chunks = [];
+process.stdin.on("data", (d) => chunks.push(d));
+process.stdin.on("end", () => {
+  const data = Buffer.concat(chunks);
+  const out = kind === "gzip" ? zlib.gzipSync(data, { level: Number(level) })
+    : zlib.brotliCompressSync(data, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: Number(level) } });
+  process.stdout.write(String(out.length));
+});
+"""
+
+
 def compressed_size(data: bytes, kind: str) -> int:
+    """data's size raw, or compressed as Pages serves it (WIRE_GZIP_LEVEL, WIRE_BROTLI_QUALITY)."""
     if kind == "raw":
         return len(data)
-    if kind == "gzip":
-        return len(gzip.compress(data, 9, mtime=0))
-    proc = subprocess.run(["node", "-e", "const z=require('zlib');let c=[];process.stdin.on('data',d=>c.push(d));"
-                           "process.stdin.on('end',()=>process.stdout.write(String(z.brotliCompressSync(Buffer.concat(c),"
-                           "{params:{[z.constants.BROTLI_PARAM_QUALITY]:11}}).length)))"], input=data, capture_output=True, check=True)
+    level = WIRE_GZIP_LEVEL if kind == "gzip" else WIRE_BROTLI_QUALITY
+    proc = subprocess.run(["node", "-e", WIRE_SIZE_JS, "gzip" if kind == "gzip" else "brotli", str(level)], input=data,
+                          capture_output=True, check=True)
     return int(proc.stdout)
+
+
+def wire_label(kind: str) -> str:
+    return {"gzip": f"gzipped at level {WIRE_GZIP_LEVEL}", "brotli": f"with Brotli at quality {WIRE_BROTLI_QUALITY}"}.get(kind, kind)
 
 
 # JavaScript, read as tokens (js_tokens: espree; js_tokens_heuristic: the fallback's keyword sets).
@@ -3709,7 +5451,6 @@ def manifest_urls(data) -> list[str]:
 THEME_LINK = re.compile(r"""^\s*<link\s(?=[^>]*\brel\s*=\s*["']?stylesheet["'\s>])[^>]*\bhref\s*=\s*["']?/vendor/femto/css/"""
                         r"""themes/[^>]*>[\s\ue000]*$""", re.I)
 HEAD_SCRIPTS = ("theme", "scheme")  # criterion 15: the ?theme= script, then the color-scheme script
-HEAD_SCRIPTS_BEFORE_3 = ("scheme",)  # before Phase 3 (no ?theme= yet): the one color-scheme script
 HEAD_SCRIPT_NAMES = {"theme": "the ?theme= script", "scheme": "the color-scheme script",
                      "both": "one script that does both (the ?theme= document.write and femtoColorScheme)",
                      "other": "another script"}
@@ -3744,10 +5485,9 @@ def criterion_15(ctx: Context) -> Result:
         return r
     root, dist = ctx.root, ctx.dist
     cross, femto_abs, blocking, heads, shown = [], 0, [], 0, []
-    # The inline head scripts a page may have: the two from Phase 3, which adds ?theme= (Decision 8).
-    expected = HEAD_SCRIPTS if ctx.phase >= 3 else HEAD_SCRIPTS_BEFORE_3
-    expected_text = ("two inline head scripts, the ?theme= script then the color-scheme script" if ctx.phase >= 3
-                     else "one inline head script, the color-scheme script (the ?theme= script is Phase 3's)")
+    # The inline head scripts a page may have: the ?theme= script, then the color-scheme script.
+    expected = HEAD_SCRIPTS
+    expected_text = "two inline head scripts, the ?theme= script then the color-scheme script"
     workers: list = []  # (where, line, what, url, base): scripts started in a worker, read strictly below
     JS_UNPARSED.clear()
     # Every piece of JavaScript of the site, first, so that a use of an HTML sink or a worker API the
@@ -3882,14 +5622,15 @@ def criterion_15(ctx: Context) -> Result:
     docs = dist / "docs.html"
     limits = budget(root / "PLAN.md")
     if not limits:
-        r.not_yet("PLAN.md's Risks section records no /docs HTML budget yet (Phase 3 measures and records it)")
+        r.not_yet("PLAN.md's Risks section records no /docs HTML budget")
     elif not docs.is_file():
         r.fail("dist/docs.html is missing")
     else:
         data = docs.read_bytes()
         for limit, kind, sentence in limits:
             size = compressed_size(data, kind)
-            line = f"dist/docs.html is {size:,} bytes {kind}, budget {int(limit):,} ({sentence[:90]})"
+            line = (f"dist/docs.html is {size:,} bytes {wire_label(kind)}, budget {int(limit):,} ({sentence[:90]})"
+                    + ("" if kind == "raw" else "; the level Cloudflare Pages serves HTML at, measured 2026-11-09"))
             (r.ok if size <= limit else r.fail)(line)
     r.not_yet(f"loads made at run time (scripts, inserted elements) need a browser: {HARNESS_15_LOADS}")
     r.not_yet(f"layout shift and landing position need a browser: {HARNESS[15]}")
@@ -3898,15 +5639,16 @@ def criterion_15(ctx: Context) -> Result:
 
 # ---------------------------------------------------------------------------- the link check
 
-# PLAN.md Workflow, Phase 4's gate: "link check of dist/". Every internal href, src and fragment in
-# every dist page resolves: the page exists under the URL inventory (an extensionless page URL, as
-# Cloudflare Pages serves dist/), the asset exists in dist/, and #<id> is an element's id (or an
-# <a name>) in the target page's own tree (a fragment never reaches into a shadow root). CSS url()s
-# and @imports in dist CSS and the web app manifest's icons are internal links too. External links are
-# listed; with --external each one is fetched once (HEAD, then GET when HEAD fails; redirects
-# followed) and a failure fails the check, except the URLs that only work once femto is published
-# (PLAN.md Risks), which are listed. The check proves itself on every run: LINK_CONTROLS plant a broken
-# link of each kind in a copy of dist/, and each must fail with exactly its planted link.
+# The link check of dist/. Every internal href, src and fragment in every dist page resolves: the
+# page exists under the URL inventory (an extensionless page URL, as Cloudflare Pages serves dist/),
+# the asset exists in dist/, and #<id> is an element's id (or an <a name>) in the target page's own
+# tree (a fragment never reaches into a shadow root). CSS url()s and @imports in dist CSS and the web
+# app manifest's icons are internal links too. External links are listed; with --external each one
+# is fetched once (HEAD, then GET when HEAD fails; redirects followed) and a failure fails the check,
+# except femto's npm and jsDelivr URLs while SOURCE's version keeps them from answering
+# (awaits_publish), which are listed; an edit link to a file not on GitHub's main fails. The check
+# proves itself on every run: LINK_CONTROLS plant a broken link of each kind in a copy of dist/, and
+# each must fail with exactly its planted link.
 LINK_ATTRS = {"a": ("href",), "area": ("href",), "link": ("href",), "script": ("src", "href", "xlink:href"),
               "img": ("src", "srcset"), "source": ("src", "srcset"), "video": ("src", "poster"), "audio": ("src",),
               "track": ("src",), "iframe": ("src",), "embed": ("src",), "object": ("data",), "form": ("action",),
@@ -3914,11 +5656,57 @@ LINK_ATTRS = {"a": ("href",), "area": ("href",), "link": ("href",), "script": ("
               "image": ("href", "xlink:href"), "q": ("cite",), "blockquote": ("cite",), "ins": ("cite",), "del": ("cite",)}
 META_URL_PROPS = {"og:url", "og:image", "og:image:url", "og:image:secure_url", "twitter:image", "twitter:url"}
 NOT_LINKS = ("mailto:", "tel:", "data:", "blob:", "javascript:", "about:", "sms:")
-# External URLs that answer only once femto's npm package is published (PLAN.md Risks: "npm/@leoherzog/femto@3
-# URLs 404 until the first publish"): listed, never failed.
-AWAITS_PUBLISH = re.compile(r"^https://(?:cdn\.jsdelivr\.net/(?:npm|combine)/(?:[^\s]*,)?npm/@leoherzog/femto|"
-                            r"cdn\.jsdelivr\.net/npm/@leoherzog/femto|(?:www\.)?npmjs\.com/package/@leoherzog/femto|"
-                            r"data\.jsdelivr\.com/v1/packages?/npm/@leoherzog/femto|www\.jsdelivr\.com/package/npm/@leoherzog/femto)")
+# femto's npm and jsDelivr URLs: a CDN file or combine URL, a jsDelivr API URL or package page, an npm
+# package page. Each names femto's package once or more, with a version after @ (or /v/ on npm), or none.
+FEMTO_NPM_HOSTS = re.compile(r"^https://(?:cdn\.jsdelivr\.net/(?:npm|combine)/|data\.jsdelivr\.com/v1/packages?/npm/|"
+                             r"www\.jsdelivr\.com/package/npm/|(?:www\.)?npmjs\.com/package/)")
+FEMTO_NPM_SPEC = re.compile(re.escape(FEMTO_PACKAGE) + r"(?:@([^/,?#\s]+)|/v/([^/?#\s]+))?(?![\w.-])")
+NPM_REGISTRY = "https://registry.npmjs.org/" + FEMTO_PACKAGE.replace("/", "%2f")
+
+
+def femto_specs(url: str) -> list[str] | None:
+    """The versions one of femto's npm or jsDelivr URLs names ("" for none: a package page, a bare
+    package URL), or None for any other URL."""
+    if not FEMTO_NPM_HOSTS.match(url):
+        return None
+    return [m.group(1) or m.group(2) or "" for m in FEMTO_NPM_SPEC.finditer(url)] or None
+
+
+def awaits_publish(url: str, version: str, published: bool | None) -> str | None:
+    """Why one of femto's npm or jsDelivr URLs cannot answer yet, or None when it must answer. The
+    exemption is keyed to SOURCE's version (the owner, 2026-11-09): a range or tag URL (@3, @alpha or
+    none) only while that version is a prerelease, since jsDelivr and npm skip prereleases for @3; an
+    exact-version URL only while that version is not on npm (published False; None, the registry
+    did not answer: only while it is a prerelease). Any other exact version must answer."""
+    specs = femto_specs(url)
+    for spec in specs or []:
+        if EXACT_VERSION.match(spec):
+            if spec == version and published is False:
+                return f"{version} is not on npm yet (registry.npmjs.org)"
+            if spec == version and published is None and "-" in version:
+                return f"{version} is a prerelease, and registry.npmjs.org did not say whether it is on npm"
+        elif "-" in version:
+            return (f"{'@' + spec if spec else 'no version'}: a range or tag URL, which answers once femto is released, and "
+                    f"SOURCE's version {version} is a prerelease")
+    return None
+
+
+def npm_versions(timeout: float = 20.0) -> set[str] | None:
+    """The versions of femto's package on npm: none when the registry has no such package (404), or
+    None when it does not answer."""
+    import urllib.error
+    import urllib.request
+    req = urllib.request.Request(NPM_REGISTRY, headers={"Accept": "application/vnd.npm.install-v1+json"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as res:
+            data = json.loads(res.read())
+        return set((data.get("versions") or {}) if isinstance(data, dict) else {})
+    except urllib.error.HTTPError as e:
+        return set() if e.code == 404 else None
+    except (urllib.error.URLError, OSError, ValueError, http.client.HTTPException):
+        return None
+
+
 LINK_CONTROLS = (  # (name, page, planted markup, the link the failure must name)
     ("a missing asset", "index.html", '<a href="/assets/no-such-file.css">x</a>', "/assets/no-such-file.css"),
     ("a missing page", "index.html", '<a href="/no-such-page">x</a>', "/no-such-page"),
@@ -4108,6 +5896,10 @@ def fetch_external(url: str, timeout: float = 20.0) -> tuple[bool, str]:
     return False, last
 
 
+# A link to a file on the site repository's main branch: the edit links build.mjs writes, and the footer's.
+EDIT_LINK = re.compile(r"^https://github\.com/leoherzog/femto\.style/blob/main/(.+)$")
+
+
 def check_links(ctx: Context) -> Result:
     r = Result("links", "Link check of dist/: internal links, assets and fragments resolve; external links listed")
     dist = ctx.dist
@@ -4153,67 +5945,139 @@ def check_links(ctx: Context) -> Result:
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=8) as pool:
         answers = dict(zip(ext, pool.map(fetch_external, ext)))
+    version = (ctx.source() or {}).get("version", "")
+    versions = npm_versions() if any(femto_specs(u) for u in ext) else None
+    published = None if versions is None else version in versions
+    if any(femto_specs(u) for u in ext):
+        r.note(f"{NPM_REGISTRY}: " + ("did not answer" if versions is None else
+                                       f"{len(versions)} version(s) on npm; SOURCE's {version} is "
+                                       + ("published" if published else "not published")))
     bad, pending, good = [], [], 0
     for u in ext:
         ok, what = answers[u]
         if ok:
             good += 1
-        elif AWAITS_PUBLISH.match(u):
-            pending.append(f"{u}: {what} (first seen {external[u][0]}): awaits femto's first publish to npm (PLAN.md Risks)")
-        elif (m := re.match(r"^https://github\.com/leoherzog/femto\.style/blob/main/(.+)$", u)) and (ctx.root / unquote(m.group(1))).is_file():
-            # An edit link to a file this working tree has and the repository's main branch does not
-            # yet: it answers once the owner merges and pushes (Decision 15: agents never push).
-            pending.append(f"{u}: {what}: {unquote(m.group(1))} is in this working tree, not yet on GitHub's main")
+        elif why := awaits_publish(u, version, published):
+            pending.append(f"{u}: {what} (first seen {external[u][0]}): {why}")
+        elif m := EDIT_LINK.match(u):
+            # An "Edit this section on GitHub" link (build.mjs writes one per section) or another link
+            # to a file on GitHub's main that does not answer: it fails, since a reader who follows it
+            # gets a 404. A file this branch adds answers once the owner pushes main (Decision 11).
+            path = unquote(m.group(1))
+            bad.append(f"{u}: {what}: {path} is not on GitHub's main" + (
+                " yet; it answers once the owner pushes main (Decision 11)" if (ctx.root / path).is_file() else
+                f" or in this tree; fix the link's file (site/docs/menu.json's section id for an edit link, build.mjs writes it)"))
         else:
             bad.append(f"{u}: {what} (linked from {external[u][0]}" + (f" and {len(external[u]) - 1} more" if len(external[u]) > 1 else "") + ")")
     r.fails(f"{len(bad)} external link(s) fail (HEAD, then GET, redirects followed):", bad, "more")
     r.ok(f"{good} of {len(ext)} external URLs answer below 400")
     if pending:
-        r.note(f"{len(pending)} external URL(s) answer only once femto is published or this branch is on GitHub's main, "
-               "not judged:")
+        r.note(f"{len(pending)} external URL(s) cannot answer yet, by SOURCE's version; not judged:")
         for line in capped(pending):
             r.note("  " + line)
+    return r
+
+
+# ---------------------------------------------------------------------------- the release check
+
+FEMTO_REMOTE = "https://github.com/leoherzog/femto"
+SEMVER = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$")
+
+
+def semver_key(v: str) -> tuple | None:
+    """A sort key in semver precedence for a version or a v-prefixed tag (v2.0.0-rc1), or None. A
+    release sorts after its prereleases; prerelease identifiers compare numerically when numeric,
+    and lexically after any numeric one otherwise."""
+    m = SEMVER.match(v)
+    if not m:
+        return None
+    pre = m.group(4)
+    ids = tuple((0, int(x), "") if x.isdigit() else (1, 0, x) for x in pre.split(".")) if pre else None
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3)), (1,) if ids is None else (0, ids))
+
+
+def check_release(ctx: Context) -> Result:
+    """femto has no release tag newer than SOURCE's version (docstring: the release check)."""
+    r = Result("release", "femto has no release tag newer than SOURCE's version")
+    version = (ctx.source() or {}).get("version", "")
+    ours = semver_key(version)
+    if ours is None:
+        r.fail(f"SOURCE's version {version!r} is not a semver version")
+        return r
+    if not ctx.external:
+        r.not_yet(f"asks GitHub for femto's tags (git ls-remote --tags {FEMTO_REMOTE}): run it by hand with "
+                  "--criteria release --external")
+        return r
+    try:
+        proc = subprocess.run(["git", "ls-remote", "--tags", "--refs", FEMTO_REMOTE], capture_output=True, text=True,
+                              timeout=120, check=False, env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
+    except subprocess.TimeoutExpired:
+        r.fail(f"git ls-remote --tags {FEMTO_REMOTE} did not answer within 120 s")
+        return r
+    if proc.returncode != 0:
+        r.fail(f"git ls-remote --tags {FEMTO_REMOTE} exited {proc.returncode}: {proc.stderr.strip()[-300:]}")
+        return r
+    tags = [line.split("refs/tags/", 1)[1] for line in proc.stdout.splitlines() if "refs/tags/" in line]
+    keyed = [(t, semver_key(t)) for t in tags]
+    versions = [(t, k) for t, k in keyed if k is not None]
+    # From a release, only a newer release counts: the site vendors femto from release tags (the
+    # owner, 2026-11-09). From a prerelease, any newer tag does, the next prerelease included.
+    newer = sorted(((t, k) for t, k in versions if k > ours and (k[3] == (1,) or "-" in version)), key=lambda x: x[1])
+    r.fails(f"femto has {len(newer)} release tag(s) newer than SOURCE's version {version}: vendor the newest with npm run "
+            f"vendor -- ../femto {newer[-1][0] if newer else ''}, then follow its review of the docs:",
+            [t for t, _ in reversed(newer)], "more tags")
+    if not newer:
+        newest = max(versions, key=lambda x: x[1])[0] if versions else "none"
+        r.ok(f"{len(tags)} tags at {FEMTO_REMOTE}; the newest version tag, {newest}, is not newer than SOURCE's {version}")
+    others = [t for t, k in keyed if k is None]
+    if others:
+        r.note(f"{len(others)} tag(s) that are not versions, not compared: {', '.join(others[:MAX_LINES])}")
     return r
 
 
 # ---------------------------------------------------------------------------- main
 
 
-CHECKS = {1: criterion_1, 2: criterion_2, 3: criterion_3, 4: criterion_4, 5: criterion_5, 6: criterion_6,
-          7: criterion_7, 8: criterion_8, 9: criterion_9, 10: criterion_10, 11: criterion_11, 12: criterion_12,
-          13: criterion_13, 14: criterion_14, 15: criterion_15, "links": check_links}
+CHECKS = {4: criterion_4, 5: criterion_5, 6: criterion_6, 7: criterion_7, 8: criterion_8, 9: criterion_9,
+          10: criterion_10, 11: criterion_11, 12: criterion_12, 13: criterion_13, 14: criterion_14, 15: criterion_15,
+          "links": check_links, "release": check_release}
+NAMED_ONLY = {"release"}  # runs only when --criteria names it: it asks GitHub, so it runs by hand
+RETIRED = {1, 2, 3}  # the conversion's parity criteria (the owner, 2026-11-09)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="static_checks.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--criteria", help="comma-separated criterion numbers, 1 to 15, and 'links' for the link check "
-                                           "(default: all of them)")
+    parser.add_argument("--criteria", help="comma-separated criterion numbers, 4 to 15, 'links' for the link check and "
+                                           "'release' for femto's release check (default: 4 to 15 and links)")
     parser.add_argument("--external", action="store_true", help="the link check also fetches every external URL once")
     parser.add_argument("--json", metavar="FILE", help="also write the results to FILE as JSON")
     parser.add_argument("--strict", action="store_true", help="count NOT-YET as a failure")
-    parser.add_argument("--phase", type=int, choices=range(0, 7), help="check as of this phase (default: inferred)")
     parser.add_argument("--femto", metavar="DIR", help="femto checkout for criteria 12 and 13")
     parser.add_argument("--root", default=str(Path(__file__).resolve().parents[1]), help="repository root")
     parser.add_argument("--dist", metavar="DIR", help="the built site to check instead of ROOT/dist (node build.mjs --out DIR); "
                                                        "criterion 5 then builds into DIR")
     try:  # argparse exits on --help and usage errors; return its code instead, for run.py
         args = parser.parse_args(argv)
+        names = [x for x in CHECKS if isinstance(x, str)]
         try:
-            ids = ([int(x) if x.strip() != "links" else "links" for x in dict.fromkeys(args.criteria.split(",")) if x.strip()]
-                   if args.criteria else list(CHECKS))
-            ids = sorted((i for i in ids if i != "links"), key=int) + (["links"] if "links" in ids else [])
+            ids = ([x.strip() if x.strip() in names else int(x) for x in dict.fromkeys(args.criteria.split(",")) if x.strip()]
+                   if args.criteria else [x for x in CHECKS if x not in NAMED_ONLY])
         except ValueError:
-            parser.error(f"--criteria takes numbers and 'links': {args.criteria!r}")
+            parser.error(f"--criteria takes numbers, 'links' and 'release': {args.criteria!r}")
+        retired = [i for i in ids if i in RETIRED]
+        if retired:
+            parser.error(f"criteria {', '.join(map(str, retired))}: criteria 1 to 3 were retired with the conversion's "
+                         "parity harness (the owner, 2026-11-09); their record is the tag conversion-final")
         unknown = [i for i in ids if i not in CHECKS]
         if unknown:
             parser.error(f"unknown criteria: {unknown}")
+        ids = sorted(i for i in ids if isinstance(i, int)) + [x for x in names if x in ids]
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 2
     root = Path(args.root).resolve()
-    phase, why = (args.phase, "--phase") if args.phase is not None else infer_phase(root)
-    ctx = Context(root, phase, why, args.femto, Path(args.dist).resolve() if args.dist else None)
+    ctx = Context(root, args.femto, Path(args.dist).resolve() if args.dist else None)
     ctx.external = args.external
-    print(f"femto.style static checks: {root}, phase {phase} ({why})" + (f", dist {ctx.dist}" if args.dist else ""))
+    print(f"femto.style static checks: {root}" + (f", dist {ctx.dist}" if args.dist else ""))
     results = []
     for i in ids:
         try:
@@ -4226,7 +6090,7 @@ def main(argv: list[str] | None = None) -> int:
     counts = {s: sum(1 for x in results if x.state == s) for s in ("pass", "fail", "not-yet")}
     print(f"\nSUMMARY: {counts['pass']} PASS, {counts['fail']} FAIL, {counts['not-yet']} NOT-YET")
     if args.json:
-        out = {"root": str(root), "phase": phase, "phase_source": why, "strict": args.strict,
+        out = {"root": str(root), "strict": args.strict,
                "summary": counts, "criteria": [x.as_dict() for x in results]}
         Path(args.json).parent.mkdir(parents=True, exist_ok=True)
         Path(args.json).write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8")

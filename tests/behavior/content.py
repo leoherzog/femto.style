@@ -1,10 +1,11 @@
 """Content: Typography's font-size table switch, Table's inverse thead and Link's example links
-(01 §2, small widgets: FontsizeTable.jsx, docs.table.jsx, docs.link.jsx)."""
+(the Remix site's FontsizeTable.jsx, docs.table.jsx and docs.link.jsx), the Media, code and lists
+examples drawn by femto alone, and the Tokens table against the tokens on the page's root."""
 from behavior import SNAPSHOT, check, self_href
 
 GROUP = "content"
 
-# The oracle's fontSizesTableData (components/docs/FontsizeTable.jsx).
+# The Remix site's fontSizesTableData (components/docs/FontsizeTable.jsx, tag remix-final).
 ROOT = [100, 106.25, 112.5, 118.75, 125, 131.25]
 ELEMENTS = [("h1", 2, "rem"), ("h2", 1.75, "rem"), ("h3", 1.5, "rem"), ("h4", 1.25, "rem"), ("h5", 1.125, "rem"),
             ("h6", 1, "rem"), ("small", 0.875, "em")]
@@ -77,12 +78,7 @@ RESTORE_SWITCH = """() => {
 RESTORED = "with the switch restored as checked, the table shows rem"
 
 
-@check("font-size-restored-switch", "/docs#typography", oracle_bug={
-    "fails": RESTORED,
-    "reason": "FontsizeTable.jsx starts from useState(false) and never reads the switch, and React 19's hydration "
-              "leaves a restored checked state alone (Firefox restores form state on a reload), so the oracle "
-              "shows the px table under a checked switch and its first click unchecks the switch without "
-              "changing the table; docs.js reads the switch at load"})
+@check("font-size-restored-switch", "/docs#typography")
 def font_size_restored_switch(page):
     """A switch the browser restores as checked gets the matching table. The "Display in rem"
     switch is checked (the rem table shows) and the page reloaded (location.reload(); a marker set
@@ -147,7 +143,7 @@ def table_inverse_thead(page):
     the sample reads <thead data-theme="dark">; after the header toggle makes the page dark, both
     say "light"; toggled back, "dark" again."""
     expect_thead(page, "dark", "light OS")
-    toggle = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # a button from Phase 4
+    toggle = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # the header's toggle button
     page.click(toggle)
     expect_thead(page, "light", "page made dark")
     page.click(toggle)
@@ -161,21 +157,18 @@ def table_inverse_thead_dark_os(page):
     expect_thead(page, "light", "dark OS")
 
 
-# The example links of Link, in document order: every <a> inside an example (article.component)
-# but the copy links of the code footers. That is the three of "Links example" and the three of
-# the aria-current example: "Current link example" with a "Current link" on the one page (Phase 4
-# wording), "Active link example" with an "Active link" on routes (the oracle).
+# The example links of Link, in document order: every <a> inside an example (each of the section's
+# articles is one) but the copy links of the code footers. That is the three of "Links example" and
+# the three of the aria-current example: "Current link example" with a "Current link".
 LINKS = """
-return [...S.querySelectorAll("#content article.component a:not(.copy-to-clipboard)")].map(a =>
+return [...S.querySelectorAll("#content article a:not([data-copy-link])")].map(a =>
   [a, a.textContent, a.getAttribute("href"), a.closest("article").getAttribute("aria-label")]);
 """
 
 
-def link_texts(current):
-    """The [example label, link text] pairs of the six links; current is "Current" or "Active"."""
-    return [["Links example", "Primary"], ["Links example", "Secondary"], ["Links example", "Contrast"],
-            [f"{current} link example", "Regular link"], [f"{current} link example", f"{current} link"],
-            [f"{current} link example", "Regular link"]]
+LINK_TEXTS = [["Links example", "Primary"], ["Links example", "Secondary"], ["Links example", "Contrast"],
+              ["Current link example", "Regular link"], ["Current link example", "Current link"],
+              ["Current link example", "Regular link"]]   # [example label, link text] of the six links
 
 
 # Every click event on a link, in the capture phase, records whether it was canceled once its
@@ -196,16 +189,13 @@ return {marker: window.__bhMarker, url: location.pathname + location.search + lo
 @check("link-examples", "/docs#link")
 def link_examples(page):
     """Every example link of Link (Primary, Secondary and Contrast of "Links example", the two
-    Regular links and the Current link of "Current link example", which routes, the oracle, call
-    the Active link of "Active link example": 6 links, each pointing at its own
-    place: href="/docs/link" on routes, /docs or /docs#link on the one page) goes nowhere, by
-    pointer and by keyboard. A real click on each, then Enter
+    Regular links and the Current link of "Current link example": 6 links, each pointing at its own
+    place, /docs or /docs#link) goes nowhere, by pointer and by keyboard. A real click on each, then Enter
     on each once focused, leaves the document (a marker set on window survives), the URL,
     history.length, the scroll position and the number of tabs as they were, and the click event
     is canceled (defaultPrevented)."""
     links = page.js(LINKS)
-    page.eq("the six example links", [[a[3], a[1]] for a in links],
-            link_texts("Active" if page.layout == "routes" else "Current"))
+    page.eq("the six example links", [[a[3], a[1]] for a in links], LINK_TEXTS)
     page.eq("every example link points at the route itself", [self_href(page, a[0]) for a in links], [True] * 6,
             hrefs=[a[2] for a in links])
     page.js(LINK_SPY)
@@ -237,3 +227,126 @@ def link_examples(page):
             done += 1
     page.eq("every example link was clicked and activated with Enter", done, 12)
     page.note(f"{done} activations (6 clicks, 6 Enter presses), every click canceled, nothing navigated")
+
+
+# The properties femto's media, figure, code, list and typography rules set, read from every element
+# of the Media section's example cards (their code footers left out).
+MEDIA_PROPS = ["display", "margin-top", "margin-right", "margin-bottom", "margin-left", "padding-top", "padding-right",
+               "padding-bottom", "padding-left", "width", "height", "max-width", "min-width", "font-family", "font-size",
+               "font-weight", "font-style", "line-height", "color", "background-color", "border-top-left-radius",
+               "border-top-width", "border-top-style", "overflow-x", "overflow-y", "overflow-wrap", "vertical-align",
+               "list-style-type", "fill", "text-decoration-line"]
+
+# The same cards, footers removed, in an iframe whose document loads the page's femto stylesheets
+# (and only those), each card given the page card's width and padding, so that its contents lay out
+# alike. The iframe is as wide as the window, so the root font size steps at the same breakpoint.
+MEDIA_STYLES = r"""
+const props = arguments[0];
+const arts = [...S.querySelectorAll("article[aria-label]")];
+const pick = (el) => { const cs = getComputedStyle(el); return Object.fromEntries(props.map(p => [p, cs.getPropertyValue(p)])); };
+const collect = (cards) => cards.map(a => [...a.querySelectorAll("*")].filter(e => !e.closest("footer.code")).map(e => [e.localName, pick(e)]));
+await document.fonts.ready;
+const sheets = [...document.querySelectorAll("link[rel=stylesheet]")].map(l => l.getAttribute("href")).filter(h => h.startsWith("/vendor/femto/"));
+const theme = document.documentElement.getAttribute("data-theme");
+const box = ["width", "padding-top", "padding-right", "padding-bottom", "padding-left"];
+const cards = arts.map(a => {
+  const c = a.cloneNode(true), cs = getComputedStyle(a);
+  c.querySelector(":scope > footer.code")?.remove();
+  c.style.cssText = box.map(p => `${p}: ${cs.getPropertyValue(p)}`).join("; ");
+  return c.outerHTML;
+}).join("");
+const html = `<!DOCTYPE html><html lang="en"${theme ? ` data-theme="${theme}"` : ""}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark">${sheets.map(h => `<link rel="stylesheet" href="${h}">`).join("")}</head><body>${cards}</body></html>`;
+const iframe = document.createElement("iframe");
+iframe.style.cssText = `position: fixed; top: 0; left: 0; width: ${innerWidth}px; height: ${innerHeight}px; border: 0; visibility: hidden;`;
+document.body.append(iframe);
+await new Promise(res => { iframe.onload = res; iframe.srcdoc = html; });
+const doc = iframe.contentDocument;
+await Promise.all([...doc.querySelectorAll("link")].map(l => l.sheet ? null : new Promise(r => { l.onload = l.onerror = r; })));
+await doc.fonts.ready;
+await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+const a = collect(arts), b = collect([...doc.querySelectorAll("article")]);
+iframe.remove();
+const diffs = [];
+a.forEach((els, i) => {
+  if (els.length !== b[i].length) { diffs.push({card: arts[i].getAttribute("aria-label"), count: [els.length, b[i].length]}); return; }
+  els.forEach(([name, st], k) => { for (const p of props) if (st[p] !== b[i][k][1][p]) diffs.push({card: arts[i].getAttribute("aria-label"), el: k + ":" + name, prop: p, page: st[p], femto: b[i][k][1][p]}); });
+});
+const img = S.querySelector('article[aria-label="Figure example"] img'), card = img.closest("article").getBoundingClientRect(), r = img.getBoundingClientRect();
+const svgs = [...S.querySelectorAll('article[aria-label="Inline SVG example"] svg')].map(s => [getComputedStyle(s.querySelector("circle")).fill, getComputedStyle(s.parentElement).color, s.parentElement.localName]);
+return {cards: arts.map(a => a.getAttribute("aria-label")), elements: a.flat().length, diffs: diffs.slice(0, 40), total: diffs.length,
+        img: {width: r.width, height: r.height, left: r.left - card.left, right: card.right - r.right}, svgs,
+        sheets, scrollWidth: document.documentElement.scrollWidth, innerWidth};
+"""
+MEDIA_CARDS = ["Figure example", "Inline SVG example", "Code block example", "Lists example"]
+
+
+def media_femto(page):
+    r = page.ajs(MEDIA_STYLES, MEDIA_PROPS)
+    page.eq("the Media section's four example cards", r["cards"], MEDIA_CARDS)
+    page.expect("the reference loads femto's stylesheets", "/vendor/femto/dist/femto.min.css" in r["sheets"], sheets=r["sheets"])
+    page.note(f"compared {len(MEDIA_PROPS)} properties of {r['elements']} elements with a document of {', '.join(r['sheets'])} alone")
+    page.eq("every element has femto's own computed styles", r["total"], 0, diffs=r["diffs"])
+    img = r["img"]
+    page.expect("the image fits inside its card", img["left"] >= 0 and img["right"] >= 0, **img)
+    page.expect("the image keeps its 1200:630 ratio", abs(img["height"] - img["width"] * 630 / 1200) < 1, **img)
+    page.eq("each inline SVG fills with its text's color (p, ins, del)", [[f == c, el] for f, c, el in r["svgs"]],
+            [[True, "p"], [True, "ins"], [True, "del"]], svgs=r["svgs"])
+    page.expect("the page does not scroll sideways", r["scrollWidth"] <= r["innerWidth"], scrollWidth=r["scrollWidth"], innerWidth=r["innerWidth"])
+
+
+@check("media-femto", "/docs#media")
+def media_femto_wide(page):
+    """Media, code and lists shows femto's own look. Every element of its four example cards
+    (Figure, Inline SVG, Code block and Lists; their code footers left out) has the computed display,
+    margins, padding, size, fonts, colors, corner radius, overflow, vertical alignment, list style,
+    fill and text decoration of the same markup in a document that loads only the page's femto
+    stylesheets, in a card of the same width and padding: the site's own code-block styles never
+    reach the plain <pre>, <code>, <samp> and <kbd>. The figure's 1200 x 630 image fits inside its
+    card at that ratio, each inline SVG's circle fills with the color of the text around it (the
+    paragraph's, <ins>'s and <del>'s), and the page does not scroll sideways."""
+    media_femto(page)
+
+
+@check("media-femto-small", "/docs#media", width=375, height=812, media="dark")
+def media_femto_small(page):
+    """As media-femto, at 375 x 812 with the OS in dark."""
+    media_femto(page)
+
+
+# The Tokens table: each group's header and its link, and each row's token, pair cell and text, with
+# whether the token and its --femto-light-* and --femto-dark-* names have a value on <html>.
+TOKENS_TABLE = r"""
+const t = S.querySelector('div[role=region][aria-label="Tokens"] > table');
+if (!t) return null;
+const root = getComputedStyle(document.documentElement);
+const has = (n) => root.getPropertyValue(n).trim() !== "";
+const ids = [...document.querySelectorAll("#content > section > hgroup > h1[id]")].map(h => h.id);
+return {groups: [...t.tBodies].map(b => { const a = b.rows[0].querySelector("th[scope=rowgroup] > a"); return a ? a.getAttribute("href") : null; }),
+        ids,
+        rows: [...t.tBodies].flatMap(b => [...b.rows].slice(1).map(r => {
+          const n = r.cells[0].querySelector("code")?.textContent ?? "";
+          return {n, pair: r.cells[1]?.textContent.trim(), setOn: /\bset (on|per)\b/.test(r.cells[0].textContent),
+                  root: has(n), light: has(n.replace(/^--femto-/, "--femto-light-")), dark: has(n.replace(/^--femto-/, "--femto-dark-"))};
+        }))};
+"""
+
+
+@check("tokens-table", "/docs#tokens")
+def tokens_table(page):
+    """The Tokens table (in div[role=region][aria-label=Tokens]) lists 150 distinct --femto-* tokens,
+    grouped in row groups whose header links to a section of the page (/docs#<a section id>). A
+    row's Pair cell reads "Yes" exactly when <html> has a value for both its --femto-light-* and
+    --femto-dark-* names (58 rows) and "No" when it has neither, and every token whose row does not
+    say it is "set on" or "set per" elements has a value on <html>."""
+    r = page.js(TOKENS_TABLE)
+    page.expect("the Tokens table exists", r is not None)
+    names = [x["n"] for x in r["rows"]]
+    page.eq("150 tokens", len(names), 150)
+    page.eq("no token twice", sorted(n for n in set(names) if names.count(n) > 1), [])
+    page.eq("every token is a --femto-* name", [n for n in names if not n.startswith("--femto-") or n.startswith(("--femto-light-", "--femto-dark-"))], [])
+    page.eq("every group header links to a section of the page", [g for g in r["groups"] if not (g or "").startswith("/docs#") or g[6:] not in r["ids"]], [])
+    page.eq("Pair is Yes exactly when both names of the pair have a value on <html>",
+            [x["n"] for x in r["rows"] if x["pair"] != ("Yes" if x["light"] and x["dark"] else "No") or x["light"] != x["dark"]], [])
+    page.eq("58 tokens with a pair", sum(x["pair"] == "Yes" for x in r["rows"]), 58)
+    page.eq("every token not set on elements has a value on <html>", [x["n"] for x in r["rows"] if not x["setOn"] and not x["root"]], [])
+    page.note(f"{len(names)} tokens in {len(r['groups'])} groups; {sum(not x['root'] for x in r['rows'])} set only on elements")

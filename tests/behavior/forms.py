@@ -1,4 +1,4 @@
-"""Forms: the Checkboxes section's indeterminate checkbox (01 §2, small widgets)."""
+"""Forms: the Checkboxes section's indeterminate checkbox and the Select section's option groups."""
 from behavior import check
 
 GROUP = "forms"
@@ -22,3 +22,32 @@ def checkbox_indeterminate(page):
     page.eq("its attributes are the markup's own", s["attrs"], ["name", "type"])
     page.click(page.find(BOX))
     page.wait("a click checks it", f"S.querySelector('{BOX}').checked && !S.querySelector('{BOX}').indeterminate", 1)
+
+
+OPTGROUP = 'article[aria-label="Select option groups example"] select[name="favorite-dish"]'
+
+
+@check("select-optgroup", "/docs#select")
+def select_optgroup(page):
+    """The Select section's option groups example is a select (`select[name=favorite-dish]` in
+    `article[aria-label="Select option groups example"]`) with two <optgroup>s, Italian (Pizza,
+    Risotto) and Japanese (Ramen, Sushi). Each optgroup has the select's computed font family, font
+    size and line height (femto's reboot), and no margin. Choosing Ramen selects it, with no
+    navigation."""
+    from selenium.webdriver.support.select import Select
+    state = f"""const s = S.querySelector('{OPTGROUP}');
+      if (!s) return null;
+      const font = (e) => {{ const cs = getComputedStyle(e); return [cs.fontFamily, cs.fontSize, cs.lineHeight]; }};
+      return {{groups: [...s.querySelectorAll(':scope > optgroup')].map(g => [g.label, [...g.querySelectorAll('option')].map(o => o.textContent)]),
+               select: font(s), optgroups: [...s.querySelectorAll('optgroup')].map(font),
+               margins: [...s.querySelectorAll('optgroup')].map(g => getComputedStyle(g).marginTop + ' ' + getComputedStyle(g).marginBottom),
+               value: s.value}}"""
+    s = page.js(state)
+    page.expect("the select exists", s is not None)
+    page.eq("two option groups", s["groups"], [["Italian", ["Pizza", "Risotto"]], ["Japanese", ["Ramen", "Sushi"]]])
+    page.eq("each optgroup has the select's font", s["optgroups"], [s["select"], s["select"]])
+    page.eq("no optgroup margin", s["margins"], ["0px 0px", "0px 0px"])
+    before = page.url()
+    Select(page.find(OPTGROUP)).select_by_visible_text("Ramen")
+    page.wait("choosing Ramen selects it", f"S.querySelector('{OPTGROUP}').value === 'Ramen'", 1)
+    page.url_kept("no navigation", before)

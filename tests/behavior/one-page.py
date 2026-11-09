@@ -1,14 +1,13 @@
 """The one docs page (PLAN.md Decisions 2, 8 and 10; criteria 7 and 15): the spy that moves the side
-nav's current link, its category, the breadcrumb's chapter, the title and the URL's #hash with the
+nav's current link, its category, the breadcrumb's chapter and section, the title and the URL's #hash with the
 section being read; deep links, nav clicks, back, forward and reload, which are the browser's own
-fragment navigation; smooth scrolling only for nav clicks; and ?theme=. They start from the spike's
-checks (docs/research/05-spike.md, round 2; docs/research/spike/test_spike.py), run on the real page.
+fragment navigation; smooth scrolling only for nav clicks; and ?theme=. They started from the
+checks of the conversion's one-page prototype (its record is at tag conversion-final), run on the
+real page.
 
-Every check here is of the one page only: on the routes layout (the oracle, one page per route) it is
-recorded as skipped with that reason. Nav clicks are real input (WebDriver pointer actions), as the
-spike's are: WebKit's back skips a history entry that a script's click made (05). The side nav is
-scrolled to the link first, never the page, since a click's own scroll into view would move the page
-too. Positions are read in the page: a heading is "on the line" when its top is within 2 px of html's
+Nav clicks are real input (WebDriver pointer actions): WebKit's back skips a history entry that a
+script's click made. The side nav is scrolled to the link first, never the
+page, since a click's own scroll into view would move the page too. Positions are read in the page: a heading is "on the line" when its top is within 2 px of html's
 scroll-padding-top, where a link to its #id puts it (behavior.HEADING_LINE)."""
 import json
 from pathlib import Path
@@ -17,28 +16,27 @@ from behavior import HEADING_LINE, check
 
 GROUP = "one-page"
 
-# The sections in menu order, as the working tree's site/docs/menu.json lists them (40 from Phase 4).
+# The sections in menu order, as the working tree's site/docs/menu.json lists them (40 on 2026-11-09).
 MENU_IDS = [s["id"] for c in json.loads((Path(__file__).resolve().parents[2] / "site/docs/menu.json").read_text(
     encoding="utf-8"))["categories"] for s in c["sections"]]
 
-ONLY = ("one-page",)
-WHY = ("the one docs page's spy, #hash URLs and ?theme= (PLAN.md Decisions 2, 8 and 10) exist only on the one page; "
-       "on routes each docs route is its own page and the table of contents had the spy")
 SUFFIX = " • femto"
 PAGE_TITLE = "Documentation • femto"
 JADE = "jade"
 
 # Where the reader is, as the page shows it: the URL, the title, the side nav's current links (href
-# and aria-current) and current summaries, the open categories, the breadcrumb's chapter, scrollY
-# and history.length.
+# and aria-current) and current summaries, the open categories, the breadcrumb's chapter (its second
+# item, the category) and section (its third and last item), scrollY and history.length.
 STATE = """
 const nav = document.querySelector("#documentation-menu nav");
-const chapter = document.querySelector("nav[aria-label=breadcrumb] li:last-child");
+const chapter = document.querySelector("main > nav[aria-label=breadcrumb] li:nth-child(2)");
+const crumb = document.querySelector("main > nav[aria-label=breadcrumb] li:nth-child(3):last-child");
 return {url: location.pathname + location.search + location.hash, title: document.title,
         nav: [...nav.querySelectorAll("a[aria-current]")].map(a => [a.getAttribute("href"), a.getAttribute("aria-current")]),
         summaries: [...nav.querySelectorAll("summary[aria-current]")].map(s => [s.textContent.trim(), s.getAttribute("aria-current")]),
         open: [...nav.querySelectorAll("details")].filter(d => d.open).map(d => d.querySelector(":scope > summary").textContent.trim()),
-        chapter: chapter ? chapter.textContent.trim() : null, y: Math.round(scrollY), history: history.length};
+        chapter: chapter ? chapter.textContent.trim() : null, crumb: crumb ? crumb.textContent.trim() : null,
+        y: Math.round(scrollY), history: history.length};
 """
 
 # The sections in nav order, as the page has them: [id, the h1's text, the category's summary text].
@@ -173,15 +171,17 @@ def animated(log):
     return len(set(ys)) >= 3 and max(ys) - min(ys) > 50 and log[-1][0] - log[0][0] >= 100
 
 
-def expect_section(page, sid, title, category, label):
+def expect_section(page, sid, title, category, heading, label):
     """The page shows the section as the one being read: its nav link alone current
     (aria-current="true"), its category's summary alone current, that category open, the
-    breadcrumb's chapter the category, and the title the section's (the page's own for the first)."""
+    breadcrumb's chapter the category and its last item the section's h1 text (`heading`), and the
+    title the section's (the page's own for the first)."""
     s = state(page)
     page.eq(f"{label}: the one current nav link is #{sid}", s["nav"], [[f"#{sid}", "true"]], **s)
     page.eq(f"{label}: the one current summary is {category}", s["summaries"], [[category, "true"]], **s)
     page.expect(f"{label}: {category} is open", category in s["open"], **s)
     page.eq(f"{label}: the breadcrumb's chapter is {category}", s["chapter"], category)
+    page.eq(f"{label}: the breadcrumb's last item is the section, {heading}", s["crumb"], heading)
     page.eq(f"{label}: the title", s["title"], title)
     return s
 
@@ -203,7 +203,7 @@ def deep_link(page):
     page.wait("Input's heading is on the scroll-padding line", f"Math.abs(({HEADING_LINE})('input')) <= 2", 2,
               offset=offset(page, "input"))
     wait_current(page, "input", "deep link")
-    s = expect_section(page, "input", "Input" + SUFFIX, "Forms", "deep link")
+    s = expect_section(page, "input", "Input" + SUFFIX, "Forms", "Input", "deep link")
     page.eq("the URL is the deep link's", s["url"], "/docs#input")
     if page.preloaded:
         log = page.js("return window.__bhLoadScrolls")
@@ -212,7 +212,7 @@ def deep_link(page):
         page.note("no preload script in this browser: the load's scrolling is not recorded")
 
 
-@check("spy-deep-link", "/docs#input", preload=LOAD_SCROLLS, preload_optional=True, layouts=ONLY, layout_reason=WHY)
+@check("spy-deep-link", "/docs#input", preload=LOAD_SCROLLS, preload_optional=True)
 def spy_deep_link(page):
     """A deep link, /docs#input, is the browser's own fragment scroll, not animated (Decision 10:
     Chrome animates every deep link when html itself is smooth): Input's heading lands on the
@@ -220,16 +220,15 @@ def spy_deep_link(page):
     `animated`'s rule, over every scroll event from the document's start, recorded by a preload
     script; Safari, which has none, skips that assertion), and the spy marks the section: the nav's one current link is #input
     (aria-current="true"), its category Forms is open and its summary alone current, the
-    breadcrumb's chapter reads Forms and the title "Input • femto"; the URL stays /docs#input."""
+    breadcrumb reads Forms then Input and the title "Input • femto"; the URL stays /docs#input."""
     deep_link(page)
 
 
-@check("spy-deep-link-small", "/docs#input", width=375, height=812, preload=LOAD_SCROLLS, preload_optional=True,
-       layouts=ONLY, layout_reason=WHY)
+@check("spy-deep-link-small", "/docs#input", width=375, height=812, preload=LOAD_SCROLLS, preload_optional=True)
 def spy_deep_link_small(page):
     """The same deep link at 375 x 812, where the sticky breadcrumb is part of the scroll padding:
     Input's heading lands on the scroll-padding line (within 2 px) in one jump, with the same nav,
-    category, chapter (Forms), title and URL."""
+    category, breadcrumb (Forms, Input), title and URL."""
     deep_link(page)
 
 
@@ -242,7 +241,7 @@ return {total: entries.filter(e => !e.hadRecentInput).reduce((s, e) => s + e.val
 """
 
 
-@check("deep-link-cold", "/docs#input", cold=True, layouts=ONLY, layout_reason=WHY)
+@check("deep-link-cold", "/docs#input", cold=True)
 def deep_link_cold(page):
     """Criterion 15's run-time check: a cold load (the browser's HTTP cache emptied first) of
     /docs#input ends with Input's heading on its scroll-padding line (within 2 px), and in a browser
@@ -261,7 +260,7 @@ def deep_link_cold(page):
     page.expect("Input's heading is still on the line", abs(offset(page, "input")) <= 2, offset=offset(page, "input"))
 
 
-@check("nojs-deep-link", "/docs#forms", javascript=False, layouts=ONLY, layout_reason=WHY)
+@check("nojs-deep-link", "/docs#forms", javascript=False)
 def nojs_deep_link(page):
     """With the page's JavaScript off (Chrome: CDP for this tab; Firefox: javascript.enabled;
     Safari cannot, so it is skipped there), the deep link /docs#forms still lands: the browser's own
@@ -273,9 +272,149 @@ def nojs_deep_link(page):
             PAGE_TITLE)
 
 
+# Every element in the tab order (tabIndex 0 or more), in the document and in its open shadow roots
+# (the /examples mockups), focused one at a time: focus() scrolls it into view as Tab does. Each one
+# that takes focus must then be on screen (a box that meets the viewport) and seen
+# (checkVisibility with opacity and visibility: no hidden or fully transparent box, its own or an
+# ancestor's). Returns how many took focus, the first that fail, and the controls that need the
+# page's JavaScript and still show (they have a box): the copy buttons and the header's theme toggle,
+# /docs' breadcrumb, its Documentation button, the menu's Close and the sections' script-driven
+# controls, /examples' theme select and Copy as page buttons, and the homepage's widgets.
+NOJS_FOCUS = """
+const tabbable = "a[href], area[href], button, input:not([type=hidden]), select, textarea, summary, iframe, [tabindex], [contenteditable]";
+const all = [];
+const walk = (root) => {
+  for (const el of root.querySelectorAll("*")) {
+    if (el.matches(tabbable)) all.push(el);
+    if (el.shadowRoot) walk(el.shadowRoot);
+  }
+};
+walk(document);
+const describe = (el) => el.localName + (el.id ? "#" + el.id : "") + (el.getAttribute("href") ? `[href="${el.getAttribute("href")}"]` : "")
+  + ` "${(el.getAttribute("aria-label") || el.textContent).trim().slice(0, 30)}"`
+  + (el.getRootNode() !== document ? " (in a shadow root)" : "");
+const bad = [];
+let focused = 0;
+for (const el of all) {
+  if (el.tabIndex < 0) continue;
+  el.focus();
+  if (el.getRootNode().activeElement !== el) continue;
+  focused++;
+  const r = el.getBoundingClientRect();
+  const seen = el.checkVisibility({opacityProperty: true, visibilityProperty: true});
+  const onScreen = r.width > 0 && r.height > 0 && r.right > 0 && r.bottom > 0 && r.left < innerWidth && r.top < innerHeight;
+  if ((!seen || !onScreen) && bad.length < 12)
+    bad.push([describe(el), seen ? "off screen" : "hidden", Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)]);
+}
+document.activeElement?.blur();
+const dead = ["button[data-copy-link]", "button[data-scheme-toggle]", "nav[data-docs-breadcrumb]", "button[data-menu-open]",
+              "button[data-menu-close]", "button[data-scheme-switcher]", "section[data-grid-example] > .grid > button",
+              "input[name=toggle-font-size-in-rem]", "button[data-modal-open]", "p[data-palette-help]",
+              "article[data-version-picker] > header a", "#content section > p:has(+ article[data-version-picker])",
+              "button[data-copy-page]", "p[data-examples-theme]", "label[data-femto-switch]", "fieldset[data-swatches]",
+              "button[data-demo-pause]"];
+const shown = dead.filter((sel) => [...document.querySelectorAll(sel)].some((el) => el.getClientRects().length > 0));
+return {candidates: all.length, focused, bad, shown, present: dead.filter((sel) => document.querySelector(sel))};
+"""
+
+
+def nojs_focus(page):
+    r = page.js(NOJS_FOCUS)
+    page.note(f"{r['focused']} of {r['candidates']} candidates took focus")
+    page.expect("elements take focus", r["focused"] > 0, **r)
+    page.eq("every element that takes focus is on screen and seen once focused", r["bad"], [], focused=r["focused"])
+    page.eq("no control that needs the page's JavaScript shows", r["shown"], [], present=r["present"])
+    want = {"button[data-scheme-toggle]", "button[data-copy-link]"} \
+        | ({"nav[data-docs-breadcrumb]", "button[data-menu-open]", "button[data-menu-close]", "button[data-scheme-switcher]",
+            "section[data-grid-example] > .grid > button", "input[name=toggle-font-size-in-rem]", "button[data-modal-open]",
+            "p[data-palette-help]", "article[data-version-picker] > header a",
+            "#content section > p:has(+ article[data-version-picker])"} if page.section else set()) \
+        | ({"button[data-copy-page]", "p[data-examples-theme]"} if page.route == "/examples" else set()) \
+        | ({"label[data-femto-switch]", "fieldset[data-swatches]", "button[data-demo-pause]"} if page.route == "/" else set())
+    page.expect("those controls are in the markup, hidden rather than missing", want <= set(r["present"]),
+                want=sorted(want), present=r["present"])
+
+
+@check("nojs-focus", ("/docs", "/", "/examples"), javascript=False)
+def nojs_focus_large(page):
+    """With the page's JavaScript off, at 1300 x 900, on /docs, the homepage and /examples: every
+    element in the tab order (tabIndex 0 or more; the document's and its open shadow roots'), once
+    focused (focus() scrolls it into view, as Tab does), has a box that meets the viewport and is
+    seen (checkVisibility with opacity and visibility). Nothing takes focus off screen or hidden.
+    The controls that need the page's JavaScript are in the markup but show nothing (no box): the
+    header's theme toggle and the copy buttons; on /docs the breadcrumb, its Documentation button,
+    the menu's Close, the Color schemes switcher, Grid's Add and Remove column, Typography's rem
+    switch, the Modal demo's opener, the Colors palette's help, and the Theme picker's swatches with
+    the sentence that introduces them (each a link to ?theme=, which only a head script applies);
+    on /examples the theme select
+    and the Copy as page buttons; on the homepage the femto switch, the theme swatches and the
+    typing demo's Pause. Skipped in Safari (JavaScript cannot be turned off there)."""
+    nojs_focus(page)
+
+
+@check("nojs-focus-small", ("/docs", "/", "/examples"), width=375, height=812, javascript=False)
+def nojs_focus_small(page):
+    """The same at 375 x 812, where /docs's side menu is the off-canvas panel when JavaScript runs:
+    with it off, none of the menu's links takes focus off screen (they sat at x = -375 before
+    docs.css's (scripting: none) rules), and nothing else does."""
+    nojs_focus(page)
+
+
+# The side menu with JavaScript off: its box, #content's, and each nav link's box and whether it is seen.
+NOJS_MENU = """
+const m = document.querySelector("#documentation-menu"), c = document.querySelector("#content"), root = document.documentElement;
+const sections = c.querySelectorAll(":scope > section > hgroup > h1[id]").length;
+const mr = m.getBoundingClientRect(), cr = c.getBoundingClientRect();
+const links = [...m.querySelectorAll("nav a[href^='#']")].map((a) => {
+  const r = a.getBoundingClientRect();
+  return [a.getAttribute("href"), a.checkVisibility({opacityProperty: true, visibilityProperty: true}), Math.round(r.left), Math.round(r.right)];
+});
+return {sections, position: getComputedStyle(m).position, menu: [mr.top + scrollY, mr.bottom + scrollY, mr.left, mr.right],
+        content: [cr.top + scrollY, cr.left], links, clientWidth: root.clientWidth,
+        unseen: links.filter((l) => !l[1] || l[2] < 0 || l[3] > root.clientWidth).slice(0, 8)};
+"""
+
+
+def nojs_menu(page, small):
+    m = page.js(NOJS_MENU)
+    page.eq("the menu has a link for each section", len(m["links"]), m["sections"])
+    page.eq("every menu link is seen, inside the page's width", m["unseen"], [], clientWidth=m["clientWidth"])
+    if small:
+        page.eq("the menu is in the page's flow", m["position"], "static")
+        page.expect("the menu comes before the sections", m["menu"][1] <= m["content"][0] + 0.5, **m)
+    else:
+        page.expect("the menu is the side nav, beside the sections", m["menu"][3] <= m["content"][1] + 0.5, **m)
+    n = page.js("return history.length")
+    page.click("#documentation-menu nav a[href='#grid']")
+    wait_url(page, "/docs#grid", "the Grid link")
+    page.wait("Grid's heading is on the scroll-padding line", f"Math.abs(({HEADING_LINE})('grid')) <= 2", 3,
+              offset=offset(page, "grid"))
+    page.eq("one new history entry", page.js("return history.length"), n + 1)
+    page.eq("no page script ran", page.js("return document.title"), PAGE_TITLE)
+
+
+@check("nojs-menu", "/docs", javascript=False)
+def nojs_menu_large(page):
+    """With the page's JavaScript off, at 1300 x 900, the docs menu is the side nav beside the
+    sections: its links, one per section of menu.json, are all seen and inside the page's width, and a
+    real click on Grid's link is the browser's own fragment navigation: /docs#grid, one new history
+    entry, Grid's heading on the scroll-padding line (within 2 px), and the title unchanged. Skipped
+    in Safari."""
+    nojs_menu(page, small=False)
+
+
+@check("nojs-menu-small", "/docs", width=375, height=812, javascript=False)
+def nojs_menu_small(page):
+    """The same at 375 x 812, where with JavaScript off the menu is no off-canvas panel but a block
+    in the page's flow (position static) before the sections, all its links seen and inside the
+    page's width; Grid's link lands Grid's heading on the scroll-padding line, which leaves room
+    for its chapter label with no sticky breadcrumb above it."""
+    nojs_menu(page, small=True)
+
+
 # -- the spy while scrolling ----------------------------------------------------------------------
 
-@check("spy-scroll", "/docs", layouts=ONLY, layout_reason=WHY)
+@check("spy-scroll", "/docs")
 def spy_scroll(page):
     """Scrolling writes the section into the URL 200 ms after scrolling last moved, once the section
     it settles on differs from the hash (docs.js syncUrl restarts its timer on every scroll frame):
@@ -327,7 +466,7 @@ return {height, steps, scrollMs, replace: __bhTrack.replace, url: location.pathn
 """
 
 
-@check("spy-fast-scroll", "/docs", layouts=ONLY, layout_reason=WHY)
+@check("spy-fast-scroll", "/docs")
 def spy_fast_scroll(page):
     """A fast scroll from the top to the bottom, 200 px every 16 ms in the page, makes at most 3
     replaceState calls (the URL is written 200 ms after scrolling last moved) and ends on the last
@@ -340,15 +479,15 @@ def spy_fast_scroll(page):
     wait_current(page, MENU_IDS[-1], "the end")
 
 
-@check("spy-categories", "/docs", layouts=ONLY, layout_reason=WHY)
+@check("spy-categories", "/docs")
 def spy_categories(page):
-    """The nav, its categories, the breadcrumb's chapter and the title follow the spy through every
-    section: for each of the nav's links in order (one per section: 40 from Phase 4, the 31 of
-    Phase 3 and the 9 sections 04 §1 adds, as site/docs/menu.json lists them), with the page scrolled so
+    """The nav, its categories, the breadcrumb and the title follow the spy through every section:
+    for each of the nav's links in order (one per section, as site/docs/menu.json lists
+    them: 40 on 2026-11-09), with the page scrolled so
     that section's heading is on its line (or as far as the page goes, for the last), the one current
     link is its own (aria-current="true"), its category's summary alone is current and that category
-    is open, the breadcrumb's chapter names the category, and the title is "<the section's h1> •
-    femto" (the page's own for Quick start). The spy scrolls the side nav, never the page, to show
+    is open, the breadcrumb's chapter names the category and its last item the section (its h1's
+    text), and the title is "<the section's h1> • femto" (the page's own for Quick start). The spy scrolls the side nav, never the page, to show
     the current link (docs.js revealInNav): at 1300 px, two frames after the mark, the current link's
     box lies within the side nav's (1 px slack), and the page is still where the check scrolled it,
     every scroll event since then reporting that scrollY (within 1 px). A category the reader closes
@@ -364,11 +503,11 @@ def spy_categories(page):
         y = scroll_into(page, sid)
         if sid != last[0] and page.js(SHORT_OF_LINE, sid):
             # The page ends before this heading reaches its line: there the last section is current
-            # once its top is on screen (02 §4), which the last step checks.
+            # once its top is on screen (docs.js, the spy), which the last step checks.
             page.note(f"#{sid}: the page ends before its heading reaches its line; the last section is current there")
             continue
         wait_current(page, sid, sid)
-        expect_section(page, sid, section_title(sid, h1), category, sid)
+        expect_section(page, sid, section_title(sid, h1), category, h1, sid)
         r = page.ajs(REVEAL)
         page.expect(f"{sid}: the current link is inside the side nav's box", r["inside"], **r)
         page.expect(f"{sid}: the reveal scrolled the side nav, not the page",
@@ -383,26 +522,118 @@ def spy_categories(page):
     scroll_into(page, "input")
     wait_current(page, "input", "Input")
     page.wait("Forms opens again for Input", "arguments[0].parentElement.open", 1, args=(forms,))
-    expect_section(page, "input", "Input" + SUFFIX, "Forms", "Input")
+    expect_section(page, "input", "Input" + SUFFIX, "Forms", "Input", "Input")
 
 
-@check("spy-chapter-small", "/docs", width=375, height=812, layouts=ONLY, layout_reason=WHY)
+# The breadcrumb's last item, the section, as the reader sees it: its box and the breadcrumb's, the
+# first item's top (one line: every item on it), and whether its text is cut, with the overflow and
+# text-overflow that draw the cut.
+CRUMB_FIT = """
+const nav = document.querySelector("main > nav[aria-label=breadcrumb]"), first = nav.querySelector("li:first-child");
+const li = nav.querySelector("li:last-child"), cs = getComputedStyle(li);
+const n = nav.getBoundingClientRect(), l = li.getBoundingClientRect();
+return {text: li.textContent.trim(), left: l.left, right: l.right, navRight: n.right, innerWidth,
+        sameLine: Math.abs(l.top - first.getBoundingClientRect().top) <= 1, cut: li.scrollWidth > li.clientWidth,
+        overflow: cs.overflowX, textOverflow: cs.textOverflow, whiteSpace: cs.whiteSpace};
+"""
+
+
+def expect_crumb_fits(page, label):
+    """The breadcrumb's last item stays on the breadcrumb's one line and inside its box, and when
+    its text is longer than the room left it is cut with an ellipsis."""
+    r = page.js(CRUMB_FIT)
+    page.expect(f"{label}: the section's item is on the breadcrumb's one line, inside it",
+                r["sameLine"] and r["right"] <= min(r["navRight"], r["innerWidth"]) + 0.5 and r["left"] < r["right"], **r)
+    if r["cut"]:
+        page.eq(f"{label}: the section's cut text ends in an ellipsis", [r["overflow"], r["textOverflow"], r["whiteSpace"]],
+                ["hidden", "ellipsis", "nowrap"], **r)
+    return r
+
+
+@check("spy-chapter-small", "/docs", width=375, height=812)
 def spy_chapter_small(page):
-    """At 375 x 812, where the breadcrumb shows (sticky, its chapter the current category), the
-    chapter follows the spy as the reader scrolls: Customization at Colors, Layout at Grid, Content
-    at Table, Forms at Radios, Components at Modal, Advanced at Cascade layer, Reference at Browser
-    support, and Getting started back at the top."""
-    for sid, category in (("colors", "Customization"), ("grid", "Layout"), ("table", "Content"), ("radios", "Forms"),
-                          ("modal", "Components"), ("cascade-layer", "Advanced"), ("browser-support", "Reference"),
-                          ("quick-start", "Getting started")):
+    """At 375 x 812, where the breadcrumb shows (sticky, "Documentation > <category> > <section>",
+    the Documentation button drawn as its ☰ alone), its chapter and its last item follow the spy as
+    the reader scrolls: Customization and Colors at
+    Colors, Layout and Grid at Grid, Content and Table at Table, Forms and Radios at Radios,
+    Components and Modal at Modal, Advanced and Cascade layer at Cascade layer, Reference and
+    Migrating from Pico at Migrating from Pico, Reference and Browser support at Browser support, and
+    Getting started and Quick start back at the top (each section's h1 text and its nav category, as
+    the page has them). At each, the section's item stays on the breadcrumb's one line and inside
+    it, and shows in full: with the button's label out of sight, even Getting started > Migrating
+    from Pico fits. A name too long for the room left would be cut with an ellipsis (overflow
+    hidden, text-overflow ellipsis, white-space nowrap), which is checked whenever one is cut."""
+    names = {sid: (h1, category) for sid, h1, category in page.js(SECTIONS)}
+    cut = []
+    for sid in ("colors", "grid", "table", "radios", "modal", "cascade-layer", "migration", "browser-support", "quick-start"):
+        h1, category = names[sid]
         if sid == "quick-start":
             page.scroll_to(0)
         else:
             scroll_into(page, sid)
         wait_current(page, sid, sid)
-        page.wait(f"{sid}: the chapter reads {category}",
-                  "document.querySelector('nav[aria-label=breadcrumb] li:last-child').textContent.trim() === arguments[0]", 1,
-                  args=(category,), got=state(page)["chapter"])
+        page.wait(f"{sid}: the breadcrumb reads {category} > {h1}",
+                  "(() => { const n = document.querySelector('main > nav[aria-label=breadcrumb]');"
+                  " return n.querySelector('li:nth-child(2)').textContent.trim() === arguments[0]"
+                  " && n.querySelector('li:nth-child(3):last-child').textContent.trim() === arguments[1]; })()", 1,
+                  args=(category, h1), got=[state(page)["chapter"], state(page)["crumb"]])
+        if expect_crumb_fits(page, sid)["cut"]:
+            cut.append(sid)
+    page.eq("at 375 px every section's name shows in full", cut, [])
+
+
+# Records every scrollY the page's scroll events report into __bhOpenerY from now on.
+OPENER_TRACK = """
+window.__bhOpenerY = [];
+addEventListener("scroll", () => window.__bhOpenerY.push(Math.round(scrollY)), {passive: true});
+"""
+OPENER = "main > nav[aria-label=breadcrumb] button[data-menu-open]"
+
+
+def opener_shift_tab(page):
+    sid = page.section
+    h1, category = {s: (h, c) for s, h, c in page.js(SECTIONS)}[sid]
+    page.wait(f"{h1}'s heading is on the scroll-padding line", f"Math.abs(({HEADING_LINE})(arguments[0])) <= 2", 2,
+              args=(sid,), offset=offset(page, sid))
+    wait_current(page, sid, "deep link")
+    settle(page, "deep link")
+    page.wait("the breadcrumb is stuck at the top", "Math.abs(document.querySelector('main > nav[aria-label=breadcrumb]')"
+              ".getBoundingClientRect().top + 1) <= 1", 1)
+    # A click on the section's crumb (text, not a control) puts the sequential focus starting point
+    # there, so Shift+Tab goes to the opener just before it.
+    page.click("main > nav[aria-label=breadcrumb] li:nth-child(3):last-child", scroll=False)
+    before = state(page)
+    page.js(OPENER_TRACK)
+    page.tab(shift=True)
+    page.eq("Shift+Tab focuses the Documentation button", page.js("return document.activeElement === document.querySelector(arguments[0])", OPENER),
+            True, active=page.js("return document.activeElement.outerHTML.slice(0, 120)"))
+    page.sleep(0.6)   # a scroll would have run and the spy (200 ms) moved by now
+    after = state(page)
+    page.eq("the page did not scroll", page.js("return window.__bhOpenerY"), [], before=before["y"], after=after["y"])
+    page.expect("scrollY is kept (within 1 px)", abs(after["y"] - before["y"]) <= 1, before=before["y"], after=after["y"])
+    page.eq("the URL is kept", after["url"], f"/docs#{sid}")
+    page.eq("the breadcrumb still reads the section", [after["chapter"], after["crumb"]], [category, h1])
+    page.eq("the title is kept", after["title"], section_title(sid, h1))
+    page.eq("no new history entry", after["history"], before["history"])
+
+
+@check("opener-shift-tab-small", ("/docs#grid", "/docs#input"), width=375, height=812)
+def opener_shift_tab_small(page):
+    """At 375 x 812, deep-linked to a section, with the sticky breadcrumb stuck at the top: after a
+    click on the breadcrumb's section item, Shift+Tab focuses the Documentation button
+    (button[data-menu-open]) and the page stays where it is: no scroll event, scrollY within 1 px,
+    and 600 ms later the URL's hash, the breadcrumb's chapter and section, the title and
+    history.length unchanged. The stuck button sits inside html's scroll padding, which Chrome takes
+    for out of view: without docs.css's scroll margin on it, Chrome scrolled the page about 420 px up
+    and the spy moved everything to the section before (Firefox did not scroll)."""
+    opener_shift_tab(page)
+
+
+@check("opener-shift-tab", ("/docs#grid", "/docs#input"), width=800, height=1000)
+def opener_shift_tab_md(page):
+    """The same at 800 x 1000, in the md container, where the breadcrumb is full bleed and the root
+    font size, and so the scroll padding, is larger."""
+    opener_shift_tab(page)
 
 
 # -- nav clicks, back, forward, reload -------------------------------------------------------------
@@ -425,7 +656,7 @@ def nav_click(page, label):
 
 
 def expect_click(page, before, track, label):
-    after = expect_section(page, "container", "Container" + SUFFIX, "Layout", label)
+    after = expect_section(page, "container", "Container" + SUFFIX, "Layout", "Container", label)
     page.eq(f"{label}: one new history entry", after["history"], before["history"] + 1)
     seen = sorted({x for _, x in track["nav"] if x})
     page.eq(f"{label}: the nav never shows a section in between", seen, ["#container"], log=track["nav"],
@@ -435,7 +666,7 @@ def expect_click(page, before, track, label):
     return after
 
 
-@check("spy-nav-click", "/docs#modal", layouts=ONLY, layout_reason=WHY)
+@check("spy-nav-click", "/docs#modal")
 def spy_nav_click(page):
     """A nav click is the browser's own fragment navigation, smooth (Decision 10): from 200 px into
     Modal, a real click on the nav's Container link makes the URL /docs#container with exactly one new
@@ -451,7 +682,7 @@ def spy_nav_click(page):
                 scroll=track["scroll"][:40])
 
 
-@check("spy-nav-click-reduced", "/docs#modal", motion="reduce", layouts=ONLY, layout_reason=WHY)
+@check("spy-nav-click-reduced", "/docs#modal", motion="reduce")
 def spy_nav_click_reduced(page):
     """Under prefers-reduced-motion: reduce (emulated in Chrome and Firefox; Safari reads macOS's
     Reduce Motion, so it runs there in the owner's pass with it on, tests/owner-safari.sh reduced),
@@ -465,12 +696,12 @@ def spy_nav_click_reduced(page):
                 scroll=track["scroll"][:40])
 
 
-@check("spy-back-forward", "/docs#modal", layouts=ONLY, layout_reason=WHY)
+@check("spy-back-forward", "/docs#modal")
 def spy_back_forward(page):
     """Back and forward are the browser's own traversal, never animated: after the nav click from
     200 px into Modal to Container, back returns to /docs#modal, at the exact position it left
     (Firefox, Safari) or with Modal's heading on its line (Chrome goes to the entry's #hash heading;
-    05, accepted), the nav marking #modal; forward returns to /docs#container, the nav marking
+    accepted, PLAN.md Risks), the nav marking #modal; forward returns to /docs#container, the nav marking
     #container. Neither scroll is animated."""
     before, _ = nav_click(page, "click")
     page.js(TRACK)
@@ -494,7 +725,7 @@ def spy_back_forward(page):
     page.expect("forward is not animated", not animated(log), scroll=log[:40])
 
 
-@check("spy-reload", "/docs#css-variables", layouts=ONLY, layout_reason=WHY)
+@check("spy-reload", "/docs#css-variables")
 def spy_reload(page):
     """Reload keeps the reader in the section: scrolled 900 px into CSS variables (less in a shorter
     section: half its height), location.reload() comes back to the same URL at the exact position
@@ -537,12 +768,12 @@ def spy_reload(page):
 # parser-blocking script waits for it: the site's color-scheme script, the second inline head script,
 # comes after the ?theme= script (PLAN.md Decisions 8 and 14), so the parser, and with it Firefox's
 # first paint, waits there until the theme's file has loaded, and <body> comes after it too. Probed
-# in Phase 3 in headless Firefox 160 with jade's file held 300 ms: with the one head script of
-# before, the first contentful paint came at 80 to 277 ms, before the file's responseEnd; with a
-# static inline script after it, at 455 to 588 ms, after it. On the split site (p3f-head-tff-1 to -3)
-# Firefox's first contentful paint came at 492 to 498 ms, after the file's responseEnd at 355 to 359
-# ms, and this frame was jade's; on a copy with the two merged into one script again
-# (p3f-head-neg-merged-1) it came at 181 ms, before the file (357 ms), with azure's frame. So in
+# on 2026-11-04 in headless Firefox 160 with jade's file held 300 ms: with one head script, the
+# first contentful paint came at 80 to 277 ms, before the file's responseEnd; with a static inline
+# script after it, at 455 to 588 ms, after it. With the two scripts, Firefox's first contentful
+# paint came at 492 to 498 ms, after the file's responseEnd at 355 to 359 ms, and this frame was
+# jade's; on a copy with the two merged into one script again it came at 181 ms, before the file
+# (357 ms), with azure's frame (owner decision 13, tests/README.md). So in
 # Chrome and Firefox alike the check asserts the first contentful paint after the file arrived and
 # this frame in jade's color.
 FIRST_FRAME = """() => {
@@ -566,7 +797,7 @@ return {inHead: !!link && link.parentElement === document.head, firstFrame: wind
         dcl: nav ? Math.round(nav.domContentLoadedEventStart) : null, fcp: fcp ? Math.round(fcp.startTime) : null};
 """
 
-# How long the harness holds jade's file, as 05's serve.py did. Served at once, a <link> added by
+# How long the harness holds jade's file. Served at once, a <link> added by
 # script would arrive before the first paint too, and the check could not tell it from document.write.
 THEME_DELAY = 0.3
 
@@ -582,7 +813,7 @@ def azure_primary(page):
 
 
 @check("theme-first-frame", "/docs?theme=jade#grid", preload=FIRST_FRAME, preload_optional=True, cold=True,
-       delay={f"/vendor/femto/css/themes/{JADE}.css": THEME_DELAY}, layouts=ONLY, layout_reason=WHY)
+       delay={f"/vendor/femto/css/themes/{JADE}.css": THEME_DELAY})
 def theme_first_frame(page):
     """?theme=jade is applied as a parser-inserted stylesheet, before the first paint, on a cold load
     with jade's file held 300 ms (THEME_DELAY; resource timing shows the hold, except in Safari,
@@ -628,7 +859,7 @@ def theme_first_frame(page):
               f"{r['responseEnd']}, DOMContentLoaded {r['dcl']}, first contentful paint {r['fcp']} ms")
 
 
-@check("theme-kept", "/docs?theme=jade#grid", layouts=ONLY, layout_reason=WHY)
+@check("theme-kept", "/docs?theme=jade#grid")
 def theme_kept(page):
     """?theme= stays in the URL through the spy and nav clicks (the path and query are kept, only the
     hash changes): scrolled into Modal the URL becomes /docs?theme=jade#modal; a nav click on Forms
@@ -656,7 +887,7 @@ def theme_kept(page):
 
 
 @check("theme-unknown", ("/docs?theme=bogus", "/docs?theme=azure", "/docs?theme=JADE", "/docs?theme=..%2Fthemes%2Fjade",
-                         "/docs?theme=jade.css"), layouts=ONLY, layout_reason=WHY)
+                         "/docs?theme=jade.css"))
 def theme_unknown(page):
     """A ?theme= value that is not one of the 19 theme colors (an unknown word, azure the default,
     the wrong case, a path, a file name) is ignored: no theme stylesheet on the page and
