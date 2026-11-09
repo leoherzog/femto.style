@@ -11,7 +11,6 @@
     <!-- include partials/structured-data.html -->
     <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
     <link rel="stylesheet" href="/vendor/femto/css/options/responsive-spacings.css">
-    <link rel="stylesheet" href="/assets/css/fonts.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/code.css">
     <link rel="stylesheet" href="/assets/css/landing.css">
@@ -22,12 +21,46 @@
     <a href="#content" class="skip-to-content">Skip to content</a>
     <!-- include partials/header.html -->
     <main id="content" class="examples container">
-      <section class="examples-hero">
+      <hgroup class="examples-hero">
         <h1><mark>Examples</mark></h1>
-        <p class="secondary">Widgets, forms and pages built with femto alone.</p>
-      </section>
+        <p>Widgets, forms and pages built with femto alone.</p>
+      </hgroup>
+      <p class="examples-theme" data-examples-theme>
+        <label>
+          Theme color
+          <select name="theme" autocomplete="off">
+            <option value="red">Red</option>
+            <option value="orange">Orange</option>
+            <option value="pumpkin">Pumpkin</option>
+            <option value="amber">Amber</option>
+            <option value="yellow">Yellow</option>
+            <option value="lime">Lime</option>
+            <option value="green">Green</option>
+            <option value="jade">Jade</option>
+            <option value="cyan">Cyan</option>
+            <option value="azure" selected>Azure</option>
+            <option value="blue">Blue</option>
+            <option value="indigo">Indigo</option>
+            <option value="violet">Violet</option>
+            <option value="purple">Purple</option>
+            <option value="fuchsia">Fuchsia</option>
+            <option value="pink">Pink</option>
+            <option value="sand">Sand</option>
+            <option value="grey">Grey</option>
+            <option value="zinc">Zinc</option>
+            <option value="slate">Slate</option>
+          </select>
+        </label>
+      </p>
       <section class="examples-index">
         <div class="grid">
+          <div>
+            <p class="chapter">Overview</p>
+            <ul>
+              <li><a href="#every-element">Every element</a></li>
+              <li><a href="#all-themes">All theme colors</a></li>
+            </ul>
+          </div>
           <div>
             <p class="chapter">Widgets</p>
             <ul>
@@ -42,11 +75,14 @@
               <li><a href="#sign-in">Sign in</a></li>
               <li><a href="#sign-up">Sign up</a></li>
               <li><a href="#contact">Contact form</a></li>
+              <li><a href="#checkout">Checkout</a></li>
             </ul>
           </div>
           <div>
             <p class="chapter">Pages</p>
             <ul>
+              <li><a href="#landing-page">Landing page</a></li>
+              <li><a href="#docs-layout">Docs page</a></li>
               <li><a href="#pricing">Pricing</a></li>
               <li><a href="#dashboard">Dashboard</a></li>
               <li><a href="#settings">Settings</a></li>
@@ -57,14 +93,1611 @@
         </div>
       </section>
       <!-- Each example's markup is written twice: in its inner shadow root, after the femto link, and
-           escaped in the code sample under it. Change both the same way. examples.css and
-           examples.js explain the two shadow roots. -->
+           escaped in the code sample in the <details> under it. Change both the same way. examples.css
+           and examples.js explain the two shadow roots, the Copy as page buttons and the theme select. -->
+      <section class="example" id="every-element" aria-label="Every element example">
+        <header>
+          <hgroup>
+            <p class="chapter">Overview</p>
+            <h2>Every element</h2>
+            <p>Most of the elements femto styles, on one page: text, lists, figures, code, tables, forms, buttons and components. A script opens its modal.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <h1>Heading 1</h1>
+                <h2>Heading 2</h2>
+                <h3>Heading 3</h3>
+                <h4>Heading 4</h4>
+                <h5>Heading 5</h5>
+                <h6>Heading 6</h6>
+                <hgroup>
+                  <h2>A heading group</h2>
+                  <p>A heading and the line under it, in the muted color.</p>
+                </hgroup>
+                <section>
+                  <h2>Text</h2>
+                  <p>A paragraph with <a href="#">a link</a>, <a href="#" class="secondary">a secondary link</a> and <a href="#" class="contrast">a contrast link</a>.</p>
+                  <p><strong>Strong</strong>, <b>bold</b>, <em>emphasized</em>, <i>italic</i>, <u>underlined</u>, <s>struck</s>, <del>deleted</del>, <ins>inserted</ins>, <mark>marked</mark> and <small>small</small> text.</p>
+                  <p>An <abbr title="abbreviation">abbr.</abbr>, H<sub>2</sub>O, E = mc<sup>2</sup>, <code>code</code>, <kbd>Ctrl</kbd> + <kbd>C</kbd>, <samp>sample output</samp>, a <var>variable</var>, a <dfn>definition</dfn>, a <q>quotation</q>, a <cite>title</cite> and a date, <time datetime="2026-11-09">November 9, 2026</time>.</p>
+                  <address>Acme, 100 Main Street, Springfield, IL 62701</address>
+                </section>
+                <hr>
+                <section>
+                  <h2>Lists</h2>
+                  <ul>
+                    <li>An unordered list</li>
+                    <li>
+                      An item with a list of its own
+                      <ul>
+                        <li>A nested item</li>
+                      </ul>
+                    </li>
+                  </ul>
+                  <ol>
+                    <li>An ordered list</li>
+                    <li>Its second item</li>
+                  </ol>
+                  <dl>
+                    <dt>A description list</dt>
+                    <dd>Terms, each with its description</dd>
+                  </dl>
+                </section>
+                <section>
+                  <h2>Quotations and figures</h2>
+                  <blockquote>
+                    A quotation, set off from the text around it.
+                    <footer>
+                      <cite>Its source</cite>
+                    </footer>
+                  </blockquote>
+                  <figure>
+                    <img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201200%20300'%3E%3Crect%20width='1200'%20height='300'%20fill='%23dbe4ee'/%3E%3Cpath%20d='M0%20300L320%2090L560%20220L860%2040L1200%20300Z'%20fill='%238391a7'/%3E%3C/svg%3E" width="1200" height="300" alt="Grey hills under a pale sky">
+                    <figcaption>A figure: an image, scaled down to fit, and its caption</figcaption>
+                  </figure>
+                </section>
+                <section>
+                  <h2>Code</h2>
+                  <pre><code>function greet(name) {
+  return "Hello, " + name + "!";
+}</code></pre>
+                </section>
+                <section>
+                  <h2>Table</h2>
+                  <div class="overflow-auto">
+                    <table class="striped">
+                      <thead>
+                        <tr>
+                          <th scope="col">Planet</th>
+                          <th scope="col">Moons</th>
+                          <th scope="col">Year</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <th scope="row">Mercury</th>
+                          <td>0</td>
+                          <td>88 days</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Venus</th>
+                          <td>0</td>
+                          <td>225 days</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Earth</th>
+                          <td>1</td>
+                          <td>365 days</td>
+                        </tr>
+                        <tr>
+                          <th scope="row">Mars</th>
+                          <td>2</td>
+                          <td>687 days</td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr>
+                          <th scope="row">All four</th>
+                          <td>3</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </section>
+                <section>
+                  <h2>Forms</h2>
+                  <form method="dialog">
+                    <div class="grid">
+                      <label>
+                        Text
+                        <input type="text" name="text" placeholder="Text">
+                      </label>
+                      <label>
+                        Email
+                        <input type="email" name="email" placeholder="name@example.com" autocomplete="email">
+                      </label>
+                    </div>
+                    <div class="grid">
+                      <label>
+                        Password
+                        <input type="password" name="password" autocomplete="new-password">
+                      </label>
+                      <label>
+                        Number
+                        <input type="number" name="number" value="3" min="0" max="10">
+                      </label>
+                    </div>
+                    <div class="grid">
+                      <label>
+                        Telephone
+                        <input type="tel" name="tel" placeholder="555-0100" autocomplete="tel">
+                      </label>
+                      <label>
+                        URL
+                        <input type="url" name="url" placeholder="https://example.com">
+                      </label>
+                    </div>
+                    <div class="grid">
+                      <label>
+                        Date
+                        <input type="date" name="date">
+                      </label>
+                      <label>
+                        Time
+                        <input type="time" name="time">
+                      </label>
+                    </div>
+                    <div class="grid">
+                      <label>
+                        Date and time
+                        <input type="datetime-local" name="datetime">
+                      </label>
+                      <label>
+                        Month
+                        <input type="month" name="month">
+                      </label>
+                    </div>
+                    <div class="grid">
+                      <label>
+                        Week
+                        <input type="week" name="week">
+                      </label>
+                      <label>
+                        Color
+                        <input type="color" name="color" value="#0172ad">
+                      </label>
+                    </div>
+                    <label>
+                      Search
+                      <input type="search" name="search" placeholder="Search">
+                    </label>
+                    <div class="grid">
+                      <label>
+                        File
+                        <input type="file" name="file">
+                      </label>
+                      <label>
+                        Range
+                        <input type="range" name="range" value="40">
+                      </label>
+                    </div>
+                    <div class="grid">
+                      <label>
+                        Select
+                        <select name="select">
+                          <option>First option</option>
+                          <option>Second option</option>
+                        </select>
+                      </label>
+                      <label>
+                        Select with several choices
+                        <select name="choices" multiple size="3">
+                          <option>First option</option>
+                          <option>Second option</option>
+                          <option>Third option</option>
+                        </select>
+                      </label>
+                    </div>
+                    <label>
+                      Textarea
+                      <textarea name="textarea" rows="3" placeholder="Write something"></textarea>
+                    </label>
+                    <div class="grid">
+                      <div>
+                        <label for="every-element-valid">Valid</label>
+                        <input type="text" id="every-element-valid" name="valid" value="Looks good" aria-invalid="false" aria-describedby="every-element-valid-help">
+                        <small id="every-element-valid-help">Helper text in the valid color</small>
+                      </div>
+                      <div>
+                        <label for="every-element-invalid">Invalid</label>
+                        <input type="text" id="every-element-invalid" name="invalid" value="Not quite" aria-invalid="true" aria-describedby="every-element-invalid-help">
+                        <small id="every-element-invalid-help">Helper text in the invalid color</small>
+                      </div>
+                    </div>
+                    <div class="grid">
+                      <label>
+                        Disabled
+                        <input type="text" name="disabled" value="Disabled" disabled>
+                      </label>
+                      <label>
+                        Read-only
+                        <input type="text" name="read-only" value="Read-only" readonly>
+                      </label>
+                    </div>
+                    <div class="grid">
+                      <fieldset>
+                        <legend>Checkboxes</legend>
+                        <label>
+                          <input type="checkbox" name="checked" checked>
+                          Checked
+                        </label>
+                        <label>
+                          <input type="checkbox" name="unchecked">
+                          Unchecked
+                        </label>
+                        <label aria-disabled="true">
+                          <input type="checkbox" name="disabled-checkbox" disabled>
+                          Disabled
+                        </label>
+                      </fieldset>
+                      <fieldset>
+                        <legend>Radio buttons</legend>
+                        <label>
+                          <input type="radio" name="every-element-radio" value="first" checked>
+                          First
+                        </label>
+                        <label>
+                          <input type="radio" name="every-element-radio" value="second">
+                          Second
+                        </label>
+                        <label>
+                          <input type="radio" name="every-element-radio" value="third">
+                          Third
+                        </label>
+                      </fieldset>
+                      <fieldset>
+                        <legend>Switches</legend>
+                        <label>
+                          <input type="checkbox" role="switch" name="on" checked>
+                          On
+                        </label>
+                        <label>
+                          <input type="checkbox" role="switch" name="off">
+                          Off
+                        </label>
+                      </fieldset>
+                    </div>
+                    <div role="group">
+                      <input type="email" name="newsletter" placeholder="Email" aria-label="Email for the newsletter" autocomplete="email">
+                      <input type="submit" value="Subscribe">
+                    </div>
+                    <input type="reset" value="Reset">
+                    <button type="submit">Submit</button>
+                  </form>
+                  <form method="dialog" role="search" aria-label="Site search">
+                    <input type="search" name="q" placeholder="Search" aria-label="Search">
+                    <input type="submit" value="Search">
+                  </form>
+                </section>
+                <section>
+                  <h2>Buttons</h2>
+                  <p>
+                    <button type="button">Primary</button>
+                    <button type="button" class="secondary">Secondary</button>
+                    <button type="button" class="contrast">Contrast</button>
+                  </p>
+                  <p>
+                    <button type="button" class="outline">Outline</button>
+                    <button type="button" class="secondary outline">Secondary outline</button>
+                    <button type="button" class="contrast outline">Contrast outline</button>
+                  </p>
+                  <p>
+                    <button type="button" disabled>Disabled</button>
+                    <button type="button" aria-busy="true">Busy</button>
+                    <a href="#" role="button">A link as a button</a>
+                  </p>
+                  <div role="group" aria-label="Calendar view">
+                    <button type="button">Day</button>
+                    <button type="button" aria-current="true">Week</button>
+                  </div>
+                </section>
+                <section>
+                  <h2>Components</h2>
+                  <details open>
+                    <summary>An accordion</summary>
+                    <p>Its content shows while it is open.</p>
+                  </details>
+                  <details>
+                    <summary role="button" class="outline">An accordion with a button for its summary</summary>
+                    <p>Its content shows while it is open.</p>
+                  </details>
+                  <details class="dropdown">
+                    <summary>A dropdown</summary>
+                    <ul>
+                      <li><a href="#">First item</a></li>
+                      <li><a href="#">Second item</a></li>
+                      <li><a href="#">Third item</a></li>
+                    </ul>
+                  </details>
+                  <article>
+                    <header>A card's header</header>
+                    <p>A card is an article, with an optional header and footer.</p>
+                    <footer>A card's footer</footer>
+                  </article>
+                  <p>
+                    <button type="button" aria-haspopup="dialog" aria-controls="every-element-dialog">Open a modal</button>
+                    <button type="button" class="secondary" data-tooltip="A tooltip">A button with a tooltip</button>
+                  </p>
+                  <dialog id="every-element-dialog" aria-labelledby="every-element-dialog-title">
+                    <article>
+                      <header>
+                        <button type="button" aria-label="Close" rel="prev"></button>
+                        <h3 id="every-element-dialog-title">A modal</h3>
+                      </header>
+                      <p>A dialog that holds an article. Escape, the close button or a click outside it closes it.</p>
+                      <footer>
+                        <button type="button" class="secondary">Cancel</button>
+                        <button type="button">Confirm</button>
+                      </footer>
+                    </article>
+                  </dialog>
+                  <progress value="60" max="100" aria-label="A progress bar at 60%"></progress>
+                  <progress aria-label="A progress bar with no value"></progress>
+                  <p aria-busy="true">Loading</p>
+                  <nav aria-label="Example">
+                    <ul>
+                      <li><strong>Brand</strong></li>
+                    </ul>
+                    <ul>
+                      <li><a href="#">Link</a></li>
+                      <li><a href="#" aria-current="page">Current</a></li>
+                      <li><a href="#" role="button">Button</a></li>
+                    </ul>
+                  </nav>
+                </section>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
+&lt;h2&gt;Heading 2&lt;/h2&gt;
+&lt;h3&gt;Heading 3&lt;/h3&gt;
+&lt;h4&gt;Heading 4&lt;/h4&gt;
+&lt;h5&gt;Heading 5&lt;/h5&gt;
+&lt;h6&gt;Heading 6&lt;/h6&gt;
+&lt;hgroup&gt;
+  &lt;h2&gt;A heading group&lt;/h2&gt;
+  &lt;p&gt;A heading and the line under it, in the muted color.&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;section&gt;
+  &lt;h2&gt;Text&lt;/h2&gt;
+  &lt;p&gt;A paragraph with &lt;a href="#"&gt;a link&lt;/a&gt;, &lt;a href="#" class="secondary"&gt;a secondary link&lt;/a&gt; and &lt;a href="#" class="contrast"&gt;a contrast link&lt;/a&gt;.&lt;/p&gt;
+  &lt;p&gt;&lt;strong&gt;Strong&lt;/strong&gt;, &lt;b&gt;bold&lt;/b&gt;, &lt;em&gt;emphasized&lt;/em&gt;, &lt;i&gt;italic&lt;/i&gt;, &lt;u&gt;underlined&lt;/u&gt;, &lt;s&gt;struck&lt;/s&gt;, &lt;del&gt;deleted&lt;/del&gt;, &lt;ins&gt;inserted&lt;/ins&gt;, &lt;mark&gt;marked&lt;/mark&gt; and &lt;small&gt;small&lt;/small&gt; text.&lt;/p&gt;
+  &lt;p&gt;An &lt;abbr title="abbreviation"&gt;abbr.&lt;/abbr&gt;, H&lt;sub&gt;2&lt;/sub&gt;O, E = mc&lt;sup&gt;2&lt;/sup&gt;, &lt;code&gt;code&lt;/code&gt;, &lt;kbd&gt;Ctrl&lt;/kbd&gt; + &lt;kbd&gt;C&lt;/kbd&gt;, &lt;samp&gt;sample output&lt;/samp&gt;, a &lt;var&gt;variable&lt;/var&gt;, a &lt;dfn&gt;definition&lt;/dfn&gt;, a &lt;q&gt;quotation&lt;/q&gt;, a &lt;cite&gt;title&lt;/cite&gt; and a date, &lt;time datetime="2026-11-09"&gt;November 9, 2026&lt;/time&gt;.&lt;/p&gt;
+  &lt;address&gt;Acme, 100 Main Street, Springfield, IL 62701&lt;/address&gt;
+&lt;/section&gt;
+&lt;hr&gt;
+&lt;section&gt;
+  &lt;h2&gt;Lists&lt;/h2&gt;
+  &lt;ul&gt;
+    &lt;li&gt;An unordered list&lt;/li&gt;
+    &lt;li&gt;
+      An item with a list of its own
+      &lt;ul&gt;
+        &lt;li&gt;A nested item&lt;/li&gt;
+      &lt;/ul&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ol&gt;
+    &lt;li&gt;An ordered list&lt;/li&gt;
+    &lt;li&gt;Its second item&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;dl&gt;
+    &lt;dt&gt;A description list&lt;/dt&gt;
+    &lt;dd&gt;Terms, each with its description&lt;/dd&gt;
+  &lt;/dl&gt;
+&lt;/section&gt;
+&lt;section&gt;
+  &lt;h2&gt;Quotations and figures&lt;/h2&gt;
+  &lt;blockquote&gt;
+    A quotation, set off from the text around it.
+    &lt;footer&gt;
+      &lt;cite&gt;Its source&lt;/cite&gt;
+    &lt;/footer&gt;
+  &lt;/blockquote&gt;
+  &lt;figure&gt;
+    &lt;img src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%201200%20300'%3E%3Crect%20width='1200'%20height='300'%20fill='%23dbe4ee'/%3E%3Cpath%20d='M0%20300L320%2090L560%20220L860%2040L1200%20300Z'%20fill='%238391a7'/%3E%3C/svg%3E" width="1200" height="300" alt="Grey hills under a pale sky"&gt;
+    &lt;figcaption&gt;A figure: an image, scaled down to fit, and its caption&lt;/figcaption&gt;
+  &lt;/figure&gt;
+&lt;/section&gt;
+&lt;section&gt;
+  &lt;h2&gt;Code&lt;/h2&gt;
+  &lt;pre&gt;&lt;code&gt;function greet(name) {
+  return "Hello, " + name + "!";
+}&lt;/code&gt;&lt;/pre&gt;
+&lt;/section&gt;
+&lt;section&gt;
+  &lt;h2&gt;Table&lt;/h2&gt;
+  &lt;div class="overflow-auto"&gt;
+    &lt;table class="striped"&gt;
+      &lt;thead&gt;
+        &lt;tr&gt;
+          &lt;th scope="col"&gt;Planet&lt;/th&gt;
+          &lt;th scope="col"&gt;Moons&lt;/th&gt;
+          &lt;th scope="col"&gt;Year&lt;/th&gt;
+        &lt;/tr&gt;
+      &lt;/thead&gt;
+      &lt;tbody&gt;
+        &lt;tr&gt;
+          &lt;th scope="row"&gt;Mercury&lt;/th&gt;
+          &lt;td&gt;0&lt;/td&gt;
+          &lt;td&gt;88 days&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;th scope="row"&gt;Venus&lt;/th&gt;
+          &lt;td&gt;0&lt;/td&gt;
+          &lt;td&gt;225 days&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;th scope="row"&gt;Earth&lt;/th&gt;
+          &lt;td&gt;1&lt;/td&gt;
+          &lt;td&gt;365 days&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;tr&gt;
+          &lt;th scope="row"&gt;Mars&lt;/th&gt;
+          &lt;td&gt;2&lt;/td&gt;
+          &lt;td&gt;687 days&lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tbody&gt;
+      &lt;tfoot&gt;
+        &lt;tr&gt;
+          &lt;th scope="row"&gt;All four&lt;/th&gt;
+          &lt;td&gt;3&lt;/td&gt;
+          &lt;td&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+      &lt;/tfoot&gt;
+    &lt;/table&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+&lt;section&gt;
+  &lt;h2&gt;Forms&lt;/h2&gt;
+  &lt;form&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Text
+        &lt;input type="text" name="text" placeholder="Text"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Email
+        &lt;input type="email" name="email" placeholder="name@example.com" autocomplete="email"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Password
+        &lt;input type="password" name="password" autocomplete="new-password"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Number
+        &lt;input type="number" name="number" value="3" min="0" max="10"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Telephone
+        &lt;input type="tel" name="tel" placeholder="555-0100" autocomplete="tel"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        URL
+        &lt;input type="url" name="url" placeholder="https://example.com"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Date
+        &lt;input type="date" name="date"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Time
+        &lt;input type="time" name="time"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Date and time
+        &lt;input type="datetime-local" name="datetime"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Month
+        &lt;input type="month" name="month"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Week
+        &lt;input type="week" name="week"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Color
+        &lt;input type="color" name="color" value="#0172ad"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;label&gt;
+      Search
+      &lt;input type="search" name="search" placeholder="Search"&gt;
+    &lt;/label&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        File
+        &lt;input type="file" name="file"&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Range
+        &lt;input type="range" name="range" value="40"&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Select
+        &lt;select name="select"&gt;
+          &lt;option&gt;First option&lt;/option&gt;
+          &lt;option&gt;Second option&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Select with several choices
+        &lt;select name="choices" multiple size="3"&gt;
+          &lt;option&gt;First option&lt;/option&gt;
+          &lt;option&gt;Second option&lt;/option&gt;
+          &lt;option&gt;Third option&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;label&gt;
+      Textarea
+      &lt;textarea name="textarea" rows="3" placeholder="Write something"&gt;&lt;/textarea&gt;
+    &lt;/label&gt;
+    &lt;div class="grid"&gt;
+      &lt;div&gt;
+        &lt;label for="every-element-valid"&gt;Valid&lt;/label&gt;
+        &lt;input type="text" id="every-element-valid" name="valid" value="Looks good" aria-invalid="false" aria-describedby="every-element-valid-help"&gt;
+        &lt;small id="every-element-valid-help"&gt;Helper text in the valid color&lt;/small&gt;
+      &lt;/div&gt;
+      &lt;div&gt;
+        &lt;label for="every-element-invalid"&gt;Invalid&lt;/label&gt;
+        &lt;input type="text" id="every-element-invalid" name="invalid" value="Not quite" aria-invalid="true" aria-describedby="every-element-invalid-help"&gt;
+        &lt;small id="every-element-invalid-help"&gt;Helper text in the invalid color&lt;/small&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;label&gt;
+        Disabled
+        &lt;input type="text" name="disabled" value="Disabled" disabled&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Read-only
+        &lt;input type="text" name="read-only" value="Read-only" readonly&gt;
+      &lt;/label&gt;
+    &lt;/div&gt;
+    &lt;div class="grid"&gt;
+      &lt;fieldset&gt;
+        &lt;legend&gt;Checkboxes&lt;/legend&gt;
+        &lt;label&gt;
+          &lt;input type="checkbox" name="checked" checked&gt;
+          Checked
+        &lt;/label&gt;
+        &lt;label&gt;
+          &lt;input type="checkbox" name="unchecked"&gt;
+          Unchecked
+        &lt;/label&gt;
+        &lt;label aria-disabled="true"&gt;
+          &lt;input type="checkbox" name="disabled-checkbox" disabled&gt;
+          Disabled
+        &lt;/label&gt;
+      &lt;/fieldset&gt;
+      &lt;fieldset&gt;
+        &lt;legend&gt;Radio buttons&lt;/legend&gt;
+        &lt;label&gt;
+          &lt;input type="radio" name="every-element-radio" value="first" checked&gt;
+          First
+        &lt;/label&gt;
+        &lt;label&gt;
+          &lt;input type="radio" name="every-element-radio" value="second"&gt;
+          Second
+        &lt;/label&gt;
+        &lt;label&gt;
+          &lt;input type="radio" name="every-element-radio" value="third"&gt;
+          Third
+        &lt;/label&gt;
+      &lt;/fieldset&gt;
+      &lt;fieldset&gt;
+        &lt;legend&gt;Switches&lt;/legend&gt;
+        &lt;label&gt;
+          &lt;input type="checkbox" role="switch" name="on" checked&gt;
+          On
+        &lt;/label&gt;
+        &lt;label&gt;
+          &lt;input type="checkbox" role="switch" name="off"&gt;
+          Off
+        &lt;/label&gt;
+      &lt;/fieldset&gt;
+    &lt;/div&gt;
+    &lt;div role="group"&gt;
+      &lt;input type="email" name="newsletter" placeholder="Email" aria-label="Email for the newsletter" autocomplete="email"&gt;
+      &lt;input type="submit" value="Subscribe"&gt;
+    &lt;/div&gt;
+    &lt;input type="reset" value="Reset"&gt;
+    &lt;button type="submit"&gt;Submit&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;form role="search" aria-label="Site search"&gt;
+    &lt;input type="search" name="q" placeholder="Search" aria-label="Search"&gt;
+    &lt;input type="submit" value="Search"&gt;
+  &lt;/form&gt;
+&lt;/section&gt;
+&lt;section&gt;
+  &lt;h2&gt;Buttons&lt;/h2&gt;
+  &lt;p&gt;
+    &lt;button type="button"&gt;Primary&lt;/button&gt;
+    &lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
+    &lt;button type="button" class="contrast"&gt;Contrast&lt;/button&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt;
+    &lt;button type="button" class="secondary outline"&gt;Secondary outline&lt;/button&gt;
+    &lt;button type="button" class="contrast outline"&gt;Contrast outline&lt;/button&gt;
+  &lt;/p&gt;
+  &lt;p&gt;
+    &lt;button type="button" disabled&gt;Disabled&lt;/button&gt;
+    &lt;button type="button" aria-busy="true"&gt;Busy&lt;/button&gt;
+    &lt;a href="#" role="button"&gt;A link as a button&lt;/a&gt;
+  &lt;/p&gt;
+  &lt;div role="group" aria-label="Calendar view"&gt;
+    &lt;button type="button"&gt;Day&lt;/button&gt;
+    &lt;button type="button" aria-current="true"&gt;Week&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+&lt;section&gt;
+  &lt;h2&gt;Components&lt;/h2&gt;
+  &lt;details open&gt;
+    &lt;summary&gt;An accordion&lt;/summary&gt;
+    &lt;p&gt;Its content shows while it is open.&lt;/p&gt;
+  &lt;/details&gt;
+  &lt;details&gt;
+    &lt;summary role="button" class="outline"&gt;An accordion with a button for its summary&lt;/summary&gt;
+    &lt;p&gt;Its content shows while it is open.&lt;/p&gt;
+  &lt;/details&gt;
+  &lt;details class="dropdown"&gt;
+    &lt;summary&gt;A dropdown&lt;/summary&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#"&gt;First item&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#"&gt;Second item&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#"&gt;Third item&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/details&gt;
+  &lt;article&gt;
+    &lt;header&gt;A card's header&lt;/header&gt;
+    &lt;p&gt;A card is an article, with an optional header and footer.&lt;/p&gt;
+    &lt;footer&gt;A card's footer&lt;/footer&gt;
+  &lt;/article&gt;
+  &lt;p&gt;
+    &lt;button type="button" aria-haspopup="dialog" aria-controls="every-element-dialog"&gt;Open a modal&lt;/button&gt;
+    &lt;button type="button" class="secondary" data-tooltip="A tooltip"&gt;A button with a tooltip&lt;/button&gt;
+  &lt;/p&gt;
+  &lt;dialog id="every-element-dialog" aria-labelledby="every-element-dialog-title"&gt;
+    &lt;article&gt;
+      &lt;header&gt;
+        &lt;button type="button" aria-label="Close" rel="prev"&gt;&lt;/button&gt;
+        &lt;h3 id="every-element-dialog-title"&gt;A modal&lt;/h3&gt;
+      &lt;/header&gt;
+      &lt;p&gt;A dialog that holds an article. Escape, the close button or a click outside it closes it.&lt;/p&gt;
+      &lt;footer&gt;
+        &lt;button type="button" class="secondary"&gt;Cancel&lt;/button&gt;
+        &lt;button type="button"&gt;Confirm&lt;/button&gt;
+      &lt;/footer&gt;
+    &lt;/article&gt;
+  &lt;/dialog&gt;
+  &lt;progress value="60" max="100" aria-label="A progress bar at 60%"&gt;&lt;/progress&gt;
+  &lt;progress aria-label="A progress bar with no value"&gt;&lt;/progress&gt;
+  &lt;p aria-busy="true"&gt;Loading&lt;/p&gt;
+  &lt;nav aria-label="Example"&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;strong&gt;Brand&lt;/strong&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#"&gt;Link&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#" aria-current="page"&gt;Current&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#" role="button"&gt;Button&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+&lt;/section&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="all-themes" aria-label="All theme colors example">
+        <header>
+          <hgroup>
+            <p class="chapter">Overview</p>
+            <h2>All theme colors</h2>
+            <p>Every theme color at once, light and dark: a button, an outline button, a link, a switch and a progress bar.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <hgroup>
+                  <h3>femto's 20 theme colors</h3>
+                  <p>Each color is a shadow root of its own, which loads femto and the color's theme file.</p>
+                </hgroup>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/red.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Red</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Red</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/orange.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Orange</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Orange</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/pumpkin.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Pumpkin</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Pumpkin</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/amber.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Amber</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Amber</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/yellow.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Yellow</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Yellow</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/lime.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Lime</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Lime</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/green.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Green</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Green</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/jade.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Jade</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Jade</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/cyan.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Cyan</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Cyan</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/azure.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Azure</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Azure</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/blue.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Blue</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Blue</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/indigo.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Indigo</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Indigo</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/violet.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Violet</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Violet</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/purple.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Purple</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Purple</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/fuchsia.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Fuchsia</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Fuchsia</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/pink.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Pink</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Pink</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/sand.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Sand</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Sand</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/grey.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Grey</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Grey</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+                <div class="grid">
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/zinc.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Zinc</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Zinc</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                  <div>
+                    <template shadowrootmode="open">
+                      <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                      <link rel="stylesheet" href="/vendor/femto/css/themes/slate.css">
+                      <div class="grid">
+                        <article data-theme="light">
+                          <h4>Slate</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                        <article data-theme="dark">
+                          <h4>Slate</h4>
+                          <p><button type="button">Button</button> <button type="button" class="outline">Outline</button> <a href="#">Link</a></p>
+                          <label><input type="checkbox" role="switch" checked> A switch</label>
+                          <progress value="60" max="100" aria-label="Progress"></progress>
+                        </article>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+  &lt;h3&gt;femto's 20 theme colors&lt;/h3&gt;
+  &lt;p&gt;Each color is a shadow root of its own, which loads femto and the color's theme file.&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/red.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Red&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Red&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/orange.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Orange&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Orange&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/pumpkin.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Pumpkin&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Pumpkin&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/amber.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Amber&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Amber&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/yellow.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Yellow&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Yellow&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/lime.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Lime&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Lime&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/green.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Green&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Green&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/jade.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Jade&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Jade&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/cyan.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Cyan&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Cyan&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/azure.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Azure&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Azure&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/blue.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Blue&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Blue&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/indigo.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Indigo&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Indigo&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/violet.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Violet&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Violet&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/purple.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Purple&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Purple&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/fuchsia.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Fuchsia&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Fuchsia&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/pink.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Pink&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Pink&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/sand.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Sand&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Sand&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/grey.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Grey&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Grey&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="grid"&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/zinc.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Zinc&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Zinc&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;template shadowrootmode="open"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/dist/femto.min.css"&gt;
+      &lt;link rel="stylesheet" href="/vendor/femto/css/themes/slate.css"&gt;
+      &lt;div class="grid"&gt;
+        &lt;article data-theme="light"&gt;
+          &lt;h4&gt;Slate&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+        &lt;article data-theme="dark"&gt;
+          &lt;h4&gt;Slate&lt;/h4&gt;
+          &lt;p&gt;&lt;button type="button"&gt;Button&lt;/button&gt; &lt;button type="button" class="outline"&gt;Outline&lt;/button&gt; &lt;a href="#"&gt;Link&lt;/a&gt;&lt;/p&gt;
+          &lt;label&gt;&lt;input type="checkbox" role="switch" checked&gt; A switch&lt;/label&gt;
+          &lt;progress value="60" max="100" aria-label="Progress"&gt;&lt;/progress&gt;
+        &lt;/article&gt;
+      &lt;/div&gt;
+    &lt;/template&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre></div>
+        </details>
+      </section>
       <section class="example" id="navigation-bar" aria-label="Navigation bar example">
-        <hgroup>
-          <p class="chapter">Widgets</p>
-          <h2>Navigation bar</h2>
-          <p>A site's links with the current page marked, an account dropdown and breadcrumbs.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Widgets</p>
+            <h2>Navigation bar</h2>
+            <p>A site's links with the current page marked, an account dropdown and breadcrumbs.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -103,7 +1736,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Main"&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Main"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;a href="#" class="contrast"&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -132,13 +1767,17 @@
   &lt;h3&gt;Desk lamps&lt;/h3&gt;
   &lt;p&gt;Twelve lamps for reading, drawing and late nights, from $39.&lt;/p&gt;
 &lt;/hgroup&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="confirm-dialog" aria-label="Confirmation dialog example">
-        <hgroup>
-          <p class="chapter">Widgets</p>
-          <h2>Confirmation dialog</h2>
-          <p>A modal that asks before a project is deleted. A script opens it with <code>showModal()</code>.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Widgets</p>
+            <h2>Confirmation dialog</h2>
+            <p>A modal that asks before a project is deleted. A script opens it with <code>showModal()</code>.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -166,7 +1805,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
   &lt;h3&gt;Website redesign&lt;/h3&gt;
   &lt;p&gt;48 tasks shared with 6 members. Deleting the project removes its tasks and files for everyone.&lt;/p&gt;
   &lt;button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box"&gt;Delete project&lt;/button&gt;
@@ -184,13 +1825,17 @@
     &lt;/footer&gt;
   &lt;/article&gt;
 &lt;/dialog&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="faq" aria-label="FAQ example">
-        <hgroup>
-          <p class="chapter">Widgets</p>
-          <h2>FAQ</h2>
-          <p>Questions that open and close, each one a <code class="language-html">&lt;details&gt;</code> element.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Widgets</p>
+            <h2>FAQ</h2>
+            <p>Questions that open and close, each one a <code class="language-html">&lt;details&gt;</code> element.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -218,7 +1863,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Frequently asked questions&lt;/h3&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Frequently asked questions&lt;/h3&gt;
 &lt;details open&gt;
   &lt;summary&gt;Can I change my plan later?&lt;/summary&gt;
   &lt;p&gt;Yes. Change it in Billing at any time. We charge or credit the difference on your next invoice.&lt;/p&gt;
@@ -236,13 +1883,17 @@
   &lt;p&gt;Open Billing and choose Cancel subscription. Your workspace stays open until the end of the period you paid for.&lt;/p&gt;
 &lt;/details&gt;
 &lt;p&gt;Still have a question? &lt;a href="#"&gt;Contact support&lt;/a&gt;.&lt;/p&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="sign-in" aria-label="Sign in example">
-        <hgroup>
-          <p class="chapter">Forms</p>
-          <h2>Sign in</h2>
-          <p>An email and password form in a card, beside a short welcome.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Forms</p>
+            <h2>Sign in</h2>
+            <p>An email and password form in a card, beside a short welcome.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -254,7 +1905,7 @@
                     <p>Sign in to see your orders, saved items and messages.</p>
                   </hgroup>
                   <article>
-                    <form>
+                    <form method="dialog">
                       <label>
                         Email
                         <input type="email" name="email" autocomplete="email" required>
@@ -278,7 +1929,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
   &lt;hgroup&gt;
     &lt;h3&gt;Welcome back&lt;/h3&gt;
     &lt;p&gt;Sign in to see your orders, saved items and messages.&lt;/p&gt;
@@ -304,13 +1957,17 @@
     &lt;/footer&gt;
   &lt;/article&gt;
 &lt;/div&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="sign-up" aria-label="Sign up example">
-        <hgroup>
-          <p class="chapter">Forms</p>
-          <h2>Sign up</h2>
-          <p>A registration form whose fields show their state with <code>aria-invalid</code> and helper text.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Forms</p>
+            <h2>Sign up</h2>
+            <p>A registration form whose fields show their state with <code>aria-invalid</code> and helper text.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -321,7 +1978,7 @@
                     <h3>Create your account</h3>
                     <p>Free for 14 days. No credit card needed.</p>
                   </hgroup>
-                  <form>
+                  <form method="dialog">
                     <div class="grid">
                       <label>
                         First name
@@ -349,7 +2006,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
   &lt;hgroup&gt;
     &lt;h3&gt;Create your account&lt;/h3&gt;
     &lt;p&gt;Free for 14 days. No credit card needed.&lt;/p&gt;
@@ -378,13 +2037,17 @@
     &lt;button type="submit"&gt;Create account&lt;/button&gt;
   &lt;/form&gt;
 &lt;/article&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="contact" aria-label="Contact form example">
-        <hgroup>
-          <p class="chapter">Forms</p>
-          <h2>Contact form</h2>
-          <p>Contact details beside a form with a select, a textarea and radio buttons.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Forms</p>
+            <h2>Contact form</h2>
+            <p>Contact details beside a form with a select, a textarea and radio buttons.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -401,7 +2064,7 @@
                     </address>
                     <p><a href="#">support@example.com</a></p>
                   </div>
-                  <form>
+                  <form method="dialog">
                     <div class="grid">
                       <label>
                         Name
@@ -444,7 +2107,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
   &lt;div&gt;
     &lt;h3&gt;Get in touch&lt;/h3&gt;
     &lt;p&gt;We answer every message within one business day.&lt;/p&gt;
@@ -494,13 +2159,529 @@
     &lt;button type="submit"&gt;Send message&lt;/button&gt;
   &lt;/form&gt;
 &lt;/div&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="checkout" aria-label="Checkout example">
+        <header>
+          <hgroup>
+            <p class="chapter">Forms</p>
+            <h2>Checkout</h2>
+            <p>A checkout form in fieldsets, beside an order summary in a table.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <hgroup>
+                  <h3>Checkout</h3>
+                  <p>Orders placed by 2 p.m. ship the same day.</p>
+                </hgroup>
+                <div class="grid">
+                  <form method="dialog">
+                    <fieldset>
+                      <legend>Contact</legend>
+                      <label>
+                        Email
+                        <input type="email" name="email" autocomplete="email" required>
+                      </label>
+                    </fieldset>
+                    <fieldset>
+                      <legend>Shipping address</legend>
+                      <label>
+                        Full name
+                        <input type="text" name="name" autocomplete="name" required>
+                      </label>
+                      <label>
+                        Street address
+                        <input type="text" name="address" autocomplete="address-line1" required>
+                      </label>
+                      <div class="grid">
+                        <label>
+                          City
+                          <input type="text" name="city" autocomplete="address-level2" required>
+                        </label>
+                        <label>
+                          ZIP code
+                          <input type="text" name="postal-code" autocomplete="postal-code" inputmode="numeric" required>
+                        </label>
+                      </div>
+                      <label>
+                        Country
+                        <select name="country" autocomplete="country-name">
+                          <option selected>United States</option>
+                          <option>Canada</option>
+                          <option>Mexico</option>
+                        </select>
+                      </label>
+                    </fieldset>
+                    <fieldset>
+                      <legend>Delivery</legend>
+                      <label>
+                        <input type="radio" name="checkout-delivery" value="standard" checked>
+                        Standard, in 3 to 5 business days: free
+                      </label>
+                      <label>
+                        <input type="radio" name="checkout-delivery" value="express">
+                        Express, the next business day: $12.00
+                      </label>
+                    </fieldset>
+                    <fieldset>
+                      <legend>Payment</legend>
+                      <label>
+                        <input type="radio" name="checkout-payment" value="card" checked>
+                        Card
+                      </label>
+                      <label>
+                        <input type="radio" name="checkout-payment" value="paypal">
+                        PayPal
+                      </label>
+                    </fieldset>
+                    <label>
+                      <input type="checkbox" name="news">
+                      Email me about new products
+                    </label>
+                    <button type="submit">Continue to payment</button>
+                  </form>
+                  <article>
+                    <header>
+                      <h4>Order summary</h4>
+                    </header>
+                    <div class="overflow-auto">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th scope="col">Item</th>
+                            <th scope="col">Qty</th>
+                            <th scope="col">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Desk lamp</td>
+                            <td>1</td>
+                            <td>$49.00</td>
+                          </tr>
+                          <tr>
+                            <td>LED bulb</td>
+                            <td>2</td>
+                            <td>$18.00</td>
+                          </tr>
+                        </tbody>
+                        <tfoot>
+                          <tr>
+                            <th scope="row" colspan="2">Subtotal</th>
+                            <td>$67.00</td>
+                          </tr>
+                          <tr>
+                            <th scope="row" colspan="2">Shipping</th>
+                            <td>Free</td>
+                          </tr>
+                          <tr>
+                            <th scope="row" colspan="2">Total</th>
+                            <td><strong>$67.00</strong></td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                    <form method="dialog">
+                      <div role="group">
+                        <input type="text" name="promo-code" placeholder="Promo code" aria-label="Promo code">
+                        <button type="submit" class="secondary">Apply</button>
+                      </div>
+                    </form>
+                  </article>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+  &lt;h3&gt;Checkout&lt;/h3&gt;
+  &lt;p&gt;Orders placed by 2 p.m. ship the same day.&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;div class="grid"&gt;
+  &lt;form&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;Contact&lt;/legend&gt;
+      &lt;label&gt;
+        Email
+        &lt;input type="email" name="email" autocomplete="email" required&gt;
+      &lt;/label&gt;
+    &lt;/fieldset&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;Shipping address&lt;/legend&gt;
+      &lt;label&gt;
+        Full name
+        &lt;input type="text" name="name" autocomplete="name" required&gt;
+      &lt;/label&gt;
+      &lt;label&gt;
+        Street address
+        &lt;input type="text" name="address" autocomplete="address-line1" required&gt;
+      &lt;/label&gt;
+      &lt;div class="grid"&gt;
+        &lt;label&gt;
+          City
+          &lt;input type="text" name="city" autocomplete="address-level2" required&gt;
+        &lt;/label&gt;
+        &lt;label&gt;
+          ZIP code
+          &lt;input type="text" name="postal-code" autocomplete="postal-code" inputmode="numeric" required&gt;
+        &lt;/label&gt;
+      &lt;/div&gt;
+      &lt;label&gt;
+        Country
+        &lt;select name="country" autocomplete="country-name"&gt;
+          &lt;option selected&gt;United States&lt;/option&gt;
+          &lt;option&gt;Canada&lt;/option&gt;
+          &lt;option&gt;Mexico&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/label&gt;
+    &lt;/fieldset&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;Delivery&lt;/legend&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="checkout-delivery" value="standard" checked&gt;
+        Standard, in 3 to 5 business days: free
+      &lt;/label&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="checkout-delivery" value="express"&gt;
+        Express, the next business day: $12.00
+      &lt;/label&gt;
+    &lt;/fieldset&gt;
+    &lt;fieldset&gt;
+      &lt;legend&gt;Payment&lt;/legend&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="checkout-payment" value="card" checked&gt;
+        Card
+      &lt;/label&gt;
+      &lt;label&gt;
+        &lt;input type="radio" name="checkout-payment" value="paypal"&gt;
+        PayPal
+      &lt;/label&gt;
+    &lt;/fieldset&gt;
+    &lt;label&gt;
+      &lt;input type="checkbox" name="news"&gt;
+      Email me about new products
+    &lt;/label&gt;
+    &lt;button type="submit"&gt;Continue to payment&lt;/button&gt;
+  &lt;/form&gt;
+  &lt;article&gt;
+    &lt;header&gt;
+      &lt;h4&gt;Order summary&lt;/h4&gt;
+    &lt;/header&gt;
+    &lt;div class="overflow-auto"&gt;
+      &lt;table&gt;
+        &lt;thead&gt;
+          &lt;tr&gt;
+            &lt;th scope="col"&gt;Item&lt;/th&gt;
+            &lt;th scope="col"&gt;Qty&lt;/th&gt;
+            &lt;th scope="col"&gt;Price&lt;/th&gt;
+          &lt;/tr&gt;
+        &lt;/thead&gt;
+        &lt;tbody&gt;
+          &lt;tr&gt;
+            &lt;td&gt;Desk lamp&lt;/td&gt;
+            &lt;td&gt;1&lt;/td&gt;
+            &lt;td&gt;$49.00&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;LED bulb&lt;/td&gt;
+            &lt;td&gt;2&lt;/td&gt;
+            &lt;td&gt;$18.00&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;
+        &lt;tfoot&gt;
+          &lt;tr&gt;
+            &lt;th scope="row" colspan="2"&gt;Subtotal&lt;/th&gt;
+            &lt;td&gt;$67.00&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;th scope="row" colspan="2"&gt;Shipping&lt;/th&gt;
+            &lt;td&gt;Free&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;th scope="row" colspan="2"&gt;Total&lt;/th&gt;
+            &lt;td&gt;&lt;strong&gt;$67.00&lt;/strong&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tfoot&gt;
+      &lt;/table&gt;
+    &lt;/div&gt;
+    &lt;form&gt;
+      &lt;div role="group"&gt;
+        &lt;input type="text" name="promo-code" placeholder="Promo code" aria-label="Promo code"&gt;
+        &lt;button type="submit" class="secondary"&gt;Apply&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/form&gt;
+  &lt;/article&gt;
+&lt;/div&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="landing-page" aria-label="Landing page example">
+        <header>
+          <hgroup>
+            <p class="chapter">Pages</p>
+            <h2>Landing page</h2>
+            <p>A header with navigation, a hero, three features, a quotation and a footer.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <header>
+                  <nav aria-label="Primary">
+                    <ul>
+                      <li><a href="#" class="contrast"><strong>Acme</strong></a></li>
+                    </ul>
+                    <ul>
+                      <li><a href="#">Features</a></li>
+                      <li><a href="#">Pricing</a></li>
+                      <li><a href="#" role="button">Sign up</a></li>
+                    </ul>
+                  </nav>
+                  <hgroup>
+                    <h3>Notes that keep up with you</h3>
+                    <p>Write in plain text, find any note in a second and read it on every device.</p>
+                  </hgroup>
+                  <p>
+                    <a href="#" role="button">Start for free</a>
+                    <a href="#" role="button" class="secondary outline">See how it works</a>
+                  </p>
+                </header>
+                <section>
+                  <div class="grid">
+                    <article>
+                      <h4>Plain text</h4>
+                      <p>Your notes are files you own, which any editor opens, today and in twenty years.</p>
+                    </article>
+                    <article>
+                      <h4>Instant search</h4>
+                      <p>Type a word, and every note that holds it shows before you finish typing.</p>
+                    </article>
+                    <article>
+                      <h4>Every device</h4>
+                      <p>A note you write on your phone is on your computer a second later.</p>
+                    </article>
+                  </div>
+                </section>
+                <section>
+                  <blockquote>
+                    I moved ten years of notes in an afternoon, and now I find them again.
+                    <footer>
+                      <cite>Jordan Lee, designer</cite>
+                    </footer>
+                  </blockquote>
+                </section>
+                <footer>
+                  <hr>
+                  <nav aria-label="Company">
+                    <ul>
+                      <li><small>© 2026 Acme</small></li>
+                    </ul>
+                    <ul>
+                      <li><a href="#" class="secondary">Privacy</a></li>
+                      <li><a href="#" class="secondary">Terms</a></li>
+                      <li><a href="#" class="secondary">Contact</a></li>
+                    </ul>
+                  </nav>
+                </footer>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;header&gt;
+  &lt;nav aria-label="Primary"&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#" class="contrast"&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#"&gt;Features&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#"&gt;Pricing&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#" role="button"&gt;Sign up&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+  &lt;hgroup&gt;
+    &lt;h3&gt;Notes that keep up with you&lt;/h3&gt;
+    &lt;p&gt;Write in plain text, find any note in a second and read it on every device.&lt;/p&gt;
+  &lt;/hgroup&gt;
+  &lt;p&gt;
+    &lt;a href="#" role="button"&gt;Start for free&lt;/a&gt;
+    &lt;a href="#" role="button" class="secondary outline"&gt;See how it works&lt;/a&gt;
+  &lt;/p&gt;
+&lt;/header&gt;
+&lt;section&gt;
+  &lt;div class="grid"&gt;
+    &lt;article&gt;
+      &lt;h4&gt;Plain text&lt;/h4&gt;
+      &lt;p&gt;Your notes are files you own, which any editor opens, today and in twenty years.&lt;/p&gt;
+    &lt;/article&gt;
+    &lt;article&gt;
+      &lt;h4&gt;Instant search&lt;/h4&gt;
+      &lt;p&gt;Type a word, and every note that holds it shows before you finish typing.&lt;/p&gt;
+    &lt;/article&gt;
+    &lt;article&gt;
+      &lt;h4&gt;Every device&lt;/h4&gt;
+      &lt;p&gt;A note you write on your phone is on your computer a second later.&lt;/p&gt;
+    &lt;/article&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+&lt;section&gt;
+  &lt;blockquote&gt;
+    I moved ten years of notes in an afternoon, and now I find them again.
+    &lt;footer&gt;
+      &lt;cite&gt;Jordan Lee, designer&lt;/cite&gt;
+    &lt;/footer&gt;
+  &lt;/blockquote&gt;
+&lt;/section&gt;
+&lt;footer&gt;
+  &lt;hr&gt;
+  &lt;nav aria-label="Company"&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;small&gt;© 2026 Acme&lt;/small&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="#" class="secondary"&gt;Privacy&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#" class="secondary"&gt;Terms&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="#" class="secondary"&gt;Contact&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+&lt;/footer&gt;</code></pre></div>
+        </details>
+      </section>
+      <section class="example" id="docs-layout" aria-label="Docs page example">
+        <header>
+          <hgroup>
+            <p class="chapter">Pages</p>
+            <h2>Docs page</h2>
+            <p>A side nav in an <code class="language-html">&lt;aside&gt;</code>, beside the article.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
+        <div data-example>
+          <template shadowrootmode="open">
+            <div part="example">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <div class="grid">
+                  <aside>
+                    <nav aria-label="Guide">
+                      <details open>
+                        <summary>Getting started</summary>
+                        <ul>
+                          <li><a href="#">Introduction</a></li>
+                          <li><a href="#" aria-current="page">Installation</a></li>
+                          <li><a href="#">Your first project</a></li>
+                        </ul>
+                      </details>
+                      <details open>
+                        <summary>Guides</summary>
+                        <ul>
+                          <li><a href="#">Configuration</a></li>
+                          <li><a href="#">Deployment</a></li>
+                          <li><a href="#">Troubleshooting</a></li>
+                        </ul>
+                      </details>
+                    </nav>
+                  </aside>
+                  <article>
+                    <hgroup>
+                      <h3>Installation</h3>
+                      <p>Install the command line tool, then sign in.</p>
+                    </hgroup>
+                    <p>The tool runs on macOS, Windows and Linux. Install it with npm:</p>
+                    <pre><code>npm install --global acme-cli</code></pre>
+                    <p>Then sign in with your Acme account. The tool opens your browser to finish.</p>
+                    <pre><code>acme login</code></pre>
+                    <h4>Requirements</h4>
+                    <ul>
+                      <li>Node.js 22 or later</li>
+                      <li>An Acme account</li>
+                    </ul>
+                    <footer>
+                      <nav aria-label="Previous and next page">
+                        <ul>
+                          <li><a href="#">Previous: Introduction</a></li>
+                        </ul>
+                        <ul>
+                          <li><a href="#">Next: Your first project</a></li>
+                        </ul>
+                      </nav>
+                    </footer>
+                  </article>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+  &lt;aside&gt;
+    &lt;nav aria-label="Guide"&gt;
+      &lt;details open&gt;
+        &lt;summary&gt;Getting started&lt;/summary&gt;
+        &lt;ul&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#" aria-current="page"&gt;Installation&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Your first project&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/details&gt;
+      &lt;details open&gt;
+        &lt;summary&gt;Guides&lt;/summary&gt;
+        &lt;ul&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Configuration&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Deployment&lt;/a&gt;&lt;/li&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Troubleshooting&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/details&gt;
+    &lt;/nav&gt;
+  &lt;/aside&gt;
+  &lt;article&gt;
+    &lt;hgroup&gt;
+      &lt;h3&gt;Installation&lt;/h3&gt;
+      &lt;p&gt;Install the command line tool, then sign in.&lt;/p&gt;
+    &lt;/hgroup&gt;
+    &lt;p&gt;The tool runs on macOS, Windows and Linux. Install it with npm:&lt;/p&gt;
+    &lt;pre&gt;&lt;code&gt;npm install --global acme-cli&lt;/code&gt;&lt;/pre&gt;
+    &lt;p&gt;Then sign in with your Acme account. The tool opens your browser to finish.&lt;/p&gt;
+    &lt;pre&gt;&lt;code&gt;acme login&lt;/code&gt;&lt;/pre&gt;
+    &lt;h4&gt;Requirements&lt;/h4&gt;
+    &lt;ul&gt;
+      &lt;li&gt;Node.js 22 or later&lt;/li&gt;
+      &lt;li&gt;An Acme account&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;footer&gt;
+      &lt;nav aria-label="Previous and next page"&gt;
+        &lt;ul&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Previous: Introduction&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+        &lt;ul&gt;
+          &lt;li&gt;&lt;a href="#"&gt;Next: Your first project&lt;/a&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+      &lt;/nav&gt;
+    &lt;/footer&gt;
+  &lt;/article&gt;
+&lt;/div&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="pricing" aria-label="Pricing example">
-        <hgroup>
-          <p class="chapter">Pages</p>
-          <h2>Pricing</h2>
-          <p>Three plans in cards on a grid, with a switch for yearly billing.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Pages</p>
+            <h2>Pricing</h2>
+            <p>Three plans in cards on a grid, with a switch for yearly billing.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -567,7 +2748,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Plans for teams of every size&lt;/h3&gt;
   &lt;p&gt;Start for free, and upgrade when your team grows.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -624,13 +2807,17 @@
     &lt;/footer&gt;
   &lt;/article&gt;
 &lt;/div&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="dashboard" aria-label="Dashboard example">
-        <hgroup>
-          <p class="chapter">Pages</p>
-          <h2>Dashboard</h2>
-          <p>Summary cards, a progress bar, a loading card and a striped table that scrolls on small screens.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Pages</p>
+            <h2>Dashboard</h2>
+            <p>Summary cards, a progress bar, a loading card and a striped table that scrolls on small screens.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -720,7 +2907,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Dashboard"&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Dashboard"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -800,13 +2989,17 @@
   &lt;/table&gt;
 &lt;/div&gt;
 &lt;button type="button" class="secondary outline" data-tooltip="Download these orders as a CSV file"&gt;Export&lt;/button&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="settings" aria-label="Settings example">
-        <hgroup>
-          <p class="chapter">Pages</p>
-          <h2>Settings</h2>
-          <p>A settings form with switches, a disabled option and radio buttons.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Pages</p>
+            <h2>Settings</h2>
+            <p>A settings form with switches, a disabled option and radio buttons.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -816,7 +3009,7 @@
                   <h3>Account settings</h3>
                   <p>Your profile and the email you get from us.</p>
                 </hgroup>
-                <form>
+                <form method="dialog">
                   <h4>Profile</h4>
                   <div class="grid">
                     <label>
@@ -883,7 +3076,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Account settings&lt;/h3&gt;
   &lt;p&gt;Your profile and the email you get from us.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -950,13 +3145,17 @@
   &lt;button type="submit"&gt;Save changes&lt;/button&gt;
   &lt;button type="reset" class="secondary outline"&gt;Discard changes&lt;/button&gt;
 &lt;/form&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="blog-post" aria-label="Blog post example">
-        <hgroup>
-          <p class="chapter">Pages</p>
-          <h2>Blog post</h2>
-          <p>An article with a byline, a list, a quotation and a code block.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Pages</p>
+            <h2>Blog post</h2>
+            <p>An article with a byline, a list, a quotation and a code block.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
@@ -989,7 +3188,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;How we cut our page weight in half&lt;/h3&gt;
   &lt;p&gt;By Alex Kim, &lt;time datetime="2026-10-28"&gt;October 28, 2026&lt;/time&gt;&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -1012,20 +3213,24 @@
 &lt;p&gt;The new pages load in under a second on a slow connection. &lt;mark&gt;Every page now weighs less than 500 KB.&lt;/mark&gt;&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;&lt;small&gt;Filed under &lt;a href="#"&gt;Performance&lt;/a&gt; and &lt;a href="#"&gt;Engineering&lt;/a&gt;.&lt;/small&gt;&lt;/p&gt;</code></pre></div>
+        </details>
       </section>
       <section class="example" id="search-results" aria-label="Search results example">
-        <hgroup>
-          <p class="chapter">Pages</p>
-          <h2>Search results</h2>
-          <p>A search field joined to its button, a sort dropdown, results and page links.</p>
-        </hgroup>
+        <header>
+          <hgroup>
+            <p class="chapter">Pages</p>
+            <h2>Search results</h2>
+            <p>A search field joined to its button, a sort dropdown, results and page links.</p>
+          </hgroup>
+          <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+        </header>
         <div data-example>
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
                 <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
                 <h3>Help center</h3>
-                <form role="search">
+                <form method="dialog" role="search">
                   <input type="search" name="q" value="dark mode" aria-label="Search the help center">
                   <button type="submit">Search</button>
                 </form>
@@ -1072,7 +3277,9 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Help center&lt;/h3&gt;
+        <details>
+          <summary>HTML</summary>
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Help center&lt;/h3&gt;
 &lt;form role="search"&gt;
   &lt;input type="search" name="q" value="dark mode" aria-label="Search the help center"&gt;
   &lt;button type="submit"&gt;Search&lt;/button&gt;
@@ -1116,7 +3323,25 @@
     &lt;li&gt;&lt;a href="#"&gt;Next page&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
 &lt;/nav&gt;</code></pre></div>
+        </details>
       </section>
+      <!-- femto's starter template, as femto README's Quick start and the docs' Quick start write it.
+           Copy as page (examples.js) puts an example's markup in it. -->
+      <template data-starter-page>&lt;!doctype html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="utf-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+    &lt;meta name="color-scheme" content="light dark"&gt;
+    &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+    &lt;title&gt;Hello, world!&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;main class="container"&gt;
+      &lt;h1&gt;Hello, world!&lt;/h1&gt;
+    &lt;/main&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</template>
     </main>
     <!-- include partials/footer.html -->
   </body>
