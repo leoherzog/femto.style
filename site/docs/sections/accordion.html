@@ -5,7 +5,7 @@
 </hgroup>
 <section>
   <p>The summary ends with a chevron, on the left in right-to-left text, which turns when the accordion opens. Give several <code class="language-html">&lt;details&gt;</code> the same <code>name</code> to keep only one of them open at a time; Firefox 128 and 129 ignore <code>name</code>, so there each opens and closes on its own.</p>
-  <article aria-label="Accordion example" class="component">
+  <article aria-label="Accordion example">
     <details name="example" open>
       <summary>Accordion 1</summary>
       <p>Flamingos are known for their bright pink feathers and distinctive long necks. These birds are social creatures that live in large groups, and a group of flamingos is called a flamboyance. They can often be seen standing on one leg, which helps them conserve body heat.</p>
@@ -21,7 +21,7 @@
         <li>Some species of kangaroos can leap up to 30 feet in a single bound.</li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details name="example" open&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details name="example" open&gt;
   &lt;summary&gt;Accordion 1&lt;/summary&gt;
   &lt;p&gt;...&lt;/p&gt;
 &lt;/details&gt;
@@ -40,18 +40,19 @@
 <section>
   <h2>Button variants</h2>
   <p><code>role="button"</code> makes a <code class="language-html">&lt;summary&gt;</code> look like a button as wide as the accordion.</p>
-  <article aria-label="Accordion button example" class="component">
+  <article aria-label="Accordion button example">
     <details>
       <summary role="button">Button</summary>
       <p>Owls are nocturnal birds of prey that are known for their distinctive hooting calls. A group of owls is called a parliament, and these birds are often associated with wisdom and intelligence. Owls have excellent hearing and vision, which helps them hunt prey in the dark.</p>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details&gt;
   &lt;summary role="button"&gt;Button&lt;/summary&gt;
   &lt;p&gt;...&lt;/p&gt;
 &lt;/details&gt;</code></pre></footer>
   </article>
   <p>Like other buttons, it takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code> (see <a href="/docs#button">Button</a>).</p>
 </section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/accordion.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
+<section>
+  <p>Used in the <a href="/examples#faq">FAQ</a> and <a href="/examples#docs-layout">Docs page</a> examples.</p>
+  <p><small><code>components/accordion.css</code> reads <code>--femto-accordion-active-summary-color</code>, <code>--femto-accordion-close-summary-color</code>, <code>--femto-accordion-open-summary-color</code>, <code>--femto-icon-chevron</code>, <code>--femto-line-height</code>, <code>--femto-outline-width</code>, <code>--femto-primary</code>, <code>--femto-primary-focus</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="/docs#tokens">Tokens</a>.</small></p>
 </section>

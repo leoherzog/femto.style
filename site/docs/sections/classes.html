@@ -79,7 +79,7 @@
     </table>
   </div>
   <p>In this table the second row is hidden, so the rows you see keep alternating:</p>
-  <article aria-label="Striped table with a hidden row example" class="component">
+  <article aria-label="Striped table with a hidden row example">
     <table class="striped">
       <thead>
         <tr>
@@ -106,7 +106,7 @@
         </tr>
       </tbody>
     </table>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;table class="striped"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;table class="striped"&gt;
   &lt;thead&gt;
     &lt;tr&gt;&lt;th scope="col"&gt;Planet&lt;/th&gt;&lt;th scope="col"&gt;Moons&lt;/th&gt;&lt;/tr&gt;
   &lt;/thead&gt;
@@ -213,6 +213,7 @@
       </tbody>
     </table>
   </div>
+  <p><code>utilities/accessibility.css</code> sets these cursors, and <code>direction</code> for <code>dir="rtl"</code>. It also gives an element with both <code>hidden</code> and <code>aria-hidden="false"</code> a display and clips it while it does not have focus, but femto's <code>[hidden]</code> rule still hides it.</p>
 </section>
 <section>
   <h2>Direction</h2>
@@ -232,7 +233,4 @@
       </tbody>
     </table>
   </div>
-</section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/classes.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
 </section>

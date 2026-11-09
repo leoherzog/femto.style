@@ -50,11 +50,11 @@
     </table>
   </div>
   <p>The one-file builds moved from <code>css/</code> to <code>dist/</code>, and <code>css/femto.css</code> is now the <code>@import</code> entry. On jsDelivr, this link:</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"&gt;</code></pre></div>
   <p>becomes:</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
   <p>A themed build such as <code>pico.jade.min.css</code> becomes femto plus <code>css/themes/jade.css</code>, as two <code>&lt;link&gt;</code> tags or one <a href="/docs#themes">combine URL</a>:</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
 &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/themes/jade.css"&gt;</code></pre></div>
 </section>
 <section>
@@ -170,7 +170,4 @@
     <li>If you used a classless build, classes such as <code>.grid</code>, <code>.secondary</code>, <code>.dropdown</code> and <code>.striped</code> that it ignored are now styled.</li>
   </ul>
   <p>Every difference from Pico 2.1.1 that the parity tests found is registered, with its reason, in <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/tree/{{commit}}/tests/divergences" target="_blank"><code>tests/divergences/</code></a>, and the <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/CHANGELOG.md" target="_blank">changelog</a> lists the changes in each release.</p>
-</section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/migration.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
 </section>

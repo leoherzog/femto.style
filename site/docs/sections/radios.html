@@ -5,7 +5,7 @@
 </hgroup>
 <section>
   <p>Put each radio inside its <code class="language-html">&lt;label&gt;</code>. <code>aria-disabled="true"</code> on the label of a disabled radio dims the label too.</p>
-  <article aria-label="Radios example" class="component">
+  <article aria-label="Radios example">
     <fieldset>
       <legend>Language preference:</legend>
       <label><input type="radio" name="language" checked>English</label>
@@ -14,7 +14,7 @@
       <label><input type="radio" name="language">Thai</label>
       <label aria-disabled="true"><input type="radio" disabled name="language">Dothraki</label>
     </fieldset>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
   &lt;legend&gt;Language preference:&lt;/legend&gt;
   &lt;label&gt;
     &lt;input type="radio" name="language" checked&gt;
@@ -42,9 +42,9 @@
 <section>
   <h2>Horizontal stacking</h2>
   <p>Radios followed by their <code class="language-html">&lt;label for&gt;</code>, rather than inside it, sit side by side on one line.</p>
-  <article aria-label="Horizontal radios example" class="component">
+  <article aria-label="Horizontal radios example">
     <fieldset><legend>Second language:</legend><input type="radio" id="radios-hindi" name="second-language" checked><label for="radios-hindi">Hindi</label><input type="radio" id="radios-swahili" name="second-language"><label for="radios-swahili">Swahili</label><input type="radio" id="radios-navi" disabled name="second-language"><label for="radios-navi" aria-disabled="true">Na'vi</label></fieldset>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
   &lt;legend&gt;Second language:&lt;/legend&gt;
   &lt;input type="radio" id="hindi" name="second-language" checked&gt;
   &lt;label for="hindi"&gt;Hindi&lt;/label&gt;
@@ -58,13 +58,13 @@
 <section>
   <h2>Validation states</h2>
   <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a radio the invalid or valid border color.</p>
-  <article aria-label="Radio validation states example" class="component">
+  <article aria-label="Radio validation states example">
     <fieldset>
       <legend>Validation state:</legend>
       <label><input type="radio" aria-invalid="false" name="validation-states">Valid</label>
       <label><input type="radio" aria-invalid="true" name="validation-states">Invalid</label>
     </fieldset>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
   &lt;legend&gt;Validation state:&lt;/legend&gt;
   &lt;label&gt;
     &lt;input type="radio" name="validation-states" aria-invalid="false"&gt;
@@ -78,6 +78,7 @@
 &lt;/fieldset&gt;</code></pre></footer>
   </article>
 </section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/radios.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
+<section>
+  <p>Used in the <a href="/examples#contact">Contact form</a>, <a href="/examples#checkout">Checkout</a>, <a href="/examples#settings">Settings</a> and <a href="/examples#search-results">Search results</a> examples.</p>
+  <p><small><code>forms/checkbox-radio-switch.css</code> styles it: <a href="/docs#checkboxes">Checkboxes</a> names the tokens it reads.</small></p>
 </section>

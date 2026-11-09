@@ -4,14 +4,14 @@
   <p>Text, date, search and color inputs share one field style; file inputs, checkboxes, radios, switches and range have their own look.</p>
 </hgroup>
 <section>
-  <article aria-label="Input examples" class="component">
+  <article aria-label="Input examples">
     <input type="text" placeholder="Text" aria-label="Text" name="text">
     <input type="email" placeholder="Email" aria-label="Email" autocomplete="email" name="input-email">
     <input type="number" placeholder="Number" aria-label="Number" name="number">
     <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
     <input type="tel" placeholder="Tel" aria-label="Tel" autocomplete="tel" name="tel">
     <input type="url" placeholder="URL" aria-label="URL" name="url">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="text" name="text" placeholder="Text" aria-label="Text"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="text" name="text" placeholder="Text" aria-label="Text"&gt;
 &lt;input type="email" name="email" placeholder="Email" aria-label="Email" autocomplete="email"&gt;
 &lt;input type="number" name="number" placeholder="Number" aria-label="Number"&gt;
 &lt;input type="password" name="password" placeholder="Password" aria-label="Password" autocomplete="current-password"&gt;
@@ -22,12 +22,12 @@
 <section>
   <h2>Datetime input</h2>
   <p>Date and time inputs show a calendar icon at the end, or a clock on <code>type="time"</code>. In Firefox, which draws its own calendar on date fields, femto adds none of these icons.</p>
-  <article aria-label="Datetime input examples" class="component">
+  <article aria-label="Datetime input examples">
     <input type="date" aria-label="Date" name="date">
     <input type="datetime-local" aria-label="Datetime local" name="datetime-local">
     <input type="month" aria-label="Month" name="month">
     <input type="time" aria-label="Time" name="time">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="date" name="date" aria-label="Date"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="date" name="date" aria-label="Date"&gt;
 &lt;input type="datetime-local" name="datetime-local" aria-label="Datetime local"&gt;
 &lt;input type="month" name="month" aria-label="Month"&gt;
 &lt;input type="time" name="time" aria-label="Time"&gt;</code></pre></footer>
@@ -36,9 +36,9 @@
 <section>
   <h2>Search input</h2>
   <p><code>type="search"</code> has rounded ends and a magnifier icon at the start.</p>
-  <article aria-label="Search input example" class="component">
+  <article aria-label="Search input example">
     <input type="search" placeholder="Search" aria-label="Search" name="search">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
   type="search"
   name="search"
   placeholder="Search"
@@ -49,9 +49,9 @@
 <section>
   <h2>Color input</h2>
   <p><code>type="color"</code> has the size and border of the other fields, with a rounded swatch inside.</p>
-  <article aria-label="Color input example" class="component">
+  <article aria-label="Color input example">
     <input type="color" aria-label="Color picker" value="#ff9500">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
   type="color"
   value="#ff9500"
   aria-label="Color picker"
@@ -61,9 +61,9 @@
 <section>
   <h2>File input</h2>
   <p>The button of <code>type="file"</code> has the <a href="/docs#button">secondary button style</a>.</p>
-  <article aria-label="File input example" class="component">
+  <article aria-label="File input example">
     <label>Attachment<input type="file" name="attachment"></label>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;label&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;label&gt;
   Attachment
   &lt;input type="file" name="attachment"&gt;
 &lt;/label&gt;</code></pre></footer>
@@ -72,9 +72,9 @@
 <section>
   <h2>Disabled input</h2>
   <p>A <code>disabled</code> field, or any field in a disabled <code class="language-html">&lt;fieldset&gt;</code>, is dimmed and ignores the pointer.</p>
-  <article aria-label="Disabled input example" class="component">
+  <article aria-label="Disabled input example">
     <input type="text" placeholder="Disabled" aria-label="Disabled input" disabled name="input-disabled">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
   type="text"
   name="text"
   placeholder="Disabled"
@@ -86,9 +86,9 @@
 <section>
   <h2>Read-only input</h2>
   <p>A <code>readonly</code> field keeps its colors when it has focus, with no focus ring.</p>
-  <article aria-label="Read-only input example" class="component">
+  <article aria-label="Read-only input example">
     <input type="text" aria-label="Read-only input" readonly name="input-read-only" value="Read-only">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
   type="text"
   name="text"
   value="Read-only"
@@ -100,12 +100,12 @@
 <section>
   <h2>Validation states</h2>
   <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a field the invalid or valid border color, and an icon in most text fields. A <code class="language-html">&lt;small&gt;</code> right after the field takes the matching color.</p>
-  <article aria-label="Input validation states with helper text example" class="component">
+  <article aria-label="Input validation states with helper text example">
     <input type="text" placeholder="Valid" aria-label="Valid" aria-invalid="false" aria-describedby="input-valid-helper" name="input-helper-valid" value="Valid">
     <small id="input-valid-helper">Looks good!</small>
     <input type="text" placeholder="Invalid" aria-label="Invalid" aria-invalid="true" aria-describedby="input-invalid-helper" name="input-helper-invalid" value="Invalid">
     <small id="input-invalid-helper">Please provide a valid value!</small>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
   type="text"
   name="valid"
   value="Valid"
@@ -128,6 +128,7 @@
 &lt;/small&gt;</code></pre></footer>
   </article>
 </section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/input.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
+<section>
+  <p>Used in the <a href="/examples#sign-in">Sign in</a>, <a href="/examples#sign-up">Sign up</a>, <a href="/examples#contact">Contact form</a>, <a href="/examples#checkout">Checkout</a>, <a href="/examples#settings">Settings</a> and <a href="/examples#search-results">Search results</a> examples.</p>
+  <p><small><code>forms/input-color.css</code> reads <code>--femto-border-radius</code>. <code>forms/input-date.css</code> reads <code>--femto-form-element-spacing-horizontal</code>, <code>--femto-icon-date</code>, <code>--femto-icon-position</code>, <code>--femto-icon-time</code> and <code>--femto-icon-width</code>. <code>forms/input-file.css</code> reads <code>--femto-button-hover-box-shadow</code>, <code>--femto-form-element-spacing-horizontal</code>, <code>--femto-form-element-spacing-vertical</code>, <code>--femto-muted-color</code>, <code>--femto-outline-width</code>, <code>--femto-secondary-focus</code>, <code>--femto-secondary-hover-background</code>, <code>--femto-secondary-hover-border</code> and <code>--femto-spacing</code>. <code>forms/input-search.css</code> reads <code>--femto-form-element-spacing-horizontal</code>, <code>--femto-icon-invalid</code>, <code>--femto-icon-search</code> and <code>--femto-icon-valid</code>. <code>forms/basics.css</code> styles it too: <a href="/docs#forms">Forms overview</a> names the tokens it reads. See <a href="/docs#tokens">Tokens</a>.</small></p>
 </section>

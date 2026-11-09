@@ -5,13 +5,13 @@
 </hgroup>
 <section>
   <p>Text inputs and drop-down selects are as tall as a button, so they line up with the buttons in a form. A <a href="/docs#textarea">textarea</a> is taller, and so is a <a href="/docs#select">select</a> with <code>multiple</code> or a <code>size</code> above 1. Checkboxes, radios, switches and range inputs have sizes of their own.</p>
-  <article aria-label="Form example" class="component">
-    <form>
+  <article aria-label="Form example">
+    <form method="dialog">
       <label>First name<input type="text" placeholder="First name" autocomplete="given-name" name="first_name"></label>
       <label>Email<input type="email" placeholder="Email" autocomplete="email" name="email"></label>
       <input type="submit" value="Subscribe">
     </form>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
   &lt;label&gt;
     First name
     &lt;input
@@ -38,11 +38,11 @@
 &lt;/form&gt;</code></pre></footer>
   </article>
   <p>A field can be inside its <code class="language-html">&lt;label&gt;</code>, or after a label that names it with <code>for</code>.</p>
-  <article aria-label="Label and input syntax" class="component">
+  <article aria-label="Label and input syntax">
     <label>First name<input type="text" placeholder="First name" autocomplete="given-name" name="first_name"></label>
     <label for="email">Email</label>
     <input type="email" id="email" placeholder="Email" autocomplete="email">
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Input inside label --&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Input inside label --&gt;
 &lt;label&gt;
   First name
   &lt;input
@@ -66,10 +66,10 @@
 <section>
   <h2>Helper text</h2>
   <p>A <code class="language-html">&lt;small&gt;</code> right after a field is its helper text, in the muted color. With <code>aria-invalid</code> on the field, it takes the valid or invalid color: see <a href="/docs#input">Input</a>.</p>
-  <article aria-label="Form helpers example" class="component">
+  <article aria-label="Form helpers example">
     <input type="email" placeholder="Email" autocomplete="email" aria-label="Email" aria-describedby="email-helper" name="forms-email">
     <small id="email-helper">We’ll never share your email with anyone else.</small>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
   type="email"
   name="email"
   placeholder="Email"
@@ -85,15 +85,15 @@
 <section>
   <h2>Usage with grid</h2>
   <p>Fields in a <code>.grid</code> sit side by side from 768px and stack on smaller screens. See <a href="/docs#grid">Grid</a>.</p>
-  <article aria-label="Form and grid example" class="component">
-    <form>
+  <article aria-label="Form and grid example">
+    <form method="dialog">
       <div class="grid">
         <input type="text" placeholder="Login" aria-label="Login" autocomplete="username" name="login">
         <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
         <input type="submit" value="Log in">
       </div>
     </form>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
   &lt;div class="grid"&gt;
     &lt;input
       type="text"
@@ -121,6 +121,7 @@
   <h2>Usage with group</h2>
   <p>To join fields and buttons in one row, use <a href="/docs#group"><code>role="group"</code></a>.</p>
 </section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/forms.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
+<section>
+  <p>Used in many examples, such as the <a href="/examples#sign-up">Sign up</a>, <a href="/examples#contact">Contact form</a> and <a href="/examples#checkout">Checkout</a>.</p>
+  <p><small><code>forms/basics.css</code> reads <code>--femto-background-color</code>, <code>--femto-border-color</code>, <code>--femto-border-radius</code>, <code>--femto-border-width</code>, <code>--femto-box-shadow</code>, <code>--femto-color</code>, <code>--femto-del-color</code>, <code>--femto-font-weight</code>, <code>--femto-form-element-active-background-color</code>, <code>--femto-form-element-active-border-color</code>, <code>--femto-form-element-background-color</code>, <code>--femto-form-element-border-color</code>, <code>--femto-form-element-color</code>, <code>--femto-form-element-disabled-opacity</code>, <code>--femto-form-element-focus-color</code>, <code>--femto-form-element-invalid-active-border-color</code>, <code>--femto-form-element-invalid-border-color</code>, <code>--femto-form-element-invalid-focus-color</code>, <code>--femto-form-element-placeholder-color</code>, <code>--femto-form-element-selected-background-color</code>, <code>--femto-form-element-spacing-horizontal</code>, <code>--femto-form-element-spacing-vertical</code>, <code>--femto-form-element-valid-active-border-color</code>, <code>--femto-form-element-valid-border-color</code>, <code>--femto-form-element-valid-focus-color</code>, <code>--femto-form-label-font-weight</code>, <code>--femto-icon-chevron</code>, <code>--femto-icon-height</code>, <code>--femto-icon-invalid</code>, <code>--femto-icon-valid</code>, <code>--femto-ins-color</code>, <code>--femto-line-height</code>, <code>--femto-muted-color</code>, <code>--femto-outline-width</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="/docs#tokens">Tokens</a>.</small></p>
 </section>

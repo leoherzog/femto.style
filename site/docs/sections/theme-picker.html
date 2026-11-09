@@ -6,7 +6,7 @@
 <section>
   <h2>Theme color</h2>
   <p>Choose one of femto's 20 <a href="/docs#themes">theme&nbsp;colors</a>.</p>
-  <article class="color-picker component" aria-label="Theme example" data-version-picker>
+  <article class="color-picker" aria-label="Theme example" data-version-picker>
     <header>
       <a class="femto-background-red" aria-label="Red" href="/docs?theme=red#theme-picker"></a>
       <a class="femto-background-orange" aria-label="Orange" href="/docs?theme=orange#theme-picker"></a>
@@ -33,7 +33,7 @@
       <h2>Azure</h2>
       <p>Form example with an azure theme.</p>
     </hgroup>
-    <form>
+    <form method="dialog">
       <div class="grid">
         <input type="text" placeholder="Login" aria-label="Login" autocomplete="username" name="login">
         <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
@@ -59,7 +59,7 @@
 <section data-picker-usage="cdn">
   <h2>Links to copy</h2>
   <p>Link these in the <code>&lt;head&gt;</code> of your page, in this order: femto, the theme, the options, then your own stylesheets. Azure is built in, so it needs no theme file.</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
 &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/options/responsive-spacings.css"&gt;
 &lt;link rel="stylesheet" href="styles.css"&gt;</code></pre></div>
   <p>Until 3.0.0 is released, write <code>@{{version}}</code> or <code>@alpha</code> in place of <code>@3</code> (see <a href="/docs#quick-start">Quick start</a>).</p>
@@ -67,11 +67,11 @@
 <section data-picker-usage="combine">
   <h2>One request</h2>
   <p>The same files in one request, as a jsDelivr <a href="/docs#themes">combine URL</a>; with azure and no options, it is femto's plain link:</p>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@leoherzog/femto@3/dist/femto.min.css,npm/@leoherzog/femto@3/css/options/responsive-spacings.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@leoherzog/femto@3/dist/femto.min.css,npm/@leoherzog/femto@3/css/options/responsive-spacings.css"&gt;</code></pre></div>
 </section>
 <section data-picker-usage="template">
   <h2>Starter template</h2>
-  <div class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
 &lt;html lang="en"&gt;
   &lt;head&gt;
     &lt;meta charset="utf-8"&gt;
@@ -87,7 +87,4 @@
     &lt;/main&gt;
   &lt;/body&gt;
 &lt;/html&gt;</code></pre></div>
-</section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/theme-picker.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
 </section>

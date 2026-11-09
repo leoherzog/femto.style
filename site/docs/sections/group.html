@@ -5,11 +5,11 @@
 </hgroup>
 <section>
   <p>A group is as wide as its container. Its children share their borders, and only the outer corners are rounded. Unlike <a href="/docs#grid"><code>.grid</code></a>, a group stays in one row on small screens, so keep its labels short.</p>
-  <article class="component" aria-label="Group email form example">
-    <form>
+  <article aria-label="Group email form example">
+    <form method="dialog">
       <div role="group"><input type="email" placeholder="Enter your email" autocomplete="email" name="email"><input type="submit" value="Subscribe"></div>
     </form>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
   &lt;div role="group"&gt;
     &lt;input name="email" type="email" placeholder="Enter your email" autocomplete="email"&gt;
     &lt;input type="submit" value="Subscribe"&gt;
@@ -17,11 +17,11 @@
 &lt;/form&gt;</code></pre></footer>
   </article>
   <p>When a child has focus, the group draws one focus ring around itself, in that child’s style: an input’s or a button’s.</p>
-  <article class="component" aria-label="Group login form example">
-    <form>
+  <article aria-label="Group login form example">
+    <form method="dialog">
       <div role="group"><input type="email" placeholder="Email" autocomplete="email" name="email"><input type="password" placeholder="Password" autocomplete="current-password" name="password"><input type="submit" value="Log in"></div>
     </form>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
   &lt;div role="group"&gt;
     &lt;input name="email" type="email" placeholder="Email" autocomplete="email"&gt;
     &lt;input name="password" type="password" placeholder="Password" autocomplete="current-password"&gt;
@@ -33,9 +33,9 @@
 <section>
   <h2>Search</h2>
   <p><code>role="search"</code> also rounds the ends, like a <a href="/docs#input">search input</a>.</p>
-  <article class="component" aria-label="Search group example">
-    <form role="search"><input type="search" placeholder="Search" aria-label="Search" name="search"><input type="submit" value="Search"></form>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form role="search"&gt;
+  <article aria-label="Search group example">
+    <form method="dialog" role="search"><input type="search" placeholder="Search" aria-label="Search" name="search"><input type="submit" value="Search"></form>
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form role="search"&gt;
   &lt;input name="search" type="search" placeholder="Search" aria-label="Search"&gt;
   &lt;input type="submit" value="Search"&gt;
 &lt;/form&gt;</code></pre></footer>
@@ -44,22 +44,23 @@
 <section>
   <h2>Buttons</h2>
   <p>In a group of buttons, <code>aria-current</code> shows one as current, with its hover colors.</p>
-  <article class="component" aria-label="Group current button example">
+  <article aria-label="Group current button example">
     <div role="group"><button type="button">Day</button><button type="button" aria-current="true">Week</button></div>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
   &lt;button type="button"&gt;Day&lt;/button&gt;
   &lt;button type="button" aria-current="true"&gt;Week&lt;/button&gt;
 &lt;/div&gt;</code></pre></footer>
   </article>
   <p>Each button keeps its own style.</p>
-  <article class="component" aria-label="Group button styles example">
+  <article aria-label="Group button styles example">
     <div role="group"><button type="button" class="secondary">Day</button><button type="button" class="contrast">Week</button></div>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div role="group"&gt;
   &lt;button type="button" class="secondary"&gt;Day&lt;/button&gt;
   &lt;button type="button" class="contrast"&gt;Week&lt;/button&gt;
 &lt;/div&gt;</code></pre></footer>
   </article>
 </section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/group.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
+<section>
+  <p>Used in the <a href="/examples#checkout">Checkout</a> and <a href="/examples#search-results">Search results</a> examples.</p>
+  <p><small><code>components/group.css</code> reads <code>--femto-border-radius</code>, <code>--femto-border-width</code>, <code>--femto-group-box-shadow</code>, <code>--femto-group-box-shadow-focus-with-button</code>, <code>--femto-group-box-shadow-focus-with-input</code>, <code>--femto-primary-border</code>, <code>--femto-primary-hover-border</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="/docs#tokens">Tokens</a>.</small></p>
 </section>

@@ -4,9 +4,9 @@
   <p><code class="language-html">&lt;textarea&gt;</code> has the style of the other fields, and the visitor can resize it vertically.</p>
 </hgroup>
 <section>
-  <article aria-label="Textarea example" class="component">
+  <article aria-label="Textarea example">
     <textarea name="bio" placeholder="Write a professional short bio..." aria-label="Professional short bio"></textarea>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea
   name="bio"
   placeholder="Write a professional short bio..."
   aria-label="Professional short bio"
@@ -18,12 +18,12 @@
 <section>
   <h2>Validation states</h2>
   <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a textarea the invalid or valid border color and an icon at the top right. A <code class="language-html">&lt;small&gt;</code> right after the textarea takes the matching color.</p>
-  <article aria-label="Textarea validation states with helper text example" class="component">
+  <article aria-label="Textarea validation states with helper text example">
     <textarea name="textarea-helper-valid" placeholder="Valid" aria-label="Valid" aria-invalid="false" aria-describedby="textarea-valid-helper">Valid</textarea>
     <small id="textarea-valid-helper">Looks good!</small>
     <textarea name="textarea-helper-invalid" placeholder="Invalid" aria-label="Invalid" aria-invalid="true" aria-describedby="textarea-invalid-helper">Invalid</textarea>
     <small id="textarea-invalid-helper">Please provide a valid value!</small>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea
   name="valid"
   aria-label="Valid"
   aria-invalid="false"
@@ -46,6 +46,7 @@
 &lt;/small&gt;</code></pre></footer>
   </article>
 </section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/textarea.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
+<section>
+  <p>Used in the <a href="/examples#contact">Contact form</a> and <a href="/examples#settings">Settings</a> examples.</p>
+  <p><small><code>forms/basics.css</code> styles it: <a href="/docs#forms">Forms overview</a> names the tokens it reads.</small></p>
 </section>

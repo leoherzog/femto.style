@@ -1,0 +1,901 @@
+<hgroup>
+  <p class="chapter">Reference</p>
+  <h1 id="tokens">Tokens</h1>
+  <p>Every custom property femto declares, but the light and dark pairs, under the section that shows it: what it sets, and whether it has a&nbsp;pair.</p>
+</hgroup>
+<section>
+  <p>femto declares 150 tokens on <code>:root</code> and <code>:host</code> or on the elements that use them, and a light and a dark token for each of the 58 with a pair: 266 custom properties in all. Set one in your own CSS, as <a href="/docs#css-variables">CSS variables</a> shows. Where a row says "set on" or "set per", femto sets the token on those elements, so a value on <code>:root</code> does not reach them: set it on the elements.</p>
+  <p>Each of the 58 tokens with a pair takes its light and dark values from two tokens of its own, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> for <code>--femto-primary</code> (see <a href="/docs#color-schemes">Color schemes</a>). The validation icons' pairs are switched by the scheme rules instead, since <code>light-dark()</code> cannot carry an image.</p>
+  <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
+  <div class="overflow-auto" tabindex="0" role="region" aria-label="Tokens">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Token and what it sets</th>
+          <th scope="col">Pair</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#options">Options</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-transition</code><br>
+            The transitions' timing, 0.2s ease-in-out</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#color-schemes">Color schemes</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-background-color</code><br>
+            The page background; links, buttons and fields set their own</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-color</code><br>
+            The text color; headings, links, buttons and fields set their own</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#css-variables">CSS variables</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-font-family</code><br>
+            The font: the sans-serif stack, the monospace one in code</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-border-radius</code><br>
+            The corner radius, 0.25rem; 5rem in search inputs and <code>role="search"</code></td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#landmarks">Landmarks and sections</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-spacing</code><br>
+            The base spacing, 1rem</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-block-spacing-vertical</code><br>
+            The padding of the page's header, main and footer and of cards; the margin below a section</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#nav">Nav</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-nav-element-spacing-vertical</code><br>
+            The top and bottom padding of nav items</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-nav-element-spacing-horizontal</code><br>
+            The side padding of nav items</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-nav-link-spacing-vertical</code><br>
+            The top and bottom padding of nav links</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-nav-link-spacing-horizontal</code><br>
+            The side padding of nav links</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-nav-breadcrumb-divider</code><br>
+            The breadcrumb separator, <code>"&gt;"</code></td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#grid">Grid</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-grid-column-gap</code><br>
+            The gap between <code>.grid</code> columns</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-grid-row-gap</code><br>
+            The gap between <code>.grid</code> rows</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-grid-template-columns</code><br>
+            The <code>.grid</code> columns from 768px</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#card">Card</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-box-shadow</code><br>
+            The shadow of cards and dropdowns, with <code>light-dark()</code> in each layer; buttons and fields set their own</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-block-spacing-horizontal</code><br>
+            The side padding of cards</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-card-background-color</code><br>
+            The card background</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-card-border-color</code><br>
+            The card border</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-card-box-shadow</code><br>
+            The card shadow</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-card-sectioning-background-color</code><br>
+            The background of a card's header and footer</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#typography">Typography</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-font-family-emoji</code><br>
+            The emoji fonts that end the other two stacks</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-font-family-sans-serif</code><br>
+            The system font stack</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-font-size</code><br>
+            The root font size, 100% to 131.25% by breakpoint; set per element in headings and <code>small</code></td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-font-weight</code><br>
+            The font weight, 400; 700 in headings, 600 in table heads and feet, and bolder in <code>kbd</code>, set on them</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-line-height</code><br>
+            The line height, 1.5; less in headings</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-typography-spacing-vertical</code><br>
+            The space below text blocks, 1rem</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-typography-spacing-top</code><br>
+            The space above a heading after a paragraph, list or other block, set per heading</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-text-underline-offset</code><br>
+            The underline offset of text, 0.1rem; links use 0.125em</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-text-selection-color</code><br>
+            The background of selected text</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-h1-color</code><br>
+            The color of <code>h1</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-h2-color</code><br>
+            The color of <code>h2</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-h3-color</code><br>
+            The color of <code>h3</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-h4-color</code><br>
+            The color of <code>h4</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-h5-color</code><br>
+            The color of <code>h5</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-h6-color</code><br>
+            The color of <code>h6</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-mark-background-color</code><br>
+            The <code>mark</code> highlight</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-mark-color</code><br>
+            The text in <code>mark</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-ins-color</code><br>
+            The color of <code>ins</code> and of valid helper text</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-del-color</code><br>
+            The color of <code>del</code> and of invalid helper text</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-blockquote-border-color</code><br>
+            The border at a blockquote's start</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-blockquote-footer-color</code><br>
+            A blockquote footer's text</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-muted-color</code><br>
+            Muted text, such as a subtitle, a caption or helper text</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-muted-border-color</code><br>
+            The <code>hr</code> line; also blockquote, table and light card borders</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#link">Link</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-text-decoration</code><br>
+            A link's line, <code>underline</code>, set on links</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-underline</code><br>
+            A link's underline color, set on links per class and state</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary</code><br>
+            The link color, and an outline button's text and border</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-underline</code><br>
+            The link underline</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-hover</code><br>
+            The link color on hover and focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-hover-underline</code><br>
+            The link underline on hover and focus</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary</code><br>
+            The <code>.secondary</code> link color, and an outline button's text and border</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-underline</code><br>
+            The link underline</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-hover</code><br>
+            The <code>.secondary</code> link color on hover and focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-hover-underline</code><br>
+            The link underline on hover and focus</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast</code><br>
+            The <code>.contrast</code> link color, and an outline button's text and border</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-underline</code><br>
+            The link underline</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-hover</code><br>
+            The <code>.contrast</code> link color on hover and focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-hover-underline</code><br>
+            The link underline on hover and focus</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#button">Button</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-border-width</code><br>
+            The border width, 0.0625rem; wider on checkboxes, radios, switches, and table heads and feet</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-border-color</code><br>
+            A button's or field's border, set on it per class and state</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-outline-width</code><br>
+            The focus ring width, 0.125rem; 0.0625rem on fields and dropdowns</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-background</code><br>
+            The button background; also checked boxes, switches and progress bars</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-border</code><br>
+            The button border; also a focused field's border</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-hover-background</code><br>
+            The button background on hover and focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-hover-border</code><br>
+            The button border on hover and focus</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-focus</code><br>
+            The focus ring</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-inverse</code><br>
+            The button text</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-background</code><br>
+            The button background; also a range thumb</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-border</code><br>
+            The button border</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-hover-background</code><br>
+            The button background on hover and focus; also the file button's</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-hover-border</code><br>
+            The button border on hover and focus</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-focus</code><br>
+            The focus ring</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-secondary-inverse</code><br>
+            The button text</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-background</code><br>
+            The button background; also the tooltip</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-border</code><br>
+            The button border</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-hover-background</code><br>
+            The button background on hover and focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-hover-border</code><br>
+            The button border on hover and focus</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-focus</code><br>
+            The focus ring</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-contrast-inverse</code><br>
+            The button text; also the tooltip's</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-button-box-shadow</code><br>
+            The button shadow, none by default</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-button-hover-box-shadow</code><br>
+            The button shadow on hover and focus</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#table">Table</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-table-border-color</code><br>
+            The cell borders</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-table-row-stripped-background-color</code><br>
+            The shade of <code>.striped</code> rows</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#media">Media, code and lists</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-font-family-monospace</code><br>
+            The font stack of <code>pre</code>, <code>code</code>, <code>kbd</code> and <code>samp</code></td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-code-background-color</code><br>
+            The background of <code>pre</code>, <code>code</code> and <code>samp</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-code-color</code><br>
+            Their text</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-code-kbd-background-color</code><br>
+            The <code>kbd</code> background: the text color</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-code-kbd-color</code><br>
+            The <code>kbd</code> text: the background color</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#forms">Forms overview</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-spacing-vertical</code><br>
+            The top and bottom padding of fields and buttons, 0.75rem</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-spacing-horizontal</code><br>
+            The side padding of fields and buttons, 1rem; 2rem on buttons in <code>role="group"</code> and <code>role="search"</code>, set on them</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#input">Input</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-background-color</code><br>
+            The field background</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-border-color</code><br>
+            The field border</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-color</code><br>
+            The field text</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-placeholder-color</code><br>
+            The placeholder text</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-active-background-color</code><br>
+            The field background on focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-active-border-color</code><br>
+            The field border on focus</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-focus-color</code><br>
+            The field's focus ring</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-disabled-opacity</code><br>
+            The opacity of a disabled field, 0.5</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-invalid-border-color</code><br>
+            The border with <code>aria-invalid="true"</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-invalid-active-border-color</code><br>
+            That border on focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-invalid-focus-color</code><br>
+            That field's focus ring</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-valid-border-color</code><br>
+            The border with <code>aria-invalid="false"</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-valid-active-border-color</code><br>
+            That border on focus</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-valid-focus-color</code><br>
+            That field's focus ring</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-date</code><br>
+            The calendar of date, datetime-local, month and week inputs</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-time</code><br>
+            The clock of time inputs</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-search</code><br>
+            The magnifier of search inputs</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-valid</code><br>
+            The icon of a valid field</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-invalid</code><br>
+            The icon of an invalid field</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-width</code><br>
+            The width of a date or time input's icon, set on it</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-position</code><br>
+            That icon's distance from the end, set on it</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#textarea">Textarea</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-height</code><br>
+            The validation icon's height in a textarea, set on it</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#select">Select</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-form-element-selected-background-color</code><br>
+            The chosen options of a select with <code>multiple</code></td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-chevron</code><br>
+            The chevron of selects, accordions and dropdowns</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#checkboxes">Checkboxes</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-checkbox</code><br>
+            The check of a checked checkbox</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-minus</code><br>
+            The minus of an indeterminate checkbox</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#switch">Switch</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-switch-background-color</code><br>
+            An unchecked switch's track</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-switch-checked-background-color</code><br>
+            A checked switch's track</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-switch-color</code><br>
+            The switch thumb</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-switch-thumb-box-shadow</code><br>
+            The thumb's shadow, none by default; six themes give it one</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#range">Range</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-range-border-color</code><br>
+            The range track</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-range-active-border-color</code><br>
+            The track while pressed or focused</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-range-thumb-border-color</code><br>
+            The thumb's border</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-range-thumb-color</code><br>
+            The thumb</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-range-thumb-active-color</code><br>
+            The thumb while pressed or focused</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#accordion">Accordion</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-accordion-border-color</code><br>
+            Read by no module</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-accordion-close-summary-color</code><br>
+            A closed summary's text</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-accordion-active-summary-color</code><br>
+            A focused summary's text</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-accordion-open-summary-color</code><br>
+            An open summary's text</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#dropdown">Dropdown</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-dropdown-background-color</code><br>
+            The open list's background</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-dropdown-border-color</code><br>
+            The list's border</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-dropdown-box-shadow</code><br>
+            The list's shadow</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-dropdown-color</code><br>
+            The list's text</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-dropdown-hover-background-color</code><br>
+            An item's background on hover, on focus and when current</td>
+          <td>Yes</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#group">Group</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-group-box-shadow</code><br>
+            The group's shadow, none by default</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-group-box-shadow-focus-with-button</code><br>
+            The group's ring while a button in it has focus</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-group-box-shadow-focus-with-input</code><br>
+            The group's ring while a field in it has focus</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#loading">Loading</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-primary-inverse-filter</code><br>
+            The filter that draws the spinner on filled buttons; themes set it</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-loading</code><br>
+            The loading spinner</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-loading-spinner-opacity</code><br>
+            Read by no module</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#modal">Modal</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-icon-close</code><br>
+            The modal's close icon</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-modal-overlay-background-color</code><br>
+            The overlay behind a modal</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-modal-overlay-backdrop-filter</code><br>
+            The overlay's blur</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-scrollbar-width</code><br>
+            The scrollbar width your script sets on <code>html</code>, 0px by default</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#progress">Progress</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-progress-background-color</code><br>
+            The progress track</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td><code>--femto-progress-color</code><br>
+            The progress bar</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+      <tbody>
+        <tr>
+          <th scope="rowgroup" colspan="2"><a href="/docs#tooltip">Tooltip</a></th>
+        </tr>
+        <tr>
+          <td><code>--femto-tooltip-background-color</code><br>
+            The tooltip bubble</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-tooltip-color</code><br>
+            The tooltip text</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-tooltip-slide-to</code><br>
+            Where the bubble slides in to, set per placement</td>
+          <td>No</td>
+        </tr>
+        <tr>
+          <td><code>--femto-tooltip-caret-slide-to</code><br>
+            Where the caret slides in to, set per placement</td>
+          <td>No</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>femto also reads <code>--femto-form-label-font-weight</code>, which it does not declare: set it to change the weight of labels and legends, which otherwise follow <code>--femto-font-weight</code>. <code>femto.colors.css</code> declares the palette, <code>--femto-color-&lt;color&gt;-&lt;shade&gt;</code> (see <a href="/docs#colors">Colors</a>).</p>
+</section>

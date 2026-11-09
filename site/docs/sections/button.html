@@ -4,24 +4,24 @@
   <p>A plain <code class="language-html">&lt;button&gt;</code> needs no class and has the primary color by&nbsp;default.</p>
 </hgroup>
 <section>
-  <article aria-label="Button example" class="component"><button type="button">Button</button><footer class="code small" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button"&gt;Button&lt;/button&gt;</code></pre></footer></article>
+  <article aria-label="Button example"><button type="button">Button</button><footer class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button"&gt;Button&lt;/button&gt;</code></pre></footer></article>
   <p>A button is at most as wide as its container, so a long label&nbsp;wraps.</p>
 </section>
 <section>
   <h2>Variants</h2>
   <p><code>.secondary</code> and <code>.contrast</code> give a button the secondary or contrast&nbsp;color.</p>
-  <article aria-label="Button colors example" class="component">
+  <article aria-label="Button colors example">
     <button type="button" class="secondary">Secondary</button>
     <button type="button" class="contrast">Contrast</button>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
 &lt;button type="button" class="contrast"&gt;Contrast&lt;/button&gt;</code></pre></footer>
   </article>
   <p><code>.outline</code> draws a button as an outline, alone or with <code>.secondary</code> or&nbsp;<code>.contrast</code>.</p>
-  <article aria-label="Buttons outline example" class="component">
+  <article aria-label="Buttons outline example">
     <button type="button" class="outline">Primary</button>
     <button type="button" class="outline secondary">Secondary</button>
     <button type="button" class="outline contrast">Contrast</button>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" class="outline"&gt;Primary&lt;/button&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" class="outline"&gt;Primary&lt;/button&gt;
 &lt;button type="button" class="outline secondary"&gt;Secondary&lt;/button&gt;
 &lt;button type="button" class="outline contrast"&gt;Contrast&lt;/button&gt;</code></pre></footer>
   </article>
@@ -29,19 +29,19 @@
 <section>
   <h2>Form buttons</h2>
   <p>Inputs with <code>type="submit"</code>, <code>"button"</code> or <code>"reset"</code> look like buttons. Like the other form fields, they fill the width of their container, and so does a <code class="language-html">&lt;button type="submit"&gt;</code>.</p>
-  <article aria-label="Input buttons example" class="component"><input type="submit"><input type="button" value="Input"><footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="submit"&gt;
+  <article aria-label="Input buttons example"><input type="submit"><input type="button" value="Input"><footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="submit"&gt;
 &lt;input type="button" value="Input"&gt;</code></pre></footer></article>
   <p>A reset input has the secondary color by&nbsp;default.</p>
-  <article aria-label="Reset input example" class="component"><input type="reset"><footer class="code small" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="reset"&gt;</code></pre></footer></article>
+  <article aria-label="Reset input example"><input type="reset"><footer class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="reset"&gt;</code></pre></footer></article>
 </section>
 <section>
   <h2>Disabled</h2>
   <p>A button with <code>disabled</code>, or inside a disabled <code class="language-html">&lt;fieldset&gt;</code>, is dimmed and takes no&nbsp;clicks.</p>
-  <article aria-label="Disabled buttons example" class="component">
+  <article aria-label="Disabled buttons example">
     <button type="button" disabled>Disabled</button>
     <button type="button" class="secondary" disabled>Disabled</button>
     <button type="button" class="contrast" disabled>Disabled</button>
-    <footer class="code" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" disabled&gt;Disabled&lt;/button&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" disabled&gt;Disabled&lt;/button&gt;
 &lt;button type="button" class="secondary" disabled&gt;Disabled&lt;/button&gt;
 &lt;button type="button" class="contrast" disabled&gt;Disabled&lt;/button&gt;</code></pre></footer>
   </article>
@@ -49,15 +49,16 @@
 <section>
   <h2>Role button</h2>
   <p><code>role="button"</code> makes another element, such as a link or a <code class="language-html">&lt;summary&gt;</code>, look like a&nbsp;button.</p>
-  <article aria-label="Role button example" class="component">
+  <article aria-label="Role button example">
     <div role="button" tabindex="0">Div as a button</div>
-    <footer class="code small" data-theme="dark"><button type="button" class="copy-to-clipboard" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div role="button" tabindex="0"&gt;Div as a button&lt;/div&gt;</code></pre></footer>
+    <footer class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div role="button" tabindex="0"&gt;Div as a button&lt;/div&gt;</code></pre></footer>
   </article>
 </section>
 <section>
   <h2>Usage with group</h2>
   <p>To join buttons in one row, use <a href="/docs#group"><code>role="group"</code></a>.</p>
 </section>
-<section class="edit-on-github">
-  <p><a rel="noopener noreferrer" class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/button.html" target="_blank"><small><span role="img" aria-hidden="true">✎</span>Edit this page on GitHub</small></a></p>
+<section>
+  <p>Used in most examples, such as the <a href="/examples#confirm-dialog">Confirmation dialog</a>, <a href="/examples#checkout">Checkout</a> and <a href="/examples#settings">Settings</a>.</p>
+  <p><small><code>content/button.css</code> reads <code>--femto-background-color</code>, <code>--femto-border-color</code>, <code>--femto-border-radius</code>, <code>--femto-border-width</code>, <code>--femto-box-shadow</code>, <code>--femto-button-box-shadow</code>, <code>--femto-button-hover-box-shadow</code>, <code>--femto-color</code>, <code>--femto-contrast</code>, <code>--femto-contrast-background</code>, <code>--femto-contrast-border</code>, <code>--femto-contrast-focus</code>, <code>--femto-contrast-hover</code>, <code>--femto-contrast-hover-background</code>, <code>--femto-contrast-hover-border</code>, <code>--femto-contrast-inverse</code>, <code>--femto-font-weight</code>, <code>--femto-form-element-spacing-horizontal</code>, <code>--femto-form-element-spacing-vertical</code>, <code>--femto-line-height</code>, <code>--femto-outline-width</code>, <code>--femto-primary</code>, <code>--femto-primary-background</code>, <code>--femto-primary-border</code>, <code>--femto-primary-focus</code>, <code>--femto-primary-hover</code>, <code>--femto-primary-hover-background</code>, <code>--femto-primary-hover-border</code>, <code>--femto-primary-inverse</code>, <code>--femto-secondary</code>, <code>--femto-secondary-background</code>, <code>--femto-secondary-border</code>, <code>--femto-secondary-focus</code>, <code>--femto-secondary-hover</code>, <code>--femto-secondary-hover-background</code>, <code>--femto-secondary-hover-border</code>, <code>--femto-secondary-inverse</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="/docs#tokens">Tokens</a>.</small></p>
 </section>
