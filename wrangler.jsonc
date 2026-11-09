@@ -1,0 +1,13 @@
+// The Pages project's configuration, read by its build after every push (PLAN.md Decision 11). Its
+// job is the build output directory: on 2026-11-06 the dashboard's was wrong and production served
+// the raw site/, so the repository now pins it to dist (the owner, 2026-11-09). The fields here are
+// the source of truth, and the dashboard shows them but cannot change them. The build command, root
+// directory, build system version and branch settings stay in the dashboard.
+// The site has no Functions, so compatibility_date changes nothing it serves; Pages requires one.
+// It is the newest date the runtime in wrangler 4.158.0 supports (workerd 1.20261104.1), and
+// wrangler pages dev, which reads this file too, runs with it.
+{
+  "name": "femto-style",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-11-04"
+}
