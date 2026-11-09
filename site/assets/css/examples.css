@@ -1,6 +1,7 @@
-/* The examples page's styles (/examples, site/examples.html), after landing.css: the index under the
-   hero, each example's heading, the frame around each example and its markup. Nothing here reaches
-   inside an example: it renders in a shadow root that loads femto alone (assets/js/examples.js). */
+/* The examples page's styles (/examples, site/examples.html), after landing.css: the theme select
+   and the index under the hero, each example's header, the frame around each example and its folded
+   markup. Nothing here reaches inside an example: it renders in a shadow root that loads femto alone
+   (assets/js/examples.js). */
 
 /* The body is a one-column grid (common.css), and a grid item's min-content width widens that
    column: the dashboard's table, which scrolls inside its .overflow-auto, would otherwise make the
@@ -10,10 +11,36 @@ body > main.examples {
 }
 
 /**
- * Index
+ * Theme select: the label and the select on one line, centered under the hero from 576px, as the
+ * hero is (landing.css). examples.js applies the choice to the examples.
+ */
+body > main.examples > .examples-theme {
+  margin-bottom: 0;
+}
+
+@media (min-width: 576px) {
+  body > main.examples > .examples-theme {
+    text-align: center;
+  }
+}
+
+body > main.examples > .examples-theme > label {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--femto-spacing) / 2);
+  margin-bottom: 0;
+}
+
+body > main.examples > .examples-theme select {
+  width: auto;
+  margin-bottom: 0;
+}
+
+/**
+ * Index: four chapters, in two columns from 576px and in four from 1024px
  */
 body > main.examples > .examples-index {
-  margin-block: calc(var(--femto-homepage-spacing-vertical) / 4) calc(var(--femto-homepage-spacing-vertical) / 2);
+  margin-block: calc(var(--site-homepage-spacing-vertical) / 4) calc(var(--site-homepage-spacing-vertical) / 2);
 }
 
 body > main.examples > .examples-index .grid {
@@ -22,9 +49,16 @@ body > main.examples > .examples-index .grid {
 
 @media (min-width: 576px) {
   body > main.examples > .examples-index .grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    max-width: 45rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 30rem;
     margin-inline: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  body > main.examples > .examples-index .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 60rem;
   }
 }
 
@@ -43,11 +77,30 @@ body > main.examples > .examples-index li {
 /**
  * Examples
  */
+/* A link to an example (the footer's, the index's, the docs' "Used in") puts its chapter label a
+   femto spacing below the top of the viewport, not against it: the page has no sticky header and
+   no scroll padding */
 body > main.examples > section.example {
-  margin-block: 0 calc(var(--femto-homepage-spacing-vertical) / 2);
+  margin-block: 0 calc(var(--site-homepage-spacing-vertical) / 2);
+  scroll-margin-top: var(--femto-spacing);
 }
 
-body > main.examples > section.example > hgroup h2 {
+/* The header: the hgroup, then the Copy as page button at the row's end, its bottom on the hgroup's
+   (both keep femto's typography margin under them). On a narrow screen the button wraps under the
+   hgroup. */
+body > main.examples > section.example > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  column-gap: var(--femto-spacing);
+}
+
+body > main.examples > section.example > header > button {
+  margin-bottom: var(--femto-typography-spacing-vertical);
+}
+
+body > main.examples > section.example > header > hgroup h2 {
   --femto-font-size: 1.5rem;
   --femto-line-height: 1.2;
 }
@@ -86,7 +139,27 @@ body > main.examples > section.example > div[data-example] {
   color-scheme: dark;
 }
 
-/* The example's markup, shown under it: the section's own margin follows it. */
-body > main.examples > section.example > .code {
+/* In print the examples take femto's print scheme, light, whatever the page's stored choice, as the
+   page does (common.css). This rule outweighs the two above, and examples.js takes data-theme off
+   the hosts while the page prints */
+@media print {
+  :root[data-theme] body > main.examples > section.example > div[data-example]::part(example) {
+    color-scheme: light;
+  }
+}
+
+/* The example's markup, folded under it in femto's accordion (<details>, closed in the markup): the
+   section's own margin follows it. */
+body > main.examples > section.example > details,
+body > main.examples > section.example > details > .code {
   margin-bottom: 0;
+}
+
+/* Without JavaScript, and in print, the theme select and the Copy as page buttons do nothing, so
+   they are hidden, as common.css hides the copy buttons */
+@media (scripting: none), print {
+  body > main.examples > .examples-theme,
+  body > main.examples > section.example > header > button[data-copy-page] {
+    display: none;
+  }
 }

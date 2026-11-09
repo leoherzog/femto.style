@@ -1,123 +1,37 @@
 /* The site's shared styles, on every page after femto and its responsive-spacings option: the
-   site's own tokens for each color scheme, the header, document and footer layout, and the skip
-   link, screen-reader-only text, logo, theme toggle, chapter label and component card. Code blocks
-   are in code.css. */
-
-/* Landmarks and sections get 4 times --femto-spacing above and below from 1536px up, past the
-   2.25 that responsive-spacings.css gives them */
-@media (min-width: 1536px) {
-  body > header,
-  body > main,
-  body > footer,
-  section {
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 4);
-  }
-}
+   site's color tokens, the header, document and footer layout, the plain buttons and what hides
+   without JavaScript, the skip link, screen-reader-only text, logo, theme toggle and chapter label,
+   and print. Code blocks are in code.css. */
 
 /**
- * Color schemes
- * --femto-code-comment, the color of Prism's comment and doctype tokens, keeps 4.5:1 on every code
+ * Site tokens: the site's own colors, named --site-* so they never pass for femto's. Each is one
+ * light-dark() pair on :root, as femto declares its color tokens: femto's color-scheme, on :root and
+ * on every [data-theme] element, picks the side where a color is used, so a data-theme island (a
+ * code block's footer.code[data-theme=dark]) gets its own scheme's colors. --site-code-comment, the
+ * color of Prism's comment and doctype tokens and of the copy buttons, keeps 4.5:1 on every code
  * block background (the card, the card footer and femto's code background) in both schemes
  * (criterion 10): #667080 in light, #828b9b in dark.
  */
-
-/* Light color scheme (Default)
-   Can be forced with data-theme="light" */
-[data-theme=light],
-:root:not([data-theme=dark]),
-:host:not([data-theme=dark]) {
-  /* Header */
-  --femto-header-background: rgba(255, 255, 255, 0.8);
-  --femto-header-border-color: transparent;
-  /* Logo */
-  --femto-logo-wordmark: #2a3140;
-  --femto-logo-sparkle: #ff9500;
-  /* Card for components */
-  --femto-card-component-outline-width: 0;
-  --femto-card-component-outline-color: transparent;
-  /* Code */
-  --femto-code-color: #5c6370;
-  --femto-code-tag: #8b4f00;
-  --femto-code-attr: rgb(152, 45.75, 121);
-  --femto-code-value: #2e685b;
-  --femto-code-comment: #667080;
-  --femto-code-copied: rgb(28.5, 105.5, 84);
-  /* Chapter */
-  --femto-chapter-color: var(--femto-code-tag);
+:root {
+  --site-header-background: light-dark(rgba(255, 255, 255, 0.8), rgba(19, 22.5, 30.5, 0.9));
+  --site-logo-wordmark: light-dark(#2a3140, #fff);
+  --site-logo-sparkle: light-dark(#ff9500, #ffbf00);
+  --site-code-tag: light-dark(#8b4f00, rgb(186.75, 150.5, 43.75));
+  --site-code-attr: light-dark(rgb(152, 45.75, 121), rgb(199, 131.5, 183));
+  --site-code-value: light-dark(#2e685b, rgb(112.5, 163.5, 161.25));
+  --site-code-comment: light-dark(#667080, #828b9b);
 }
 
-/* Footer */
-[data-theme=light] footer,
-:root:not([data-theme=dark]) footer,
-:host:not([data-theme=dark]) footer {
-  --femto-logo-sparkle: #b0b9d0;
-}
-
-/* Dark color scheme (Auto)
-   Automatically enabled if user has Dark mode enabled */
-@media only screen and (prefers-color-scheme: dark) {
-  :root:not([data-theme]),
-  :host:not([data-theme]) {
-    /* Header */
-    --femto-header-background: rgba(19, 22.5, 30.5, 0.9);
-    --femto-header-border-color: rgba(32, 38, 50, 0.9);
-    /* Logo */
-    --femto-logo-wordmark: #fff;
-    --femto-logo-sparkle: #ffbf00;
-    /* Card for components */
-    --femto-card-component-outline-width: 2px;
-    --femto-card-component-outline-color: var(--femto-card-background-color);
-    /* Code */
-    --femto-code-color: #969eaf;
-    --femto-code-tag: rgb(186.75, 150.5, 43.75);
-    --femto-code-attr: rgb(199, 131.5, 183);
-    --femto-code-value: rgb(112.5, 163.5, 161.25);
-    --femto-code-comment: #828b9b;
-    --femto-code-copied: #62af9a;
-    /* Chapter */
-    --femto-chapter-color: var(--femto-code-tag);
-  }
-
-  /* Footer */
-  :root:not([data-theme]) footer,
-  :host:not([data-theme]) footer {
-    --femto-logo-sparkle: #8191b5;
-  }
-}
-
-/* Dark color scheme (Forced)
-   Enabled if forced with data-theme="dark" */
-[data-theme=dark] {
-  /* Header */
-  --femto-header-background: rgba(19, 22.5, 30.5, 0.9);
-  --femto-header-border-color: rgba(32, 38, 50, 0.9);
-  /* Logo */
-  --femto-logo-wordmark: #fff;
-  --femto-logo-sparkle: #ffbf00;
-  /* Card for components */
-  --femto-card-component-outline-width: 2px;
-  --femto-card-component-outline-color: var(--femto-card-background-color);
-  /* Code */
-  --femto-code-color: #969eaf;
-  --femto-code-tag: rgb(186.75, 150.5, 43.75);
-  --femto-code-attr: rgb(199, 131.5, 183);
-  --femto-code-value: rgb(112.5, 163.5, 161.25);
-  --femto-code-comment: #828b9b;
-  --femto-code-copied: #62af9a;
-  /* Chapter */
-  --femto-chapter-color: var(--femto-code-tag);
-}
-
-/* Footer */
-[data-theme=dark] footer {
-  --femto-logo-sparkle: #8191b5;
+/* The footer's logo has a quieter sparkle */
+body > footer {
+  --site-logo-sparkle: light-dark(#b0b9d0, #8191b5);
 }
 
 /**
  * Header
  */
 html {
-  --femto-header-height: calc(4.5rem + var(--femto-border-width));
+  --site-header-height: calc(4.5rem + var(--femto-border-width));
 }
 
 body > header {
@@ -150,37 +64,17 @@ body > header .container nav svg {
   transform: translateY(-0.0625rem);
 }
 
-/* The color-scheme toggle is a <button type="button">, drawn as the header's contrast links are:
-   femto's nav link box, no border or background, the contrast link colors, and femto's link focus
-   ring on keyboard focus only. No transition: Firefox styles the docs page once before the site's
-   stylesheets apply (docs.html links them after the head scripts), so a transition here would run
-   on load from femto's button colors, white on the primary background */
+/* The color-scheme toggle, a plain button (below) drawn as the header's contrast links are: femto's
+   nav link box in the contrast link colors */
 body > header .container nav ul.icons button {
   --femto-color: var(--femto-contrast);
-  display: inline-block;
-  max-width: none;
   margin: calc(var(--femto-nav-link-spacing-vertical) * -1) calc(var(--femto-nav-link-spacing-horizontal) * -1);
   padding: var(--femto-nav-link-spacing-vertical) var(--femto-nav-link-spacing-horizontal);
-  border: 0;
-  border-radius: var(--femto-border-radius);
-  background-color: transparent;
-  box-shadow: none;
   color: var(--femto-color);
-  font-weight: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  transition: none;
 }
 
 body > header .container nav ul.icons button:is(:hover, :active, :focus) {
   --femto-color: var(--femto-contrast-hover);
-}
-
-/* The transparent outline beside the ring is for forced colors, which drop box-shadow and draw an
-   outline in a system color */
-body > header .container nav ul.icons button:focus-visible {
-  outline: var(--femto-outline-width) solid transparent;
-  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
 /* Hide docs link on mobile */
@@ -201,195 +95,110 @@ body > header .container nav ul.icons button:focus-visible {
   }
 }
 
-/* Fixed header: the docs header, from 1024px up (site.js adds is-fixed once the page scrolls) */
+/* Fixed header: the docs header, from 1024px up. Its bottom border, femto's muted border color, is
+   always there, so no script has to watch the scroll to draw an edge once content passes under it */
 @media (min-width: 1024px) {
   body > header.is-fixed-above-lg {
     z-index: 2;
     position: sticky;
     top: 0;
+    border-bottom-color: var(--femto-muted-border-color);
     -webkit-backdrop-filter: blur(1rem);
     /* eslint-disable-next-line css/use-baseline -- Baseline 2024 (Safari 18); Safari 17.5 to 17.x has only the -webkit- form above; femto writes the same pair */
     backdrop-filter: blur(1rem);
-    background-color: var(--femto-header-background);
-    transition: border-top-color 0.4s ease-in-out, box-shadow 0.4s ease-in-out;
+    background-color: var(--site-header-background);
   }
+}
 
-  body > header.is-fixed-above-lg.is-fixed {
-    border-bottom-color: var(--femto-header-border-color);
-    box-shadow: var(--femto-card-box-shadow);
+/**
+ * Plain buttons: the <button type="button">s drawn as the link or bare icon each replaced, not as
+ * femto's filled button: the header's theme toggle (above), the breadcrumb's Documentation button,
+ * the menu's Close and the color dialog's close (docs.css), and the code blocks' copy buttons
+ * (code.css). Each place sets its own box and colors after this rule. The dialog in :where() keeps
+ * the rule's weight at a class and an element, which those rules outweigh.
+ */
+
+/* No padding, border, background, shadow or font of femto's button. No transition: Firefox styles
+   the docs page once before the site's stylesheets apply (docs.html links them after the head
+   scripts), so a transition here would run on load from femto's button colors, white on the primary
+   background */
+button:is([data-scheme-toggle], [data-menu-open], [data-menu-close], [data-copy-link], :where(dialog.color) .close) {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--femto-border-radius);
+  background-color: transparent;
+  box-shadow: none;
+  font-weight: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  transition: none;
+}
+
+/* femto's link focus ring, on keyboard focus only. The transparent outline beside it is for forced
+   colors, which drop box-shadow and draw an outline in a system color */
+button:is([data-scheme-toggle], [data-menu-open], [data-menu-close], [data-copy-link], :where(dialog.color) .close):focus-visible {
+  outline: var(--femto-outline-width) solid transparent;
+  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
+}
+
+/* Without JavaScript the theme toggle and the copy buttons do nothing, so they are hidden, the
+   toggle with its list item. docs.css hides the docs page's own (the breadcrumb and the menu's
+   Close) */
+@media (scripting: none) {
+  button[data-copy-link],
+  body > header nav li:has(> button[data-scheme-toggle]) {
+    display: none;
   }
 }
 
 /**
  * Document
- * The oracle's scroll-behavior: smooth on html is gone: Decision 10 gives it to a class that the
- * docs page's script sets during a nav click (Phase 3).
+ * No scroll-behavior: smooth on html: Decision 10 gives it to a class that the docs page's script
+ * sets during a nav click.
  */
 html {
   overflow-x: hidden;
 }
 
-/* Header, main and footer. The oracle's rows were auto auto 1fr auto, with the maintenance banner
-   first, which the site drops (Decision 5): main takes the free space again, not the footer. The
-   min-height is what the oracle's server HTML gave <body> as style="min-height:100vh", until
-   site.js sets innerHeight in px */
+/* Header, main and footer. The Remix site's rows were auto auto 1fr auto, with the maintenance
+   banner first, which the site drops (Decision 5): main takes the free space, not the footer. The
+   body is at least the viewport's height as it is now: 100dvh follows a mobile browser's toolbars,
+   which 100vh does not */
 html body {
   display: grid;
   grid-template-rows: auto 1fr auto;
   align-items: start;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /**
- * Footer
+ * Footer: femto's nav and .grid. The logo, the credits and the resource icons come first, in
+ * femto's nav, then the footer nav, whose three lists are a .grid: side by side from 768px, each a
+ * column of links, with femto's nav spacing at an eighth of its height. The credits and the license
+ * line are <small>.
  */
-body > footer .container section:first-of-type {
-  display: grid;
-  grid-template-areas: "logo" "links" "resources" "built";
-  column-gap: calc(var(--femto-spacing) * 2);
-  row-gap: calc(var(--femto-spacing) * 2);
-  justify-content: stretch;
-  font-size: 14px;
+body > footer svg.femto-icon {
+  display: block;
+  margin-bottom: var(--femto-typography-spacing-vertical);
 }
 
-@media (min-width: 768px) {
-  body > footer .container section:first-of-type {
-    grid-template-columns: auto 1fr;
-    grid-template-areas: "logo links" "built built" "resources resources";
-    row-gap: calc(var(--femto-spacing) * 2);
-    justify-content: space-around;
-  }
-}
-
-@media (min-width: 1024px) {
-  body > footer .container section:first-of-type {
-    grid-template-columns: 1fr 2fr;
-    grid-template-areas: "logo links" "built links" "resources links";
-    row-gap: var(--femto-spacing);
-  }
-}
-
-@media (min-width: 1280px) {
-  body > footer .container section:first-of-type {
-    column-gap: calc(var(--femto-spacing) * 4);
-  }
-}
-
-/* Logo */
-body > footer .container section:first-of-type svg.femto-icon {
-  grid-area: logo;
-}
-
-/* Links */
-body > footer .container section:first-of-type nav.links {
+body > footer nav.grid {
   --femto-nav-element-spacing-vertical: 0.125rem;
   --femto-nav-link-spacing-vertical: 0.125rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: calc(var(--femto-spacing) * 3);
-  row-gap: calc(var(--femto-spacing) * 2);
-  grid-area: links;
+}
+
+/* Each list's text lines up with its column's start, and no list reaches past the container's end */
+body > footer nav.grid ul {
+  flex-direction: column;
   align-items: start;
-  width: fit-content;
+  margin-inline: calc(var(--femto-nav-element-spacing-horizontal) * -1) 0;
 }
 
-@media (min-width: 576px) {
-  body > footer .container section:first-of-type nav.links {
-    column-gap: calc(var(--femto-spacing) * 6);
-  }
-}
-
-@media (min-width: 768px) {
-  body > footer .container section:first-of-type nav.links {
-    grid-template-columns: 1fr 1fr 1fr;
-    column-gap: calc(var(--femto-spacing) * 2);
-    justify-content: flex-end;
-    width: 100%;
-  }
-}
-
-@media (min-width: 1024px) {
-  body > footer .container section:first-of-type nav.links {
-    margin-left: auto;
-  }
-}
-
-@media (min-width: 1280px) {
-  body > footer .container section:first-of-type nav.links {
-    column-gap: calc(var(--femto-spacing) * 4);
-    margin-left: auto;
-  }
-}
-
-body > footer .container section:first-of-type nav.links ul {
-  display: grid;
-  margin-inline: calc(var(--femto-nav-element-spacing-horizontal) * -1);
-}
-
-body > footer .container section:first-of-type nav.links ul li {
-  display: block;
-}
-
-body > footer .container section:first-of-type nav.links ul li strong a {
-  color: currentColor;
-}
-
-/* Build info */
-body > footer .container section:first-of-type p.build-info {
-  grid-area: built;
-  margin-bottom: 0;
-  color: var(--femto-muted-color);
-  text-wrap: balance;
-}
-
-/* Resources */
-body > footer .container section:first-of-type ul.resources {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: calc(var(--femto-spacing) / 2);
-  grid-area: resources;
-  width: fit-content;
-  margin-bottom: 0;
-  padding: 0;
-}
-
-body > footer .container section:first-of-type ul.resources li {
-  margin: 0;
-  list-style: none;
-}
-
-body > footer .container section:first-of-type ul.resources li svg {
-  display: inline-block;
+body > footer nav svg {
   width: auto;
-  height: 1rem;
-}
-
-body > footer .container section:last-of-type {
-  margin-block: calc(var(--femto-spacing) * 2);
-  padding-top: calc(var(--femto-spacing) * 2);
-  border-top: var(--femto-border-width) solid var(--femto-muted-border-color);
-  font-size: 12px;
-}
-
-body > footer .container section:last-of-type p {
-  margin-bottom: 0;
-  color: var(--femto-muted-color);
-}
-
-@media (min-width: 576px) {
-  body > footer .container section:last-of-type p {
-    display: inline;
-  }
-
-  body > footer .container section:last-of-type p:not(:first-of-type) {
-    margin-inline-start: calc(var(--femto-spacing) / 2);
-  }
-}
-
-body > footer .container section:last-of-type p code {
-  padding: 0;
-  background-color: transparent;
-  font-size: 1em;
+  height: 1.125rem;
 }
 
 /**
@@ -511,10 +320,10 @@ svg.femto-icon path:first-of-type {
 /* Theme toggle icon (Decision 16): a sun emoji while the page is light, a moon while it is dark,
    which site.js and docs.js write into the button's span[role=img] (Decision 18). The glyph is
    transparent and its shadow is drawn in --femto-color, so the emoji shows as a one-color
-   silhouette that follows the button's hover colors. The box is the oracle's SVG icon box (1.125rem
+   silhouette that follows the button's hover colors. The box is the old SVG icon's box (1.125rem
    in the header, 1.25rem in the Color schemes section, vertical-align: middle), and the glyph is
    centered in it and overflows it evenly, so nothing around the icon moves when sun and moon swap.
-   It replaces the oracle's animated toggles.dev SVG, and that SVG's rules with it. */
+   It replaces the Remix site's animated toggles.dev SVG, and that SVG's rules with it. */
 :is(button[data-scheme-toggle], button[data-scheme-switcher]) > span[role=img] {
   display: inline-flex;
   align-items: center;
@@ -586,10 +395,10 @@ span[role=img] {
 }
 
 /**
- * Chapter: the category label in a docs page's hgroup, above its title
+ * Chapter: the category label in a docs page's hgroup, above its title, in the code blocks' tag color
  */
 .chapter {
-  color: var(--femto-chapter-color);
+  color: var(--site-code-tag);
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.0625em;
@@ -597,11 +406,28 @@ span[role=img] {
 }
 
 /**
- * Card component: the card around a live example
+ * Print: the light scheme, whatever the reader chose. A page prints without its backgrounds, so
+ * dark text on the white sheet. femto's automatic dark scheme applies on screen only, but
+ * data-theme="dark" (a stored choice, or a code block's dark island) sets color-scheme: dark in print
+ * too; light here picks the light side of every light-dark() token, femto's and the site's. The
+ * header's nav and the copy buttons only work on screen. The container takes the page's width,
+ * and code wraps at its edge instead of scrolling.
  */
-article.component {
-  outline-color: var(--femto-card-component-outline-color);
-  outline-style: solid;
-  outline-width: var(--femto-card-component-outline-width);
-  background-color: transparent;
+@media print {
+  [data-theme] {
+    color-scheme: light;
+  }
+
+  body > header nav,
+  button[data-copy-link] {
+    display: none;
+  }
+
+  .container {
+    max-width: none;
+  }
+
+  pre {
+    white-space: pre-wrap;
+  }
 }

@@ -1,9 +1,7 @@
-The fonts in this folder are licensed under the SIL Open Font License, Version 1.1.
+The font in this folder is licensed under the SIL Open Font License, Version 1.1.
 
-fira-code-*.woff2: Fira Code 400 (from @fontsource/fira-code 5.2.5).
-Copyright 2014-2020 The Fira Code Project Authors (https://github.com/tonsky/FiraCode)
-
-pacifico-*.woff2: Pacifico 400 (from Google Fonts, Pacifico v23), used by the CSS variables page.
+pacifico-music-fest-mania.woff2: Pacifico 400 (from Google Fonts, Pacifico v23, subset to the
+characters of the CSS variables example's heading), used by the CSS variables page.
 Copyright 2018 The Pacifico Project Authors (https://github.com/googlefonts/Pacifico)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

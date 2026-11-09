@@ -1,73 +1,7 @@
-/* The landing pages' styles, on the homepage and the examples page after common.css: their tokens
-   for each color scheme, the page spacing, the homepage's hero, typing demo, features and
-   comparison, the examples page's hero, the larger headings, and the arrow icon and gradient mark. */
-
-/**
- * Color schemes
- */
-
-/* Light color scheme (Default)
-   Can be forced with data-theme="light" */
-[data-theme=light],
-:root:not([data-theme=dark]),
-:host:not([data-theme=dark]) {
-  /* Demo border gradient */
-  --femto-demo-border-gradient-colors: transparent 33%, rgb(232.5, 202.75, 231.75), rgb(220.8, 205.8, 244.3), rgb(208.35, 210.5, 242.25), rgb(202.8, 211.6, 245.4);
-  /* Cards */
-  --femto-card-box-shadow: var(--femto-box-shadow);
-  --femto-card-component-outline-width: 0.0625rem;
-  --femto-card-component-outline-color: transparent;
-  /* Mark gradient */
-  --femto-mark-gradient: linear-gradient(to right, rgb(132, 38, 108.5), rgb(111.2, 57.1, 132.9), rgb(93.45, 63.5, 153.8), rgb(67.2, 71.6, 157.4));
-  /* Features icon color */
-  --femto-features-icon-color: rgb(146.9, 76.9, 174.8);
-  /* Comparison gradients */
-  --femto-comparison-gradient-valid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(122.5, 177.5, 197.75), rgb(90, 166.25, 163.75), rgb(100, 154.5, 102));
-  --femto-comparison-gradient-invalid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(207.5, 160.5, 99.5), rgb(207.125, 126.125, 109.375), rgb(212.25, 108.25, 99.25));
-}
-
-/* Dark color scheme (Auto)
-   Automatically enabled if user has Dark mode enabled */
-@media only screen and (prefers-color-scheme: dark) {
-  :root:not([data-theme]),
-  :host:not([data-theme]) {
-    /* Demo border gradient */
-    --femto-demo-border-gradient-colors: transparent 33%, rgb(74.2, 20.8, 68.4), rgb(58.5, 32.5, 85.75), rgb(45, 36.6, 100.9), rgb(26.4, 42.9, 106.7);
-    /* Cards */
-    --femto-card-box-shadow: none;
-    --femto-card-background-color: rgb(21.5, 25.25, 33.75);
-    --femto-card-component-outline-width: 0.0625rem;
-    --femto-card-component-outline-color: rgb(28, 33, 43.5);
-    --femto-card-border-color: var(--femto-card-component-outline-color);
-    /* Mark gradient */
-    --femto-mark-gradient: linear-gradient(to right, rgb(215.4, 140.8, 210.2), rgb(184.5, 153, 237.75), rgb(156.6, 165.3, 232.6), rgb(142.75, 168.95, 240.05));
-    /* Features icon color */
-    --femto-features-icon-color: rgb(184.5, 153, 237.75);
-    /* Comparison gradients */
-    --femto-comparison-gradient-valid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(79.25, 123.5, 148.25), rgb(58.125, 112.625, 115.625), rgb(63, 101.5, 67));
-    --femto-comparison-gradient-invalid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(138.5, 110, 76.5), rgb(153, 77.625, 63.25), rgb(151.75, 54.5, 52.25));
-  }
-}
-
-/* Dark color scheme (Forced)
-   Enabled if forced with data-theme="dark" */
-[data-theme=dark] {
-  /* Demo border gradient */
-  --femto-demo-border-gradient-colors: transparent 33%, rgb(74.2, 20.8, 68.4), rgb(58.5, 32.5, 85.75), rgb(45, 36.6, 100.9), rgb(26.4, 42.9, 106.7);
-  /* Cards */
-  --femto-card-box-shadow: none;
-  --femto-card-background-color: rgb(21.5, 25.25, 33.75);
-  --femto-card-component-outline-width: 0.0625rem;
-  --femto-card-component-outline-color: rgb(28, 33, 43.5);
-  --femto-card-border-color: var(--femto-card-component-outline-color);
-  /* Mark gradient */
-  --femto-mark-gradient: linear-gradient(to right, rgb(215.4, 140.8, 210.2), rgb(184.5, 153, 237.75), rgb(156.6, 165.3, 232.6), rgb(142.75, 168.95, 240.05));
-  /* Features icon color */
-  --femto-features-icon-color: rgb(184.5, 153, 237.75);
-  /* Comparison gradients */
-  --femto-comparison-gradient-valid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(79.25, 123.5, 148.25), rgb(58.125, 112.625, 115.625), rgb(63, 101.5, 67));
-  --femto-comparison-gradient-invalid: linear-gradient(var(--femto-comparison-gradient-direction, to bottom), rgb(138.5, 110, 76.5), rgb(153, 77.625, 63.25), rgb(151.75, 54.5, 52.25));
-}
+/* The landing pages' styles, on the homepage and the examples page after common.css: the page
+   spacing, the homepage's hero, typing demo, femto off and on, theme swatches and features, the
+   examples page's hero, and the arrow icon. Their colors are femto's tokens, so they follow femto's
+   scheme and theme color. */
 
 /**
  * Layout
@@ -76,50 +10,54 @@ body {
   overflow: hidden;
 }
 
-/* Page spacing, larger at each breakpoint */
+/* Page spacing, larger at each breakpoint. The body is a one-column grid (common.css), and a grid
+   item's min-content width widens that column: the hero's one-line code block, which scrolls inside
+   its <pre>, would otherwise make the page wider than a 375px screen */
 body > main {
-  --femto-homepage-spacing-vertical: calc(var(--femto-spacing) * 5);
-  --femto-homepage-spacing-horizontal: calc(var(--femto-spacing) * 3.5);
+  --site-homepage-spacing-vertical: calc(var(--femto-spacing) * 5);
+  --site-homepage-spacing-horizontal: calc(var(--femto-spacing) * 3.5);
+  min-width: 0;
   padding: 0;
 }
 
 @media (min-width: 576px) {
   body > main {
-    --femto-homepage-spacing-vertical: calc(var(--femto-spacing) * 6);
-    --femto-homepage-spacing-horizontal: calc(var(--femto-spacing) * 4);
+    --site-homepage-spacing-vertical: calc(var(--femto-spacing) * 6);
+    --site-homepage-spacing-horizontal: calc(var(--femto-spacing) * 4);
   }
 }
 
 @media (min-width: 768px) {
   body > main {
-    --femto-homepage-spacing-vertical: calc(var(--femto-spacing) * 7);
-    --femto-homepage-spacing-horizontal: calc(var(--femto-spacing) * 4.5);
+    --site-homepage-spacing-vertical: calc(var(--femto-spacing) * 7);
+    --site-homepage-spacing-horizontal: calc(var(--femto-spacing) * 4.5);
   }
 }
 
 @media (min-width: 1024px) {
   body > main {
-    --femto-homepage-spacing-vertical: calc(var(--femto-spacing) * 8);
-    --femto-homepage-spacing-horizontal: calc(var(--femto-spacing) * 4);
+    --site-homepage-spacing-vertical: calc(var(--femto-spacing) * 8);
+    --site-homepage-spacing-horizontal: calc(var(--femto-spacing) * 4);
   }
 }
 
 @media (min-width: 1280px) {
   body > main {
-    --femto-homepage-spacing-vertical: calc(var(--femto-spacing) * 9);
-    --femto-homepage-spacing-horizontal: calc(var(--femto-spacing) * 5.5);
+    --site-homepage-spacing-vertical: calc(var(--femto-spacing) * 9);
+    --site-homepage-spacing-horizontal: calc(var(--femto-spacing) * 5.5);
   }
 }
 
 @media (min-width: 1536px) {
   body > main {
-    --femto-homepage-spacing-vertical: calc(var(--femto-spacing) * 10);
-    --femto-homepage-spacing-horizontal: calc(var(--femto-spacing) * 6);
+    --site-homepage-spacing-vertical: calc(var(--femto-spacing) * 10);
+    --site-homepage-spacing-horizontal: calc(var(--femto-spacing) * 6);
   }
 }
 
-section {
-  margin-block: var(--femto-homepage-spacing-vertical);
+/* The page's own sections only: the footer keeps femto's section margin, as on /docs */
+body > main section {
+  margin-block: var(--site-homepage-spacing-vertical);
 }
 
 /**
@@ -130,10 +68,10 @@ section {
 body > main.homepage > .hero {
   display: grid;
   grid-template-columns: 1fr;
-  column-gap: var(--femto-homepage-spacing-horizontal);
-  row-gap: calc(var(--femto-homepage-spacing-vertical) / 2);
+  column-gap: var(--site-homepage-spacing-horizontal);
+  row-gap: calc(var(--site-homepage-spacing-vertical) / 2);
   justify-items: center;
-  margin-top: calc(var(--femto-homepage-spacing-vertical) / 2);
+  margin-top: calc(var(--site-homepage-spacing-vertical) / 2);
   margin-bottom: 0;
 }
 
@@ -176,9 +114,33 @@ body > main.homepage > .hero .hook h1 {
   margin-bottom: calc(var(--femto-spacing) * 2);
 }
 
+/* The one <link> to copy, a one-line code block under the tagline. From 1024px it is in a smaller
+   font, and below 1280px, where the hook is 700px wide in a 950px container, it reaches 125px past
+   the hook on each side, so the line fits without a scroll from 1024px up */
+body > main.homepage > .hero .hook .code {
+  margin-top: calc(var(--femto-spacing) * 2);
+  margin-bottom: 0;
+}
+
+@media (min-width: 1024px) {
+  body > main.homepage > .hero .hook .code {
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.5);
+  }
+
+  body > main.homepage > .hero .hook .code code {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  body > main.homepage > .hero .hook .code {
+    margin-inline: -125px;
+  }
+}
+
 body > main.homepage > .hero .hook .grid.ctas {
   --femto-form-element-spacing-horizontal: 2rem;
-  margin-top: calc(var(--femto-spacing) * 4);
+  margin-top: calc(var(--femto-spacing) * 2.5);
   margin-bottom: calc(var(--femto-spacing) * 0.5);
 }
 
@@ -194,20 +156,14 @@ body > main.homepage > .hero .hook .grid.ctas a[role=button] > span[role=img] {
   font-size: 1rem;
 }
 
-/* Demo */
+/* Demo. Its card's border and the glow around it (below) are a gradient of femto's translucent
+   primary colors, from the focus ring's to the text selection's, so they follow the theme color.
+   The border runs all the way round, so the Pause button at the card's bottom right sits inside it */
 body > main.homepage > .hero > .demo {
-  --angle: 0deg;
-  --demo-border-gradient: linear-gradient(var(--angle), var(--femto-demo-border-gradient-colors));
+  --site-demo-border-gradient: linear-gradient(var(--femto-primary-focus), var(--femto-text-selection-color));
   display: flex;
   position: relative;
   flex-direction: column;
-}
-
-/* Hack to avoid lag on Safari */
-@supports (-webkit-hyphens: none) {
-  body > main.homepage > .hero > .demo {
-    animation: none;
-  }
 }
 
 @media (min-width: 768px) {
@@ -222,8 +178,8 @@ body > main.homepage > .hero > .demo {
   }
 }
 
-/* eslint-disable css/no-important -- the oracle's: the demo card keeps its own block spacing over the article spacing that the responsive-spacings option sets at each breakpoint */
-body > main.homepage > .hero > .demo article.component {
+/* eslint-disable css/no-important -- the Remix site's: the demo card keeps its own block spacing over the article spacing that the responsive-spacings option sets at each breakpoint */
+body > main.homepage > .hero > .demo > article {
   --femto-block-spacing-horizontal: var(--femto-spacing) !important;
   --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.5) !important;
   display: flex;
@@ -237,7 +193,6 @@ body > main.homepage > .hero > .demo article.component {
   margin-bottom: 0;
   margin-inline: auto;
   overflow: visible;
-  outline: 0;
   background-color: var(--femto-background-color);
   box-shadow: none;
   pointer-events: none;
@@ -247,7 +202,7 @@ body > main.homepage > .hero > .demo article.component {
 }
 
 @media (min-width: 576px) {
-  body > main.homepage > .hero > .demo article.component {
+  body > main.homepage > .hero > .demo > article {
     --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.5) !important;
     --femto-block-spacing-vertical: calc(var(--femto-spacing) * 2) !important;
     height: calc(24.5rem + var(--femto-block-spacing-vertical));
@@ -255,19 +210,19 @@ body > main.homepage > .hero > .demo article.component {
 }
 
 @media (min-width: 768px) {
-  body > main.homepage > .hero > .demo article.component {
+  body > main.homepage > .hero > .demo > article {
     height: calc(24.5rem + var(--femto-block-spacing-vertical));
   }
 }
 
 @media (min-width: 1024px) {
-  body > main.homepage > .hero > .demo article.component {
+  body > main.homepage > .hero > .demo > article {
     height: calc(24rem + var(--femto-block-spacing-vertical));
   }
 }
 
 @media (min-width: 1280px) {
-  body > main.homepage > .hero > .demo article.component {
+  body > main.homepage > .hero > .demo > article {
     --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 3) !important;
     --femto-block-spacing-vertical: calc(var(--femto-spacing) * 3) !important;
     height: 24rem;
@@ -276,100 +231,100 @@ body > main.homepage > .hero > .demo article.component {
 /* eslint-enable css/no-important */
 
 @media (min-width: 1536px) {
-  body > main.homepage > .hero > .demo article.component {
+  body > main.homepage > .hero > .demo > article {
     height: calc(23.5rem + var(--femto-block-spacing-vertical));
   }
 }
 
-body > main.homepage > .hero > .demo article.component form button,
-body > main.homepage > .hero > .demo article.component form input:only-child,
-body > main.homepage > .hero > .demo article.component form input[aria-invalid=true],
-body > main.homepage > .hero > .demo article.component form[role=group],
-body > main.homepage > .hero > .demo article.component form[role=search] {
+body > main.homepage > .hero > .demo > article form button,
+body > main.homepage > .hero > .demo > article form input:only-child,
+body > main.homepage > .hero > .demo > article form input[aria-invalid=true],
+body > main.homepage > .hero > .demo > article form[role=group],
+body > main.homepage > .hero > .demo > article form[role=search] {
   margin-bottom: 0;
 }
 
-body > main.homepage > .hero > .demo article.component form small {
+body > main.homepage > .hero > .demo > article form small {
   margin-top: 0.25rem;
   margin-bottom: 0;
 }
 
-body > main.homepage > .hero > .demo article.component form label {
+body > main.homepage > .hero > .demo > article form label {
   margin-bottom: 0;
 }
 
 /* Focused group form */
-body > main.homepage > .hero > .demo article.component form[role=group].is-focused,
-body > main.homepage > .hero > .demo article.component form[role=search].is-focused {
+body > main.homepage > .hero > .demo > article form[role=group].is-focused,
+body > main.homepage > .hero > .demo > article form[role=search].is-focused {
   --femto-group-box-shadow: var(--femto-group-box-shadow-focus-with-button);
 }
 
-body > main.homepage > .hero > .demo article.component form[role=group].is-focused input:not([type=checkbox], [type=radio]),
-body > main.homepage > .hero > .demo article.component form[role=group].is-focused select,
-body > main.homepage > .hero > .demo article.component form[role=search].is-focused input:not([type=checkbox], [type=radio]),
-body > main.homepage > .hero > .demo article.component form[role=search].is-focused select {
+body > main.homepage > .hero > .demo > article form[role=group].is-focused input:not([type=checkbox], [type=radio]),
+body > main.homepage > .hero > .demo > article form[role=group].is-focused select,
+body > main.homepage > .hero > .demo > article form[role=search].is-focused input:not([type=checkbox], [type=radio]),
+body > main.homepage > .hero > .demo > article form[role=search].is-focused select {
   border-color: transparent;
 }
 
-body > main.homepage > .hero > .demo article.component form[role=group].is-focused button,
-body > main.homepage > .hero > .demo article.component form[role=search].is-focused button {
+body > main.homepage > .hero > .demo > article form[role=group].is-focused button,
+body > main.homepage > .hero > .demo > article form[role=search].is-focused button {
   box-shadow: none;
 }
 
 /* Input */
-body > main.homepage > .hero > .demo article.component form input {
+body > main.homepage > .hero > .demo > article form input {
   -webkit-user-select: none;
   /* eslint-disable-next-line css/use-baseline -- Safari has only the -webkit- form above; femto writes the same pair */
   user-select: none;
 }
 
-body > main.homepage > .hero > .demo article.component form input:not([type=range]).is-focused {
+body > main.homepage > .hero > .demo > article form input:not([type=range]).is-focused {
   --femto-border-color: var(--femto-form-element-active-border-color);
   --femto-box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-form-element-focus-color);
 }
 
-body > main.homepage > .hero > .demo article.component form input:not([type=checkbox]).is-focused {
+body > main.homepage > .hero > .demo > article form input:not([type=checkbox]).is-focused {
   --femto-background-color: var(--femto-form-element-active-background-color);
 }
 
-body > main.homepage > .hero > .demo article.component form input[type=range].is-focused {
+body > main.homepage > .hero > .demo > article form input[type=range].is-focused {
   --femto-range-border-color: var(--femto-range-active-border-color);
   --femto-range-thumb-color: var(--femto-range-thumb-active-color);
 }
 
 /* Slider Thumb */
-body > main.homepage > .hero > .demo article.component form input[type=range].is-focused::-webkit-slider-thumb {
+body > main.homepage > .hero > .demo > article form input[type=range].is-focused::-webkit-slider-thumb {
   transform: scale(1.25);
 }
 
-body > main.homepage > .hero > .demo article.component form input[type=range].is-focused::-moz-range-thumb {
+body > main.homepage > .hero > .demo > article form input[type=range].is-focused::-moz-range-thumb {
   transform: scale(1.25);
 }
 
 /* Focused button */
-body > main.homepage > .hero > .demo article.component form button.is-focused {
+body > main.homepage > .hero > .demo > article form button.is-focused {
   --femto-background-color: var(--femto-primary-hover-background);
   --femto-border-color: var(--femto-primary-hover-border);
   --femto-color: var(--femto-primary-inverse);
   --femto-box-shadow: var(--femto-button-hover-box-shadow, 0 0 0 rgba(0, 0, 0, 0)), 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
-body > main.homepage > .hero > .demo article.component form * {
+body > main.homepage > .hero > .demo > article form * {
   transition: border-radius var(--femto-transition);
 }
 
-body > main.homepage > .hero > .demo article.component footer.code {
+body > main.homepage > .hero > .demo > article footer.code {
   background: 0 0;
 }
 
-body > main.homepage > .hero > .demo article.component footer.code pre {
+body > main.homepage > .hero > .demo > article footer.code pre {
   overflow: hidden;
 }
 
 /* The pause control (demo.js, WCAG 2.2.2): a small outline button at the card's bottom right. Its
    box has the card's background, so code that reaches the corner passes under it, and it takes
    clicks although the card does not (pointer-events: none) */
-body > main.homepage > .hero > .demo article.component .controls {
+body > main.homepage > .hero > .demo > article .controls {
   position: absolute;
   right: 0;
   bottom: 0;
@@ -379,21 +334,21 @@ body > main.homepage > .hero > .demo article.component .controls {
   pointer-events: auto;
 }
 
-body > main.homepage > .hero > .demo article.component .controls button {
+body > main.homepage > .hero > .demo > article .controls button {
   --femto-form-element-spacing-vertical: 0.25rem;
   --femto-form-element-spacing-horizontal: 0.75rem;
   margin: 0;
   font-size: 0.875rem;
 }
 
-/* Border gradient */
+/* Border gradient: the glow around the card, and the card's 1px border, the gradient seen around
+   the card's opaque background */
 body > main.homepage > .hero > .demo::before {
   z-index: 0;
   position: absolute;
   inset: -3rem;
   border-radius: var(--femto-border-radius);
-  /* eslint-disable-next-line css/no-invalid-properties -- a false positive: the rule substitutes the custom property's text from this file and misreads the var() nested in its gradient; browsers resolve it */
-  background: var(--demo-border-gradient);
+  background: var(--site-demo-border-gradient);
   content: "";
   filter: blur(3rem);
   opacity: 0.25;
@@ -404,37 +359,40 @@ body > main.homepage > .hero > .demo::after {
   position: absolute;
   inset: -1px;
   border-radius: var(--femto-border-radius);
-  /* eslint-disable-next-line css/no-invalid-properties -- a false positive: the rule substitutes the custom property's text from this file and misreads the var() nested in its gradient; browsers resolve it */
-  background: var(--demo-border-gradient);
+  background: var(--site-demo-border-gradient);
   content: "";
 }
 
-/* Features */
-body > main.homepage > .features > hgroup {
+/* The proof's and the features' headings */
+body > main.homepage > :is(.proof, .features) > hgroup {
   max-width: 950px;
-  margin-bottom: calc(var(--femto-homepage-spacing-vertical) * 0.75);
+  margin-bottom: calc(var(--site-homepage-spacing-vertical) * 0.75);
   margin-inline: auto;
 }
 
 @media (min-width: 576px) {
-  body > main.homepage > .features > hgroup {
+  body > main.homepage > :is(.proof, .features) > hgroup {
     text-align: center;
   }
 }
 
-body > main.homepage > .features > hgroup > h2 {
+body > main.homepage > .proof > hgroup {
+  margin-bottom: calc(var(--site-homepage-spacing-vertical) / 3);
+}
+
+body > main.homepage > :is(.proof, .features) > hgroup > h2 {
   margin-bottom: calc(var(--femto-spacing) * 1);
 }
 
-body > main.homepage > .features > hgroup > :not(:first-child):last-child {
-  --femto-color: var(--femto-color);
-  /* eslint-disable-next-line css/use-baseline -- the oracle's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
+body > main.homepage > :is(.proof, .features) > hgroup > :not(:first-child):last-child {
+  /* eslint-disable-next-line css/use-baseline -- the Remix site's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
   text-wrap: pretty;
 }
 
+/* Features */
 body > main.homepage > .features > .grid {
-  column-gap: calc(var(--femto-homepage-spacing-horizontal) / 2);
-  row-gap: calc(var(--femto-homepage-spacing-vertical) / 2);
+  column-gap: calc(var(--site-homepage-spacing-horizontal) / 2);
+  row-gap: calc(var(--site-homepage-spacing-vertical) / 2);
 }
 
 @media (min-width: 768px) {
@@ -452,12 +410,12 @@ body > main.homepage > .features > .grid {
 body > main.homepage > .features > .grid article {
   margin-bottom: 0;
   margin-block: 0;
-  border: var(--femto-card-component-outline-width) solid var(--femto-card-component-outline-color);
 }
 
-/* The features' character icons (Decision 18), in the box and color of the SVG icons they replaced.
-   Each is a one-color silhouette, a transparent glyph and its shadow, as Decision 16's toggle is, so
-   the two emoji (⚙️ and ⚡) take the color as the text characters do. The shadow's color is explicit: a shadow in currentColor takes the transparent color, and
+/* The features' character icons (Decision 18), in the box of the SVG icons they replaced and in
+   femto's primary color. Each is a one-color silhouette, a transparent glyph and its shadow, as
+   Decision 16's toggle is, so the two emoji (⚙️ and ⚡) take the color as the text characters do.
+   The shadow's color is explicit: a shadow in currentColor takes the transparent color, and
    Firefox draws no shadow for a glyph whose -webkit-text-fill-color is transparent (checked in
    Chrome 158 and Firefox 160, and the silhouettes seen in Safari, 2026-11-05) */
 body > main.homepage > .features > .grid article > span[role=img] {
@@ -466,7 +424,7 @@ body > main.homepage > .features > .grid article > span[role=img] {
   margin-bottom: calc(var(--femto-spacing) * 0.75);
   color: transparent;
   font-size: 1.125rem;
-  text-shadow: 0 0 0 var(--femto-features-icon-color);
+  text-shadow: 0 0 0 var(--femto-primary);
 }
 
 /* The Responsive feature's expand character ⤢ is small for its em, so it is drawn larger without
@@ -475,8 +433,8 @@ body > main.homepage > .features > .grid article:has(a[href="/docs#typography"])
   transform: scale(1.25);
 }
 
-/* The first two features' </> and { } are code: in the code font at 0.75em, without femto's code
-   box */
+/* The first and fifth features' { } and </> are code: in the code font at 0.75em, without femto's
+   code box */
 body > main.homepage > .features > .grid article > span[role=img] > code {
   padding: 0;
   background: none;
@@ -493,7 +451,7 @@ body > main.homepage > .features > .grid article h3 {
 body > main.homepage > .features > .grid article p {
   margin-bottom: calc(var(--femto-spacing) * 1);
   color: var(--femto-muted-color);
-  /* eslint-disable-next-line css/use-baseline -- the oracle's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
+  /* eslint-disable-next-line css/use-baseline -- the Remix site's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
   text-wrap: pretty;
 }
 
@@ -506,171 +464,104 @@ body > main.homepage > .features > .grid article p:last-child a > span[role=img]
   font-size: 1rem;
 }
 
-/* Comparison */
-body > main.homepage > .comparison > hgroup {
-  max-width: 700px;
-  margin-bottom: calc(var(--femto-homepage-spacing-vertical) * 0.75);
-  margin-inline: auto;
-}
-
-@media (min-width: 576px) {
-  body > main.homepage > .comparison > hgroup {
-    text-align: center;
-  }
-}
-
-@media (min-width: 768px) {
-  body > main.homepage > .comparison > hgroup {
-    margin-bottom: calc(var(--femto-homepage-spacing-vertical) / 3);
-  }
-}
-
-body > main.homepage > .comparison > hgroup > h2 {
-  margin-bottom: calc(var(--femto-spacing) * 1);
-}
-
-@media (min-width: 768px) {
-  body > main.homepage > .comparison > hgroup > h2 {
-    margin-bottom: calc(var(--femto-spacing) / 2);
-  }
-}
-
-body > main.homepage > .comparison > hgroup > :not(:first-child):last-child {
-  --femto-color: var(--femto-color);
-  /* eslint-disable-next-line css/use-baseline -- the oracle's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
-  text-wrap: pretty;
-}
-
-body > main.homepage > .comparison > .grid {
-  column-gap: calc(var(--femto-homepage-spacing-horizontal) / 2);
-  row-gap: calc(var(--femto-homepage-spacing-vertical) / 2);
-}
-
-@media (min-width: 768px) {
-  body > main.homepage > .comparison > .grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 1024px) {
-  body > main.homepage > .comparison > .grid {
-    grid-template-columns: repeat(auto-fit, minmax(0%, 1fr));
-  }
-}
-
-body > main.homepage > .comparison > .grid > div {
+/* femto off and on (demo.js): the toolbar with the femto switch and the theme swatches, both
+   hidden without JavaScript, then the block of everyday markup and its code sample */
+body > main.homepage > .proof > .toolbar {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--femto-spacing) calc(var(--femto-spacing) * 2);
+  margin-bottom: var(--femto-spacing);
 }
 
-body > main.homepage > .comparison > .grid > div p .emoji {
-  font-size: 1.25rem;
+body > main.homepage > .proof > .toolbar > :is(label, fieldset) {
+  margin: 0;
 }
 
-body > main.homepage > .comparison > .grid > div .code {
-  height: 100%;
-  margin-bottom: 0;
-  border: var(--femto-card-component-outline-width) solid var(--femto-card-component-outline-color);
-  background-color: var(--femto-card-background-color);
+/* The swatches in one row with their legend, which a float makes an item of the row, and in more
+   rows on a narrow screen */
+body > main.homepage > .proof > .toolbar > fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--femto-spacing) * 0.5);
+  width: auto;
 }
 
-body > main.homepage > .comparison > .grid > div .code::before {
+body > main.homepage > .proof > .toolbar > fieldset > legend {
+  float: inline-start;
+  margin: 0;
+  margin-inline-end: calc(var(--femto-spacing) * 0.5);
+}
+
+/* Each swatch is femto's radio in its theme's button color (--site-swatch, which demo.js sets), so
+   the checked one is femto's checked radio in that color, and the focus ring is femto's */
+body > main.homepage > .proof > .toolbar > fieldset > input[type=radio] {
+  --femto-background-color: var(--site-swatch);
+  --femto-border-color: var(--site-swatch);
+  margin: 0;
+}
+
+body > main.homepage > .proof > .toolbar > fieldset > input[type=radio]:checked {
+  --femto-background-color: var(--femto-primary-inverse);
+}
+
+/* The femto switch's and the swatches' focus ring is femto's, a box-shadow, which forced colors
+   drop: a transparent outline beside it, which forced colors draw in a system color, marks the
+   focus there */
+body > main.homepage > .proof > .toolbar :is(label[data-femto-switch] > input, fieldset > input[type=radio]):focus-visible {
+  outline: var(--femto-outline-width) solid transparent;
+  outline-offset: 2px;
+}
+
+/* The block's frame passes nothing down (all: initial) but the page's color scheme, so the block's
+   own host, div[part=page] in the frame's shadow root, starts from the initial values, as a page's
+   <html> does: with femto off, the markup shows in the browser's own styles; with femto on, in
+   femto's, which reach it only from the stylesheet its shadow root links. Custom properties still
+   inherit, and femto declares on :host every one it reads but --femto-form-label-font-weight, which
+   this site never sets. The host takes the page's color scheme, a stored choice too, through
+   ::part(), the one way into the frame's shadow root: a page rule wins over femto's :host rules, so
+   femto's colors follow the page from the first paint, and the browser's own do with femto off. The
+   text color is CanvasText, the browser's text color in that scheme: Firefox's initial color is
+   black in the dark scheme too (Firefox 160) */
+body > main.homepage > .proof > div[data-femto-demo] {
+  all: initial;
   display: block;
-  position: absolute;
-  width: 0.25rem;
-  height: 100%;
-  inset: 0 auto 0 0;
-  content: "";
+  color: CanvasText;
+  margin-bottom: var(--femto-spacing);
+  padding: var(--femto-spacing);
+  border: var(--femto-border-width) solid var(--femto-muted-border-color);
+  border-radius: var(--femto-border-radius);
+  color-scheme: inherit;
 }
 
-body > main.homepage > .comparison > .grid > div .code pre {
-  height: 100%;
-}
-
-@media (min-width: 1024px) {
-  body > main.homepage > .comparison > .grid > div .code {
-    --femto-comparison-gradient-direction: to right;
-  }
-
-  body > main.homepage > .comparison > .grid > div .code::before {
-    width: 100%;
-    height: 0.25rem;
-    inset: 0 0 auto;
+@media (min-width: 768px) {
+  body > main.homepage > .proof > div[data-femto-demo] {
+    padding: calc(var(--femto-spacing) * 1.5);
   }
 }
 
-body > main.homepage > .comparison > .grid > div.femto .code::before {
-  /* eslint-disable-next-line css/no-invalid-properties -- a false positive: the rule substitutes the custom property's text from this file and misreads the var() nested in its gradient; browsers resolve it */
-  background: var(--femto-comparison-gradient-valid);
+body > main.homepage > .proof > div[data-femto-demo]::part(page) {
+  color-scheme: inherit;
 }
 
-body > main.homepage > .comparison > .grid > div.utility-framework .code::before {
-  /* eslint-disable-next-line css/no-invalid-properties -- a false positive: the rule substitutes the custom property's text from this file and misreads the var() nested in its gradient; browsers resolve it */
-  background: var(--femto-comparison-gradient-invalid);
+body > main.homepage > .proof > .code {
+  margin-bottom: 0;
 }
 
 /**
  * Examples
  */
 
-/* Hero */
+/* Hero: an hgroup, which keeps femto's margin below it */
 body > main.examples > .examples-hero {
-  margin-top: calc(var(--femto-homepage-spacing-vertical) / 2);
-  margin-bottom: 0;
+  margin-top: calc(var(--site-homepage-spacing-vertical) / 2);
 }
 
 @media (min-width: 576px) {
   body > main.examples > .examples-hero {
     text-align: center;
-  }
-}
-
-/**
- * Content
- */
-
-/* Typography */
-@media (min-width: 576px) {
-  h1 {
-    --femto-font-size: 2.5rem;
-    --femto-line-height: 1.0625;
-  }
-
-  h2 {
-    --femto-font-size: 2rem;
-    --femto-line-height: 1.125;
-  }
-
-  h3 {
-    --femto-font-size: 1.75rem;
-    --femto-line-height: 1.15;
-  }
-
-  h4 {
-    --femto-font-size: 1.5rem;
-    --femto-line-height: 1.175;
-  }
-
-  h5 {
-    --femto-font-size: 1.25rem;
-    --femto-line-height: 1.2;
-  }
-
-  h6 {
-    --femto-font-size: 1.125rem;
-    --femto-line-height: 1.225;
-  }
-}
-
-@media (min-width: 1536px) {
-  h1 {
-    --femto-font-size: 3rem;
-    --femto-line-height: 1;
-  }
-
-  h2 {
-    --femto-font-size: 2.5rem;
-    --femto-line-height: 1.0625;
   }
 }
 
@@ -698,7 +589,7 @@ body > main.examples > .examples-hero {
  */
 
 /* Arrow right icon (Decision 18): on the homepage, a link's span[role=img] is its arrow →, which
-   moves right on the link's hover, as the oracle's animated SVG arrow did (its head moved 5 of its
+   moves right on the link's hover, as the Remix site's animated SVG arrow did (its head moved 5 of its
    24 units) */
 body > main.homepage a > span[role=img] {
   transition: transform 0.2s ease-in-out;
@@ -708,28 +599,22 @@ body > main.homepage a:hover > span[role=img] {
   transform: translateX(0.2em);
 }
 
-/* Mark */
-mark {
-  padding: 0;
-  background: var(--femto-mark-gradient);
-  -webkit-background-clip: text;
-  /* eslint-disable-next-line css/use-baseline -- Limited in Baseline because Firefox's support is partial (not with background-attachment: fixed or several background layers, neither used here); the -webkit- form above is kept as femto writes its pairs */
-  background-clip: text;
-  color: transparent;
-}
-
-/* Forced colors drop the features' glyph shadows and the mark's gradient, and Firefox keeps their
-   transparent color, so the icons and the marked words would disappear there (Chrome forces an
-   opaque color). In forced colors they are drawn in the page's system text color, and the mark has
-   no background to clip to its text */
+/* Forced colors drop the features' glyph shadows, and Firefox keeps their transparent color, so the
+   icons would disappear there (Chrome forces an opaque color). In forced colors they are drawn in
+   the page's system text color */
 @media (forced-colors: active) {
-  body > main.homepage > .features > .grid article > span[role=img],
-  mark {
+  body > main.homepage > .features > .grid article > span[role=img] {
     color: CanvasText;
     text-shadow: none;
   }
+}
 
-  mark {
-    background: none;
+/* Print: the controls that only work on screen are left out: the call-to-action buttons, the typing
+   demo's Pause, and the femto switch and theme swatches */
+@media print {
+  body > main.homepage > .hero .hook .grid.ctas,
+  body > main.homepage > .hero > .demo > article .controls,
+  body > main.homepage > .proof > .toolbar {
+    display: none;
   }
 }

@@ -1,14 +1,6 @@
-/* Code blocks: the .code card with its copy-to-clipboard button, code as an article footer, standalone
-   code blocks with their own responsive spacing, and the colors of the spans the build writes from
-   Prism's tokens (build.mjs, step 4). The colors are common.css's --femto-code-* tokens. */
-
-/**
- * Code
- */
-pre,
-code {
-  font-family: "Fira Code", var(--femto-font-family-monospace);
-}
+/* Code blocks: the .code card with its copy button, code as an article footer, standalone code
+   blocks with their own responsive spacing, and the four colors of highlighted code (build.mjs,
+   step 4). The colors are common.css's --site-code-* tokens. Code is in femto's monospace font. */
 
 /* All code blocks */
 .code {
@@ -32,34 +24,24 @@ code {
   }
 }
 
-/* The copy button, a <button type="button">: an icon on the card's background at the block's top
-   right, without femto's button border, shadow or margin, and an inset focus ring on keyboard focus
-   (the card clips what lies outside it). The icon is --femto-code-comment at full opacity, which
-   keeps 4.5:1 on the card (WCAG 1.4.11 asks 3:1 of an icon-only control), and turns to
-   --femto-contrast on hover and keyboard focus. Its color does not transition: Firefox styles the
-   docs page once before the site's stylesheets apply (docs.html links them after the head scripts),
-   so a color transition would run on load from femto's button colors, white on the primary
-   background */
-.code > button.copy-to-clipboard {
+/* The copy button, a plain button (common.css): an icon on a square of the card's background at the
+   block's top right, so code that reaches the corner passes under it. The icon is
+   --site-code-comment at full opacity, which keeps 4.5:1 on the card (WCAG 1.4.11 asks 3:1 of an
+   icon-only control), and turns to --femto-contrast on hover and keyboard focus */
+.code > button[data-copy-link] {
   z-index: 1;
   position: absolute;
   top: 1rem;
   right: 0;
-  margin: 0;
   padding: 0.25rem 1rem 0.25rem 0.25rem;
-  border: 0;
   border-radius: 0;
   background-color: var(--femto-card-background-color);
-  box-shadow: none;
-  color: var(--femto-code-comment);
-  line-height: inherit;
-  transition: none;
+  color: var(--site-code-comment);
 }
 
-/* The transparent outline inside the ring is for forced colors, which drop box-shadow and draw an
-   outline in a system color */
-.code > button.copy-to-clipboard:focus-visible {
-  outline: var(--femto-outline-width) solid transparent;
+/* Its focus ring is drawn inside it, since the card clips what lies outside it, with the transparent
+   outline inside it too */
+.code > button[data-copy-link]:focus-visible {
   outline-offset: calc(var(--femto-outline-width) * -1);
   box-shadow: inset 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
@@ -67,8 +49,8 @@ code {
 /* The icon (Decision 18): the button's span[role=img], the copy character ⧉, then the check ✓. It is
    one 1em line tall whatever the line height, its glyph centered in it, so the button keeps its
    height under WCAG 1.4.12's text spacing: with a line height of 1.5 it would end about 9 px below a
-   one-line block, which clips its lower padding and the bottom of its focus ring (Phase 6) */
-.code > button.copy-to-clipboard > span[role=img] {
+   one-line block, which clips its lower padding and the bottom of its focus ring */
+.code > button[data-copy-link] > span[role=img] {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -77,34 +59,26 @@ code {
   pointer-events: none;
 }
 
-.code > button.copy-to-clipboard:is(:hover, :focus-visible) {
+.code > button[data-copy-link]:is(:hover, :focus-visible) {
   color: var(--femto-contrast);
 }
 
-/* While the tooltip reads "Copied", the icon is the check, in bold and --femto-code-copied, drawn in
-   with common.css's icon-check */
-.code > button.copy-to-clipboard[data-tooltip=Copied] > span[role=img] {
-  color: var(--femto-code-copied);
+/* While the tooltip reads "Copied", the icon is the check, in bold and femto's green, the <ins>
+   color, drawn in with common.css's icon-check */
+.code > button[data-copy-link][data-tooltip=Copied] > span[role=img] {
+  color: var(--femto-ins-color);
   font-weight: bold;
   animation: icon-check 0.2s ease-out;
 }
 
-.code > button.copy-to-clipboard[data-tooltip]::before,
-.code > button.copy-to-clipboard[data-tooltip]::after {
+.code > button[data-copy-link][data-tooltip]::before,
+.code > button[data-copy-link][data-tooltip]::after {
   font-size: 0.75em;
 }
 
 /* No tooltip once the button shows its check mark */
-.code > button.copy-to-clipboard[data-tooltip=Copied]::after {
+.code > button[data-copy-link][data-tooltip=Copied]::after {
   display: none;
-}
-
-.code::after {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--femto-border-radius);
-  content: "";
-  pointer-events: none;
 }
 
 /* A code block's <pre> that scrolls sideways takes focus (tabindex="0": build.mjs writes it and
@@ -118,9 +92,12 @@ code {
   box-shadow: inset 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
-/* Code blocks as article footer */
+/* Code blocks as article footer. The top border is femto's muted border color, the one femto's
+   light cards draw there: a dark card's border is its own background, which the code footer
+   shares, so in the dark scheme the example and its code would run together */
 article footer.code {
   padding: 0;
+  border-top-color: var(--femto-muted-border-color);
   border-top-right-radius: 0;
   border-top-left-radius: 0;
 }
@@ -128,6 +105,26 @@ article footer.code {
 article footer.code pre {
   padding: calc(var(--femto-block-spacing-vertical) * 0.66) var(--femto-block-spacing-horizontal);
   background-color: transparent;
+}
+
+/* In the dark scheme the code footer is darker than the card, as it is below the white card in the
+   light scheme: femto's dark page background with 40% black (about #0b0e12), where the card and its
+   forced-dark footer would share femto's dark card background, told apart by the 1px border only.
+   The footer's own light-dark() always reads dark, so the page's scheme is read from <html>: a
+   stored choice (data-theme) or the system's. The copy button's square follows, since it is drawn
+   in the same token, and code text only gains contrast. On screen only, as femto keeps its own dark
+   scheme to screens: in print common.css makes the footer light, and the dark background would stay
+   behind the light scheme's code colors */
+@media screen {
+  :root[data-theme=dark] article > footer.code[data-theme=dark] {
+    --femto-card-background-color: color-mix(in srgb, var(--femto-dark-background-color), #000 40%);
+  }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) article > footer.code[data-theme=dark] {
+    --femto-card-background-color: color-mix(in srgb, var(--femto-dark-background-color), #000 40%);
+  }
 }
 
 /* Standalone code blocks: from 576px up, 1.25 to 2.5 times --femto-spacing around the code */
@@ -173,7 +170,7 @@ article footer.code pre {
   }
 }
 
-/* "transparent 0 0": the oracle's served CSS had "background: 0 0", its minifier's form of
+/* "transparent 0 0": the Remix site's served CSS had "background: 0 0", its minifier's form of
    "transparent", which also sets the position to 0px 0px */
 .code:not(article footer.code) pre {
   padding: calc(var(--femto-block-spacing-vertical) * 0.66) var(--femto-block-spacing-horizontal);
@@ -181,31 +178,27 @@ article footer.code pre {
 }
 
 /* Small code blocks */
-.code.small > button.copy-to-clipboard {
+.code.small > button[data-copy-link] {
   top: 50%;
   transform: translateY(-50%);
 }
 
-/* Color syntax */
-code .token.tag:not(.punctuation),
-code .token.property {
-  color: var(--femto-code-tag);
+/* The colors of highlighted code: one class per color, which build.mjs writes from Prism's tokens
+   (step 4), and picker.js, docs.js, demo.js and index.html's demo sample write the same way. tag:
+   tag names and CSS properties; attr: attribute names, selectors, keywords, booleans and functions;
+   value: attribute values with their quotes, and strings; comment: comments and doctypes */
+code .tag {
+  color: var(--site-code-tag);
 }
 
-code .token.tag.attr-name:not(.punctuation),
-code .token.selector:not(.punctuation),
-code .token.keyword,
-code .token.boolean,
-code .token.function {
-  color: var(--femto-code-attr);
+code .attr {
+  color: var(--site-code-attr);
 }
 
-code .token.tag.attr-value:not(.attr-equals),
-code .token.string {
-  color: var(--femto-code-value);
+code .value {
+  color: var(--site-code-value);
 }
 
-code .token.comment:not(.punctuation),
-code .token.doctype {
-  color: var(--femto-code-comment);
+code .comment {
+  color: var(--site-code-comment);
 }

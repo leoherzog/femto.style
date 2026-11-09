@@ -1,59 +1,19 @@
-/* The docs page, after common.css and code.css: the docs tokens for each color scheme, the main
-   grid with its breadcrumb, side menu and document (every section, each with its header), smooth
-   scrolling for nav clicks, the rules of single sections (the oracle's main.page-<id> rules), and
-   the docs components: the menu's focus style, the Theme picker card, the color families (with
-   readable text on every shade) and color dialog of the Colors section, the color dots of the
-   Themes table, inline example dialogs and headings. */
-
-/**
- * Docs color schemes
- */
-
-/* Light color scheme (Default)
-   Can be forced with data-theme="light" */
-[data-theme=light],
-:root:not([data-theme=dark]),
-:host:not([data-theme=dark]) {
-  /* Aside */
-  --femto-aside-link-current-background-color: #eff1f4;
-}
-
-/* Forced dark color scheme */
-[data-theme=light] article footer.code[data-theme=dark],
-:root:not([data-theme=dark]) article footer.code[data-theme=dark],
-:host:not([data-theme=dark]) article footer.code[data-theme=dark] {
-  --femto-card-background-color: #181c25;
-  --femto-card-border-color: var(--femto-card-background-color);
-  --femto-card-box-shadow: var(--femto-box-shadow);
-  --femto-card-sectioning-background-color: rgb(28, 33, 43.5);
-}
-
-/* Dark color scheme (Auto)
-   Automatically enabled if user has Dark mode enabled */
-@media only screen and (prefers-color-scheme: dark) {
-  :root:not([data-theme]),
-  :host:not([data-theme]) {
-    /* Aside */
-    --femto-aside-link-current-background-color: #202632;
-  }
-}
-
-/* Dark color scheme (Forced)
-   Enabled if forced with data-theme="dark" */
-[data-theme=dark] {
-  /* Aside */
-  --femto-aside-link-current-background-color: #202632;
-}
+/* The docs page, after common.css and code.css: the main grid with its breadcrumb, side menu and
+   document (every section, each with its header), the menu without JavaScript, smooth scrolling
+   for nav clicks, the rules of single sections (the Remix site's main.page-<id> rules), the docs
+   components: the menu's focus style, the Theme picker card, the color families (with readable
+   text on every shade) and color dialog of the Colors section, the color dots of the Themes table
+   and inline example dialogs, and print. */
 
 /**
  * Docs: Main
  */
 body {
-  --femto-main-top-offset: 0rem;
+  --site-main-top-offset: 0rem;
 }
 
 body > header.is-fixed-above-lg + main {
-  --femto-main-top-offset: var(--femto-header-height);
+  --site-main-top-offset: var(--site-header-height);
 }
 
 body > main {
@@ -69,9 +29,9 @@ body > main > * {
   margin-bottom: 0;
 }
 
-/* Side nav and content. The content column keeps the width the oracle's routes gave it: from 1280px
-   the width of a route with a table of contents, whose column is now the empty third track (the
-   oracle's 10rem tracks from 1536px applied only to routes without one: its 10.5rem rule for a route
+/* Side nav and content. The content column keeps the width the Remix site's routes gave it: from
+   1280px the width of a route with a table of contents, whose column is now the empty third track
+   (its 10rem tracks from 1536px applied only to routes without one: its 10.5rem rule for a route
    with one has the higher specificity) */
 @media (min-width: 1024px) {
   body > main {
@@ -88,10 +48,12 @@ body > main > * {
     margin-top: calc(var(--femto-block-spacing-vertical) / 2);
   }
 
+  /* It sticks where it starts, below the header, and ends a femto spacing above the viewport's
+     bottom: 100dvh is the viewport's height as it is now */
   body > main > aside > nav.is-sticky-above-lg {
     position: sticky;
-    top: calc(var(--femto-main-top-offset) + var(--femto-block-spacing-vertical) / 2);
-    max-height: calc(var(--max-height) - var(--femto-spacing));
+    top: calc(var(--site-main-top-offset) + var(--femto-block-spacing-vertical) / 2);
+    max-height: calc(100dvh - var(--site-main-top-offset) - var(--femto-block-spacing-vertical) / 2 - var(--femto-spacing));
     overflow: auto;
     transition: top var(--femto-transition);
     transition-delay: 0.05s;
@@ -101,7 +63,7 @@ body > main > * {
     grid-area: menu;
   }
 
-  body > main > [role=document] {
+  body > main > #content {
     grid-area: body;
   }
 }
@@ -113,8 +75,10 @@ body > main > * {
   }
 }
 
+/* Below lg a link to a section puts its h1 1.5rem below the sticky breadcrumb, so the chapter label
+   above it lands just under the breadcrumb's bottom border; with 1rem the border cut its cap tops */
 html {
-  scroll-padding-top: calc(var(--femto-breadcrumb-height) + 1rem);
+  scroll-padding-top: calc(var(--site-breadcrumb-height) + 1.5rem);
 }
 
 /* Smooth scrolling only for a nav click (Decision 10): docs.js sets the class while the click's
@@ -128,17 +92,22 @@ html {
 
 @media (min-width: 1024px) {
   html {
-    scroll-padding-top: calc(var(--femto-header-height) + 2rem - 0.375rem);
+    scroll-padding-top: calc(var(--site-header-height) + 2rem - 0.375rem);
   }
 }
 
 /**
- * Docs: Breadcrumb
+ * Docs: Breadcrumb, "Documentation > <category> > <section>": docs.js writes the last two items as
+ * the spy moves
  */
 html {
-  --femto-breadcrumb-height: calc(3.5rem + var(--femto-border-width));
+  --site-breadcrumb-height: calc(3.5rem + var(--femto-border-width));
 }
 
+/* Sticky below lg, with a bottom border in femto's muted border color that is always there, as the
+   docs header's is from lg up: no script watches the scroll for the moment it sticks. At top: -1px
+   its stuck bottom edge is at 3.5rem, above a deep-linked section's chapter label (the scroll
+   padding above) */
 main > [aria-label=breadcrumb] {
   z-index: 3;
   position: sticky;
@@ -146,9 +115,8 @@ main > [aria-label=breadcrumb] {
   margin: 0 calc(var(--femto-spacing) * -1);
   margin-top: calc(var(--femto-block-spacing-vertical) / 2);
   padding: 0 var(--femto-spacing);
-  border-bottom: var(--femto-border-width) solid transparent;
+  border-bottom: var(--femto-border-width) solid var(--femto-muted-border-color);
   background-color: var(--femto-background-color);
-  transition: border var(--femto-transition), box-shadow var(--femto-transition);
 }
 
 /* Full bleed in the sm and md containers (510px and 700px wide) */
@@ -166,11 +134,6 @@ main > [aria-label=breadcrumb] {
   }
 }
 
-main > [aria-label=breadcrumb].is-sticky {
-  border-bottom-color: var(--femto-header-border-color);
-  box-shadow: var(--femto-card-box-shadow);
-}
-
 main > [aria-label=breadcrumb] ul {
   max-width: 100%;
 }
@@ -181,33 +144,25 @@ main > [aria-label=breadcrumb] ul li {
   white-space: nowrap;
 }
 
-main > [aria-label=breadcrumb] ul li:not(:last-child)::after {
-  content: ">";
-}
-
-/* The Documentation button, which opens the menu, is a <button type="button"> drawn as the
-   breadcrumb's secondary link it replaced: femto's breadcrumb link box, no border or background,
-   the secondary link color and underline on hover, and femto's link focus ring on keyboard focus.
-   No transition: Firefox styles the docs page once before the site's stylesheets apply (docs.html
-   links them after the head scripts), so a transition here would run on load from femto's button
-   colors, white on the primary background */
+/* The Documentation button, which opens the menu, is a plain button (common.css) drawn as the
+   breadcrumb's secondary link it replaced: femto's breadcrumb link box, the secondary link color,
+   and its underline on hover */
 main > [aria-label=breadcrumb] ul li:first-child button {
-  display: inline-block;
-  max-width: none;
   margin: calc(var(--femto-nav-link-spacing-vertical) * -1) 0;
   margin-inline-start: calc(var(--femto-nav-link-spacing-horizontal) * -1);
   padding: var(--femto-nav-link-spacing-vertical) var(--femto-nav-link-spacing-horizontal);
-  border: 0;
-  border-radius: var(--femto-border-radius);
-  background-color: transparent;
-  box-shadow: none;
   color: var(--femto-secondary);
-  font-weight: inherit;
-  font-size: inherit;
-  line-height: inherit;
   text-decoration-color: var(--femto-secondary-underline);
   text-underline-offset: 0.125em;
-  transition: none;
+}
+
+/* Stuck, the button sits inside html's scroll padding, which Chrome takes for out of view: when Tab
+   or Shift+Tab gave it focus, Chrome scrolled the page until the button was below that padding,
+   420 to 520 px up, and the spy moved to the section before. Its scroll margin moves its box down by
+   the scroll padding below lg (above), so the browser finds it in view wherever the breadcrumb is.
+   From lg the breadcrumb is not shown */
+main > [aria-label=breadcrumb] ul li:first-child button {
+  scroll-margin-block: calc((var(--site-breadcrumb-height) + 1.5rem) * -1) calc(var(--site-breadcrumb-height) + 1.5rem);
 }
 
 main > [aria-label=breadcrumb] ul li:first-child button:hover {
@@ -216,20 +171,49 @@ main > [aria-label=breadcrumb] ul li:first-child button:hover {
   text-decoration-color: var(--femto-secondary-hover-underline);
 }
 
-/* The transparent outline beside the ring is for forced colors, which drop box-shadow and draw an
-   outline in a system color */
-main > [aria-label=breadcrumb] ul li:first-child button:focus-visible {
-  outline: var(--femto-outline-width) solid transparent;
-  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
+/* The category is text, not a link, so it takes the end padding femto's breadcrumb link has, and
+   its divider sits midway to the section as the one after the Documentation button does */
+main > [aria-label=breadcrumb] ul li:nth-child(2) {
+  padding-inline-end: calc(var(--femto-nav-element-spacing-horizontal) + var(--femto-nav-link-spacing-horizontal));
 }
 
+main > [aria-label=breadcrumb] ul li:nth-child(2)::after {
+  margin-inline-start: 0;
+}
+
+/* The section shrinks to the room the items before it leave, and ends in an ellipsis when its name
+   is longer */
 main > [aria-label=breadcrumb] ul li:last-child {
   flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
-@media (min-width: 576px) {
-  main > [aria-label=breadcrumb] ul li:first-child::after {
-    display: inline-block;
+/* Below 576px the Documentation button shows its menu character ☰ alone, so the category and the
+   section fit beside it: its label stays in the button, out of sight, and still names it */
+@media (max-width: 575px) {
+  main > [aria-label=breadcrumb] ul li:first-child button > span:not([role]) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+
+  main > [aria-label=breadcrumb] ul li:first-child button > span[role=img] {
+    margin-right: 0;
+  }
+}
+
+/* Below 360px the longest categories still leave the section little room, so the breadcrumb
+   leaves the category out: "☰ > <section>" */
+@media (max-width: 359px) {
+  main > [aria-label=breadcrumb] ul li:nth-child(2):not(:last-child) {
+    display: none;
   }
 }
 
@@ -239,10 +223,6 @@ main > [aria-label=breadcrumb] span[role=img] {
   margin-right: var(--femto-nav-link-spacing-horizontal);
   font-size: 1.125rem;
   transform: translateY(-0.0625rem) scale(1.25);
-}
-
-main > [aria-label=breadcrumb] a[aria-current] {
-  pointer-events: auto;
 }
 
 /**
@@ -336,7 +316,7 @@ main > aside#documentation-menu header {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  height: var(--femto-header-height);
+  height: var(--site-header-height);
   margin-bottom: var(--femto-spacing);
 }
 
@@ -345,36 +325,19 @@ main > aside#documentation-menu header h2 {
   margin-bottom: 0;
 }
 
-/* The Close button, a <button type="button"> drawn as the secondary link it replaced: its icon in the
-   secondary link colors at 0.8 opacity, full on hover, and femto's link focus ring on keyboard
-   focus. At 0.8 the icon keeps at least 3:1 on the menu's background (3.5:1 light, 4.7:1 dark;
-   WCAG 1.4.11, criterion 10). Only its opacity transitions: Firefox styles the docs page once before
-   the site's stylesheets apply (docs.html links them after the head scripts), so a color transition
-   would run on load from femto's button colors, white on the primary background */
+/* The Close button, a plain button (common.css) drawn as the secondary link it replaced: its icon in
+   the secondary link colors at 0.8 opacity, full on hover. At 0.8 the icon keeps at least 3:1 on
+   the menu's background (3.5:1 light, 4.7:1 dark; WCAG 1.4.11, criterion 10). Only its opacity
+   transitions, for the reason common.css gives */
 main > aside#documentation-menu header button {
   --femto-color: var(--femto-secondary);
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background-color: transparent;
-  box-shadow: none;
   color: var(--femto-color);
-  font-weight: inherit;
-  font-size: inherit;
-  line-height: inherit;
   opacity: 0.8;
   transition: opacity var(--femto-transition);
 }
 
 main > aside#documentation-menu header button:is(:hover, :active, :focus) {
   --femto-color: var(--femto-secondary-hover);
-}
-
-/* The transparent outline beside the ring is for forced colors, as the breadcrumb's button has */
-main > aside#documentation-menu header button:focus-visible {
-  outline: var(--femto-outline-width) solid transparent;
-  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
 main > aside#documentation-menu header button > span[role=img] {
@@ -467,55 +430,99 @@ main > aside#documentation-menu header button:hover {
   }
 }
 
+/* Without JavaScript nothing opens the off-canvas menu or follows the spy, so the breadcrumb, with
+   its Documentation button, and the menu's Close are hidden. Below lg the menu is a plain block in
+   the page's flow, before the sections, its categories open. A deep link's heading then sits below
+   the top with room for its chapter label, as there is no sticky breadcrumb above it */
+@media (scripting: none) {
+  main > [aria-label=breadcrumb],
+  main > aside#documentation-menu header button {
+    display: none;
+  }
+}
+
+/* The sections' controls that only the site's scripts drive are hidden too, with the text that
+   introduces them, and so they are on paper: the Color schemes switcher, Grid's Add and Remove
+   column, Typography's rem switch, the Modal demo, the Colors palette's help, whose dialog does
+   not open, and the Theme picker's swatches, links whose ?theme= only a head script applies */
+@media (scripting: none), print {
+  main > #content p:has(+ article > button[data-scheme-switcher]),
+  main > #content article:has(> button[data-scheme-switcher]),
+  section[data-grid-example] > .grid:has(> button),
+  section[data-font-size-demo] p:has(> label > input[name=toggle-font-size-in-rem]),
+  main > #content section:has(> article > button[data-modal-open]),
+  p[data-palette-help],
+  main > #content section > p:has(+ article[data-version-picker]),
+  main > #content article[data-version-picker] > header {
+    display: none;
+  }
+}
+
+@media (scripting: none) and (max-width: 1023px) {
+  html {
+    scroll-padding-top: calc(1.5rem + var(--femto-spacing));
+  }
+
+  main > aside#documentation-menu {
+    display: block;
+    position: static;
+    transform: none;
+    transition: none;
+  }
+
+  main > aside#documentation-menu::before {
+    content: none;
+  }
+
+  main > aside#documentation-menu header,
+  main > aside#documentation-menu nav {
+    height: auto;
+    margin-block: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  main > aside#documentation-menu header {
+    margin-bottom: var(--femto-spacing);
+  }
+}
+
 /**
- * Docs: Header, each section's hgroup. Its margins keep the space the oracle's grid gave the header
- * of a route: its top margin from lg, and the row gap below it
+ * Docs: Header, each section's hgroup. Its margins keep the space the Remix site's grid gave the
+ * header of a route: its top margin from lg, and the row gap below it
  */
-main > [role=document] > section > hgroup {
+main > #content > section > hgroup {
   margin-bottom: 2rem;
 }
 
 @media (min-width: 1024px) {
-  main > [role=document] > section > hgroup {
+  main > #content > section > hgroup {
     margin-top: calc(var(--femto-block-spacing-vertical) / 2);
     margin-bottom: 3rem;
   }
 }
 
 @media (min-width: 1280px) {
-  main > [role=document] > section > hgroup {
+  main > #content > section > hgroup {
     margin-bottom: 4rem;
   }
 }
 
 @media (min-width: 1536px) {
-  main > [role=document] > section > hgroup {
+  main > #content > section > hgroup {
     margin-bottom: 5rem;
   }
 }
 
-main > [role=document] > section > hgroup p.chapter {
+main > #content > section > hgroup p.chapter {
   margin-bottom: calc(var(--femto-spacing) * 0.25);
 }
 
-main > [role=document] > section > hgroup h1 {
+main > #content > section > hgroup h1 {
   margin-bottom: calc(var(--femto-spacing) * 0.5);
 }
 
-@media (min-width: 576px) {
-  main > [role=document] > section > hgroup h1 {
-    --femto-font-size: 2.5rem;
-  }
-}
-
-/* The oracle's Sass nests this h1 in the h1 rule, so it matches no element; kept as compiled */
-@media (min-width: 1536px) {
-  main > [role=document] > section > hgroup h1 h1 {
-    --femto-font-size: 3rem;
-  }
-}
-
-main > [role=document] > section > hgroup p {
+main > #content > section > hgroup p {
   /* eslint-disable-next-line css/use-baseline -- text-wrap: pretty is not Baseline; a browser without it wraps the text as usual, a progressive enhancement femto's feature tiers allow for text-wrap */
   text-wrap: pretty;
 }
@@ -523,12 +530,12 @@ main > [role=document] > section > hgroup p {
 /**
  * Docs: Document
  */
-main > [role=document] section {
+main > #content section {
   margin-bottom: calc(var(--femto-spacing) * 3);
 }
 
-main > [role=document] article > *:last-child:not(footer, .grid),
-main > [role=document] article form > *:last-child:not(footer, .grid) {
+main > #content article > *:last-child:not(footer, .grid),
+main > #content article form > *:last-child:not(footer, .grid) {
   margin-bottom: 0;
 }
 
@@ -536,20 +543,21 @@ main > [role=document] article form > *:last-child:not(footer, .grid) {
    inline-block, so in Chrome a long path such as Quick start's @leoherzog/femto/css/themes/jade.css
    would run past a 320px viewport, where html's overflow-x: hidden (common.css) cuts it off (WCAG
    1.4.10) */
-[role=document] p > code {
+#content p > code {
   overflow-wrap: anywhere;
 }
 
-main > [role=document] .edit-on-github span[role=img] {
+main > #content .edit-on-github span[role=img] {
   margin-right: calc(var(--femto-spacing) * 0.25);
   font-size: 1rem;
   transform: translateY(-0.0625rem);
 }
 
 /**
- * Sections: the oracle's main.page-<id> rules, each scoped to the section whose h1 has that id.
- * The :where() keeps each selector's weight: [role=document] > section weighs what main.page-<id>
- * did, so every rule wins and loses where it did on its route
+ * Sections: the Remix site's main.page-<id> rules, each scoped to the section whose h1 has that id.
+ * The :where() keeps the :has() out of each selector's weight. #content (div#content, which held
+ * role="document" until 2026-11-09) outweighs femto's selectors, as [role=document] did: computed
+ * styles on /docs were unchanged by the swap
  */
 
 /**
@@ -558,7 +566,7 @@ main > [role=document] .edit-on-github span[role=img] {
 
 /* Remove responsive spacings to demo this component
    because it's not the default behavior anymore. */
-[role=document] > section:where(:has(> hgroup > h1[id=card])) article {
+#content > section:where(:has(> hgroup > h1[id=card])) article {
   --femto-block-spacing-vertical: var(--femto-spacing);
   --femto-block-spacing-horizontal: var(--femto-spacing);
 }
@@ -566,14 +574,14 @@ main > [role=document] .edit-on-github span[role=img] {
 /**
  * Section: Color schemes
  */
-[role=document] > section:where(:has(> hgroup > h1[id=color-schemes])) article#theme-switcher button {
+#content > section:where(:has(> hgroup > h1[id=color-schemes])) article#theme-switcher button {
   display: block;
   width: 100%;
   margin-inline: auto;
 }
 
 @media (min-width: 576px) {
-  [role=document] > section:where(:has(> hgroup > h1[id=color-schemes])) article#theme-switcher button {
+  #content > section:where(:has(> hgroup > h1[id=color-schemes])) article#theme-switcher button {
     width: 50%;
     min-width: fit-content;
   }
@@ -582,29 +590,25 @@ main > [role=document] .edit-on-github span[role=img] {
 /**
  * Section: Grid
  */
-[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button {
-  width: 100%;
-  margin-bottom: var(--femto-spacing);
-}
 
-[role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button > span[role=img] {
+/* The icons of the Add and Remove buttons, before their labels. The buttons are in a femto .grid,
+   stacked below 768px and side by side from it, as the Loading section's are: in femto's button
+   group the two .secondary buttons shared one fill with no divider, and at 375px each label
+   wrapped */
+#content > section:where(:has(> hgroup > h1[id=grid])) .grid > button > span[role=img] {
   margin-right: 0.5em;
 }
 
-@media (min-width: 576px) {
-  [role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button {
-    width: auto;
-  }
-
-  [role=document] > section:where(:has(> hgroup > h1[id=grid])) .btn-group button:not(:last-child) {
-    margin-right: var(--femto-spacing);
-  }
+/* Their grid keeps a femto spacing below it, as the Loading section's first grid of buttons does, so
+   the example is as far below the buttons as the stacked buttons are apart */
+#content > section:where(:has(> hgroup > h1[id=grid])) > section > .grid {
+  margin-bottom: var(--femto-spacing);
 }
 
-/* The example's cells: their text is --femto-code-color (common.css), 5.5:1 on the code background
-   in light and 6.1:1 in dark (WCAG 1.4.3), where the oracle's --femto-muted-color has 4.39:1 in
+/* The example's cells: their text is femto's --femto-code-color, 4.9:1 on the code background in
+   light and 5.2:1 in dark (WCAG 1.4.3), where the Remix site's --femto-muted-color has 4.39:1 in
    dark */
-[role=document] > section:where(:has(> hgroup > h1[id=grid])) .grid > div {
+#content > section:where(:has(> hgroup > h1[id=grid])) .grid > div {
   padding: calc(var(--femto-spacing) / 2) 0;
   border-radius: var(--femto-border-radius);
   background-color: var(--femto-code-background-color);
@@ -616,21 +620,21 @@ main > [role=document] .edit-on-github span[role=img] {
 /**
  * Section: Loading
  */
-[role=document] > section:where(:has(> hgroup > h1[id=loading])) .grid#buttons {
+#content > section:where(:has(> hgroup > h1[id=loading])) .grid#buttons {
   margin-bottom: var(--femto-spacing);
 }
 
 /**
  * Section: Modal
  */
-[role=document] > section:where(:has(> hgroup > h1[id=modal])) article#modal-demo button {
+#content > section:where(:has(> hgroup > h1[id=modal])) article#modal-demo button {
   display: block;
   width: 100%;
   margin-inline: auto;
 }
 
 @media (min-width: 576px) {
-  [role=document] > section:where(:has(> hgroup > h1[id=modal])) article#modal-demo button {
+  #content > section:where(:has(> hgroup > h1[id=modal])) article#modal-demo button {
     width: 50%;
     min-width: fit-content;
   }
@@ -639,83 +643,57 @@ main > [role=document] .edit-on-github span[role=img] {
 /**
  * Section: Nav
  */
-[role=document] > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav {
+#content > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav {
   border: 1px dashed var(--femto-del-color);
 }
 
-[role=document] > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav:not(:last-child) {
+#content > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav:not(:last-child) {
   border-bottom-color: transparent;
 }
 
-[role=document] > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav ul li a.focused {
+#content > section:where(:has(> hgroup > h1[id=nav])) section#overflow article nav ul li a.focused {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
   color: var(--femto-primary-hover);
 }
 
 /* The icon links example's Menu link: its menu character ☰ (Decision 18) is small for its em, so it
    is drawn larger without changing the line, as the breadcrumb's is */
-[role=document] > section:where(:has(> hgroup > h1[id=nav])) nav[data-nav-example] a > span[role=img] {
+#content > section:where(:has(> hgroup > h1[id=nav])) nav[data-nav-example] a > span[role=img] {
   transform: scale(1.25);
-}
-
-/**
- * Section: Progress
- */
-
-/* The example's pause button (docs.js) is hidden in the markup, so it takes no space without
-   JavaScript, where nothing changes. Where scripts run, its box is laid out, invisible, from the
-   first paint, so docs.js showing it moves nothing below it. A cold load of /docs#progress, or of a
-   later section, recorded a layout shift of 0.04 to 0.07 in Chrome 158 while the hidden button took
-   no space, and records none for it now (Phase 6). femto's [hidden] rule sets display: none with
-   !important */
-@media (scripting: enabled) {
-  [role=document] button[data-progress-pause][hidden] {
-    /* eslint-disable-next-line css/no-important -- only an !important display overrides femto's [hidden] { display: none !important } */
-    display: inline-block !important;
-    visibility: hidden;
-  }
 }
 
 /**
  * Section: Typography
  */
-[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes {
+#content > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes {
   font-size: 16px;
 }
 
-[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes caption {
+#content > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes caption {
   display: none;
 }
 
 /* Seven columns: 100% / 7 */
-[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes th,
-[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes td {
+#content > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes th,
+#content > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes td {
   width: 14.2857142857%;
   padding: calc(var(--femto-spacing) / 2);
   white-space: nowrap;
 }
 
-[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip] {
+#content > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip] {
   border-bottom-color: var(--femto-muted-color);
 }
 
-[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip]::before,
-[role=document] > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip]::after {
+#content > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip]::before,
+#content > section:where(:has(> hgroup > h1[id=typography])) table#responsive-font-sizes [data-tooltip]::after {
   font-size: 12px;
-}
-
-/**
- * Section: Colors. The names table writes placeholders such as --femto-color-<color>-<shade>, where
- * Fira Code's ligatures would draw -< and >- as arrows
- */
-[role=document] > section:where(:has(> hgroup > h1[id=colors])) td > code {
-  font-variant-ligatures: none;
 }
 
 /**
  * Section: Themes, a dot of each theme color before its name in the table of the 20 colors
  */
-[role=document] > section:where(:has(> hgroup > h1[id=themes])) td > span[class^="femto-background-"] {
+#content > section:where(:has(> hgroup > h1[id=themes])) td > span[class^="femto-background-"] {
   display: inline-block;
   width: 1em;
   height: 1em;
@@ -909,6 +887,19 @@ article.color-picker > form > .grid {
   transition: background-color var(--femto-transition), border-color var(--femto-transition), box-shadow var(--femto-transition);
 }
 
+/* The focused shade draws the Theme picker's ring inside it: a contrast ring with an inverse ring
+   within it, which shows on light and dark shades in both schemes (WCAG 2.4.7). femto's ring, a
+   translucent grey, is faint on dark shades in the dark scheme, and the arrow keys move focus
+   through the grid. Forced colors drop box-shadow, so a transparent outline, which they draw in a
+   system color, marks the focus there, inside the shade since the shades touch */
+.color-families .family .shades > button:focus-visible {
+  outline: var(--femto-outline-width) solid transparent;
+  outline-offset: calc(var(--femto-outline-width) * -2);
+  box-shadow:
+    inset 0 0 0 var(--femto-outline-width) var(--femto-contrast-inverse),
+    inset 0 0 0 calc(var(--femto-outline-width) * 2) var(--femto-contrast);
+}
+
 .color-families .family .shades > button:is(.femto-background-red-450, .femto-background-pink-450,
   .femto-background-fuchsia-450, .femto-background-fuchsia-500, .femto-background-purple-500,
   .femto-background-violet-500, .femto-background-indigo-500, .femto-background-blue-500,
@@ -943,9 +934,8 @@ dialog.color {
 }
 
 dialog.color > article {
-  transform: translate3d(0, 0, 0);
   background: var(--femto-background-color);
-  box-shadow: 0 0 0 var(--femto-border-width) var(--femto-secondary-focus), 0 0 6rem 0 var(--femto-glowing-color), var(--femto-box-shadow);
+  box-shadow: 0 0 0 var(--femto-border-width) var(--femto-secondary-focus), 0 0 6rem 0 var(--site-glowing-color), var(--femto-box-shadow);
   transition: box-shadow var(--femto-transition);
 }
 
@@ -969,21 +959,14 @@ dialog.color > article header {
   transition: color var(--femto-transition), background-color var(--femto-transition);
 }
 
-/* The close button: the header's own close icon (Decision 18's ✕) in its text color,
-   without femto's background icon, and a focus ring on keyboard focus only, as the link it replaced
-   had */
+/* The close button, a plain button (common.css) in femto's .close box: the header's own close icon
+   (Decision 18's ✕) in its text color, without femto's background icon */
 dialog.color > article header button.close {
   z-index: 1;
   position: relative;
   height: inherit;
-  border-radius: 0;
   background-image: none;
-  background-position: inherit;
-  background-size: inherit;
-  background-repeat: inherit;
-  box-shadow: none;
   color: inherit;
-  font-weight: inherit;
   line-height: initial;
 }
 
@@ -991,12 +974,6 @@ dialog.color > article header button.close {
    overflowed femto's 1rem button as this does */
 dialog.color > article header button.close > span[role=img] {
   font-size: 1.25rem;
-}
-
-/* The transparent outline beside the ring is for forced colors, as the breadcrumb's button has */
-dialog.color > article header button.close:focus-visible {
-  outline: var(--femto-outline-width) solid transparent;
-  box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
 dialog.color > article header hgroup {
@@ -1054,8 +1031,45 @@ dialog.example > article {
 }
 
 /**
- * Headings (their # anchors are gone with the one page)
+ * Print: the sections alone, in one column, on a page of any width. The side menu, the breadcrumb
+ * and the Theme picker's switches only work on screen, as do the controls the rule above hides
+ * without JavaScript, the picker's swatches among them. main stays a grid, whose items
+ * keep their min-width: 0, so a wide table still scrolls in its box instead of widening the page,
+ * which the browser would then shrink to fit the sheet. common.css prints the page light and wraps
+ * code.
  */
-:is(h1, h2, h3, h4, h5, h6) {
-  position: relative;
+@media print {
+  body > main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "body";
+  }
+
+  main > aside#documentation-menu,
+  main > [aria-label=breadcrumb],
+  [data-picker-options] fieldset {
+    display: none;
+  }
+
+  /* The Colors section's swatches and the Themes table's dots are their background colors, which
+     a printed page drops: they keep them, four families to a row */
+  .color-families {
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 2rem;
+  }
+
+  .color-families .family {
+    break-inside: avoid;
+  }
+
+  .color-families .family .shades {
+    gap: 0.25rem;
+  }
+
+  .color-families .family header,
+  .color-families .family .shades > button,
+  #content > section:where(:has(> hgroup > h1[id=themes])) td > span[class^="femto-background-"] {
+    -webkit-print-color-adjust: exact;
+    /* eslint-disable-next-line css/use-baseline -- Baseline 2025 (Chrome 136); Chrome and Safari before it read the -webkit- form above. A browser with neither prints the swatches without their colors, as it prints any background */
+    print-color-adjust: exact;
+  }
 }
