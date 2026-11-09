@@ -2,16 +2,15 @@
 <html lang="en">
   <head>
     <!-- include partials/head.html -->
-    <title>femto • Minimal CSS framework for semantic HTML</title>
-    <meta name="description" content="A minimal CSS framework for semantic HTML: link one stylesheet, and plain HTML looks clean and readable, with no classes needed for most elements.">
-    <meta property="og:title" content="femto • Minimal CSS framework for semantic HTML">
-    <meta property="og:description" content="A minimal CSS framework for semantic HTML: link one stylesheet, and plain HTML looks clean and readable, with no classes needed for most elements.">
+    <title>femto • Semantic HTML made beautiful</title>
+    <meta name="description" content="Link one stylesheet and plain HTML looks clean and readable: headings, text, links, buttons, forms, tables, cards, accordions and modals are styled from their elements alone, with no classes needed.">
+    <meta property="og:title" content="femto • Semantic HTML made beautiful">
+    <meta property="og:description" content="Link one stylesheet and plain HTML looks clean and readable: headings, text, links, buttons, forms, tables, cards, accordions and modals are styled from their elements alone, with no classes needed.">
     <link rel="canonical" href="https://femto.style">
     <meta property="og:url" content="https://femto.style">
     <!-- include partials/structured-data.html -->
     <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
     <link rel="stylesheet" href="/vendor/femto/css/options/responsive-spacings.css">
-    <link rel="stylesheet" href="/assets/css/fonts.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/code.css">
     <link rel="stylesheet" href="/assets/css/landing.css">
@@ -23,57 +22,134 @@
     <main id="content" class="homepage container">
       <section class="hero">
         <div class="hook">
-          <h1><mark>Minimal CSS&nbsp;framework</mark> <br>for semantic&nbsp;HTML</h1>
-          <p class="secondary">Link one stylesheet, and plain HTML looks clean and&nbsp;readable: headings, forms, tables, cards and modals are styled from their elements&nbsp;alone.</p>
+          <hgroup>
+            <h1><mark>Semantic HTML</mark> made&nbsp;beautiful</h1>
+            <p>Link one stylesheet and plain HTML looks clean and readable: headings, text, links, buttons, forms, tables, cards, accordions and modals are styled from their elements alone, with no classes&nbsp;needed.</p>
+          </hgroup>
+          <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
           <div class="grid ctas">
             <a role="button" href="/docs">Get started<span role="img" aria-hidden="true">→</span></a>
             <a role="button" class="contrast" href="/examples">Examples<span role="img" aria-hidden="true">→</span></a>
           </div>
         </div>
         <div class="demo">
-          <article class="component" aria-label="Demo" data-typing-demo>
+          <article aria-label="Demo" data-typing-demo>
             <!-- [html-validate-disable-next wcag/h32 -- the typing demo's form shows femto's form styles and never submits: demo.js adds and removes its button as the code changes] -->
-            <form class=""><input tabindex="-1" type="email" placeholder="Enter your email" class="" name="input-demo" value=""></form>
+            <form method="dialog" class=""><input tabindex="-1" type="email" placeholder="Enter your email" class="" name="input-demo" value=""></form>
             <footer class="code">
-              <pre><code>&lt;<span class="token tag">form</span>&gt;<br>  &lt;<span class="token tag">input</span><br>    <span class="token tag attr-name">type</span>=<span class="token tag attr-value">"email"</span><br>    <span class="token tag attr-name">placeholder</span>=<span class="token tag attr-value">"Enter your email"</span><br>  &gt;<br>&lt;/<span class="token tag">form</span>&gt;</code></pre>
+              <pre><code>&lt;<span class="tag">form</span>&gt;<br>  &lt;<span class="tag">input</span><br>    <span class="attr">type</span>=<span class="value">"email"</span><br>    <span class="attr">placeholder</span>=<span class="value">"Enter your email"</span><br>  &gt;<br>&lt;/<span class="tag">form</span>&gt;</code></pre>
             </footer>
             <div class="controls"><button type="button" class="secondary outline" data-demo-pause hidden>Pause</button></div>
           </article>
         </div>
       </section>
-      <section class="comparison" data-comparison>
+      <section class="proof">
         <hgroup>
-          <h2>Write <mark>less&nbsp;markup</mark></h2>
-          <p>The same form in femto and in a utility CSS framework: femto styles the elements, so the form needs no&nbsp;classes.</p>
+          <h2><mark>No classes</mark> needed</h2>
+          <p>This markup has no classes. It sits in a shadow root that links femto's stylesheet and nothing&nbsp;else.</p>
         </hgroup>
-        <div class="grid">
-          <div class="femto">
-            <p><span class="emoji">😌</span> femto</p>
-            <div class="code" data-theme="light">
-              <pre class="prismjs"><code class="language-html">&lt;form&gt;
-  &lt;input type="text"&gt;
-  &lt;button type="submit"&gt;Action&lt;/button&gt;
-&lt;/form&gt;</code></pre>
-            </div>
-          </div>
-          <div class="utility-framework">
-            <p><span class="emoji">🥵</span> Utility CSS framework</p>
-            <div class="code" data-theme="light">
-              <pre class="prismjs"><code class="language-html">&lt;div class="container display-flex my-md mx-sm"&gt;
-  &lt;form class="form shadow-md my-md mx-sm align-center"&gt;
-    &lt;div class="input-wrapper border-radius-sm"&gt;
-      &lt;input type="text" class="input text-color-gray placeholder-color-light-gray focus-outline-blue"&gt;
-    &lt;/div&gt;
-    &lt;div class="button-wrapper border-radius-sm"&gt;
-      &lt;button type="submit" class="button bg-color-blue text-color-white focus-light-blue hover-light-blue"&gt;
-        Action
-      &lt;/button&gt;
-    &lt;/div&gt;
-  &lt;/form&gt;
-&lt;/div&gt;</code></pre>
-            </div>
-          </div>
+        <div class="toolbar">
+          <label data-femto-switch hidden><input type="checkbox" role="switch" checked>femto</label>
+          <fieldset data-swatches hidden>
+            <legend>Theme color</legend>
+          </fieldset>
         </div>
+        <!-- The block's markup is written twice: live in the inner shadow root, and escaped in the
+             code sample under it. Change both the same way. landing.css and demo.js explain the two
+             shadow roots. -->
+        <div data-femto-demo>
+          <template shadowrootmode="open">
+            <div part="page">
+              <template shadowrootmode="open">
+                <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
+                <nav aria-label="Acme">
+                  <ul>
+                    <li><strong>Acme Notes</strong></li>
+                  </ul>
+                  <ul>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Pricing</a></li>
+                  </ul>
+                </nav>
+                <hgroup>
+                  <h3>Notes that follow you</h3>
+                  <p>Write on your phone, read on your laptop.</p>
+                </hgroup>
+                <p>Acme Notes keeps your notes in sync on every device. <a href="#">Read the blog</a> to see what is new.</p>
+                <form method="dialog">
+                  <label>
+                    Email
+                    <input type="email" name="email" placeholder="you@example.com">
+                  </label>
+                  <label>
+                    <input type="checkbox" name="news" checked>
+                    Send me product news
+                  </label>
+                  <button type="submit">Sign up</button>
+                </form>
+                <table>
+                  <thead>
+                    <tr><th>Plan</th><th>Notes</th><th>Price</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Free</td><td>100</td><td>$0</td></tr>
+                    <tr><td>Pro</td><td>Unlimited</td><td>$4 a month</td></tr>
+                  </tbody>
+                </table>
+                <details>
+                  <summary>Can I export my notes?</summary>
+                  <p>Yes, as plain text, at any time.</p>
+                </details>
+                <article>
+                  <p>Acme Notes is the first app I open every morning.</p>
+                  <footer>Sam, on the Pro plan</footer>
+                </article>
+              </template>
+            </div>
+          </template>
+        </div>
+        <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Acme"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;strong&gt;Acme Notes&lt;/strong&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Blog&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#"&gt;Pricing&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;hgroup&gt;
+  &lt;h3&gt;Notes that follow you&lt;/h3&gt;
+  &lt;p&gt;Write on your phone, read on your laptop.&lt;/p&gt;
+&lt;/hgroup&gt;
+&lt;p&gt;Acme Notes keeps your notes in sync on every device. &lt;a href="#"&gt;Read the blog&lt;/a&gt; to see what is new.&lt;/p&gt;
+&lt;form&gt;
+  &lt;label&gt;
+    Email
+    &lt;input type="email" name="email" placeholder="you@example.com"&gt;
+  &lt;/label&gt;
+  &lt;label&gt;
+    &lt;input type="checkbox" name="news" checked&gt;
+    Send me product news
+  &lt;/label&gt;
+  &lt;button type="submit"&gt;Sign up&lt;/button&gt;
+&lt;/form&gt;
+&lt;table&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;Plan&lt;/th&gt;&lt;th&gt;Notes&lt;/th&gt;&lt;th&gt;Price&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;Free&lt;/td&gt;&lt;td&gt;100&lt;/td&gt;&lt;td&gt;$0&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;Pro&lt;/td&gt;&lt;td&gt;Unlimited&lt;/td&gt;&lt;td&gt;$4 a month&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;details&gt;
+  &lt;summary&gt;Can I export my notes?&lt;/summary&gt;
+  &lt;p&gt;Yes, as plain text, at any time.&lt;/p&gt;
+&lt;/details&gt;
+&lt;article&gt;
+  &lt;p&gt;Acme Notes is the first app I open every morning.&lt;/p&gt;
+  &lt;footer&gt;Sam, on the Pro plan&lt;/footer&gt;
+&lt;/article&gt;</code></pre></div>
       </section>
       <section class="features">
         <hgroup>
@@ -82,40 +158,40 @@
         </hgroup>
         <div class="grid">
           <article>
+            <span role="img" aria-hidden="true"><code>{ }</code></span>
+            <h3>Plain CSS, no build step</h3>
+            <p>femto is plain CSS, with no Sass and no build step to use or customize it. <code>dist/femto.min.css</code> holds all of femto in one file, with no&nbsp;JavaScript.</p>
+            <p><a href="/docs">Get started<span role="img" aria-hidden="true">→</span></a></p>
+          </article>
+          <article>
+            <span role="img" aria-hidden="true">⚙️</span>
+            <h3>One file per theme or option</h3>
+            <p>Azure is built in. Each of the 19 other theme colors and each of the 3 options is one more file to link, and <code>--femto-*</code> custom properties change the&nbsp;rest.</p>
+            <p><a href="/docs#themes">See the theme colors<span role="img" aria-hidden="true">→</span></a></p>
+          </article>
+          <article>
+            <span role="img" aria-hidden="true">◐</span>
+            <h3>Light and dark color schemes</h3>
+            <p>femto picks each color with CSS's <code>light-dark()</code>, so it follows the visitor's system setting (<code>prefers-color-scheme</code>) without JavaScript. <code>data-theme</code> chooses a scheme for the whole page or for one&nbsp;element.</p>
+            <p><a href="/docs#color-schemes">Learn about the color schemes<span role="img" aria-hidden="true">→</span></a></p>
+          </article>
+          <article>
+            <span role="img" aria-hidden="true">⚡</span>
+            <h3>Only Widely Available CSS</h3>
+            <p>femto uses only CSS that is Baseline Widely Available, apart from some vendor-only rules and a few documented exceptions. Its minimum versions are Chrome and Edge 125, Firefox 128, Safari 17.5 and Samsung Internet&nbsp;27.</p>
+            <p><a href="/docs#browser-support">See the browser support<span role="img" aria-hidden="true">→</span></a></p>
+          </article>
+          <article>
             <span role="img" aria-hidden="true"><code>&lt;/&gt;</code></span>
             <h3>Semantic HTML, few classes</h3>
             <p>femto styles your HTML elements directly. A few classes cover what HTML has no element for, such as <code>.container</code> and <code>.grid</code> for layout and <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code> for button&nbsp;styles.</p>
             <p><a href="/docs#classes">See the classes and attributes<span role="img" aria-hidden="true">→</span></a></p>
           </article>
           <article>
-            <span role="img" aria-hidden="true"><code>{ }</code></span>
-            <h3>Plain CSS</h3>
-            <p>femto is plain CSS, with no Sass, no JavaScript and no build step to use or customize it. Link it from a CDN, download it, or install it from&nbsp;npm.</p>
-            <p><a href="/docs">Get started<span role="img" aria-hidden="true">→</span></a></p>
-          </article>
-          <article>
             <span role="img" aria-hidden="true">⤢</span>
             <h3>Responsive by default</h3>
             <p>The root font size steps up at 576, 768, 1024, 1280 and 1536px, so text and spacings grow with the screen. One option keeps the font size fixed, and another adds more spacing at each&nbsp;breakpoint.</p>
             <p><a href="/docs#typography">Discover the responsive font sizes<span role="img" aria-hidden="true">→</span></a></p>
-          </article>
-          <article>
-            <span role="img" aria-hidden="true">◐</span>
-            <h3>Light and dark color schemes</h3>
-            <p>femto has a light and a dark color scheme. It follows the visitor's system setting (<code>prefers-color-scheme</code>) without JavaScript, and <code>data-theme</code> chooses one for the whole page or for one&nbsp;element.</p>
-            <p><a href="/docs#color-schemes">Learn about the color schemes<span role="img" aria-hidden="true">→</span></a></p>
-          </article>
-          <article>
-            <span role="img" aria-hidden="true">⚙️</span>
-            <h3>Customizable</h3>
-            <p>Change femto with its <code>--femto-*</code> custom properties. Pick azure or one of 19 other theme colors, add any of 3 options, and load only the modules you&nbsp;need.</p>
-            <p><a href="/docs#css-variables">Learn about the CSS variables<span role="img" aria-hidden="true">→</span></a></p>
-          </article>
-          <article>
-            <span role="img" aria-hidden="true">⚡</span>
-            <h3>One file to load</h3>
-            <p><code>dist/femto.min.css</code> holds all of femto in one minified file, so a page loads one stylesheet and no JavaScript. It uses only CSS that is Baseline Widely Available, apart from some vendor-only rules and a few documented&nbsp;exceptions.</p>
-            <p><a href="/docs#files">See the files<span role="img" aria-hidden="true">→</span></a></p>
           </article>
         </div>
       </section>

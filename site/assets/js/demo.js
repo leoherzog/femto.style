@@ -1,52 +1,118 @@
-// demo.js: the homepage's widgets, on / (docs/research/01 §2; /demo is not built from Phase 4, PLAN.md
-// Open question 5). Each does nothing when its markup is absent.
+// demo.js: the homepage's widgets, on / (/demo is not built, PLAN.md Owner answers 5). Each does
+// nothing when its markup is absent.
 //
-// 1. The comparison's code samples on / (homepage/Comparison.jsx) take the page's color scheme:
-//    data-theme on `[data-comparison] div.code` is pageTheme(), on load and after every change.
+// 1. femto off and on. section.proof's div[data-femto-demo] holds a declarative shadow root whose
+//    one element, div[part=page], has a shadow root of its own: it links femto's stylesheet and holds
+//    a block of everyday markup, which the code sample under it shows again (landing.css explains the
+//    two roots). The switch in label[data-femto-switch], hidden in the markup, turns that <link> off
+//    and on (link.disabled), so the markup shows in the browser's own styles or in femto's. Without
+//    JavaScript the switch stays hidden and femto stays on. The block's form and links do what a page
+//    of its own would let them do, nothing: site.js cancels only the page's own, and a submit event
+//    stops at its shadow root. The form has method="dialog" too, so it does not submit without
+//    JavaScript either; the code sample keeps a plain <form>.
 //
-// 2. The typing demo (homepage/Demo/*). The oracle drove it with TypeIt, which is GPL-3.0 or
+// 2. The theme swatches: fieldset[data-swatches], hidden in the markup, gets one radio per femto
+//    theme color, in the docs' Theme picker's order with azure checked, each named by its color and
+//    drawn in that theme's
+//    --femto-primary-background. Choosing one recolors the page in place: the color's
+//    css/themes/<color>.css is linked after femto's stylesheet, on the page and in the block's shadow
+//    root, and the old color's link goes once the new one has loaded, so the page never shows a mix.
+//    Azure, femto's own color, needs no file. The URL does not change: ?theme= is the docs page's
+//    (PLAN.md Decision 8), and nothing is stored.
+//
+// 3. The typing demo (homepage/Demo/*). The Remix site drove it with TypeIt, which is GPL-3.0 or
 //    commercially licensed (PLAN.md Risks), so this is a small hand-written loop instead. It binds to
 //    `article[data-typing-demo]`, with its form and `footer.code pre code`.
-//    - The code sample is a list of characters, each with the token class it is typed in, plus line
+//    - The code sample is a list of characters, each with the color class it is typed in, plus line
 //      breaks, and a cursor among them. The steps type, move the cursor, delete and pause exactly as
-//      the oracle's LargeWidthCode.jsx and SmallWidthCode.jsx queue them (counts are in characters, a
-//      line break counts as one), then run the step's form change. From Phase 4 a void element ends
-//      in ">" (the oracle's JSX wrote " />"), as in the docs' samples, so the counts that cross one
-//      are 1 or 2 smaller than the oracle's. The small layout types its date input's type="date"
+//      the Remix site's LargeWidthCode.jsx and SmallWidthCode.jsx queue them (counts are in
+//      characters, a line break counts as one), then run the step's form change. A void element ends
+//      in ">" (the Remix site's JSX wrote " />"), as in the docs' samples, so the counts that cross one
+//      are 1 or 2 smaller than the Remix site's. The small layout types its date input's type="date"
 //      without the space after it that SmallWidthCode.jsx typed, so its next three counts (the move
 //      back over it, the move to the Next button's line and the select phase's delete) are 1 smaller.
-//      From Phase 6 the busy step first types the disabled attribute that phase.busy gives the search
-//      input (the oracle's code had none): it moves back to the input's ">" (the large layout) or to
+//      The busy step first types the disabled attribute that phase.busy gives the search input (the
+//      Remix site's code had none): it moves back to the input's ">" (the large layout) or to
 //      the end of its placeholder line (the small one), types it, and moves on to the button, and
 //      the date step's delete over the input's attributes takes it too (38 characters in place of
 //      29, and 59 in place of 46).
 //    - The form follows the code: one state object with DemoContext.jsx's fields, rendered as Form.jsx
 //      renders it (one render per change, as React batches them). The email input has type="email"
-//      from the start, as the code shows it (the oracle's had no type for its first 1.75 s).
+//      from the start, as the code shows it (the Remix site's had no type for its first 1.75 s).
 //    - The large layout (attributes on one line) is used from an innerWidth of 1280 px, the small one
-//      below; crossing 1280 px starts the demo over in the other layout, as the oracle's remount did.
-//    - The sequence loops until it is paused. It waits while the demo is off screen (PLAN.md,
+//      below; crossing 1280 px starts the demo over in the other layout, as the Remix site's remount did.
+//    - The sequence loops until it is paused. It waits while the demo is off screen (PLAN.md Rules,
 //      JavaScript: intervals run only while their element is on screen) and while it is paused:
 //      `button[data-demo-pause]` in the article pauses and plays it (its label says which it does,
 //      "Pause" or "Play"), and the demo starts paused under prefers-reduced-motion: reduce, or pauses
 //      when that setting turns on (WCAG 2.2.2). Paused, nothing changes: the steps, the form changes
 //      they scheduled and the email's letters wait, and the cursor stops blinking.
-//    Left out on purpose: the maximize controls and their Escape handler, dead code in the oracle
-//    (01 §2); they are not rebuilt.
+//    Left out on purpose: the maximize controls and their Escape handler, dead code in the Remix
+//    site; they are not rebuilt.
 
-import { onThemeChange, pageTheme } from "./site.js";
-
-// --- 1. The comparison's code samples ----------------------------------------------------------
-const samples = document.querySelectorAll("[data-comparison] div.code[data-theme]");
-if (samples.length) {
-  const follow = (theme) => {
-    for (const sample of samples) if (sample.getAttribute("data-theme") !== theme) sample.setAttribute("data-theme", theme);
+// --- 1. femto off and on -----------------------------------------------------------------------
+const block = document.querySelector("div[data-femto-demo]")?.shadowRoot?.firstElementChild?.shadowRoot;
+const blockFemto = block?.querySelector('link[href="/vendor/femto/dist/femto.min.css"]');
+const femtoSwitch = document.querySelector("label[data-femto-switch]");
+const femtoInput = femtoSwitch?.querySelector("input[role=switch]");
+if (block) {
+  block.addEventListener("submit", (event) => event.preventDefault());
+  block.addEventListener("click", (event) => {
+    if (event.target instanceof Element && event.target.closest("a[href]")) event.preventDefault();
+  });
+}
+if (blockFemto && femtoInput) {
+  // The link follows the switch from the start, which a reload may restore unchecked.
+  const follow = () => {
+    blockFemto.disabled = !femtoInput.checked;
   };
-  follow(pageTheme());
-  onThemeChange(follow);
+  follow();
+  femtoInput.addEventListener("change", follow);
+  femtoSwitch.hidden = false;
 }
 
-// --- 2. The typing demo ------------------------------------------------------------------------
+// --- 2. The theme swatches ---------------------------------------------------------------------
+// femto's theme colors (css/themes/) in the docs' Theme picker's order, around the color wheel from
+// red to the greys, with azure, the default, checked; and in the same order each one's
+// --femto-primary-background, the color of its buttons.
+const THEMES = ["red", "orange", "pumpkin", "amber", "yellow", "lime", "green", "jade", "cyan", "azure",
+  "blue", "indigo", "violet", "purple", "fuchsia", "pink", "sand", "grey", "zinc", "slate"];
+const SWATCHES = ("c52f21 d24317 ff9500 ffbf00 f2df0d a5d601 398712 007a50 047878 0172ad "
+  + "2060df 524ed2 7540bf 9236a4 c1208b d92662 ccc6b4 ababab 646b79 525f7a").split(" ");
+const swatches = document.querySelector("fieldset[data-swatches]");
+const pageFemto = document.querySelector('head > link[href="/vendor/femto/dist/femto.min.css"]');
+if (swatches && pageFemto) {
+  // Each femto link's theme links, in the order they were chosen: the page's, and the block's. The
+  // newest goes right after femto's, before the older ones, which keep their color until it has
+  // loaded and then go.
+  const themed = new Map([[pageFemto, []]]);
+  if (blockFemto) themed.set(blockFemto, []);
+  const recolor = (color) => {
+    for (const [femto, links] of themed) {
+      if (color === "azure") {
+        for (const old of links.splice(0)) old.remove();
+        continue;
+      }
+      const link = el("link", { rel: "stylesheet", href: `/vendor/femto/css/themes/${color}.css` });
+      links.push(link);
+      link.addEventListener("load", () => {
+        if (links.at(-1) === link) for (const old of links.splice(0, links.length - 1)) old.remove();
+      });
+      femto.after(link);
+    }
+  };
+  THEMES.forEach((color, i) => {
+    const label = color[0].toUpperCase() + color.slice(1);
+    const radio = el("input", { type: "radio", name: "theme-color", value: color, "aria-label": label, title: label });
+    radio.style.setProperty("--site-swatch", `#${SWATCHES[i]}`);
+    radio.checked = color === "azure";
+    swatches.append(radio);
+  });
+  swatches.addEventListener("change", (event) => recolor(event.target.value));
+  swatches.hidden = false;
+}
+
+// --- 3. The typing demo ------------------------------------------------------------------------
 const article = document.querySelector("article[data-typing-demo]");
 const form = article?.querySelector("form");
 const code = article?.querySelector("footer.code pre code");
@@ -60,12 +126,12 @@ const TYPE = 17;   // ms per typed code character: TypeIt types at most one per 
 const LARGE = 1280;
 
 // --- The code sample ---------------------------------------------------------------------------
-// The strings are the oracle's, written with its helpers. A step's string is split into characters
+// The strings are the Remix site's, written with its helpers. A step's string is split into characters
 // with the class of the span they are in: these strings hold only <span class="...">text</span>,
 // <br />, &lt;, &gt; and plain text.
-const tag = (v) => `<span class="token tag">${v}</span>`;
-const attr = (v) => `<span class="token tag attr-name">${v}</span>`;
-const value = (v) => `<span class="token tag attr-value">${v}</span>`;
+const tag = (v) => `<span class="tag">${v}</span>`;
+const attr = (v) => `<span class="attr">${v}</span>`;
+const value = (v) => `<span class="value">${v}</span>`;
 const PIECE = /<span class="([^"]+)">([^<]*)<\/span>|<br \/>|&lt;|&gt;|[^<&]/g;
 
 function chars(html) {
@@ -78,7 +144,7 @@ function chars(html) {
   return out;
 }
 
-// A queue of steps, written like the oracle's TypeIt chain.
+// A queue of steps, written like the Remix site's TypeIt chain.
 function queue() {
   const steps = [];
   const q = {
@@ -192,7 +258,7 @@ function wait(ms) {
   return new Promise((done) => setTimeout(done, ms))
     .then(() => running() || new Promise((done) => resumes.push(done)));
 }
-// A form change later in this run (the oracle's setTimeout inside a step).
+// A form change later in this run (the Remix site's setTimeout inside a step).
 function later(ms, fn) {
   const mine = run;
   wait(ms).then(() => mine === run && fn());
