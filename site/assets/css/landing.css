@@ -414,7 +414,7 @@ body > main.homepage > .features > .grid article {
 
 /* The features' character icons (Decision 18), in the box of the SVG icons they replaced and in
    femto's primary color. Each is a one-color silhouette, a transparent glyph and its shadow, as
-   Decision 16's toggle is, so the two emoji (⚙️ and ⚡) take the color as the text characters do.
+   Decision 16's toggle is, so the one emoji (⚙️) takes the color as the text characters do.
    The shadow's color is explicit: a shadow in currentColor takes the transparent color, and
    Firefox draws no shadow for a glyph whose -webkit-text-fill-color is transparent (checked in
    Chrome 158 and Firefox 160, and the silhouettes seen in Safari, 2026-11-05) */
