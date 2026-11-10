@@ -13,7 +13,6 @@
     <link rel="stylesheet" href="/vendor/femto/css/options/responsive-spacings.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/code.css">
-    <link rel="stylesheet" href="/assets/css/landing.css">
     <link rel="stylesheet" href="/assets/css/examples.css">
     <script type="module" src="/assets/js/examples.js"></script>
   </head>
@@ -100,7 +99,7 @@
           <hgroup>
             <p class="chapter">Overview</p>
             <h2>Every element</h2>
-            <p>Most of the elements femto styles, on one page: text, lists, figures, code, tables, forms, buttons and components. A script opens its modal.</p>
+            <p>Most of the elements femto styles, on one page: text, lists, figures, code, tables, forms, buttons and components. <code>commandfor</code> or a script opens its modal.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
         </header>
@@ -430,19 +429,19 @@
                     <footer>A card's footer</footer>
                   </article>
                   <p>
-                    <button type="button" aria-haspopup="dialog" aria-controls="every-element-dialog">Open a modal</button>
+                    <button type="button" aria-haspopup="dialog" aria-controls="every-element-dialog" command="show-modal" commandfor="every-element-dialog">Open a modal</button>
                     <button type="button" class="secondary" data-tooltip="A tooltip">A button with a tooltip</button>
                   </p>
                   <dialog id="every-element-dialog" aria-labelledby="every-element-dialog-title">
                     <article>
                       <header>
-                        <button type="button" aria-label="Close" rel="prev"></button>
+                        <button type="button" aria-label="Close" rel="prev" command="close" commandfor="every-element-dialog"></button>
                         <h3 id="every-element-dialog-title">A modal</h3>
                       </header>
                       <p>A dialog that holds an article. Escape, the close button or a click outside it closes it.</p>
                       <footer>
-                        <button type="button" class="secondary">Cancel</button>
-                        <button type="button">Confirm</button>
+                        <button type="button" class="secondary" command="close" commandfor="every-element-dialog">Cancel</button>
+                        <button type="button" command="close" commandfor="every-element-dialog">Confirm</button>
                       </footer>
                     </article>
                   </dialog>
@@ -466,7 +465,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
 &lt;h2&gt;Heading 2&lt;/h2&gt;
 &lt;h3&gt;Heading 3&lt;/h3&gt;
 &lt;h4&gt;Heading 4&lt;/h4&gt;
@@ -787,19 +786,19 @@
     &lt;footer&gt;A card's footer&lt;/footer&gt;
   &lt;/article&gt;
   &lt;p&gt;
-    &lt;button type="button" aria-haspopup="dialog" aria-controls="every-element-dialog"&gt;Open a modal&lt;/button&gt;
+    &lt;button type="button" aria-haspopup="dialog" aria-controls="every-element-dialog" command="show-modal" commandfor="every-element-dialog"&gt;Open a modal&lt;/button&gt;
     &lt;button type="button" class="secondary" data-tooltip="A tooltip"&gt;A button with a tooltip&lt;/button&gt;
   &lt;/p&gt;
   &lt;dialog id="every-element-dialog" aria-labelledby="every-element-dialog-title"&gt;
     &lt;article&gt;
       &lt;header&gt;
-        &lt;button type="button" aria-label="Close" rel="prev"&gt;&lt;/button&gt;
+        &lt;button type="button" aria-label="Close" rel="prev" command="close" commandfor="every-element-dialog"&gt;&lt;/button&gt;
         &lt;h3 id="every-element-dialog-title"&gt;A modal&lt;/h3&gt;
       &lt;/header&gt;
       &lt;p&gt;A dialog that holds an article. Escape, the close button or a click outside it closes it.&lt;/p&gt;
       &lt;footer&gt;
-        &lt;button type="button" class="secondary"&gt;Cancel&lt;/button&gt;
-        &lt;button type="button"&gt;Confirm&lt;/button&gt;
+        &lt;button type="button" class="secondary" command="close" commandfor="every-element-dialog"&gt;Cancel&lt;/button&gt;
+        &lt;button type="button" command="close" commandfor="every-element-dialog"&gt;Confirm&lt;/button&gt;
       &lt;/footer&gt;
     &lt;/article&gt;
   &lt;/dialog&gt;
@@ -1263,7 +1262,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;femto's 20 theme colors&lt;/h3&gt;
   &lt;p&gt;Each color is a shadow root of its own, which loads femto and the color's theme file.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -1738,7 +1737,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Main"&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Main"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;a href="#" class="contrast"&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -1774,7 +1773,7 @@
           <hgroup>
             <p class="chapter">Widgets</p>
             <h2>Confirmation dialog</h2>
-            <p>A modal that asks before a project is deleted. A script opens it with <code>showModal()</code>.</p>
+            <p>A modal that asks before a project is deleted, opened by <code>commandfor</code> or a script.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
         </header>
@@ -1786,18 +1785,18 @@
                 <article>
                   <h3>Website redesign</h3>
                   <p>48 tasks shared with 6 members. Deleting the project removes its tasks and files for everyone.</p>
-                  <button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box">Delete project</button>
+                  <button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box" command="show-modal" commandfor="confirm-dialog-box">Delete project</button>
                 </article>
                 <dialog id="confirm-dialog-box" aria-labelledby="confirm-dialog-title">
                   <article>
                     <header>
-                      <button type="button" aria-label="Close" rel="prev"></button>
+                      <button type="button" aria-label="Close" rel="prev" command="close" commandfor="confirm-dialog-box"></button>
                       <h3 id="confirm-dialog-title">Delete “Website redesign”?</h3>
                     </header>
                     <p>Its 48 tasks and their files will be deleted for all 6 members. You cannot undo this.</p>
                     <footer>
-                      <button type="button" class="secondary">Cancel</button>
-                      <button type="button">Delete project</button>
+                      <button type="button" class="secondary" command="close" commandfor="confirm-dialog-box">Cancel</button>
+                      <button type="button" command="close" commandfor="confirm-dialog-box">Delete project</button>
                     </footer>
                   </article>
                 </dialog>
@@ -1807,21 +1806,21 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
   &lt;h3&gt;Website redesign&lt;/h3&gt;
   &lt;p&gt;48 tasks shared with 6 members. Deleting the project removes its tasks and files for everyone.&lt;/p&gt;
-  &lt;button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box"&gt;Delete project&lt;/button&gt;
+  &lt;button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box" command="show-modal" commandfor="confirm-dialog-box"&gt;Delete project&lt;/button&gt;
 &lt;/article&gt;
 &lt;dialog id="confirm-dialog-box" aria-labelledby="confirm-dialog-title"&gt;
   &lt;article&gt;
     &lt;header&gt;
-      &lt;button type="button" aria-label="Close" rel="prev"&gt;&lt;/button&gt;
+      &lt;button type="button" aria-label="Close" rel="prev" command="close" commandfor="confirm-dialog-box"&gt;&lt;/button&gt;
       &lt;h3 id="confirm-dialog-title"&gt;Delete “Website redesign”?&lt;/h3&gt;
     &lt;/header&gt;
     &lt;p&gt;Its 48 tasks and their files will be deleted for all 6 members. You cannot undo this.&lt;/p&gt;
     &lt;footer&gt;
-      &lt;button type="button" class="secondary"&gt;Cancel&lt;/button&gt;
-      &lt;button type="button"&gt;Delete project&lt;/button&gt;
+      &lt;button type="button" class="secondary" command="close" commandfor="confirm-dialog-box"&gt;Cancel&lt;/button&gt;
+      &lt;button type="button" command="close" commandfor="confirm-dialog-box"&gt;Delete project&lt;/button&gt;
     &lt;/footer&gt;
   &lt;/article&gt;
 &lt;/dialog&gt;</code></pre></div>
@@ -1865,7 +1864,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Frequently asked questions&lt;/h3&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Frequently asked questions&lt;/h3&gt;
 &lt;details open&gt;
   &lt;summary&gt;Can I change my plan later?&lt;/summary&gt;
   &lt;p&gt;Yes. Change it in Billing at any time. We charge or credit the difference on your next invoice.&lt;/p&gt;
@@ -1931,7 +1930,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
   &lt;hgroup&gt;
     &lt;h3&gt;Welcome back&lt;/h3&gt;
     &lt;p&gt;Sign in to see your orders, saved items and messages.&lt;/p&gt;
@@ -2008,7 +2007,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
   &lt;hgroup&gt;
     &lt;h3&gt;Create your account&lt;/h3&gt;
     &lt;p&gt;Free for 14 days. No credit card needed.&lt;/p&gt;
@@ -2109,7 +2108,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
   &lt;div&gt;
     &lt;h3&gt;Get in touch&lt;/h3&gt;
     &lt;p&gt;We answer every message within one business day.&lt;/p&gt;
@@ -2300,7 +2299,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Checkout&lt;/h3&gt;
   &lt;p&gt;Orders placed by 2 p.m. ship the same day.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -2498,7 +2497,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;header&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;header&gt;
   &lt;nav aria-label="Primary"&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;a href="#" class="contrast"&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
@@ -2624,7 +2623,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
   &lt;aside&gt;
     &lt;nav aria-label="Guide"&gt;
       &lt;details open&gt;
@@ -2750,7 +2749,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Plans for teams of every size&lt;/h3&gt;
   &lt;p&gt;Start for free, and upgrade when your team grows.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -2909,7 +2908,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Dashboard"&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Dashboard"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -3078,7 +3077,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Account settings&lt;/h3&gt;
   &lt;p&gt;Your profile and the email you get from us.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -3190,7 +3189,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;How we cut our page weight in half&lt;/h3&gt;
   &lt;p&gt;By Alex Kim, &lt;time datetime="2026-10-28"&gt;October 28, 2026&lt;/time&gt;&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -3279,7 +3278,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Help center&lt;/h3&gt;
+          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Help center&lt;/h3&gt;
 &lt;form role="search"&gt;
   &lt;input type="search" name="q" value="dark mode" aria-label="Search the help center"&gt;
   &lt;button type="submit"&gt;Search&lt;/button&gt;

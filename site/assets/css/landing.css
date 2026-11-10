@@ -1,13 +1,12 @@
-/* The landing pages' styles, on the homepage and the examples page after common.css: the page
-   spacing, the homepage's hero, typing demo, femto off and on, theme swatches and features, the
-   examples page's hero, and the arrow icon. Their colors are femto's tokens, so they follow femto's
-   scheme and theme color. */
+/* The homepage's styles, after common.css: the page spacing, the hero, typing demo, femto off and
+   on, theme swatches and features, and the arrow icon. Their colors are femto's tokens, so they
+   follow femto's scheme and theme color. examples.css has its own copy of the page spacing. */
 
 /**
  * Layout
  */
 body {
-  overflow: hidden;
+  overflow: clip;
 }
 
 /* Page spacing, larger at each breakpoint. The body is a one-column grid (common.css), and a grid
@@ -68,7 +67,6 @@ body > main section {
 body > main.homepage > .hero {
   display: grid;
   grid-template-columns: 1fr;
-  column-gap: var(--site-homepage-spacing-horizontal);
   row-gap: calc(var(--site-homepage-spacing-vertical) / 2);
   justify-items: center;
   margin-top: calc(var(--site-homepage-spacing-vertical) / 2);
@@ -110,13 +108,11 @@ body > main.homepage > .hero .hook p {
   }
 }
 
-body > main.homepage > .hero .hook h1 {
-  margin-bottom: calc(var(--femto-spacing) * 2);
-}
-
-/* The one <link> to copy, a one-line code block under the tagline. From 1024px it is in a smaller
-   font, and below 1280px, where the hook is 700px wide in a 950px container, it reaches 125px past
-   the hook on each side, so the line fits without a scroll from 1024px up */
+/* The one <link> to copy, a one-line code block under the tagline. From 1024px its <pre> is 0.68em
+   in place of femto's 0.875em, and below 1280px, where the hook is 700px wide in a 950px container,
+   it reaches 125px past the hook on each side, so at the browser's default font size the line fits
+   without a scroll from 1024px up (at 1536px, about 20px to spare in Chrome). A larger default font
+   size makes it scroll, as it does below 1024px */
 body > main.homepage > .hero .hook .code {
   margin-top: calc(var(--femto-spacing) * 2);
   margin-bottom: 0;
@@ -127,19 +123,18 @@ body > main.homepage > .hero .hook .code {
     --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.5);
   }
 
-  body > main.homepage > .hero .hook .code code {
-    font-size: 14px;
+  body > main.homepage > .hero .hook .code pre {
+    font-size: 0.68em;
   }
 }
 
-@media (min-width: 1024px) and (max-width: 1279px) {
+@media (1024px <= width < 1280px) {
   body > main.homepage > .hero .hook .code {
     margin-inline: -125px;
   }
 }
 
 body > main.homepage > .hero .hook .grid.ctas {
-  --femto-form-element-spacing-horizontal: 2rem;
   margin-top: calc(var(--femto-spacing) * 2.5);
   margin-bottom: calc(var(--femto-spacing) * 0.5);
 }
@@ -178,17 +173,17 @@ body > main.homepage > .hero > .demo {
   }
 }
 
-/* eslint-disable css/no-important -- the Remix site's: the demo card keeps its own block spacing over the article spacing that the responsive-spacings option sets at each breakpoint */
+/* The demo card keeps its own block spacing over the article spacing that the responsive-spacings
+   option sets at each breakpoint: this selector outweighs the option's bare article */
 body > main.homepage > .hero > .demo > article {
-  --femto-block-spacing-horizontal: var(--femto-spacing) !important;
-  --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.5) !important;
+  --femto-block-spacing-horizontal: var(--femto-spacing);
+  --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.5);
   display: flex;
   position: relative;
   flex-direction: column;
   justify-content: flex-start;
   width: 100%;
   min-width: 0;
-  height: 100%;
   height: calc(22.8125rem + var(--femto-block-spacing-vertical));
   margin-bottom: 0;
   margin-inline: auto;
@@ -203,14 +198,8 @@ body > main.homepage > .hero > .demo > article {
 
 @media (min-width: 576px) {
   body > main.homepage > .hero > .demo > article {
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.5) !important;
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 2) !important;
-    height: calc(24.5rem + var(--femto-block-spacing-vertical));
-  }
-}
-
-@media (min-width: 768px) {
-  body > main.homepage > .hero > .demo > article {
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.5);
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 2);
     height: calc(24.5rem + var(--femto-block-spacing-vertical));
   }
 }
@@ -223,12 +212,11 @@ body > main.homepage > .hero > .demo > article {
 
 @media (min-width: 1280px) {
   body > main.homepage > .hero > .demo > article {
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 3) !important;
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 3) !important;
+    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 3);
+    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 3);
     height: 24rem;
   }
 }
-/* eslint-enable css/no-important */
 
 @media (min-width: 1536px) {
   body > main.homepage > .hero > .demo > article {
@@ -253,31 +241,20 @@ body > main.homepage > .hero > .demo > article form label {
   margin-bottom: 0;
 }
 
-/* Focused group form */
-body > main.homepage > .hero > .demo > article form[role=group].is-focused,
+/* The focused search form (phase.busy) */
 body > main.homepage > .hero > .demo > article form[role=search].is-focused {
   --femto-group-box-shadow: var(--femto-group-box-shadow-focus-with-button);
 }
 
-body > main.homepage > .hero > .demo > article form[role=group].is-focused input:not([type=checkbox], [type=radio]),
-body > main.homepage > .hero > .demo > article form[role=group].is-focused select,
-body > main.homepage > .hero > .demo > article form[role=search].is-focused input:not([type=checkbox], [type=radio]),
-body > main.homepage > .hero > .demo > article form[role=search].is-focused select {
+body > main.homepage > .hero > .demo > article form[role=search].is-focused input:not([type=checkbox], [type=radio]) {
   border-color: transparent;
 }
 
-body > main.homepage > .hero > .demo > article form[role=group].is-focused button,
 body > main.homepage > .hero > .demo > article form[role=search].is-focused button {
   box-shadow: none;
 }
 
-/* Input */
-body > main.homepage > .hero > .demo > article form input {
-  -webkit-user-select: none;
-  /* eslint-disable-next-line css/use-baseline -- Safari has only the -webkit- form above; femto writes the same pair */
-  user-select: none;
-}
-
+/* Input. The form is inert (index.html), so its input takes no focus and no text selection */
 body > main.homepage > .hero > .demo > article form input:not([type=range]).is-focused {
   --femto-border-color: var(--femto-form-element-active-border-color);
   --femto-box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-form-element-focus-color);
@@ -318,7 +295,7 @@ body > main.homepage > .hero > .demo > article footer.code {
 }
 
 body > main.homepage > .hero > .demo > article footer.code pre {
-  overflow: hidden;
+  overflow: clip;
 }
 
 /* The pause control (demo.js, WCAG 2.2.2): a small outline button at the card's bottom right. Its
@@ -380,12 +357,8 @@ body > main.homepage > .proof > hgroup {
   margin-bottom: calc(var(--site-homepage-spacing-vertical) / 3);
 }
 
-body > main.homepage > :is(.proof, .features) > hgroup > h2 {
-  margin-bottom: calc(var(--femto-spacing) * 1);
-}
-
 body > main.homepage > :is(.proof, .features) > hgroup > :not(:first-child):last-child {
-  /* eslint-disable-next-line css/use-baseline -- the Remix site's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
+  /* eslint-disable-next-line css/use-baseline -- a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
   text-wrap: pretty;
 }
 
@@ -408,7 +381,6 @@ body > main.homepage > .features > .grid {
 }
 
 body > main.homepage > .features > .grid article {
-  margin-bottom: 0;
   margin-block: 0;
 }
 
@@ -443,15 +415,9 @@ body > main.homepage > .features > .grid article > span[role=img] > code {
   line-height: inherit;
 }
 
-body > main.homepage > .features > .grid article h3 {
-  font-size: 1.25rem;
-  line-height: 1.2;
-}
-
 body > main.homepage > .features > .grid article p {
-  margin-bottom: calc(var(--femto-spacing) * 1);
   color: var(--femto-muted-color);
-  /* eslint-disable-next-line css/use-baseline -- the Remix site's; a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
+  /* eslint-disable-next-line css/use-baseline -- a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
   text-wrap: pretty;
 }
 
@@ -551,21 +517,6 @@ body > main.homepage > .proof > .code {
 }
 
 /**
- * Examples
- */
-
-/* Hero: an hgroup, which keeps femto's margin below it */
-body > main.examples > .examples-hero {
-  margin-top: calc(var(--site-homepage-spacing-vertical) / 2);
-}
-
-@media (min-width: 576px) {
-  body > main.examples > .examples-hero {
-    text-align: center;
-  }
-}
-
-/**
  * Utils
  */
 .fade-in {
@@ -589,8 +540,7 @@ body > main.examples > .examples-hero {
  */
 
 /* Arrow right icon (Decision 18): on the homepage, a link's span[role=img] is its arrow →, which
-   moves right on the link's hover, as the Remix site's animated SVG arrow did (its head moved 5 of its
-   24 units) */
+   moves right on the link's hover (Decision 17) */
 body > main.homepage a > span[role=img] {
   transition: transform 0.2s ease-in-out;
 }

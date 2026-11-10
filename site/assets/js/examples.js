@@ -13,16 +13,19 @@
 //   does every shadow host inside an example (the All theme colors example's 20), whose own root
 //   loads femto and so gives the host a background in its own scheme. In print they all take
 //   femto's print scheme, light;
-// - forms that do not submit and links that go nowhere: site.js cancels only the page's own, and a
-//   submit event stops at its shadow root. Each mockup form also has method="dialog", so it does
-//   not submit without JavaScript either; its HTML sample keeps a plain <form>. A click is read at its first target (composedPath), since
-//   a link may sit in a shadow root of the example's own, as the All theme colors example's do;
-// - dialogs: a click on an element whose aria-controls names a <dialog> opens it with showModal(),
-//   and a click on its rel="prev" or .close button, on a button in its footer, or on the dialog
-//   itself (its backdrop) closes it. Escape closes it with no script. However it closes, focus goes
-//   back to the opener: Chrome and Firefox put it there themselves, but in Safari a click does not
-//   focus a button, so the dialog would give focus back to <body>. The footer's buttons are
-//   type="button", since femto makes every button[type=submit] full width.
+// - links that go nowhere: a click on one is canceled, read at its first target (composedPath),
+//   since a link may sit in a shadow root of the example's own, as the All theme colors example's
+//   do. (Each mockup form has method="dialog", whose submit does nothing outside a <dialog>
+//   (criterion 9); its HTML sample keeps a plain <form>.)
+// - dialogs: each opener and closer also has command and commandfor, which open and close the dialog
+//   with no script in a browser that has them, in the Copy as page output too. As the fallback, a
+//   click on an element whose aria-controls names a <dialog> opens it with showModal(), and a click
+//   on its rel="prev" or .close button, on a button in its footer, or on the dialog itself (its
+//   backdrop) closes it; where the command has already acted, these calls do nothing. Escape closes
+//   it with no script. However it closes, focus goes back to the opener: Chrome and Firefox put it
+//   there themselves, but in Safari a click does not focus a button, so the dialog would give focus
+//   back to <body>. The footer's buttons are type="button", since femto makes every
+//   button[type=submit] full width.
 // And two controls of the page's own, which examples.css hides without JavaScript:
 // - Copy as page, button[data-copy-page] in each example's header: copies the example's code sample
 //   in femto's starter template (the page's template[data-starter-page], as femto README's Quick
@@ -30,15 +33,18 @@
 //   place of its <h1>, indented as the <h1> is (a <pre>'s later lines keep their own), and the
 //   chosen theme's link after femto's, written as femto's. The page's own femto paths (/vendor/femto/,
 //   in the All theme colors example) become the folder femto's link names on jsDelivr. For 1 s the
-//   button reads "Copied", at the width it had, and site.js's status region says it.
+//   button reads "Copied", or "Copy failed" when the clipboard refuses the text, at the width it
+//   had, and site.js's status region says it.
 // - The theme color, the select in p[data-examples-theme]: the chosen theme's stylesheet
 //   (css/themes/<color>.css) is linked right after femto's in every inner shadow root, and azure,
 //   femto's own color, removes it. A new link replaces the old one once it has loaded, so the
-//   examples never show azure between two colors. The page itself and the All theme colors example's
-//   own roots keep their colors. No URL parameter: ?theme= belongs to the docs page (Decision 8).
+//   examples never show azure between two colors. A link that fails to load goes, and the examples
+//   keep the color they show, which the select and Copy as page go back to. The page itself and the
+//   All theme colors example's own roots keep their colors. No URL parameter: ?theme= belongs to the
+//   docs page (Decision 8).
 // It does nothing on a page without div[data-example].
 
-import { announceCopy, onThemeChange } from "./site.js";
+import { announceCopy, escapeText, onThemeChange, setAttr } from "./site.js";
 
 const root = document.documentElement;
 const hosts = [...document.querySelectorAll("div[data-example]")]
@@ -55,10 +61,7 @@ let printing = false;
 
 function followScheme() {
   const scheme = printing ? null : root.getAttribute("data-theme");
-  for (const host of [...hosts, ...innerHosts]) {
-    if (!scheme) host.removeAttribute("data-theme");
-    else if (host.getAttribute("data-theme") !== scheme) host.setAttribute("data-theme", scheme);
-  }
+  for (const host of [...hosts, ...innerHosts]) setAttr(host, "data-theme", scheme || null);
 }
 
 if (hosts.length) {
@@ -78,9 +81,6 @@ if (hosts.length) {
 
 for (const host of hosts) {
   const shadow = host.shadowRoot;
-  shadow.addEventListener("submit", (event) => {
-    if (event.target instanceof HTMLFormElement) event.preventDefault();
-  });
   shadow.addEventListener("click", (event) => {
     const first = event.composedPath()[0];
     const target = first instanceof Element ? first : null;
@@ -111,11 +111,14 @@ const THEMES = "/vendor/femto/css/themes/";
 const themeSelect = hosts.length ? document.querySelector("p[data-examples-theme] select") : null;
 let theme = "azure";
 
+const themeLinks = (shadow) => [...shadow.children].filter((el) => el.localName === "link" && el.getAttribute("href")?.startsWith(THEMES));
+const colorOf = (link) => link.getAttribute("href").slice(THEMES.length, -".css".length);
+
 function showTheme(color) {
   theme = color;
   for (const host of hosts) {
     const shadow = host.shadowRoot;
-    const old = [...shadow.children].filter((el) => el.localName === "link" && el.getAttribute("href")?.startsWith(THEMES));
+    const old = themeLinks(shadow);
     if (color === "azure") {
       for (const link of old) link.remove();
       continue;
@@ -123,11 +126,18 @@ function showTheme(color) {
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = `${THEMES}${color}.css`;
-    const swap = () => {
+    link.addEventListener("load", () => {
       for (const done of old) done.remove();
-    };
-    link.addEventListener("load", swap, { once: true });
-    link.addEventListener("error", swap, { once: true });
+    }, { once: true });
+    // A file that fails goes, and the old link keeps its color. If the color was the latest choice,
+    // the theme goes back to the newest one the example still has, azure with none.
+    link.addEventListener("error", () => {
+      link.remove();
+      if (theme !== color) return;
+      const kept = themeLinks(shadow).at(-1);
+      theme = kept ? colorOf(kept) : "azure";
+      themeSelect.value = theme;
+    }, { once: true });
     (old.at(-1) ?? shadow.firstElementChild).after(link);
   }
 }
@@ -140,8 +150,6 @@ themeSelect?.addEventListener("change", () => showTheme(themeSelect.value));
 // femto's starter template: the text of the page's template[data-starter-page], escaped there.
 const starter = hosts.length ? document.querySelector("template[data-starter-page]")?.content.textContent ?? "" : "";
 const COPIED_FOR = 1000;
-
-const escapeText = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 // Each line indented, but a <pre>'s lines after its first, whose spaces are its content.
 function indent(markup, spaces) {
@@ -159,7 +167,7 @@ function indent(markup, spaces) {
 // An example's page: the template with the example's name for its title, the theme's link (none for
 // azure) as a copy of femto's line, and the markup in place of the <h1>, its /vendor/femto/ paths
 // made the folder femto's link names.
-export function pageOf(template, name, markup, color) {
+function pageOf(template, name, markup, color) {
   const femto = /^.*\bhref="([^"]*\/)dist\/femto\.min\.css".*$/m.exec(template);
   if (!femto) return markup;
   const [line, folder] = femto;
@@ -175,15 +183,22 @@ for (const button of copyButtons) {
   const section = button.closest("section");
   const label = button.textContent;
   let timer = 0;
-  button.addEventListener("click", () => {
+  button.addEventListener("click", async () => {
     const name = section.querySelector(":scope > header h2")?.textContent.trim() ?? "";
     const code = section.querySelector(":scope > details pre code");
     if (!code) return;
-    navigator.clipboard?.writeText(pageOf(starter, name, code.textContent, theme)).catch(() => {});
+    // The write starts in the click itself; with no navigator.clipboard (an insecure origin) it
+    // throws, and a refused write rejects.
+    let message = "Copied";
+    try {
+      await navigator.clipboard.writeText(pageOf(starter, name, code.textContent, theme));
+    } catch {
+      message = "Copy failed";
+    }
     // The shorter label keeps the button's width, so the button does not move under the pointer.
     if (!timer) button.style.minWidth = `${button.getBoundingClientRect().width}px`;
-    button.textContent = "Copied";
-    announceCopy();
+    button.textContent = message;
+    announceCopy(message);
     clearTimeout(timer);
     timer = setTimeout(() => {
       button.textContent = label;

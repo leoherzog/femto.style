@@ -6,49 +6,43 @@
 //    a block of everyday markup, which the code sample under it shows again (landing.css explains the
 //    two roots). The switch in label[data-femto-switch], hidden in the markup, turns that <link> off
 //    and on (link.disabled), so the markup shows in the browser's own styles or in femto's. Without
-//    JavaScript the switch stays hidden and femto stays on. The block's form and links do what a page
-//    of its own would let them do, nothing: site.js cancels only the page's own, and a submit event
-//    stops at its shadow root. The form has method="dialog" too, so it does not submit without
-//    JavaScript either; the code sample keeps a plain <form>.
+//    JavaScript the switch stays hidden and femto stays on. The block's links go nowhere: a click on
+//    one is canceled. Its form has method="dialog", whose submit does nothing outside a <dialog>
+//    (criterion 9); the code sample keeps a plain <form>.
 //
 // 2. The theme swatches: fieldset[data-swatches], hidden in the markup, gets one radio per femto
 //    theme color, in the docs' Theme picker's order with azure checked, each named by its color and
-//    drawn in that theme's
-//    --femto-primary-background. Choosing one recolors the page in place: the color's
-//    css/themes/<color>.css is linked after femto's stylesheet, on the page and in the block's shadow
-//    root, and the old color's link goes once the new one has loaded, so the page never shows a mix.
-//    Azure, femto's own color, needs no file. The URL does not change: ?theme= is the docs page's
-//    (PLAN.md Decision 8), and nothing is stored.
+//    drawn in that theme's --femto-primary-background. Choosing one recolors the page in place: the
+//    color's css/themes/<color>.css is linked after femto's stylesheet, on the page and in the
+//    block's shadow root, and the old color's link goes once the new one has loaded, so the page
+//    never shows a mix. A theme file that fails to load goes too, and the swatch goes back to the
+//    color the page keeps. Azure, femto's own color, needs no file. The URL does not change: ?theme=
+//    is the docs page's (PLAN.md Decision 8), and nothing is stored.
 //
-// 3. The typing demo (homepage/Demo/*). The Remix site drove it with TypeIt, which is GPL-3.0 or
-//    commercially licensed (PLAN.md Risks), so this is a small hand-written loop instead. It binds to
-//    `article[data-typing-demo]`, with its form and `footer.code pre code`.
+// 3. The typing demo, a small hand-written loop rather than TypeIt, which is GPL-3.0 or commercially
+//    licensed (PLAN.md Risks). It binds to `article[data-typing-demo]`, with its form and
+//    `footer.code pre code`.
 //    - The code sample is a list of characters, each with the color class it is typed in, plus line
-//      breaks, and a cursor among them. The steps type, move the cursor, delete and pause exactly as
-//      the Remix site's LargeWidthCode.jsx and SmallWidthCode.jsx queue them (counts are in
-//      characters, a line break counts as one), then run the step's form change. A void element ends
-//      in ">" (the Remix site's JSX wrote " />"), as in the docs' samples, so the counts that cross one
-//      are 1 or 2 smaller than the Remix site's. The small layout types its date input's type="date"
-//      without the space after it that SmallWidthCode.jsx typed, so its next three counts (the move
-//      back over it, the move to the Next button's line and the select phase's delete) are 1 smaller.
-//      The busy step first types the disabled attribute that phase.busy gives the search input (the
-//      Remix site's code had none): it moves back to the input's ">" (the large layout) or to
-//      the end of its placeholder line (the small one), types it, and moves on to the button, and
-//      the date step's delete over the input's attributes takes it too (38 characters in place of
-//      29, and 59 in place of 46).
-//    - The form follows the code: one state object with DemoContext.jsx's fields, rendered as Form.jsx
-//      renders it (one render per change, as React batches them). The email input has type="email"
-//      from the start, as the code shows it (the Remix site's had no type for its first 1.75 s).
-//    - The large layout (attributes on one line) is used from an innerWidth of 1280 px, the small one
-//      below; crossing 1280 px starts the demo over in the other layout, as the Remix site's remount did.
-//    - The sequence loops until it is paused. It waits while the demo is off screen (PLAN.md Rules,
-//      JavaScript: intervals run only while their element is on screen) and while it is paused:
-//      `button[data-demo-pause]` in the article pauses and plays it (its label says which it does,
-//      "Pause" or "Play"), and the demo starts paused under prefers-reduced-motion: reduce, or pauses
-//      when that setting turns on (WCAG 2.2.2). Paused, nothing changes: the steps, the form changes
-//      they scheduled and the email's letters wait, and the cursor stops blinking.
-//    Left out on purpose: the maximize controls and their Escape handler, dead code in the Remix
-//    site; they are not rebuilt.
+//      breaks, and a cursor among them. Each step types, moves the cursor, deletes or pauses (counts
+//      are in characters, a line break counts as one), then runs the step's form change. The busy
+//      step first types the disabled attribute that phase.busy gives the search input: it moves back
+//      to the input's ">" (the large layout) or to the end of its placeholder line (the small one),
+//      types it, and moves on to the button, and the date step's delete over the input's attributes
+//      takes it too.
+//    - The form follows the code: one state object, rendered once per change. The email input has
+//      type="email" from the start, as the code shows it. The form is inert in the markup: it is a
+//      picture of a form, which no pointer, key or screen reader reaches.
+//    - The large layout (attributes on one line) is used while the viewport is at least 1280 px wide,
+//      the small one below; crossing 1280 px starts the demo over in the other layout.
+//    - The sequence loops until it is paused. It waits while the demo is off screen or the page is
+//      hidden (PLAN.md Rules, JavaScript: intervals run only while their element is on screen) and
+//      while it is paused: `button[data-demo-pause]` in the article pauses and plays it (its label
+//      says which it does, "Pause" or "Play"), and the demo starts paused under
+//      prefers-reduced-motion: reduce, or pauses when that setting turns on (WCAG 2.2.2). Paused,
+//      nothing changes: the steps, the form changes they scheduled and the email's letters wait, and
+//      the cursor stops blinking.
+
+import { capitalize, setAttr } from "./site.js";
 
 // --- 1. femto off and on -----------------------------------------------------------------------
 const block = document.querySelector("div[data-femto-demo]")?.shadowRoot?.firstElementChild?.shadowRoot;
@@ -56,7 +50,6 @@ const blockFemto = block?.querySelector('link[href="/vendor/femto/dist/femto.min
 const femtoSwitch = document.querySelector("label[data-femto-switch]");
 const femtoInput = femtoSwitch?.querySelector("input[role=switch]");
 if (block) {
-  block.addEventListener("submit", (event) => event.preventDefault());
   block.addEventListener("click", (event) => {
     if (event.target instanceof Element && event.target.closest("a[href]")) event.preventDefault();
   });
@@ -87,22 +80,39 @@ if (swatches && pageFemto) {
   // loaded and then go.
   const themed = new Map([[pageFemto, []]]);
   if (blockFemto) themed.set(blockFemto, []);
+  const THEMES_PATH = "/vendor/femto/css/themes/";
+  // The newest link, once it has loaded, replaces the older ones.
+  const settle = (links) => {
+    if (links.at(-1)?.sheet) for (const old of links.splice(0, links.length - 1)) old.remove();
+  };
   const recolor = (color) => {
     for (const [femto, links] of themed) {
       if (color === "azure") {
         for (const old of links.splice(0)) old.remove();
         continue;
       }
-      const link = el("link", { rel: "stylesheet", href: `/vendor/femto/css/themes/${color}.css` });
+      const link = el("link", { rel: "stylesheet", href: `${THEMES_PATH}${color}.css` });
       links.push(link);
       link.addEventListener("load", () => {
-        if (links.at(-1) === link) for (const old of links.splice(0, links.length - 1)) old.remove();
+        if (links.at(-1) === link) settle(links);
+      });
+      // A file that fails goes. If it was the newest choice, the page keeps the newest color it
+      // still has (azure with none), and that color's swatch is checked again.
+      link.addEventListener("error", () => {
+        const i = links.indexOf(link);
+        if (i < 0) return;
+        links.splice(i, 1);
+        link.remove();
+        if (i < links.length) return;
+        settle(links);
+        const kept = links.at(-1)?.getAttribute("href").slice(THEMES_PATH.length, -".css".length) ?? "azure";
+        swatches.querySelector(`input[value="${kept}"]`).checked = true;
       });
       femto.after(link);
     }
   };
   THEMES.forEach((color, i) => {
-    const label = color[0].toUpperCase() + color.slice(1);
+    const label = capitalize(color);
     const radio = el("input", { type: "radio", name: "theme-color", value: color, "aria-label": label, title: label });
     radio.style.setProperty("--site-swatch", `#${SWATCHES[i]}`);
     radio.checked = color === "azure";
@@ -118,17 +128,17 @@ const form = article?.querySelector("form");
 const code = article?.querySelector("footer.code pre code");
 const toggle = article?.querySelector("button[data-demo-pause]");
 
-// --- Timing (DemoContext.jsx: speed 7, so pause 70 ms and a phase 3.5 s) -------------------------
+// --- Timing: a pause of 70 ms and a phase of 3.5 s ----------------------------------------------
 const PAUSE = 70;
 const SHOW = 3500;
 const FILL = 7;    // ms per character as the email field fills in (the input's own interval)
-const TYPE = 17;   // ms per typed code character: TypeIt types at most one per frame
+const TYPE = 17;   // ms per typed code character: about one a frame
 const LARGE = 1280;
 
 // --- The code sample ---------------------------------------------------------------------------
-// The strings are the Remix site's, written with its helpers. A step's string is split into characters
-// with the class of the span they are in: these strings hold only <span class="...">text</span>,
-// <br />, &lt;, &gt; and plain text.
+// A step's string, written with these helpers, is split into characters with the class of the span
+// they are in: these strings hold only <span class="...">text</span>, <br />, &lt;, &gt; and plain
+// text.
 const tag = (v) => `<span class="tag">${v}</span>`;
 const attr = (v) => `<span class="attr">${v}</span>`;
 const value = (v) => `<span class="value">${v}</span>`;
@@ -144,7 +154,7 @@ function chars(html) {
   return out;
 }
 
-// A queue of steps, written like the Remix site's TypeIt chain.
+// A queue of steps, written as a chain of type, move, delete, pause and exec.
 function queue() {
   const steps = [];
   const q = {
@@ -164,7 +174,7 @@ const moveInstant = { instant: true, delay: 0 };
 const delInstant = { instant: true, delay: 0 };
 
 // --- The form ----------------------------------------------------------------------------------
-// DemoContext.jsx's states and their initial values (resetForm).
+// The form's state and its initial values.
 const INITIAL = {
   formRole: null, formGroupIsFocused: false,
   displayInput: true, inputPlaceholder: "Enter your email", inputInvalid: null, inputClass: "", inputType: "email",
@@ -183,24 +193,20 @@ function el(name, attrs, ...children) {
   element.append(...children);
   return element;
 }
-function setAttr(element, name, v) {
-  if (v === null || v === undefined || v === false) element.removeAttribute(name);
-  else if (element.getAttribute(name) !== String(v)) element.setAttribute(name, v);
-}
 
-// Form.jsx's controls, in its order. The input is the page's own; the others are made once and put
-// in or taken out as their display state changes, as React mounts and unmounts them.
+// The form's controls, in their order. The input is the page's own; the others are made once and
+// put in or taken out as their display state changes.
 const parts = form && {
   input: form.querySelector("input"),
   helper: el("small", {}),
   // The select is as the code shows it, <select><option>Select...</option></select>: no required
   // and no disabled placeholder option, which femto draws in its placeholder color (select:invalid).
-  select: el("select", { name: "select-demo", tabindex: "-1" }, el("option", {}, "Select...")),
+  select: el("select", { name: "select-demo" }, el("option", {}, "Select...")),
   checkboxLabel: el("label", { class: "" }),
-  checkbox: el("input", { name: "checkbox-demo", tabindex: "-1", type: "checkbox", class: "" }),
+  checkbox: el("input", { name: "checkbox-demo", type: "checkbox", class: "" }),
   rangeLabel: el("label", { class: "" }, "Brightness"),
-  range: el("input", { name: "range-demo", tabindex: "-1", type: "range", value: "0", class: "" }),
-  button: el("button", { tabindex: "-1", class: "", "aria-busy": "false" }),
+  range: el("input", { name: "range-demo", type: "range", value: "0", class: "" }),
+  button: el("button", { class: "", "aria-busy": "false" }),
 };
 if (parts) {
   parts.checkboxLabel.append(parts.checkbox, "Publish on my profile");
@@ -248,24 +254,24 @@ let at = 0;           // the cursor: the number of characters before it
 let onScreen = true;
 let paused = false;
 const resumes = [];
-const running = () => onScreen && !paused;
+const running = () => onScreen && !paused && document.visibilityState === "visible";
 function resume() {
   if (running()) for (const done of resumes.splice(0)) done();
 }
 
-// ms later, and then only once the demo is on screen and not paused.
+// ms later, and then only once the demo is on screen, in a shown page, and not paused.
 function wait(ms) {
   return new Promise((done) => setTimeout(done, ms))
     .then(() => running() || new Promise((done) => resumes.push(done)));
 }
-// A form change later in this run (the Remix site's setTimeout inside a step).
+// A form change later in this run.
 function later(ms, fn) {
   const mine = run;
   wait(ms).then(() => mine === run && fn());
 }
 
-// Change the form state and render it once. inputValue fills the email field in letter by letter,
-// as DemoContext.jsx's effect does; a date or an empty value shows at once.
+// Change the form state and render it once. inputValue fills the email field in letter by letter;
+// a date or an empty value shows at once.
 function set(changes) {
   const filled = "inputValue" in changes && changes.inputValue !== state.inputValue;
   state = { ...state, ...changes };
@@ -285,7 +291,7 @@ async function fill(v, mine) {
   later(SHOW / 4, () => set({ inputIsFocused: false }));
 }
 
-// The cursor: TypeIt's zero-width "|" between characters, solid while the code changes and
+// The cursor: a zero-width "|" between characters, solid while the code changes and
 // blinking once it rests (and solid while the demo is paused).
 const caret = el("span", { class: "ti-cursor" }, "|");
 caret.style.cssText = "display: inline-block; width: 0; transform: translateX(-0.25em)";
@@ -353,7 +359,7 @@ async function start(steps) {
   }
 }
 
-// --- The steps (LargeWidthCode.jsx and SmallWidthCode.jsx) -------------------------------------
+// --- The steps, in the large layout and the small one ------------------------------------------
 // The form change after each phase, shared by both layouts.
 const phase = {
   email: () => {
@@ -371,7 +377,7 @@ const phase = {
   busy: () => set({ buttonIsFocused: true, formGroupIsFocused: true, buttonIsBusy: true, inputIsDisabled: true,
     buttonLabel: "Search..." }),
   date: () => {
-    const day = new Date().toISOString().slice(0, 10); // todayForInputDate (yyyy-MM-dd)
+    const day = new Date().toISOString().slice(0, 10); // today, as yyyy-MM-dd
     set({ formGroupIsFocused: false, formRole: null, displayButton: false, buttonIsFocused: false, buttonClass: "",
       buttonIsBusy: false, inputType: "date", inputClass: "fade-in", displayedInputValue: day, inputValue: day,
       inputPlaceholder: null, inputIsDisabled: false });
@@ -759,6 +765,7 @@ if (article && form && code) {
     onScreen = entry.isIntersecting;
     resume();
   }).observe(article);
+  document.addEventListener("visibilitychange", resume);
   if (toggle) {
     const pause = (value) => {
       paused = value;
@@ -775,11 +782,8 @@ if (article && form && code) {
     reduce.addEventListener("change", () => reduce.matches && pause(true));
     toggle.addEventListener("click", () => pause(!paused));
   }
-  let isLarge = innerWidth >= LARGE;
-  addEventListener("resize", () => {
-    if ((innerWidth >= LARGE) === isLarge) return;
-    isLarge = !isLarge;
-    start((isLarge ? large : small).steps);
-  }, { passive: true });
-  start((isLarge ? large : small).steps);
+  const largeMedia = matchMedia(`(min-width: ${LARGE}px)`);
+  const restart = () => start((largeMedia.matches ? large : small).steps);
+  largeMedia.addEventListener("change", restart);
+  restart();
 }

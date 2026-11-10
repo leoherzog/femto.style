@@ -26,7 +26,7 @@
             <h1><mark>Semantic HTML</mark> made&nbsp;beautiful</h1>
             <p>Link one stylesheet and plain HTML looks clean and readable: headings, text, links, buttons, forms, tables, cards, accordions and modals are styled from their elements alone, with no classes&nbsp;needed.</p>
           </hgroup>
-          <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
+          <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
           <div class="grid ctas">
             <a role="button" href="/docs">Get started<span role="img" aria-hidden="true">→</span></a>
             <a role="button" class="contrast" href="/examples">Examples<span role="img" aria-hidden="true">→</span></a>
@@ -35,7 +35,7 @@
         <div class="demo">
           <article aria-label="Demo" data-typing-demo>
             <!-- [html-validate-disable-next wcag/h32 -- the typing demo's form shows femto's form styles and never submits: demo.js adds and removes its button as the code changes] -->
-            <form method="dialog" class=""><input tabindex="-1" type="email" placeholder="Enter your email" class="" name="input-demo" value=""></form>
+            <form method="dialog" class="" inert><input type="email" placeholder="Enter your email" class="" name="input-demo" value=""></form>
             <footer class="code">
               <pre><code>&lt;<span class="tag">form</span>&gt;<br>  &lt;<span class="tag">input</span><br>    <span class="attr">type</span>=<span class="value">"email"</span><br>    <span class="attr">placeholder</span>=<span class="value">"Enter your email"</span><br>  &gt;<br>&lt;/<span class="tag">form</span>&gt;</code></pre>
             </footer>
@@ -108,7 +108,7 @@
             </div>
           </template>
         </div>
-        <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Acme"&gt;
+        <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Acme"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme Notes&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -178,7 +178,7 @@
           <article>
             <span role="img" aria-hidden="true">⇄</span>
             <h3>Wide compatibility</h3>
-            <p>Runs on <a rel="noopener noreferrer" href="https://web.dev/baseline" target="_blank">Baseline Widely Available</a> browser versions from the last few years, with sensible fallbacks. Your site looks great in Chrome, Firefox and&nbsp;Safari.</p>
+            <p>Runs on <a href="https://web.dev/baseline">Baseline Widely Available</a> browser versions from the last few years, with sensible fallbacks. Your site looks great in Chrome, Firefox and&nbsp;Safari.</p>
             <p><a href="/docs#browser-support">See the browser support<span role="img" aria-hidden="true">→</span></a></p>
           </article>
           <article>

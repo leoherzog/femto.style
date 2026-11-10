@@ -1,18 +1,69 @@
-/* The examples page's styles (/examples, site/examples.html), after landing.css: the theme select
-   and the index under the hero, each example's header, the frame around each example and its folded
-   markup. Nothing here reaches inside an example: it renders in a shadow root that loads femto alone
-   (assets/js/examples.js). */
+/* The examples page's styles (/examples, site/examples.html), after common.css: the page spacing,
+   the hero, the theme select and the index under it, each example's header, the frame around each
+   example and its folded markup. Nothing here reaches inside an example: it renders in a shadow
+   root that loads femto alone (assets/js/examples.js). */
 
-/* The body is a one-column grid (common.css), and a grid item's min-content width widens that
-   column: the dashboard's table, which scrolls inside its .overflow-auto, would otherwise make the
-   page wider than a 375px screen. */
-body > main.examples {
+/**
+ * Layout
+ */
+body {
+  overflow: clip;
+}
+
+/* Page spacing, larger at each breakpoint, as on the homepage (landing.css). The body is a
+   one-column grid (common.css), and a grid item's min-content width widens that column: the
+   dashboard's table, which scrolls inside its .overflow-auto, would otherwise make the page wider
+   than a 375px screen. */
+body > main {
+  --site-page-spacing-vertical: calc(var(--femto-spacing) * 5);
   min-width: 0;
+  padding: 0;
+}
+
+@media (min-width: 576px) {
+  body > main {
+    --site-page-spacing-vertical: calc(var(--femto-spacing) * 6);
+  }
+}
+
+@media (min-width: 768px) {
+  body > main {
+    --site-page-spacing-vertical: calc(var(--femto-spacing) * 7);
+  }
+}
+
+@media (min-width: 1024px) {
+  body > main {
+    --site-page-spacing-vertical: calc(var(--femto-spacing) * 8);
+  }
+}
+
+@media (min-width: 1280px) {
+  body > main {
+    --site-page-spacing-vertical: calc(var(--femto-spacing) * 9);
+  }
+}
+
+@media (min-width: 1536px) {
+  body > main {
+    --site-page-spacing-vertical: calc(var(--femto-spacing) * 10);
+  }
+}
+
+/* Hero: an hgroup, which keeps femto's margin below it */
+body > main.examples > .examples-hero {
+  margin-top: calc(var(--site-page-spacing-vertical) / 2);
+}
+
+@media (min-width: 576px) {
+  body > main.examples > .examples-hero {
+    text-align: center;
+  }
 }
 
 /**
  * Theme select: the label and the select on one line, centered under the hero from 576px, as the
- * hero is (landing.css). examples.js applies the choice to the examples.
+ * hero is. examples.js applies the choice to the examples.
  */
 body > main.examples > .examples-theme {
   margin-bottom: 0;
@@ -40,7 +91,7 @@ body > main.examples > .examples-theme select {
  * Index: four chapters, in two columns from 576px and in four from 1024px
  */
 body > main.examples > .examples-index {
-  margin-block: calc(var(--site-homepage-spacing-vertical) / 4) calc(var(--site-homepage-spacing-vertical) / 2);
+  margin-block: calc(var(--site-page-spacing-vertical) / 4) calc(var(--site-page-spacing-vertical) / 2);
 }
 
 body > main.examples > .examples-index .grid {
@@ -81,7 +132,7 @@ body > main.examples > .examples-index li {
    femto spacing below the top of the viewport, not against it: the page has no sticky header and
    no scroll padding */
 body > main.examples > section.example {
-  margin-block: 0 calc(var(--site-homepage-spacing-vertical) / 2);
+  margin-block: 0 calc(var(--site-page-spacing-vertical) / 2);
   scroll-margin-top: var(--femto-spacing);
 }
 
@@ -98,11 +149,6 @@ body > main.examples > section.example > header {
 
 body > main.examples > section.example > header > button {
   margin-bottom: var(--femto-typography-spacing-vertical);
-}
-
-body > main.examples > section.example > header > hgroup h2 {
-  --femto-font-size: 1.5rem;
-  --femto-line-height: 1.2;
 }
 
 /* The frame: it passes nothing down (all: initial), so the example's own shadow host starts from
@@ -126,26 +172,14 @@ body > main.examples > section.example > div[data-example] {
   }
 }
 
-/* A stored color scheme (data-theme on <html>, set before the first paint) reaches the example's
-   own host as its color-scheme, so the first paint already shows it: examples.js, a module that
+/* The example's own host takes the page's color scheme, a stored choice too (data-theme on <html>,
+   set before the first paint), and light in print (common.css), through ::part(), the one way into
+   the frame's shadow root: a page rule wins over femto's :host rules, as on the homepage
+   (landing.css), so the first paint already shows the page's scheme. examples.js, a module that
    runs later, then gives the host the data-theme femto reads (which also switches the validation
-   icons), and the colors do not first paint in the other scheme and transition. ::part() is the one
-   way into the frame's shadow root, and this rule sets nothing femto's data-theme does not. */
-:root[data-theme=light] body > main.examples > section.example > div[data-example]::part(example) {
-  color-scheme: light;
-}
-
-:root[data-theme=dark] body > main.examples > section.example > div[data-example]::part(example) {
-  color-scheme: dark;
-}
-
-/* In print the examples take femto's print scheme, light, whatever the page's stored choice, as the
-   page does (common.css). This rule outweighs the two above, and examples.js takes data-theme off
-   the hosts while the page prints */
-@media print {
-  :root[data-theme] body > main.examples > section.example > div[data-example]::part(example) {
-    color-scheme: light;
-  }
+   icons), and takes it off while the page prints. */
+body > main.examples > section.example > div[data-example]::part(example) {
+  color-scheme: inherit;
 }
 
 /* The example's markup, folded under it in femto's accordion (<details>, closed in the markup): the
