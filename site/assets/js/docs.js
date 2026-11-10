@@ -1,6 +1,6 @@
 // docs.js: the one docs page, /docs (loaded from docs.html; PLAN.md Decisions 2 and 10).
 //
-// The base (above the regions) rebuilds the docs layout's behaviors:
+// The base (above the regions) runs the docs layout's behaviors:
 // - the spy (Decision 2): the section being read is the last whose top
 //   has passed a line just below the scroll padding (where a link to #<id> puts its heading), or at
 //   the very bottom of the page the last section once its top is on screen. On a change it moves
@@ -22,9 +22,8 @@
 // - the side menu, aside[data-docs-menu]: the mobile off-canvas (is-open-on-mobile), opened by the
 //   breadcrumb's Documentation button and closed by its Close button, by any of its links and by
 //   Escape, with the opener's aria-expanded, focus moved into the menu and back, and the rest of the
-//   page inert while it is open, so focus stays in it (criterion 7; the Remix site had no Escape, no
-//   aria-expanded and no focus handling). Its scroll lock is the CSS's :has(), and its nav's height
-//   from lg up a calc() on 100dvh in docs.css.
+//   page inert while it is open, so focus stays in it (criterion 7). Its scroll lock is the CSS's
+//   :has(), and its nav's height from lg up a calc() on 100dvh in docs.css.
 // The breadcrumb's sticking and its border are docs.css's alone. The spy is main[data-docs-spy], the
 // docs page's main: the sections in its div#content, the side menu's links and the breadcrumb's
 // last two items. Each part does nothing when its markup is absent.
@@ -34,14 +33,10 @@
 // that declares nothing at the top level, adds no import (site.js's exports are the `site`
 // namespace) and keeps no state shared between widgets. Each widget finds its markup by a data-
 // attribute on its root in the section's file (PLAN.md Rules, JavaScript), narrowed by selectors
-// under it; tests/README.md (Behavior, Widget hooks) lists the hooks.
+// under it; tests/README.md (Behavior, Widget hooks) lists the hooks. The Color schemes section's
+// switcher is site.js's, with the header toggle, and the Theme picker is picker.js's.
 
 import * as site from "./site.js";
-
-// Sets an attribute only when its value differs, so an unchanged state causes no mutation.
-function setAttr(element, name, value) {
-  if (element.getAttribute(name) !== value) element.setAttribute(name, value);
-}
 
 // Runs one group's widgets; an exception is reported (window error event, console) and does not
 // stop the code after it.
@@ -256,14 +251,14 @@ function spy() {
   show(sectionInView());
 }
 
-// --- Side menu (DocumentationMenu.jsx) -----------------------------------------------------------
+// --- Side menu -----------------------------------------------------------------------------------
 
 function sideMenu() {
   const menu = document.querySelector("aside[data-docs-menu]");
   const nav = menu?.querySelector(":scope > nav");
   if (!nav) return;
 
-  // The off-canvas menu below lg (docs.css's max-width: 1023px), opened by the breadcrumb's
+  // The off-canvas menu below lg (docs.css's width < 1024px), opened by the breadcrumb's
   // Documentation button (data-menu-open) and closed by its Close button (data-menu-close), by any
   // of its nav links and by Escape. The opener's aria-expanded follows it. Opening moves focus to
   // the Close button; the Close button and Escape move it back to the opener, while a nav link leaves
@@ -274,7 +269,7 @@ function sideMenu() {
   // inert goes the moment the menu closes, before a nav link's fragment navigation runs.
   const opener = document.querySelector("[data-docs-breadcrumb] button[data-menu-open]");
   const close = menu.querySelector(":scope > header button[data-menu-close]");
-  const offCanvas = matchMedia("(max-width: 1023px)");
+  const offCanvas = matchMedia("(width < 1024px)");
   let open = false;
   let covered = []; // the elements made inert while the menu covers the page
   const cover = (on) => {
@@ -333,7 +328,7 @@ function sideMenu() {
     if (next === open) return;
     open = next;
     menu.classList.toggle("is-open-on-mobile", open);
-    if (opener) setAttr(opener, "aria-expanded", String(open));
+    if (opener) site.setAttr(opener, "aria-expanded", String(open));
     if (open) {
       document.addEventListener("keydown", onKeydown);
       sync();
@@ -345,7 +340,7 @@ function sideMenu() {
       setTimeout(sync);
     }
   }
-  if (opener) setAttr(opener, "aria-expanded", "false");
+  if (opener) site.setAttr(opener, "aria-expanded", "false");
   sync();
   offCanvas.addEventListener("change", sync);
   opener?.addEventListener("click", () => setOpen(true));
@@ -361,37 +356,13 @@ function sideMenu() {
 widgets("spy", spy);
 widgets("side menu", sideMenu);
 
-// region:getting-started
-widgets("getting-started", () => {
-  // The Color schemes section: its own theme switcher (docs.color-schemes.jsx),
-  // button[data-scheme-switcher], which switches the page's scheme as the header toggle does, its
-  // icon and its label following the scheme: the icon a decorative span[role=img] (Decision 18)
-  // holding the header toggle's sun or moon emoji (Decision 16), and "Turn on dark mode" or "Turn off
-  // dark mode", the text after the icon. The Theme picker is picker.js's.
-  const button = document.querySelector("button[data-scheme-switcher]");
-  const icon = button?.querySelector(":scope > span[role=img]");
-  const label = button && [...button.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
-  if (!icon || !label) return;
-  const show = (theme) => {
-    const dark = theme === "dark";
-    const emoji = site.SCHEME_EMOJI[dark ? "dark" : "light"];
-    if (icon.textContent !== emoji) icon.textContent = emoji;
-    const text = dark ? "Turn off dark mode" : "Turn on dark mode";
-    if (label.data !== text) label.data = text;
-  };
-  show(site.pageTheme());
-  site.onThemeChange(show);
-  button.addEventListener("click", () => site.switchTheme());
-});
-// endregion:getting-started
-
 // region:layout
 widgets("layout", () => {
-  // Grid (docs.grid.jsx), section[data-grid-example]: "Add column" and "Remove column", in a femto
-  // div.grid of their own, set the columns of its example between 1 and 10 (4 on load), and the code sample
-  // follows. The sample is rebuilt from its own load-time lines as the build highlighted them (no
-  // span holds a line break): the opening tag's line, one row per column (column 1's line,
-  // <div>1</div>, with its number changed), then the closing line, as the Remix site re-highlighted it.
+  // Grid, section[data-grid-example]: "Add column" and "Remove column", in a femto div.grid of their
+  // own, set the columns of its example between 1 and 10 (4 on load), and the code sample follows.
+  // The sample is rebuilt from its own load-time lines as the build highlighted them (no span holds
+  // a line break): the opening tag's line, one row per column (column 1's line, <div>1</div>, with
+  // its number changed), then the closing line.
   // The count lives as long as the page: links within it are fragment links, which keep it, and
   // back from another page restores it from the bfcache.
   const demo = document.querySelector("[data-grid-example]");
@@ -440,7 +411,7 @@ widgets("layout", () => {
 // region:content
 widgets("content", () => {
   // The Typography section, section[data-font-size-demo]: the "Display in rem" switch of the
-  // responsive font-size table (FontsizeTable.jsx). Off, each cell shows its size in px, with the
+  // responsive font-size table. Off, each cell shows its size in px, with the
   // formula as a tooltip; on, the Base row shows the root size as a percentage and each element row
   // its multiplier, with no tooltip. The formula is the cell's own data: "<root>% * 16px" or
   // "<root>% * <size><unit> * 16px".
@@ -457,7 +428,7 @@ widgets("content", () => {
     for (const td of fontSizes.querySelectorAll(":scope > tbody > tr > td")) {
       const terms = td.querySelector(":scope > span[data-tooltip]")?.getAttribute("data-tooltip").split(" * ");
       if (!terms) continue;
-      // The px content as loaded, restored as is; the rem content, as the Remix site rendered it.
+      // The px content as loaded, restored as is; the rem content, built from the formula.
       const px = [...td.childNodes];
       const rem = () => {
         if (terms.length === 2) return [terms[0].replace(/%$/, ""), small("%")];
@@ -470,16 +441,13 @@ widgets("content", () => {
       for (const { td, px, rem } of cells) td.replaceChildren(...(inRem.checked ? rem() : px));
     };
     inRem.addEventListener("change", show);
-    // A fix over the Remix site: Firefox restores the switch as checked on a reload, and the
-    // Remix site's useState(false) ignored it, so it showed the px table under a checked switch
-    // and its first click unchecked the switch without changing the table. Here the table follows
-    // the switch from the start (the font-size-restored-switch behavior check).
+    // Firefox restores the switch as checked on a reload, so the table follows the switch from the
+    // start (the font-size-restored-switch behavior check).
     if (inRem.checked) show();
   }
 
   // The Table section, "Color schemes", section[data-inverse-thead]: the example table's thead takes
-  // the inverse of the page's scheme, and the sample right after the example names that value
-  // (docs.table.jsx, inversedTheme).
+  // the inverse of the page's scheme, and the sample right after the example names that value.
   const thead = document.querySelector("[data-inverse-thead] div.overflow-auto > table > thead[data-theme]");
   if (thead) {
     const sample = thead.closest("div.overflow-auto").nextElementSibling;
@@ -488,16 +456,15 @@ widgets("content", () => {
     const token = [...(code?.querySelectorAll("span.value") ?? [])].find((span) => /^"(light|dark)"$/.test(span.textContent));
     const show = (theme) => {
       const inverse = theme === "dark" ? "light" : "dark";
-      setAttr(thead, "data-theme", inverse);
+      site.setAttr(thead, "data-theme", inverse);
       if (token && token.textContent !== `"${inverse}"`) token.textContent = `"${inverse}"`;
     };
     show(site.pageTheme());
     site.onThemeChange(show);
   }
 
-  // The Link section: the links of its two examples, article[data-link-example], are Link to="#"
-  // with an onClick that prevents the default (docs.link.jsx), so they show the page's own path and
-  // go nowhere (the link-examples check).
+  // The Link section: the links of its two examples, article[data-link-example], show the page's
+  // own path and go nowhere: their click's default is prevented (the link-examples check).
   for (const link of document.querySelectorAll("[data-link-example] > a")) link.addEventListener("click", (event) => event.preventDefault());
 });
 // endregion:content
@@ -505,10 +472,9 @@ widgets("content", () => {
 // region:forms
 widgets("forms", () => {
   // The Checkboxes section, "Indeterminate": the checkbox of its example,
-  // article[data-indeterminate-example], is indeterminate once the page has loaded.
-  // docs.forms.checkboxes.jsx sets the property from a ref after hydration, so the checkbox keeps no
-  // attribute for it (the hook is on the example, not the checkbox) and a click then checks the box
-  // as a native checkbox does.
+  // article[data-indeterminate-example], is indeterminate once the page has loaded. indeterminate is
+  // a property with no attribute, so the hook is on the example, not the checkbox, and a click then
+  // checks the box as a native checkbox does.
   const box = document.querySelector("[data-indeterminate-example] input[type=checkbox]");
   if (box) box.indeterminate = true;
 });
@@ -516,10 +482,9 @@ widgets("forms", () => {
 
 // region:components-a
 widgets("components-a", () => {
-  // The Dropdown section (docs.dropdown.jsx): the menu items of its examples with links,
-  // article[data-dropdown-example], and the nav example's "Services" are its Item, a Link to="#"
-  // with an onClick that prevents the default, so they show the page's own path and go nowhere,
-  // clicked or activated with Enter (the dropdown-items check). Only the Dropdown section's: the Nav
+  // The Dropdown section: the menu items of its examples with links, article[data-dropdown-example],
+  // and the nav example's "Services" show the page's own path and go nowhere, clicked or activated
+  // with Enter: their click's default is prevented (the dropdown-items check). Only the Dropdown section's: the Nav
   // section repeats the "Dropdowns inside nav" example, whose links the components-b region cancels,
   // and the Select section's "Dropdowns as selects" has no link.
   for (const item of document.querySelectorAll("[data-dropdown-example] a:not([data-copy-link])")) {
@@ -533,9 +498,9 @@ widgets("components-b", () => {
   // The Modal section's demo dialog is site.js's (data-modal). Its two dialog.example are always
   // open, and their buttons do nothing.
 
-  // The Nav section (docs.nav.jsx): the example links are Link to="#" with an onClick that prevents
-  // the default, so they show the page's own path and go nowhere: the links of every example nav,
-  // each a nav[data-nav-example] (the breadcrumbs and the two overflow examples among them).
+  // The Nav section: the example links show the page's own path and go nowhere, their click's
+  // default prevented: the links of every example nav, each a nav[data-nav-example] (the breadcrumbs
+  // and the two overflow examples among them).
   for (const link of document.querySelectorAll("[data-nav-example] a")) link.addEventListener("click", (event) => event.preventDefault());
 });
 // endregion:components-b

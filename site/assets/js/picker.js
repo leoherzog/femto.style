@@ -38,50 +38,51 @@
 //   the page can restore other states, which the page follows on load.
 // - Every change of color also animates the header logo for 1 s (class "animated" on its svg).
 // - The page's title, description, canonical and og:url stay the docs page's (Decision 9); docs.js
-//   sets document.title for the section being read. site.js cancels the example form's submit.
-// It does nothing on a page without the picker. The pure helpers are exported for tests.
+//   sets document.title for the section being read.
+// It does nothing on a page without the picker.
+
+import { capitalize, escapeText, setAttr } from "./site.js";
 
 // --- The files (femto's README: Themes, Options, Quick start) -------------------------------------
 
 // femto's options, in the order their links are written.
-export const OPTIONS = ["responsive-spacings", "fixed-typography", "no-transitions"];
+const OPTIONS = ["responsive-spacings", "fixed-typography", "no-transitions"];
 // The reader's own stylesheet, after femto's files.
-export const STYLESHEET = "styles.css";
+const STYLESHEET = "styles.css";
 
 // femto's files for a color and a set of options, in load order: femto, the theme, the options.
-export function filesOf(color, options) {
+function filesOf(color, options) {
   return ["dist/femto.min.css", ...(color === "azure" ? [] : [`css/themes/${color}.css`]),
     ...OPTIONS.filter((option) => options.includes(option)).map((option) => `css/options/${option}.css`)];
 }
 
 // jsDelivr's URL for one file of the package (e.g. @leoherzog/femto@3), and the combine URL for
 // several, which is the one file's URL when there is only one.
-export const fileUrl = (pkg, file) => `https://cdn.jsdelivr.net/npm/${pkg}/${file}`;
-export function combineUrl(pkg, files) {
+const fileUrl = (pkg, file) => `https://cdn.jsdelivr.net/npm/${pkg}/${file}`;
+function combineUrl(pkg, files) {
   return files.length === 1 ? fileUrl(pkg, files[0])
     : `https://cdn.jsdelivr.net/combine/${files.map((file) => `npm/${pkg}/${file}`).join(",")}`;
 }
 
 // The package as the cdn sample names it, from its text; null if it names none.
-export function packageOf(text) {
+function packageOf(text) {
   return /https:\/\/cdn\.jsdelivr\.net\/npm\/(@[\w.-]+\/[\w.-]+@[\w.-]+)\/dist\/femto\.min\.css/.exec(text)?.[1] ?? null;
 }
 
 // --- The highlighted samples (build.mjs, step 4) -------------------------------------------------
 // Spans as the browser serializes the ones build.mjs writes: in text only &, < and > are escaped.
 
-const escape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-const span = (cls, text) => `<span class="${cls}">${escape(text)}</span>`;
+const span = (cls, text) => `<span class="${cls}">${escapeText(text)}</span>`;
 
 // <link rel="stylesheet" href="<href>"> as the build highlights it: the tag name, the attribute
 // names and the quoted values in their colors, the rest plain.
-export function linkTag(href) {
+function linkTag(href) {
   const attribute = (name, value) => ` ${span("attr", name)}=${span("value", `"${value}"`)}`;
   return `&lt;${span("tag", "link")}${attribute("rel", "stylesheet")}${attribute("href", href)}&gt;`;
 }
 
 // One <link> tag per href, one per line, each line after the first indented by `indent`.
-export function linksHtml(hrefs, indent = "") {
+function linksHtml(hrefs, indent = "") {
   return hrefs.map(linkTag).join(`\n${indent}`);
 }
 
@@ -90,10 +91,10 @@ export function linksHtml(hrefs, indent = "") {
 const SECTION = "theme-picker";
 // The docs page in a color, with ?theme= unless azure: what the section's links to the page itself
 // carry. urlOf is its picker section, what a swatch links.
-export const pageOf = (color) => (color === "azure" ? "/docs" : `/docs?theme=${color}`);
-export const urlOf = (color) => `${pageOf(color)}#${SECTION}`;
+const pageOf = (color) => (color === "azure" ? "/docs" : `/docs?theme=${color}`);
+const urlOf = (color) => `${pageOf(color)}#${SECTION}`;
 // The color a ?theme= query names, if it is one of `colors`; azure otherwise.
-export function colorOfQuery(search, colors) {
+function colorOfQuery(search, colors) {
   const theme = new URLSearchParams(search).get("theme");
   return colors.includes(theme) ? theme : "azure";
 }
@@ -112,7 +113,7 @@ const isThemeItem = (item) => {
     return false; // a malformed escape, which URLSearchParams keeps as text: not "theme"
   }
 };
-export function queryOf(search, color) {
+function queryOf(search, color) {
   const items = [];
   let placed = color === "azure";
   for (const item of search.replace(/^\?/, "").split("&")) {
@@ -126,15 +127,10 @@ export function queryOf(search, color) {
   if (!placed) items.push(`theme=${color}`);
   return items.length ? `?${items.join("&")}` : "";
 }
-const named = (color) => color.charAt(0).toUpperCase() + color.slice(1);
 // "an azure", "a jade".
 const withArticle = (color) => `${/^[aeiou]/.test(color) ? "an" : "a"} ${color}`;
 
 // --- The section ---------------------------------------------------------------------------------
-
-function setAttr(element, name, value) {
-  if (element.getAttribute(name) !== value) element.setAttribute(name, value);
-}
 
 function picker(article) {
   const header = article.querySelector(":scope > header");
@@ -208,7 +204,7 @@ function picker(article) {
         swatch.replaceChildren();
       }
     }
-    if (heading.textContent !== named(next)) heading.textContent = named(next);
+    if (heading.textContent !== capitalize(next)) heading.textContent = capitalize(next);
     const text = `Form example with ${withArticle(next)} theme.`;
     if (sentence.textContent !== text) sentence.textContent = text;
     render();
@@ -319,5 +315,5 @@ function picker(article) {
 }
 
 // The picker is article[data-version-picker], the theme example with the swatches.
-const article = globalThis.document?.querySelector("article[data-version-picker]");
+const article = document.querySelector("article[data-version-picker]");
 if (article?.querySelector(":scope > header")) picker(article);

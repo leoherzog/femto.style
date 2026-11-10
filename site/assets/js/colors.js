@@ -1,60 +1,49 @@
 // colors.js: the Colors section of /docs (loaded from docs.html; it does nothing where its markup is
-// absent). It rebuilds the Remix site's docs.colors.jsx and ColorModal.jsx.
+// absent): its swatches and its color dialog.
 //
-// The section's swatches and color modal are attached through data-color-modal (PLAN.md Rules: a
+// The section's swatches and color dialog are attached through data-color-modal (PLAN.md Rules: a
 // widget finds its markup by a data- hook). A click on a shade button (.family > .shades > button) or
-// on a family's header (its main shade) inside that element opens dialog.color, with ColorModal.jsx's
-// markup less its Sass variable row (femto has no Sass), appended to the Colors section (the Remix
-// site appended it to #content, its route's content) and removed again once closed. Its five rows
-// are the color's hex and RGB values, its two utility classes and its custom property, as
-// femto.colors.css names them. The arrow keys move through the 380 colors while it is shown: Right
-// and Left the next and previous shade (across families, wrapping at both ends), Down and Up the next
-// and previous family at the same shade. The close button, Escape and a click on the dialog outside
-// its article close it, with ModalContext's classes and 400 ms animations from site.js's createModal,
-// the dialog's own helper.
+// on a family's header (its main shade) inside that element opens dialog.color, appended to the
+// Colors section and removed again once closed. Its five rows are the color's hex and RGB values, its
+// two utility classes and its custom property, as femto.colors.css names them. The arrow keys move
+// through the 380 colors while it is shown: Right and Left the next and previous shade (across
+// families, wrapping at both ends), Down and Up the next and previous family at the same shade. They
+// only change the color: their default action is cancelled, so they never scroll an overflowing
+// article, and focus stays on the close button. Page Up, Page Down, Home and End still scroll it from
+// there: the keyboard's way to its lower rows. The close button, Escape and a click on the dialog
+// outside its article close it, with createModal's classes and 400 ms animations (site.js), the
+// dialog's own helper. It is a true modal, shown with showModal(): the page behind is inert, so Tab
+// and Shift+Tab stay in the dialog, and the rest of the page also leaves the accessibility tree, so
+// createModal moves site.js's copy status region into the dialog while it is shown, and a screen
+// reader still hears "Copied" at each of its copies. The dialog is named by its title, and its title
+// and the color's name are a polite live region, so a screen reader reads each color an arrow key
+// shows.
 //
-// Each family is one Tab stop (a roving tabindex). Its shade buttons are a toolbar named by the
-// family ("Red"): ARIA's role for a set of buttons with one Tab stop. (femto styles role=group as its
-// Group component, which would join the swatches into one control.) Only one of them is in the tab
-// order: its first shade at first, then the one focused last. The arrow keys move focus through the
-// swatches as they move the dialog's color, and Home and End go to the family's first and last
-// shade. Enter and Space are the buttons' own, and open the dialog on the focused shade. Once the
-// dialog has closed, focus goes to the swatch of the color it showed last. Without this script the
-// swatches do nothing, and each is a Tab stop, as the markup has them.
-//
-// Fixes over the Remix site (tests/behavior/customization.py):
-// - the close control is a <button type="button"> (the Remix site's was a link to #close), so the URL
-//   keeps no #close;
-// - the dialog is a true modal, shown with showModal() by createModal: the page behind
-//   is inert, so Tab and Shift+Tab stay in the dialog. femto's :where(dialog)::backdrop is
-//   transparent, so the top layer adds nothing the Remix site's dialog lacked, and femto's modal CSS
-//   fits the article to the viewport's height. The rest of the page also leaves the accessibility
-//   tree, so createModal moves site.js's copy status region into the dialog while it is shown, and
-//   a screen reader still hears "Copied" at each of its copies;
-// - the dialog is named by its title, and its title and the color's name are a polite live region, so
-//   a screen reader reads each color an arrow key shows (the Remix site's dialog had no name and
-//   changed silently). The shade buttons get their color's name too ("Red 50"), not the shade alone;
-// - the 380 shade buttons were 380 Tab stops; now the 20 families are 20.
-// In the dialog the arrow keys only change the color, as in the Remix site, whose focus stayed behind
-// the dialog: their default action is cancelled, so they never scroll an overflowing article. Page
-// Up, Page Down, Home and End still scroll it from the close button: the keyboard's way to its lower
-// rows.
+// Each family is one Tab stop (a roving tabindex), so the 380 shade buttons are 20 Tab stops. Its
+// shade buttons are a horizontal toolbar named by the family ("Red"): ARIA's role for a set of
+// buttons with one Tab stop. (femto styles role=group as its Group component, which would join the
+// swatches into one control.) Each is named by its color ("Red 50"), not by the shade alone. Only one
+// of them is in the tab order: its first shade at first, then the one focused last. Right and Left
+// move focus to the next and previous shade in the family, wrapping at its ends, and Home and End go
+// to its first and last shade; Up and Down keep their default action, as in any horizontal toolbar.
+// Enter and Space are the buttons' own, and open the dialog on the focused shade. Once the dialog has
+// closed, focus goes to the swatch of the color it showed last. Without this script the swatches do
+// nothing, and each is a Tab stop, as the markup has them.
 
-import { createModal, nameCopyButton } from "./site.js";
+import { capitalize, createModal, nameCopyButton } from "./site.js";
 
 // The palette download needs no script: its link points at the static file
-// /assets/femto-color-palette.json, which build.mjs writes from SHADES and PALETTE below (the JSON the
-// Remix site's palette download made, in a blob: URL on load). build.mjs reads the two literals by
-// their shape, so keep it: SHADES one array ending `];`, and each family `  <name>: ["<main>",`,
-// then its colors, then `],`.
+// /assets/femto-color-palette.json, which build.mjs writes from femto.colors.css's tokens. The drift
+// check (tests/static_checks.py, PALETTE_FAMILY and SHADES) reads the two literals below by their
+// shape, so keep it: SHADES one array ending `];`, and each family `  <name>: ["<main>",`, then its
+// colors, then `],`.
 
-// --- The palette (from the Remix site's app/data/colors.json) --------------------------------------
+// --- The palette -------------------------------------------------------------------------------
 // family: [its main shade, then each of SHADES' colors as "<hex without #> <name>"]. The hex values
 // are femto.colors.css's --femto-color-<family>-<shade>, and families and shades are in its order.
 // The main shade is the one femto.colors.css gives the family's unshaded names (--femto-color-<family>,
 // .femto-background-<family>, which the family's header shows): jade-550, for one (femto's README,
-// Color utilities). colors.json's "main" was another shade for seven families (500 for red, fuchsia,
-// blue, azure, cyan, jade and zinc).
+// Color utilities).
 
 const SHADES = ["50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650",
   "700", "750", "800", "850", "900", "950"];
@@ -192,9 +181,9 @@ function color(family, shade) {
 }
 
 const mainShade = (family) => PALETTE[family][0];
-const sentenceCase = (word) => word.charAt(0).toUpperCase() + word.slice(1);
 
-// useFemtoPalette.js's getNextColor, getPreviousColor and getColorFrom{Next,Previous}ColorFamily.
+// The color the dialog's arrow key shows next: Right and Left the next and previous shade, across
+// families and wrapping at both ends, Down and Up the next and previous family at the same shade.
 function step({ family, shade }, key) {
   const f = FAMILIES.indexOf(family);
   const s = SHADES.indexOf(shade);
@@ -215,12 +204,12 @@ function step({ family, shade }, key) {
   }
 }
 
-// --- Color modal (ColorModal.jsx) -----------------------------------------------------------------
-// The markup is ColorModal.jsx's as React renders it, with Decision 18's icons for its close and
-// copy icons (a span[role=img] holding ✕ or ⧉, which names its button), and each value is
-// Code.jsx's block (className "small", language html), its copy button carrying data-copy-link as
-// the docs' own do, so site.js's copy handler takes it. Prism's markup grammar finds no token in
-// any of the five values, so each is plain text, as the build writes plain text (build.mjs, step 4).
+// --- Color dialog --------------------------------------------------------------------------------
+// Its close and copy icons are Decision 18's (a span[role=img] holding ✕ or ⧉, which names its
+// button), and each value is a code block (div.code.small, language html), its copy button carrying
+// data-copy-link as the docs' own do, so site.js's copy handler takes it. Prism's markup grammar
+// finds no token in any of the five values, so each is plain text, as the build writes plain text
+// (build.mjs, step 4).
 
 const CLOSE_ICON = '<span role="img" aria-label="Close">\u2715</span>';
 const COPY_ICON = (label) => `<span role="img" aria-label="${label}">\u29C9</span>`;
@@ -262,10 +251,10 @@ if (families) {
     if (!c || !button.classList.contains(`femto-background-${c.family}-${c.shade}`)) continue;
     colorOfSwatch.set(button, c);
     swatches.set(`${c.family} ${c.shade}`, button);
-    button.setAttribute("aria-label", `${sentenceCase(c.family)} ${c.shade}`);
+    button.setAttribute("aria-label", `${capitalize(c.family)} ${c.shade}`);
     if (!stops.has(c.family)) {
       button.parentElement.setAttribute("role", "toolbar");
-      button.parentElement.setAttribute("aria-label", sentenceCase(c.family));
+      button.parentElement.setAttribute("aria-label", capitalize(c.family));
       stops.set(c.family, button);
     }
     button.tabIndex = stops.get(c.family) === button ? 0 : -1;
@@ -286,15 +275,16 @@ if (families) {
     if (colorOfSwatch.has(event.target)) rove(event.target);
   });
 
-  // The arrows step as the dialog's do (step()), and Home and End go to the family's first and last
-  // shade. Keys held with Alt, Control, Meta or Shift keep their default action.
+  // Right and Left move to the next and previous shade in the family, wrapping, and Home and End to
+  // its first and last. Keys held with Alt, Control, Meta or Shift keep their default action.
   families.addEventListener("keydown", (event) => {
     const from = colorOfSwatch.get(event.target);
     if (!from || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const to = event.key === "Home" ? { family: from.family, shade: SHADES[0] }
-      : event.key === "End" ? { family: from.family, shade: SHADES[SHADES.length - 1] }
-        : step(from, event.key);
-    const button = to && swatchOf(to);
+    const n = SHADES.length;
+    const s = SHADES.indexOf(from.shade);
+    const to = event.key === "ArrowRight" ? (s + 1) % n : event.key === "ArrowLeft" ? (s + n - 1) % n
+      : event.key === "Home" ? 0 : event.key === "End" ? n - 1 : -1;
+    const button = to >= 0 && swatchOf({ family: from.family, shade: SHADES[to] });
     if (!button) return;
     event.preventDefault();
     button.focus(); // focusin makes it the stop
@@ -308,10 +298,16 @@ if (families) {
   // button.
   dialog.setAttribute("aria-labelledby", "color-dialog-title");
   // Each copy button is named by its row ("Copy hexadecimal color", "Copy RGB color"), so a screen
-  // reader can tell the five apart; the row's label is a separate <p>. The name is its icon's, through
-  // the button's aria-labelledby, which site.js's nameCopyButton() points at the icon's id below.
-  const copyButton = (label) => `<button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link>${COPY_ICON(`Copy ${label.replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase())}`)}</button>`;
-  dialog.innerHTML = `<article><header><button type="button" class="close">${CLOSE_ICON}</button>`
+  // reader can tell the five apart, and its tooltip says the same, so the words a reader sees name it;
+  // the row's label is a separate <p>. The name is its icon's, through the button's aria-labelledby,
+  // which site.js's nameCopyButton() points at the icon's id below. The close button has autofocus,
+  // which showModal() focuses in every browser and at every size, where it would otherwise pick the
+  // article that Chrome makes focusable when it overflows (short viewports).
+  const copyButton = (label) => {
+    const name = `Copy ${label.replace(/^[A-Z](?=[a-z])/, (c) => c.toLowerCase())}`;
+    return `<button type="button" data-tooltip="${name}" data-placement="left" data-copy-link>${COPY_ICON(name)}</button>`;
+  };
+  dialog.innerHTML = `<article><header><button type="button" class="close" autofocus>${CLOSE_ICON}</button>`
     + '<hgroup aria-live="polite" aria-atomic="true"><h3 class="color-family" id="color-dialog-title"></h3>'
     + '<p class="color-shade"></p></hgroup></header><div class="grid">'
     + ROWS.map(([label]) => `<p>${label}</p><div class="code small" data-theme="dark">${copyButton(label)}`
@@ -327,12 +323,12 @@ if (families) {
 
   let current = null; // the color shown, while the dialog is in the page
 
-  // Fills the dialog in place (as React patches it), so focus inside it stays where it is.
+  // Fills the dialog in place, so focus inside it stays where it is.
   function show(family, shade) {
     current = color(family, shade);
     article.style.setProperty("--site-glowing-color", `${color(family, mainShade(family)).hex}26`);
     header.className = `femto-background-${family}-${shade}`;
-    title.textContent = `${sentenceCase(family)}\u00a0${shade}`; // a no-break space, as the JSX's &nbsp;
+    title.textContent = `${capitalize(family)}\u00a0${shade}`; // a no-break space
     name.textContent = current.name;
     ROWS.forEach(([, value], i) => {
       values[i].textContent = value(current);
@@ -340,7 +336,7 @@ if (families) {
   }
 
   // While the dialog is in the page. Keys held with Alt, Control or Meta keep their default action
-  // (the browser's own shortcuts); the arrows still step, as the Remix site's did.
+  // (the browser's own shortcuts), and the arrows still step.
   function onKeydown(event) {
     const next = current && step(current, event.key);
     if (!next) return;
@@ -369,10 +365,7 @@ if (families) {
     show(family, shade);
     content.append(dialog);
     document.addEventListener("keydown", onKeydown);
-    modal.open(); // showModal()
-    // The close button, in every browser and at every size: showModal()'s focusing steps would pick
-    // the article instead where Chrome makes an overflowing one focusable (short viewports).
-    closeButton.focus();
+    modal.open(); // showModal(), which focuses the close button (autofocus)
   }
 
   // A shade button opens its shade, and a family's header its main shade.
