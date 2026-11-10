@@ -39,7 +39,10 @@ The link check is not a numbered criterion; it runs with the others, or alone wi
 Every internal href, src and fragment in every dist page resolves (check_links: an extensionless
 page URL as Pages serves it, a file in dist/, an id or <a name> in the target page's own tree,
 ?theme= only on /docs with one of femto's colors; a link to a page's .html name or to /docs/ fails,
-since Pages redirects it), and so do dist CSS url()s and the web app manifest's icons. External links
+since Pages redirects it), and so do dist CSS url()s and the web app manifest's icons. The site's own
+links to other origins open in the same tab (same_tab_checks; PLAN.md Rules, Markup): no target and
+no rel noopener or noreferrer, except in example markup criterion 13 compares with its sample (a
+declarative shadow root, or a /docs article whose last element is its footer.code). External links
 are listed; --external fetches each once (HEAD, then GET when HEAD fails, redirects followed) and
 fails on any that answers 400 or more or not at all, except femto's npm and jsDelivr URLs while
 they cannot answer yet, keyed to SOURCE's version (awaits_publish), which are listed: a range or
@@ -78,6 +81,13 @@ Interpretations, where PLAN's wording leaves a choice:
   pages_build_output_dir dist (./dist and dist/ too) and a compatibility_date that is a real
   YYYY-MM-DD day. The pinned wrangler's `pages functions build-env`, run on a copy in a temporary
   folder, reads the file as Pages' build does: it must exit 0 and write pages_build_output_dir dist.
+- 5: also the build's copies (build_copy_checks; G1, the owner, 2026-11-10): every site/assets/**/*.js
+  in dist/ has its source's espree tokens, each on its source line, with no comment left and the same
+  line count; every site/assets/**/*.css in dist/ parses with @eslint/css-tree with no error and no
+  comment, keeps its line count and generates the same CSS as its source (css-tree's generate()
+  drops comments); every other file the build copies from site/ (all but partials/, docs/, dot
+  paths and the pages at the root; vendor/femto/ among them) is byte-identical to its source; and
+  dist/assets/ holds no CSS or JS without a source.
 - 11: the forbidden-syntax scans look at code only (comments removed, strings blanked), as femto's
   own checks do; mentions in comments are notes. Every scan (forbidden syntax, color functions,
   smooth scrolling) covers site/**/*.css outside site/vendor/, plus <style> and style="" in site
@@ -138,7 +148,7 @@ Interpretations, where PLAN's wording leaves a choice:
   line. A rule that restates the preset is a note. An inline `html-validate-` directive in a dist
   page needs a comment after `--` or `:`, html-validate's own syntax for one.
   The one-page structure (structure_checks): every link in the Elements index's cells
-  (site/docs/sections/elements.html) is /docs#<id> of a section in menu.json; every section.example
+  (site/docs/sections/elements.html) is #<id> of a section in menu.json; every section.example
   in site/examples.html has exactly one direct, closed <details> holding <summary>HTML</summary> and
   div.code (button[data-copy-link], pre > code.language-html) and nothing else, and one header with
   exactly one button[type=button][data-copy-page]; no <select multiple> or <select size> inside a
@@ -208,11 +218,11 @@ Interpretations, where PLAN's wording leaves a choice:
   them); (b) PALETTE's SHADES, and each family's hex values and main shade, are femto.colors.css's
   --femto-color-<family>-<shade> and --femto-color-<family>, and the Colors section's swatch buttons
   are every family's shades; (c) every css/options/*.css file is named (<name>.css) in the docs
-  page's main; (d) site/docs/menu.json's optional `readme` key (a string, or a list of strings, on a
+  page's main; (d) site/docs/menu.json's optional `readme` key (a string, a list of strings, or true, on a
   section) names femto README's headings: every H2 but Contributing and License is named by one,
-  and every value is the exact text of an H2 or H3 there (code fences skipped). A section with
-  neither readme nor title names its file's h1: the migration section, whose name criterion 14
-  keeps out of menu.json (vendor.mjs's review reads the keys by the same rules). (a) also reads
+  and every value is the exact text of an H2 or H3 there (code fences skipped). A section whose
+  readme is true names its file's h1: the migration section, whose name criterion 14 keeps out of
+  menu.json (vendor.mjs's review reads the keys by the same rules). (a) also reads
   site/examples.html's p[data-examples-theme] select (each option's text its value capitalized,
   azure the one selected) and the All theme colors example's css/themes/<color>.css links, and the
   lists a reader chooses from (the select, those roots and demo.js's THEMES, which SWATCHES follows,
@@ -1156,6 +1166,117 @@ def snapshot(d: Path) -> dict[str, str]:
     return out
 
 
+# The build's copies (G1, the owner, 2026-11-10): build.mjs strips the comments from the site's own
+# CSS and JavaScript, site/assets/**/*.css and *.js, and copies every other file it does not write
+# as it is, vendor/femto/ among them. Each JS file in dist/assets/ must have its source's espree
+# tokens (ESLint's parser), each on its source line, no comment and its line count; each CSS file
+# must parse with @eslint/css-tree (@eslint/css's parser) with no error and no comment, keep its line
+# count and generate the same CSS as its source (generate() drops comments and normalizes
+# whitespace). espree and @eslint/css-tree come with eslint and @eslint/css, which package.json pins;
+# they are not devDependencies of their own, so Node loads them from node_modules.
+STRIP_CHECK_JS = r"""
+const { createRequire } = require("node:module");
+const { join } = require("node:path");
+const fs = require("node:fs");
+const req = createRequire(join(process.argv[1], "package.json"));
+const espree = req("espree");
+const csstree = req("@eslint/css-tree");
+const lines = (t) => t.split("\n").length;
+const near = (t, i) => JSON.stringify(t.slice(Math.max(0, i - 30), i + 30));
+const js = (code) => {
+  const ast = espree.parse(code, { ecmaVersion: "latest", sourceType: "module", tokens: true, comment: true, loc: true });
+  return { tokens: ast.tokens.map((t) => [t.type, t.value, t.loc.start.line]), comments: ast.comments.length };
+};
+const css = (code) => {
+  const errors = [];
+  let comments = 0;
+  const ast = csstree.parse(code, { positions: false, onParseError: (e) => errors.push(e.message), onComment: () => comments++ });
+  return { out: csstree.generate(ast), errors, comments };
+};
+const results = JSON.parse(fs.readFileSync(0, "utf8")).map(({ name, src, dist }) => {
+  const a = fs.readFileSync(src, "utf8"), b = fs.readFileSync(dist, "utf8"), problems = [];
+  if (lines(a) !== lines(b)) problems.push(`${lines(a)} lines in site/, ${lines(b)} in dist/`);
+  try {
+    if (name.endsWith(".js")) {
+      const x = js(a), y = js(b);
+      const i = x.tokens.findIndex((t, k) => !y.tokens[k] || t[0] !== y.tokens[k][0] || t[1] !== y.tokens[k][1]);
+      if (i !== -1 || x.tokens.length !== y.tokens.length) {
+        const k = i === -1 ? x.tokens.length : i;
+        problems.push(`its tokens differ from token ${k} (site/ line ${x.tokens[k]?.[2] ?? "end"}: ${JSON.stringify(x.tokens[k]?.[1] ?? null)}; ` +
+          `dist/ line ${y.tokens[k]?.[2] ?? "end"}: ${JSON.stringify(y.tokens[k]?.[1] ?? null)})`);
+      } else {
+        const m = x.tokens.findIndex((t, k) => t[2] !== y.tokens[k][2]);
+        if (m !== -1) problems.push(`token ${m}, ${JSON.stringify(x.tokens[m][1])}, moved from line ${x.tokens[m][2]} to ${y.tokens[m][2]}`);
+      }
+      if (y.comments) problems.push(`${y.comments} comment(s) left`);
+    } else {
+      const x = css(a), y = css(b);
+      if (y.errors.length) problems.push(`css-tree parse errors: ${y.errors.slice(0, 2).join("; ")}`);
+      if (y.comments) problems.push(`${y.comments} comment(s) left`);
+      if (x.out !== y.out) {
+        let i = 0;
+        while (x.out[i] === y.out[i]) i++;
+        problems.push(`its CSS differs, as css-tree generates it: site/ ${near(x.out, i)}, dist/ ${near(y.out, i)}`);
+      }
+    }
+  } catch (e) {
+    problems.push(`cannot be parsed: ${String((e && e.message) || e).split("\n")[0]}`);
+  }
+  return { name, problems };
+});
+process.stdout.write(JSON.stringify(results));
+"""
+
+
+def build_copy_checks(ctx: Context, r: Result) -> None:
+    """Criterion 5: the build's copies of site/ files (STRIP_CHECK_JS): the site's own CSS and JS
+    without their comments, everything else it copies byte for byte."""
+    site, dist = ctx.site, ctx.dist
+    own, copied = [], []
+    for p in sorted(site.rglob("*")):
+        if not p.is_file():
+            continue
+        name = p.relative_to(site).as_posix()
+        # build.mjs's walk() and build(): no dot segment, partials/ and docs/ are its inputs, and the
+        # four pages at the root are written, not copied.
+        if re.search(r"(^|/)\.", name) or re.match(r"(partials|docs)/", name) or re.fullmatch(r"[^/]+\.html", name):
+            continue
+        (own if re.fullmatch(r"assets/.*\.(css|js)", name) else copied).append(name)
+    missing = [f"dist/{n}" for n in own + copied if not (dist / n).is_file()]
+    r.fails(f"{len(missing)} file(s) of site/ have no copy in dist/:", missing, "more files")
+    extra = [f"dist/{p.relative_to(dist).as_posix()}" for p in files_under(dist / "assets", (".css", ".js"))
+             if p.relative_to(dist).as_posix() not in own]
+    r.fails(f"{len(extra)} CSS or JS file(s) in dist/assets/ have no source in site/assets/:", extra, "more files")
+    changed = [f"dist/{n} differs from site/{n} (only site/assets/**/*.css and *.js lose their comments)"
+               for n in copied if (dist / n).is_file() and (dist / n).read_bytes() != (site / n).read_bytes()]
+    r.fails(f"{len(changed)} copied file(s) differ from their source:", changed, "more files")
+    pairs = [{"name": n, "src": str(site / n), "dist": str(dist / n)} for n in own if (dist / n).is_file()]
+    if not pairs:
+        r.fail("no site CSS or JS in dist/assets/ to compare with site/assets/")
+        return
+    try:
+        proc = subprocess.run(["node", "-e", STRIP_CHECK_JS, str(ctx.root)], input=json.dumps(pairs), cwd=ctx.root,
+                              capture_output=True, text=True, timeout=300)
+        results = json.loads(proc.stdout) if proc.returncode == 0 else None
+    except (OSError, ValueError, subprocess.TimeoutExpired) as e:
+        proc, results = None, None
+        r.fail(f"the comment-stripping check could not run Node: {e}")
+        return
+    if not isinstance(results, list):
+        r.fail(f"the comment-stripping check failed (node exit {proc.returncode}; espree and @eslint/css-tree come from "
+               f"node_modules: npm install): {(proc.stderr or proc.stdout).strip()[-300:]}")
+        return
+    bad = [f"dist/{x['name']}: {'; '.join(x['problems'])}" for x in results if x.get("problems")]
+    r.fails(f"{len(bad)} site CSS or JS file(s) in dist/assets/ are not their source without its comments:", bad, "more files")
+    if not missing and not extra and not changed and not bad:
+        n_js = sum(1 for x in results if x["name"].endswith(".js"))
+        r.ok(f"the build's {n_js} site JS and {len(results) - n_js} site CSS files in dist/assets/ are their sources without "
+             "comments: the same espree tokens, each on its source line, or the same CSS as @eslint/css-tree generates it, "
+             "with no comment left and the line count kept")
+        r.ok(f"the {len(copied)} other files the build copies from site/ (vendor/femto/ among them) equal their sources byte "
+             "for byte")
+
+
 def criterion_5(ctx: Context) -> Result:
     r = Result(5, "Build output")
     root, dist = ctx.root, ctx.dist
@@ -1188,6 +1309,7 @@ def criterion_5(ctx: Context) -> Result:
     r.fails(f"{len(only)} path(s) exist after only one of the two builds:", only, "more paths")
     if not changed and not only:
         r.ok("the two dist/ trees are byte-identical")
+    build_copy_checks(ctx, r)
     files = [k for k in b if not k.endswith("/")]
     for prefix in ("partials/", "docs/sections/"):
         hits = [f for f in files if f.startswith(prefix)]
@@ -1836,7 +1958,7 @@ def structure_checks(ctx: Context, r: Result) -> None:
             for a in td.find_all("a"):
                 links += 1
                 if section_target(a.attrs.get("href", "")) not in ids:
-                    bad.append(f"{el_rel}:{a.line}: {a.attrs.get('href')!r} is not /docs#<id> of a section (site/docs/menu.json): "
+                    bad.append(f"{el_rel}:{a.line}: {a.attrs.get('href')!r} is not #<id> of a section (site/docs/menu.json): "
                                "link the section that shows the element")
     else:
         bad.append(f"{el_rel} is missing")
@@ -1918,7 +2040,8 @@ def structure_checks(ctx: Context, r: Result) -> None:
 
     # No example form submits, even without JavaScript: every live <form> in site/ has method="dialog",
     # whose submit does nothing outside a <dialog>. A code sample is escaped (&lt;form), so a literal
-    # <form is live markup. site.js, examples.js and demo.js cancel the submit with JavaScript on.
+    # <form is live markup. No script cancels the submit: method="dialog" alone stops it, with
+    # JavaScript on too.
     bad, forms = [], 0
     for p in files_under(site, (".html",), (site / "vendor",)):
         text = p.read_text(encoding="utf-8", errors="replace")
@@ -3277,7 +3400,8 @@ THEME_LISTS = ("site/partials/head.html", "site/docs/sections/theme-picker.html"
 # The lists a reader chooses a theme color from, which follow the Theme picker's swatch order (drift
 # (a), order); the Themes table, a file reference, and the ?theme= script's array may be alphabetical.
 README_UNDOCUMENTED = ("Contributing", "License")  # README H2s no docs section has to name (vendor.mjs too)
-PALETTE_FAMILY = re.compile(r'^ {2}(\w+): \["(\d+)",\n([^\]]*)\],$', re.M)  # build.mjs's palette(), the same shape
+# colors.js's PALETTE literal, by its shape, which this drift check reads (build.mjs reads femto.colors.css).
+PALETTE_FAMILY = re.compile(r'^ {2}(\w+): \["(\d+)",\n([^\]]*)\],$', re.M)
 
 
 def string_arrays(text: str) -> list[tuple[int, list[str]]]:
@@ -3468,7 +3592,7 @@ def drift_checks(ctx: Context, r: Result, repo: Path, commit: str, readme: str, 
     palette = [(m.group(1), m.group(2), re.findall(r'"([\da-f]{6}) ', m.group(3)), line_of(js, m.start()))
                for m in PALETTE_FAMILY.finditer(js)]
     if not shades_m or not palette:
-        shapes.append(f"{js_path}: no SHADES array or PALETTE families in the shape build.mjs reads (`  <name>: [\"<main>\",`)")
+        shapes.append(f"{js_path}: no SHADES array or PALETTE families in the shape the drift check reads (`  <name>: [\"<main>\",`)")
     else:
         lists.append((js_path, "PALETTE's families", [f for f, _, _, _ in palette], False))
     for path in THEME_LISTS:
@@ -3582,18 +3706,20 @@ def drift_checks(ctx: Context, r: Result, repo: Path, commit: str, readme: str, 
     bad = []
     for s in sections:
         key = s.get("readme")
-        if key is None and "title" not in s:
-            # The migration section names its file's h1, as its nav link takes it: criterion 14 keeps
-            # that section's name out of menu.json (vendor.mjs's readmeNames(), the same rule).
+        if key is True:
+            # readme true: the migration section names its file's h1, since criterion 14 keeps that
+            # name out of menu.json (vendor.mjs's readmeNames(), the same rule).
             f = site / "docs/sections" / f"{s.get('id')}.html"
             h1 = next(iter(parse_html(f.read_text(encoding="utf-8")).find_all("h1")), None) if f.is_file() else None
             keys = [" ".join(h1.text().split())] if h1 is not None else []
+            if h1 is None:
+                bad.append(f"section {s.get('id')!r}: readme is true, but site/docs/sections/{s.get('id')}.html has no h1 to name")
         elif key is None:
             keys = []
         elif isinstance(key, str) or (isinstance(key, list) and key and all(isinstance(k, str) for k in key)):
             keys = [key] if isinstance(key, str) else key
         else:
-            bad.append(f"section {s.get('id')!r}: readme is {key!r}, not a heading's text or a list of them")
+            bad.append(f"section {s.get('id')!r}: readme is {key!r}, not true, a heading's text or a list of them")
             keys = []
         for k in keys:
             names.setdefault(k, []).append(f"#{s.get('id')}")
@@ -3602,7 +3728,7 @@ def drift_checks(ctx: Context, r: Result, repo: Path, commit: str, readme: str, 
     if not any("readme" in s for s in sections):
         r.fail("drift: no section in site/docs/menu.json has a readme key, so femto README's headings are unmapped: give each "
                "section that describes a README section its heading's text (\"readme\": \"Themes\")")
-    r.fails(f"drift: {len(bad)} readme key(s) in site/docs/menu.json are not a string or a list of strings:", bad)
+    r.fails(f"drift: {len(bad)} readme key(s) in site/docs/menu.json are not true, a string or a list of strings:", bad)
     r.fails(f"drift: {len(stale)} readme key(s) in site/docs/menu.json name no H2 or H3 of femto's README at {short}; change "
             "them to its headings' exact text:", stale, "more")
     r.fails(f"drift: {len(unnamed)} H2(s) of femto's README at {short} are named by no section's readme key in "
@@ -4444,7 +4570,7 @@ def pacifico_checks(ctx: Context, r: Result) -> None:
     font = ctx.root / PACIFICO_FONT
     pages = ctx.dist_pages()
     if not font.is_file():
-        r.fail(f"{PACIFICO_FONT} is missing (site/assets/css/fonts.css loads it)")
+        r.fail(f"{PACIFICO_FONT} is missing (the @font-face at the top of site/assets/css/docs.css loads it)")
         return
     try:
         covered = woff2_cmap(font.read_bytes())
@@ -4489,7 +4615,8 @@ def pacifico_checks(ctx: Context, r: Result) -> None:
     text = collapse(" ".join(n.text() for n in elements))
     missing = sorted({c for c in text if ord(c) not in covered})
     r.fails(f"{PACIFICO_FONT} lacks {len(missing)} character(s) the site draws in Pacifico ({text[:60]!r}); subset the font "
-            "again with them, under a new file name (site/assets/css/fonts.css):", [f"{c!r} U+{ord(c):04X}" for c in missing], "more")
+            "again with them, under a new file name (the @font-face at the top of site/assets/css/docs.css):",
+            [f"{c!r} U+{ord(c):04X}" for c in missing], "more")
     if not missing:
         r.ok(f"{PACIFICO_FONT} maps all {len(set(text))} distinct characters of the {len(elements)} element(s) the site draws in "
              f"Pacifico ({text[:60]!r}; from {', '.join(selectors[:3])}); its cmap has {len(covered)} code points")
@@ -5900,6 +6027,47 @@ def fetch_external(url: str, timeout: float = 20.0) -> tuple[bool, str]:
 EDIT_LINK = re.compile(r"^https://github\.com/leoherzog/femto\.style/blob/main/(.+)$")
 
 
+def compared_example(node: Node) -> bool:
+    """Whether a node is example markup criterion 13 compares with its sample: inside a declarative
+    shadow root (the /examples mockups, the homepage's femto block) or another <template>, or inside a
+    /docs example, an <article> whose last element is its footer.code sample."""
+    for a in node.ancestors():
+        if a.tag == "template":
+            return True
+        if a.tag == "article":
+            last = next((c for c in reversed(a.children) if isinstance(c, Node)), None)
+            if last is not None and last.tag == "footer" and "code" in last.classes():
+                return True
+    return False
+
+
+def same_tab_checks(ctx: Context, r: Result) -> None:
+    """The link check: the site's own links to other origins open in the same tab, with no target and
+    no rel noopener or noreferrer (PLAN.md Rules, Markup; G8, the owner, 2026-11-10). Example markup
+    criterion 13 compares with its sample (compared_example) keeps whatever femto's examples have."""
+    bad, own, exempt = [], 0, 0
+    for p in ctx.dist_pages():
+        for a in ctx.page(p).find_all("a"):
+            u = urlsplit(a.attrs.get("href", "").strip())
+            if u.scheme not in ("http", "https") or f"{u.scheme}://{u.netloc}" == SITE_ORIGIN:
+                continue
+            if compared_example(a):
+                exempt += 1
+                continue
+            own += 1
+            rels = {x.lower() for x in a.attrs.get("rel", "").split()} & {"noopener", "noreferrer"}
+            if "target" in a.attrs or rels:
+                bad.append(f"{rel(ctx.root, p)}:{a.line}: <a href={a.attrs.get('href')!r}>"
+                           + (f" target={a.attrs['target']!r}" if "target" in a.attrs else "")
+                           + (f" rel {', '.join(sorted(rels))}" if rels else "")
+                           + ": drop them, so it opens in the same tab")
+    r.fails(f"{len(bad)} of the site's own link(s) to other origins open another tab or set rel noopener or noreferrer "
+            "(PLAN.md Rules, Markup):", bad, "more links")
+    if not bad:
+        r.ok(f"the site's {own} links to other origins open in the same tab: no target and no rel noopener or noreferrer"
+             + (f" ({exempt} in example markup criterion 13 compares with its sample not judged)" if exempt else ""))
+
+
 def check_links(ctx: Context) -> Result:
     r = Result("links", "Link check of dist/: internal links, assets and fragments resolve; external links listed")
     dist = ctx.dist
@@ -5912,6 +6080,7 @@ def check_links(ctx: Context) -> Result:
     r.fails(f"{len(failures)} internal link(s) do not resolve:", failures, "more links")
     for line in evidence:
         r.ok(line)
+    same_tab_checks(ctx, r)
     # The controls: each planted link must fail, alone, in a copy of dist/.
     tmp = Path(tempfile.mkdtemp(prefix="femto-style-links-"))
     try:

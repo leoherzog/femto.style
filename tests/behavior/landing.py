@@ -197,11 +197,11 @@ def layout(page):
 
 @check("demo-variant", "/", width=1280, height=800)
 def demo_variant(page):
-    """The demo's code sample has two layouts, picked by innerWidth at 1280 px: at 1280 the large
-    one (the email input's type and placeholder on one line, as innerText renders it), and after a
-    resize to 1279 the small one (each attribute on its own line), with the demo started over at
-    its first phase (an email input with no value); back at 1280, the large one again, started
-    over too. Each switch shows within 3 s."""
+    """The demo's code sample has two layouts, picked by matchMedia("(min-width: 1280px)") and its
+    change event: at 1280 the large one (the email input's type and placeholder on one line, as
+    innerText renders it), and after a resize to 1279 the small one (each attribute on its own
+    line), with the demo started over at its first phase (an email input with no value); back at
+    1280, the large one again, started over too. Each switch shows within 3 s."""
     page.js(RECORDER, MARKERS)
     page.eq("large at 1280 on load", layout(page)[0], "large", lines=layout(page)[1])
     for w, want in ((1279, "small"), (1280, "large"), (375, "small")):
@@ -333,6 +333,41 @@ def demo_reduced_motion(page):
     page.click(PAUSE)
     expect_button(page, "Play clicked", "Pause", "running")
     page.wait("playing, the demo changes within 4 s", "window.__bhDemoOff.changes.length > 0", 4)
+
+
+# The typing demo's form and its controls: inert, tabindex attributes, whether each refuses focus,
+# and whether the Pause button sits outside the form.
+DEMO_FORM = """const art = document.querySelector('article[data-typing-demo]'), f = art.querySelector('form');
+  const before = document.activeElement;
+  const controls = [...f.querySelectorAll('input, select, button, textarea')].map(e => {
+    e.focus(); const took = document.activeElement === e; before?.focus?.();
+    return [e.localName, e.getAttribute('type'), took];
+  });
+  return {inert: f.inert, tabindex: f.querySelectorAll('[tabindex]').length, controls,
+          pauseOutside: !f.contains(art.querySelector('button[data-demo-pause]'))};"""
+
+
+@check("demo-inert", "/")
+def demo_inert(page):
+    """The typing demo's form is a picture of a form (demo.js): it is inert, so no pointer, key or
+    screen reader reaches it, and none of its controls carries a tabindex. On load its email input,
+    and once the demo has moved on to a phase with more controls (within 40 s), each of them,
+    refuses focus; in Chrome its accessibility tree (CDP Accessibility.getPartialAXTree) has the
+    input as ignored. The Pause button sits outside the form, so the demo can still be paused."""
+    r = page.js(f"return (() => {{ {DEMO_FORM} }})()")
+    page.eq("the form is inert, with no tabindex in it", [r["inert"], r["tabindex"]], [True, 0], **r)
+    page.eq("on load its controls refuse focus", [c for c in r["controls"] if c[2]], [], controls=r["controls"])
+    page.expect("the Pause button is outside the form", r["pauseOutside"])
+    if page.browser == "chrome":
+        found = page.driver.execute_cdp_cmd("Runtime.evaluate", {"expression": "document.querySelector('article[data-typing-demo] form input')"})
+        tree = page.driver.execute_cdp_cmd("Accessibility.getPartialAXTree", {"objectId": found["result"]["objectId"], "fetchRelatives": False})
+        page.eq("Chrome's accessibility tree has the demo's input as ignored", tree["nodes"][0].get("ignored"), True,
+                role=tree["nodes"][0].get("role", {}).get("value"))
+    page.wait("the demo moves on to a phase with more controls",
+              "document.querySelector('article[data-typing-demo] form').querySelectorAll('input, select, button').length > 1", 40)
+    r = page.js(f"return (() => {{ {DEMO_FORM} }})()")
+    page.eq("later: the form is still inert, with no tabindex in it", [r["inert"], r["tabindex"]], [True, 0], **r)
+    page.eq("later: its controls refuse focus", [c for c in r["controls"] if c[2]], [], controls=r["controls"])
 
 
 # --- The hero's <link> line -----------------------------------------------------------------------

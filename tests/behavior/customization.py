@@ -5,8 +5,9 @@ The section describes femto.colors.css as femto 3 has it: the modal has five row
 color, RGB color, Color utility class, Background utility class, Custom property), each family's
 main shade is the one femto.colors.css gives the family's unshaded names (550 for red and fuchsia),
 the shade buttons sit in a div.shades and the close control is a button. Each family's shade buttons
-are one Tab stop (a roving tabindex), and the arrow keys move between them as they move the modal's
-color."""
+are one Tab stop (a roving tabindex), a horizontal toolbar: Right and Left move between its shades,
+wrapping at its ends, and Home and End go to them, while Up and Down keep their default action. The
+modal's arrow keys move its color across the 380 colors."""
 import functools
 import hashlib
 import json
@@ -186,8 +187,8 @@ def color_modal_close(page):
     """The color modal, a true modal (it matches :modal, with focus inside it), closes three ways,
     each leaving no open `dialog.color` and no modal-is-* class on <html> within 1.5 s: its close
     control (`header .close`: a button), a click on the dialog outside its article (the backdrop),
-    and Escape (the dialog's cancel, which runs the animated close). A click inside the article (on
-    its hgroup) leaves it open."""
+    and Escape (site.js's keydown listener, which runs the animated close). A click inside the
+    article (on its hgroup) leaves it open."""
     page.click(shade_button("red", "500"))
     expect_color(page, "red", "500", "opened")
     expect_modal(page, "opened")
@@ -401,8 +402,9 @@ def expect_status_heard(page, label):
     accessibility tree, so the copy status region must sit inside the dialog to be heard. In
     Chrome, its accessibility tree (CDP Accessibility.getPartialAXTree) also has the region as a
     status that is not ignored."""
+    # A message that repeats the one before it ends in a no-break space (site.js), which trim() drops.
     page.wait(f"{label}: the page's one status region says Copied",
-              "(() => { const r = document.querySelectorAll('[role=status]'); return r.length === 1 && r[0].textContent === 'Copied'; })()",
+              "(() => { const r = document.querySelectorAll('[role=status]'); return r.length === 1 && r[0].textContent.trim() === 'Copied'; })()",
               1, got=page.js(STATUS_PLACE))
     if page.browser == "chrome":
         found = page.driver.execute_cdp_cmd("Runtime.evaluate", {"expression": "document.querySelector('[role=status]')"})
@@ -593,24 +595,25 @@ def expect_ring(page, label):
 
 @check("color-grid-arrows", ROUTE)
 def color_grid_arrows(page):
-    """With a swatch focused, the arrow keys move focus as they move the color modal's color, and
-    Home and End to the family's first and last shade. From red 50: Right red 100, Left red 50,
-    Left slate 950 (wrapping to the last color), Right red 50 (wrapping back), Down pink 50, Up red
-    50, Up slate 50 (wrapping), Down red 50, End red 950, Home red 50, End red 950, Right pink 50.
-    Each key's default action is cancelled (so it never scrolls the page), the page keeps its
-    scrollY whenever the swatch it moves to was already in view, and the swatch it moves to is its
-    family's one Tab stop and draws a focus ring (it matches :focus-visible, and its computed
-    box-shadow has a ring wider than 0px, one of whose colors has 3:1 contrast against the swatch,
-    WCAG 1.4.11). Each family keeps its own stop: from pink 50, Shift+Tab
-    goes to red 950, the shade red was left on, and Tab back to pink 50. In forced colors (Chrome),
-    which drop the box-shadow ring, the focused pink 50 still shows an outline."""
+    """With a swatch focused, each family's swatches are a horizontal toolbar: Right and Left move
+    focus to the next and previous shade in the family, wrapping at its ends, and Home and End to
+    its first and last shade. From red 50: Right red 100, Left red 50, Left red 950 (wrapping to the
+    family's last shade), Right red 50 (wrapping back), End red 950, Home red 50, End red 950, Right
+    red 50, End red 950. Each key's default action is cancelled (so it never scrolls the page), the
+    page keeps its scrollY whenever the swatch it moves to was already in view, and the swatch it
+    moves to is its family's one Tab stop and draws a focus ring (it matches :focus-visible, and its
+    computed box-shadow has a ring wider than 0px, one of whose colors has 3:1 contrast against the
+    swatch, WCAG 1.4.11). Down and Up are a horizontal toolbar's keys no more: each is one keydown
+    whose default action is not cancelled, and focus stays on red 950. Each family keeps its own
+    stop: Tab from red 950 goes to pink 50, pink's stop, Shift+Tab back to red 950, the shade red was
+    left on, and Tab to pink 50 again. In forced colors (Chrome), which drop the box-shadow ring, the
+    focused pink 50 still shows an outline."""
     page.focus(shade_button("red", "50"))
     expect_swatch(page, "red", "50", "focused")
     page.js(KEYS)
-    for key, (f, s) in (("ARROW_RIGHT", ("red", "100")), ("ARROW_LEFT", ("red", "50")), ("ARROW_LEFT", ("slate", "950")),
-                        ("ARROW_RIGHT", ("red", "50")), ("ARROW_DOWN", ("pink", "50")), ("ARROW_UP", ("red", "50")),
-                        ("ARROW_UP", ("slate", "50")), ("ARROW_DOWN", ("red", "50")), ("END", ("red", "950")),
-                        ("HOME", ("red", "50")), ("END", ("red", "950")), ("ARROW_RIGHT", ("pink", "50"))):
+    for key, (f, s) in (("ARROW_RIGHT", ("red", "100")), ("ARROW_LEFT", ("red", "50")), ("ARROW_LEFT", ("red", "950")),
+                        ("ARROW_RIGHT", ("red", "50")), ("END", ("red", "950")), ("HOME", ("red", "50")),
+                        ("END", ("red", "950")), ("ARROW_RIGHT", ("red", "50")), ("END", ("red", "950"))):
         seen = page.js(IN_VIEW, shade_button(f, s))
         y = page.js("return Math.round(scrollY)")
         page.js("window.__bhKeys.length = 0")
@@ -622,6 +625,15 @@ def color_grid_arrows(page):
         if seen:
             page.sleep(0.1)
             page.eq(f"{key} to {f} {s}, already in view: the page does not scroll", page.js("return Math.round(scrollY)"), y)
+    for key in ("ARROW_DOWN", "ARROW_UP"):
+        page.js("window.__bhKeys.length = 0")
+        page.key(key)
+        page.eq(f"{key}: one keydown, its default action not cancelled", page.js("return window.__bhKeys"),
+                [[DOM_KEY[key], False]])
+        expect_swatch(page, "red", "950", f"{key}: focus stays")
+    page.tab()
+    expect_swatch(page, "pink", "50", "Tab from red 950 goes to pink's stop")
+    expect_ring(page, "Tab to pink 50")
     page.tab(shift=True)
     expect_swatch(page, "red", "950", "Shift+Tab from pink 50 goes to red's stop")
     page.tab()
@@ -633,22 +645,20 @@ def color_grid_arrows(page):
 def color_grid_ring_dark(page):
     """In the dark scheme, where femto's own translucent ring is faint on the dark shades, every
     swatch the keyboard reaches draws a ring one of whose colors has 3:1 contrast against it: from
-    red 50, Down through the 20 families' 50 and back to red, then End and Down through the 20
-    families' 950."""
+    red 50, in each of the 20 families its 50 (reached with Tab, the family's stop) and then, with
+    End, its 950."""
     page.focus(shade_button("red", "50"))
     page.key("ARROW_RIGHT")
     page.key("ARROW_LEFT")
-    expect_ring(page, "red 50")
     families = [t["label"].lower() for t in page.js(TOOLBARS)]
-    for shade in ("50", "950"):
-        if shade == "950":
-            page.key("END")
-            expect_swatch(page, "red", "950", "End")
-            expect_ring(page, "red 950")
-        for family in families[1:] + families[:1]:
-            page.key("ARROW_DOWN")
-            expect_swatch(page, family, shade, f"Down to {family} {shade}")
-            expect_ring(page, f"{family} {shade}")
+    for k, family in enumerate(families):
+        if k:
+            page.tab()
+        expect_swatch(page, family, "50", f"Tab to {family} 50" if k else "red 50")
+        expect_ring(page, f"{family} 50")
+        page.key("END")
+        expect_swatch(page, family, "950", f"End to {family} 950")
+        expect_ring(page, f"{family} 950")
 
 
 @check("color-grid-modal", ROUTE)

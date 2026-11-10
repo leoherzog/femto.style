@@ -1,6 +1,7 @@
 """Components, first half (accordion, card, dropdown, group, loading). Their examples are
 native HTML: the accordions and dropdowns are <details>, the loading indicators are CSS, and the
-group forms' submits are site.js's (shell's example-forms covers Group). The one widget is the
+group forms have method="dialog", which keeps their submits from going anywhere (shell's
+example-forms covers Group). The one widget is the
 Dropdown section's menu items: docs.dropdown.jsx's Item is a Link to="#" with an onClick that
 prevents the default, so each renders the route's own path (href="/docs/dropdown"; on the one page
 the page's, /docs, or the section's, /docs#dropdown) and goes nowhere, whether it is clicked or activated with Enter."""

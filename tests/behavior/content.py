@@ -334,7 +334,7 @@ return {groups: [...t.tBodies].map(b => { const a = b.rows[0].querySelector("th[
 @check("tokens-table", "/docs#tokens")
 def tokens_table(page):
     """The Tokens table (in div[role=region][aria-label=Tokens]) lists 150 distinct --femto-* tokens,
-    grouped in row groups whose header links to a section of the page (/docs#<a section id>). A
+    grouped in row groups whose header links to a section of the page (#<a section id>). A
     row's Pair cell reads "Yes" exactly when <html> has a value for both its --femto-light-* and
     --femto-dark-* names (58 rows) and "No" when it has neither, and every token whose row does not
     say it is "set on" or "set per" elements has a value on <html>."""
@@ -344,7 +344,7 @@ def tokens_table(page):
     page.eq("150 tokens", len(names), 150)
     page.eq("no token twice", sorted(n for n in set(names) if names.count(n) > 1), [])
     page.eq("every token is a --femto-* name", [n for n in names if not n.startswith("--femto-") or n.startswith(("--femto-light-", "--femto-dark-"))], [])
-    page.eq("every group header links to a section of the page", [g for g in r["groups"] if not (g or "").startswith("/docs#") or g[6:] not in r["ids"]], [])
+    page.eq("every group header links to a section of the page", [g for g in r["groups"] if not (g or "").startswith("#") or g[1:] not in r["ids"]], [])
     page.eq("Pair is Yes exactly when both names of the pair have a value on <html>",
             [x["n"] for x in r["rows"] if x["pair"] != ("Yes" if x["light"] and x["dark"] else "No") or x["light"] != x["dark"]], [])
     page.eq("58 tokens with a pair", sum(x["pair"] == "Yes" for x in r["rows"]), 58)

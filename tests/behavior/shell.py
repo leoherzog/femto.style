@@ -1,7 +1,7 @@
 """Shell: what every page or every docs page shares (the Remix site's PageContext, Nav, Header,
-Code, ModalContext, DocumentationMenu and Breadcrumb, and the example forms' submit). In the static
-site these live in site.js and docs.js. The one page's spy, its URLs and ?theme= are the one-page
-group's.
+Code, ModalContext, DocumentationMenu and Breadcrumb), and the example forms' submit, which their
+method="dialog" stops. In the static site these live in site.js and docs.js. The one page's spy,
+its URLs and ?theme= are the one-page group's.
 
 The Remix site's link-styled controls are buttons here: the header's color-scheme toggle, the
 code blocks' copy controls, the breadcrumb's Documentation control and the off-canvas menu's Close.
@@ -38,14 +38,28 @@ def wait_label(page, label):
               1, args=(TOGGLE, label))
 
 
-def toggle_and_expect(page, theme_after, label_after):
+def expect_scheme(page, label, stored):
+    """<html>'s data-theme and the stored choice: `stored` ("light" or "dark") set on both, or None,
+    no data-theme and nothing stored, the page following the OS (a toggle to the OS's own scheme
+    removes the choice, Decision 14)."""
+    if stored is None:
+        page.wait(f"{label}: no data-theme", "!document.documentElement.hasAttribute('data-theme')", 2)
+        page.eq(f"{label}: nothing stored", theme(page)["stored"], None)
+    else:
+        page.wait(f"{label}: data-theme becomes {stored}",
+                  "document.documentElement.getAttribute('data-theme') === arguments[0]", 2, args=(stored,))
+        page.eq(f"{label}: {KEY} stores {stored!r} as JSON", theme(page)["stored"], f'"{stored}"')
+
+
+def toggle_and_expect(page, stored, label_after):
+    """A click on the header toggle: `stored` as expect_scheme() takes it, then the label and its icon
+    (the moon while the page is dark), with the URL unchanged."""
     url = page.url()
     page.click(TOGGLE)
-    page.wait(f"data-theme becomes {theme_after}",
-              "document.documentElement.getAttribute('data-theme') === arguments[0]", 2, args=(theme_after,))
-    page.eq(f"{KEY} stores {theme_after!r} as JSON", theme(page)["stored"], f'"{theme_after}"')
+    expect_scheme(page, "click", stored)
     wait_label(page, label_after)
-    page.eq(f"toggle icon is {'the moon' if theme_after == 'dark' else 'the sun'}", theme(page)["moon"], theme_after == "dark")
+    dark = label_after == "Turn off dark mode"
+    page.eq(f"toggle icon is {'the moon' if dark else 'the sun'}", theme(page)["moon"], dark)
     page.url_kept("the toggle does not navigate (no #)", url)
 
 
@@ -57,42 +71,42 @@ def theme_toggle(page):
     "Turn on dark mode" with the sun ☀️. A click sets data-theme="dark" on <html>, stores
     localStorage femtoColorScheme = '"dark"' (JSON), relabels the toggle "Turn off dark mode" and
     shows the moon 🌙; the URL is unchanged (no `#`).
-    A second click stores '"light"', sets data-theme="light" and restores the label and icon."""
+    A second click, back to the OS's own scheme, removes the stored choice and data-theme, so the
+    page follows the OS again (Decision 14), and restores the label and icon."""
     s = theme(page)
     page.eq("no data-theme before any choice", s["theme"], None)
     page.eq("nothing stored", s["stored"], None)
     page.expect("the toggle and its icon exist", s["label"] is not None and s["icon"], **s)
     wait_label(page, "Turn on dark mode")
     toggle_and_expect(page, "dark", "Turn off dark mode")
-    toggle_and_expect(page, "light", "Turn on dark mode")
+    toggle_and_expect(page, None, "Turn on dark mode")
 
 
 @check("theme-toggle-dark-os", "/docs", media="dark")
 def theme_toggle_dark_os(page):
     """With a dark OS scheme and nothing stored: no data-theme, and the toggle already reads "Turn
     off dark mode" with the moon 🌙 (the page follows the OS). A click stores '"light"' (the
-    opposite of the current scheme) and sets data-theme="light"; the next click stores '"dark"'."""
+    opposite of the current scheme) and sets data-theme="light"; the next click, back to the OS's
+    dark, removes the stored choice and data-theme, and the toggle reads "Turn off dark mode"."""
     s = theme(page)
     page.eq("no data-theme before any choice", s["theme"], None)
     wait_label(page, "Turn off dark mode")
     toggle_and_expect(page, "light", "Turn on dark mode")
-    toggle_and_expect(page, "dark", "Turn off dark mode")
+    toggle_and_expect(page, None, "Turn off dark mode")
 
 
 @check("theme-toggle-keyboard", ("/", "/docs#typography"))
 def theme_toggle_keyboard(page):
     """The header toggle (a <button>) works from the keyboard as from the pointer: focused, Enter
     sets data-theme="dark", stores '"dark"' and relabels it "Turn off dark mode" with the moon 🌙, with
-    no navigation (URL unchanged, the document kept: a marker set on window survives); Enter again
-    gives light the same way."""
+    no navigation (URL unchanged, the document kept: a marker set on window survives); Enter again,
+    back to the OS's light, removes the stored choice and data-theme the same way."""
     page.js("window.__bhMarker = 'kept'")
     url = page.url()
-    for want, label in (("dark", "Turn off dark mode"), ("light", "Turn on dark mode")):
+    for want, label in (("dark", "Turn off dark mode"), (None, "Turn on dark mode")):
         page.expect("the toggle takes focus", page.focus(TOGGLE))
         page.key("ENTER")
-        page.wait(f"Enter: data-theme becomes {want}", "document.documentElement.getAttribute('data-theme') === arguments[0]",
-                  2, args=(want,))
-        page.eq(f"Enter: {KEY} stores {want!r} as JSON", theme(page)["stored"], f'"{want}"')
+        expect_scheme(page, "Enter", want)
         wait_label(page, label)
         page.eq("Enter: the document is kept (no reload)", page.js("return window.__bhMarker || null"), "kept")
         page.url_kept("Enter: URL unchanged", url)
@@ -137,10 +151,11 @@ def theme_stored_dark(page):
 @check("theme-stored-light", "/docs#button", media="dark", storage={KEY: '"light"'})
 def theme_stored_light(page):
     """With femtoColorScheme = '"light"' stored and a dark OS, the page has data-theme="light" and
-    the toggle reads "Turn on dark mode" without the moon 🌙; a click stores '"dark"'."""
+    the toggle reads "Turn on dark mode" without the moon 🌙; a click, to the OS's own dark, removes
+    the stored choice and data-theme, and the toggle reads "Turn off dark mode" with the moon."""
     page.eq("data-theme is the stored light", theme(page)["theme"], "light")
     wait_label(page, "Turn on dark mode")
-    toggle_and_expect(page, "dark", "Turn off dark mode")
+    toggle_and_expect(page, None, "Turn off dark mode")
 
 
 @check("theme-stored-invalid", "/docs#table", media="dark", storage={KEY: '"blue"'})
@@ -182,28 +197,39 @@ def theme_color_meta(page):
     """The two theme-color metas give the browser's bar femto's background: #fff with
     media (prefers-color-scheme: light) and rgb(19, 22.5, 30.5) with (prefers-color-scheme: dark).
     A stored choice applies its own scheme's meta whatever the OS: with dark stored and a light OS,
-    the dark meta's media is "all" and the light one's "not all". A click on the header toggle
-    stores light and swaps the two; removing the stored item (in another tab, so the storage event
-    reaches this one) gives both their prefers-color-scheme media back, and the light meta applies
-    under the light OS."""
+    the dark meta's media is "all" and the light one's "not all". A click on the header toggle, to
+    the OS's own light, removes the choice and gives both their prefers-color-scheme media back, and
+    the light meta applies under the light OS; a second click stores dark again. Then, in another
+    tab, so the storage event reaches this one: storing light there swaps the two ("all" for the
+    light meta), and removing the stored item gives both their prefers-color-scheme media back."""
+    os_media = ["(prefers-color-scheme: light)", "(prefers-color-scheme: dark)"]
     page.eq("two theme-color metas, light then dark", [m[0] for m in page.js(THEME_COLORS)], [LIGHT_BAR, DARK_BAR])
     expect_bar(page, "stored dark, light OS", DARK_BAR, ["not all", "all"])
     page.click(TOGGLE)
-    page.wait("the toggle stores light", "localStorage.getItem(arguments[0]) === '\"light\"'", 2, args=(KEY,))
-    expect_bar(page, "stored light", LIGHT_BAR, ["all", "not all"])
+    page.wait("the toggle to the OS's light removes the choice", "localStorage.getItem(arguments[0]) === null", 2, args=(KEY,))
+    expect_bar(page, "nothing stored, light OS", LIGHT_BAR, os_media)
+    page.click(TOGGLE)
+    page.wait("the toggle stores dark", "localStorage.getItem(arguments[0]) === '\"dark\"'", 2, args=(KEY,))
+    expect_bar(page, "stored dark again", DARK_BAR, ["not all", "all"])
     a = page.driver.current_window_handle
-    page.new_tab("/")
+    b = page.new_tab("/")
+    page.js(f"localStorage.setItem('{KEY}', '\"light\"')")
+    page.switch(a)
+    expect_bar(page, "light stored in another tab", LIGHT_BAR, ["all", "not all"])
+    page.switch(b)
     page.js(f"localStorage.removeItem('{KEY}')")
     page.switch(a)
-    expect_bar(page, "nothing stored, light OS", LIGHT_BAR, ["(prefers-color-scheme: light)", "(prefers-color-scheme: dark)"])
+    expect_bar(page, "removed in another tab, light OS", LIGHT_BAR, os_media)
 
 
 @check("theme-cross-tab", "/docs#typography")
 def theme_cross_tab(page):
     """Two tabs of the same browser: a toggle click in tab A (on Typography) reaches tab B (on
     /) without a reload: B gets data-theme="dark" and its toggle reads "Turn off dark mode". A
-    second click in A makes B light. Removing the stored item in A (localStorage.removeItem) removes
-    data-theme in B, whose toggle then follows the OS again ("Turn on dark mode")."""
+    second click in A, back to the OS's light, removes the stored choice, which removes data-theme
+    in B, whose toggle then follows the OS again ("Turn on dark mode"). A light choice stored in A
+    (localStorage.setItem) makes B light, and removing it (localStorage.removeItem) removes
+    data-theme in B again."""
     a = page.driver.current_window_handle
     b = page.new_tab("/")
     page.js("window.__bhMarker = 'tab-b'")
@@ -216,13 +242,20 @@ def theme_cross_tab(page):
     page.eq("tab B was not reloaded", page.js("return window.__bhMarker"), "tab-b")
     page.switch(a)
     page.click(TOGGLE)
-    page.wait("tab A is light", "document.documentElement.getAttribute('data-theme') === 'light'", 2)
+    page.wait("tab A follows the OS again", "!document.documentElement.hasAttribute('data-theme')", 2)
+    page.eq("tab A: nothing stored", page.js(f"return localStorage.getItem('{KEY}')"), None)
     page.switch(b)
-    page.wait("tab B follows to light", "document.documentElement.getAttribute('data-theme') === 'light'", 3)
+    page.wait("tab B drops data-theme when the choice is removed",
+              "!document.documentElement.hasAttribute('data-theme')", 3)
+    wait_label(page, "Turn on dark mode")
+    page.switch(a)
+    page.js(f"localStorage.setItem('{KEY}', '\"light\"')")
+    page.switch(b)
+    page.wait("tab B follows a light choice stored in A", "document.documentElement.getAttribute('data-theme') === 'light'", 3)
     page.switch(a)
     page.js(f"localStorage.removeItem('{KEY}')")
     page.switch(b)
-    page.wait("tab B drops data-theme when the choice is removed",
+    page.wait("tab B drops data-theme when the choice is removed in A",
               "!document.documentElement.hasAttribute('data-theme')", 3)
     wait_label(page, "Turn on dark mode")
 
@@ -484,6 +517,7 @@ return {tooltip: a.getAttribute("data-tooltip"), check: glyph === "\\u2713", cli
         label: i && i.getAttribute("aria-label"), focused: document.activeElement === a, copied: window.__bhCopied};
 """
 COPY_LABEL = "Copy code"   # a code block's copy icon's aria-label (Decision 18), which names its button
+COPY_TOOLTIP = "Copy code"   # its data-tooltip, the same words, so a voice-control user can say what they see
 
 # Records the copy link's tooltip and icon on every change, and the click, with performance.now()
 # times, so the check measures the 1 s revert in the page.
@@ -503,13 +537,14 @@ a.addEventListener("click", () => __bhCopy.push([t(), "click"]), true);
 @check("copy-button", ("/docs", "/docs#modal"))
 def copy_button(page):
     """Each code block's copy control of the route's content (`button[data-copy-link]`;
-    data-tooltip "Copy to clipboard", its icon a `span[role=img]` holding
+    data-tooltip "Copy code", the words of its name, its icon a `span[role=img]` holding
     ⧉ that names it, Decision 18): a click copies exactly that block's code text (its `pre code`
     textContent; the
     copy is recorded in the page, the machine's clipboard is never touched) and leaves the URL as it
     was. Timed in the page: within 100 ms of the click the tooltip reads "Copied" with the animated
-    check ✓, and 1 s later (900 to 1500 ms) "Copy to clipboard" with ⧉ again, with no other step;
-    the control then does not hold focus (a pointer click blurs it). The button's computed name (the
+    check ✓, and 1 s later (900 to 1500 ms) the button's own tooltip, "Copy code", with ⧉ again,
+    with no other step; the control then does not hold focus (a pointer click blurs it). The
+    button's computed name (the
     browser's, WebDriver Get Computed Label) is its icon's label, "Copy code", and nothing else:
     before the click, while the check shows and after the revert (neither tooltip's text joins it). A
     second block's control copies its own code."""
@@ -519,7 +554,7 @@ def copy_button(page):
     for n, link in enumerate((links[0], links[-1]), 1):
         code = page.js("return arguments[0].parentElement.querySelector('pre code').textContent", link)
         s = page.js(COPY_STATE, link)
-        page.eq(f"link {n}: tooltip 'Copy to clipboard' before", s["tooltip"], "Copy to clipboard")
+        page.eq(f"link {n}: tooltip {COPY_TOOLTIP!r} before", s["tooltip"], COPY_TOOLTIP)
         page.expect(f"link {n}: clipboard icon before", s["clipboard"] and not s["check"], **s)
         page.eq(f"link {n}: the icon's label", s["label"], COPY_LABEL, **s)
         expect_name(page, f"link {n}: the button's computed name is the icon's label before", link, COPY_LABEL)
@@ -535,10 +570,11 @@ def copy_button(page):
         page.eq(f"link {n}: copied once", len(s["copied"]), 1, copied=s["copied"])
         page.eq(f"link {n}: copied the block's code", s["copied"][0]["text"], code, via=s["copied"][0]["via"])
         page.url_kept(f"link {n}: URL unchanged", url)
-        page.wait(f"link {n}: reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && "
-                  "arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9' && window.__bhCopy.length >= 3", 2.5, args=(link,))
+        page.wait(f"link {n}: reverted", "arguments[0].getAttribute('data-tooltip') === arguments[1] && "
+                  "arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9' && window.__bhCopy.length >= 3", 2.5,
+                  args=(link, COPY_TOOLTIP))
         tl = page.js("return window.__bhCopy")
-        page.eq(f"link {n}: the steps", [x[1:] for x in tl], [["click"], ["Copied", "check"], ["Copy to clipboard", "clipboard"]],
+        page.eq(f"link {n}: the steps", [x[1:] for x in tl], [["click"], ["Copied", "check"], [COPY_TOOLTIP, "clipboard"]],
                 timeline=tl)
         page.expect(f"link {n}: 'Copied' within 100 ms", tl[1][0] - tl[0][0] <= 100, timeline=tl)
         page.expect(f"link {n}: reverts 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
@@ -548,10 +584,10 @@ def copy_button(page):
 
 @check("copy-button-repeat", "/docs#modal")
 def copy_button_repeat(page):
-    """Repeated use of a copy control, as Code.jsx behaves (every click schedules its own 1 s revert,
-    and the first one to fire reverts): two clicks 500 ms apart copy the block's code twice, and
-    "Copied" reverts to "Copy to clipboard" with ⧉ once, 1 s after the FIRST click (900
-    to 1200 ms), with no other step; the control then does not hold focus."""
+    """Repeated use of a copy control (one revert timer per button, restarted by every copy): two
+    clicks 500 ms apart copy the block's code twice, and "Copied" reverts to the button's own
+    tooltip, "Copy code", with ⧉ once, 1 s after the LAST click (900 to 1200 ms), with no other
+    step; the control then does not hold focus."""
     page.js(COPY_SPY)
     link = page.find_all("button[data-copy-link]")[0]
     code = page.js("return arguments[0].parentElement.querySelector('pre code').textContent", link)
@@ -559,17 +595,64 @@ def copy_button_repeat(page):
     page.click(link)
     page.sleep(0.5)
     page.click(link)
-    page.wait("reverted", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9'",
-              3, args=(link,))
+    page.wait("reverted", "arguments[0].getAttribute('data-tooltip') === arguments[1] && arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9'",
+              3, args=(link, COPY_TOOLTIP))
     page.sleep(0.8)   # a later, wrong revert or step would show by now
     tl = page.js("return window.__bhCopy")
     copies = page.js("return window.__bhCopied")
     page.eq("two clicks copy twice, the block's code each time", [c["text"] for c in copies], [code, code])
     page.eq("the steps: click, Copied, click, one revert", [x[1:] for x in tl],
-            [["click"], ["Copied", "check"], ["click"], ["Copy to clipboard", "clipboard"]], timeline=tl)
-    page.expect("it reverts 1 s after the first click", 900 <= tl[3][0] - tl[0][0] <= 1200, ms_after_first=tl[3][0] - tl[0][0],
+            [["click"], ["Copied", "check"], ["click"], [COPY_TOOLTIP, "clipboard"]], timeline=tl)
+    page.expect("it reverts 1 s after the last click", 900 <= tl[3][0] - tl[2][0] <= 1200, ms_after_last=tl[3][0] - tl[2][0],
                 timeline=tl)
     page.eq("blurred after reverting", page.js(COPY_STATE, link)["focused"], False)
+
+
+# A clipboard that refuses every write, as the browser's does when the page lacks permission: each
+# call is recorded with its text, and its promise rejects. With arguments[0] true there is no
+# navigator.clipboard at all, as on an insecure origin (an http LAN preview).
+COPY_REFUSED = r"""
+window.__bhRefused = window.__bhRefused || [];
+if (arguments[0]) Object.defineProperty(navigator, "clipboard", {value: undefined, configurable: true});
+else navigator.clipboard.writeText = (t) => { __bhRefused.push(String(t)); return Promise.reject(new DOMException("refused", "NotAllowedError")); };
+return navigator.clipboard === undefined;
+"""
+
+
+@check("copy-failed", "/docs#modal")
+def copy_failed(page):
+    """A copy that fails says so (site.js, Copy buttons): with a clipboard whose writeText rejects,
+    a click on the first copy button tries to write exactly its block's code, and within 100 ms
+    the tooltip reads "Copy failed" with the copy icon ⧉ kept (no check ✓) and the status line
+    (`body > p.visually-hidden[role=status]`) says "Copy failed"; 1 s later (900 to 1500 ms) the
+    tooltip is the button's own "Copy code" again, with no other step. The button's computed name
+    stays "Copy code". With no navigator.clipboard at all (an insecure origin), a second click says
+    "Copy failed" again, and the status line, repeating its last message, says it with a no-break
+    space after it (U+00A0)."""
+    link = page.find_all("button[data-copy-link]")[0]
+    code = page.js("return arguments[0].parentElement.querySelector('pre code').textContent", link)
+    page.eq("the clipboard refuses", page.js(COPY_REFUSED, False), False)
+    page.js(COPY_TIMELINE, link)
+    page.click(link)
+    page.wait("the tooltip reads Copy failed", "arguments[0].getAttribute('data-tooltip') === 'Copy failed'", 1, args=(link,))
+    page.eq("it tried to write the block's code, once", page.js("return window.__bhRefused"), [code])
+    s = page.js(COPY_STATE, link)
+    page.expect("the copy icon stays, with no check", s["clipboard"] and not s["check"], **s)
+    expect_name(page, "the button's computed name is still the icon's label", link, COPY_LABEL)
+    page.eq("the status line says Copy failed", page.js(STATUS), "Copy failed")
+    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === arguments[1] && window.__bhCopy.length >= 3", 2.5,
+              args=(link, COPY_TOOLTIP))
+    tl = page.js("return window.__bhCopy")
+    page.eq("the steps: click, Copy failed, its own tooltip", [x[1:] for x in tl],
+            [["click"], ["Copy failed", "clipboard"], [COPY_TOOLTIP, "clipboard"]], timeline=tl)
+    page.expect("'Copy failed' within 100 ms", tl[1][0] - tl[0][0] <= 100, timeline=tl)
+    page.expect("reverts 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
+    page.wait("the status line is empty again", "document.querySelector('body > p.visually-hidden[role=status]').textContent === ''", 1)
+    page.eq("no navigator.clipboard", page.js(COPY_REFUSED, True), True)
+    page.click(link)
+    page.wait("no clipboard: the tooltip reads Copy failed", "arguments[0].getAttribute('data-tooltip') === 'Copy failed'", 1, args=(link,))
+    page.expect("no clipboard: the copy icon stays", page.js(COPY_STATE, link)["clipboard"])
+    page.eq("no clipboard: the status line repeats Copy failed, with a no-break space", page.js(STATUS), "Copy failed\u00A0")
 
 
 HTML_CLASSES = "return [...document.documentElement.classList].filter(c => c.startsWith('modal-is-')).sort().join(' ')"
@@ -1103,12 +1186,15 @@ window.__bhMarker = "kept";
 def example_forms(page):
     """No example form navigates: for every form in the route's content, Enter in each enabled
     text-like input (text, email, password, search, tel, url, number, date) and a click on each
-    enabled submit button leave the URL and the document as they were (a marker set on window
-    survives, so nothing reloaded), and any submit event they cause is canceled. The browser's own
-    rules decide whether Enter submits at all (implicit submission: Chrome never submits a form
-    with several text fields and no submit button, Firefox may) and whether validation stops a
-    submission; the check only asks that none goes through."""
-    try_example_forms(page, canceled=True)
+    enabled submit button leave the URL, the history and the document as they were (a marker set
+    on window survives, so nothing reloaded). No script cancels the submit: every example form has
+    method="dialog" (static criterion 9), whose submit does nothing outside a <dialog>, so with
+    JavaScript on the forms behave as example-forms-nojs holds them without it; the note counts the
+    submit events and how many a handler canceled. The browser's own rules decide whether Enter
+    submits at all (implicit submission: Chrome never submits a form with several text fields and no
+    submit button, Firefox may) and whether validation stops a submission; the check only asks that
+    none goes through."""
+    try_example_forms(page)
 
 
 @check("example-forms-nojs", ("/", "/docs#forms", "/docs#group", "/docs#color-schemes", "/docs#theme-picker"),
@@ -1119,28 +1205,30 @@ def example_forms_nojs(page):
     has method="dialog" (static criterion 9), whose submit does nothing outside a <dialog>. No
     script cancels anything here, so the check asks only that the URL, the history and the document
     stay as they were."""
-    try_example_forms(page, canceled=False)
+    try_example_forms(page)
 
 
-def try_example_forms(page, canceled):
+def try_example_forms(page):
     """Enter in every text-like field and a click on every submit button of the route's example
-    forms; none may navigate. canceled: every submit event must also have been canceled."""
+    forms; none may navigate."""
     forms = page.js(FORM_FIELDS)
     page.expect("the page has example forms", len(forms) > 0)
     page.js(SUBMIT_SPY)
     url = page.url()
-    tried, events = 0, 0
+    tried, events, canceled = 0, 0, 0
 
     def after(label):
+        nonlocal canceled
         page.sleep(0.5)
         try:
             st = page.js("return {marker: window.__bhMarker, url: location.pathname + location.search + location.hash,"
                          " submits: window.__bhSubmits}")
         except Exception as e:   # the document went away: a submission navigated
             page.expect(label, False, error=f"{type(e).__name__}: {str(e).splitlines()[0][:200]}")
-        page.expect(label, st["marker"] == "kept" and (not canceled or all(st["submits"] or [True])), **st)
+        page.expect(label, st["marker"] == "kept", **st)
         page.url_kept(label, url)
         page.js("window.__bhSubmits.length = 0")
+        canceled += sum(1 for x in st["submits"] if x)
         return len(st["submits"])
 
     for f in forms:
@@ -1154,7 +1242,7 @@ def try_example_forms(page, canceled):
             events += after(f"form {f['i']}: its {name!r} button does not navigate")
             tried += 1
     page.expect("something was submitted", tried > 0, tried=tried)
-    page.note(f"{len(forms)} forms, {tried} submissions tried, {events} submit events" + (" (all canceled)" if canceled else ""))
+    page.note(f"{len(forms)} forms, {tried} submissions tried, {events} submit events, {canceled} of them canceled")
 
 
 # -- the controls that are buttons, and the off-canvas menu's inert page --------------------------
@@ -1164,8 +1252,8 @@ def try_example_forms(page, canceled):
 def theme_toggle_button(page):
     """The header's color-scheme toggle is a <button type="button"> with no href
     (`button[data-scheme-toggle]`): Tab from the header's GitHub link reaches it; Space turns the
-    page dark (data-theme="dark") and Enter light again, with no navigation (URL and history
-    kept), and it reads "Turn on dark mode" after."""
+    page dark (data-theme="dark") and Enter light again, back to the OS's scheme with no data-theme,
+    with no navigation (URL and history kept), and it reads "Turn on dark mode" after."""
     gh = "body > header nav ul.icons a[aria-label='GitHub repository']"
     t = "body > header nav ul.icons button[data-scheme-toggle]"
     r = page.js("const b = document.querySelector(arguments[0]); return b && [b.getAttribute('type'), b.hasAttribute('href')]", t)
@@ -1179,7 +1267,7 @@ def theme_toggle_button(page):
     page.key(" ")
     page.wait("Space: dark", "document.documentElement.getAttribute('data-theme') === 'dark'", 1.5)
     page.key("ENTER")
-    page.wait("Enter: light", "document.documentElement.getAttribute('data-theme') === 'light'", 1.5)
+    page.wait("Enter: light, the OS's, with no data-theme", "!document.documentElement.hasAttribute('data-theme')", 1.5)
     page.url_kept("no navigation", url)
     wait_label(page, "Turn on dark mode")
 
@@ -1278,7 +1366,7 @@ PRE_FOCUS = r"""
 const p = arguments[0], lang = (p.querySelector("code").className.match(/\blanguage-([\w-]+)/) || [])[1];
 return {overflows: p.scrollWidth > p.clientWidth || p.scrollHeight > p.clientHeight,
         attrs: [p.getAttribute("tabindex"), p.getAttribute("role"), p.getAttribute("aria-label")],
-        name: ({html: "HTML", css: "CSS", scss: "SCSS", bash: "Bash"}[lang] || "Example") + " code"};
+        name: ({html: "HTML", css: "CSS", bash: "Bash"}[lang] || "Example") + " code"};
 """
 
 
@@ -1303,9 +1391,11 @@ def copy_keyboard(page):
     """The copy buttons are in the tab order: Tab from the focusable element before the route's first
     copy button (on /examples the last one in the mockup before it) reaches it; Enter copies the
     block's `pre code` text, the tooltip and the visually hidden status line (`body >
-    p.visually-hidden[role=status]`) read "Copied", and 1 s later the tooltip reads "Copy to
-    clipboard", the status line is empty and keyboard focus is still on the button; Space copies
-    again. Then the block's <pre> is a tab stop only when its code overflows it (site.js, Code
+    p.visually-hidden[role=status]`) read "Copied", and 1 s later the tooltip reads the button's
+    own "Copy code", the status line is empty and keyboard focus is still on the button; Space
+    copies again, and the status line says "Copied" with a no-break space after it (U+00A0), since
+    a message that repeats the one before it is written so, for a screen reader that skips a
+    repeat. Then the block's <pre> is a tab stop only when its code overflows it (site.js, Code
     block focus): a block that does not overflow has no tabindex, role or aria-label, and Tab moves
     past it to the next control, after the block in document order; a block that overflows has
     tabindex="0", role="figure" and aria-label "<language> code" ("HTML code"), and Tab moves to
@@ -1339,14 +1429,17 @@ def copy_keyboard(page):
     page.eq("Enter: the block's code", s["copied"][0]["text"], code)
     page.eq("Enter: the tooltip reads Copied", s["tooltip"], "Copied")
     page.eq("the status line says Copied", page.js(STATUS), "Copied")
-    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard' && arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9'",
-              2, args=(btn,))
+    page.wait("it reverts", "arguments[0].getAttribute('data-tooltip') === arguments[1] && arguments[0].querySelector(':scope > span[role=img]')?.textContent === '\\u29C9'",
+              2, args=(btn, COPY_TOOLTIP))
     page.sleep(0.2)
     page.eq("keyboard focus stays on the button", page.js(COPY_INFO, btn)["focused"], True)
     page.eq("the status line is empty again", page.js(STATUS), "")
     page.key(" ")
     page.wait("Space copies", "window.__bhCopied.length === 2", 1)
-    page.wait("it reverts again", "arguments[0].getAttribute('data-tooltip') === 'Copy to clipboard'", 2, args=(btn,))
+    page.wait("the status line says the repeat as Copied and a no-break space",
+              "document.querySelector('body > p.visually-hidden[role=status]')?.textContent === 'Copied\\u00A0'", 0.5,
+              got=page.js(STATUS))
+    page.wait("it reverts again", "arguments[0].getAttribute('data-tooltip') === arguments[1]", 2, args=(btn, COPY_TOOLTIP))
     pre = page.js("return arguments[0].parentElement.querySelector('pre')", btn)
     fit = expect_pre_focus(page, "the block", pre)
     page.key("TAB")

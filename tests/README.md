@@ -103,8 +103,8 @@ Options: `--target` (required), `--groups`, `--checks` (names), `--browsers` (de
 `--ready static|none` (the target's hook by default), `--workers chrome=2,firefox=2` (sessions per
 browser, 1 by default), `--run-id`, `--label` (stored in `result.json`), `--no-shots` and `--list`.
 The groups, in order: shell, one-page, getting-started, customization, layout, content, forms,
-components-a, components-b, landing, examples and loads. On 2026-11-09 the suite holds 132 checks
-over 182 check-routes: 364 runs in Chrome and Firefox (`--list` prints the count).
+components-a, components-b, landing, examples and loads. On 2026-11-10 the suite holds 136 checks
+over 186 check-routes: 372 runs in Chrome and Firefox (`--list` prints the count).
 
 **How a check runs.** A check drives a top-level document directly, so the URL, history, focus,
 storage events between tabs and resizes are the browser's own. Each browser runs headless (timers
@@ -203,7 +203,8 @@ page); visible, with one worker.
   are reported as never run, and the run fails.
 - WebDriver cannot turn JavaScript off there, so the checks with JavaScript off are skipped
   (`javascript:off`): `nojs-deep-link`, `nojs-focus`, `nojs-focus-small`, `nojs-menu`,
-  `nojs-menu-small`, `color-grid-nojs`, `femto-block-nojs` and `examples-nojs`.
+  `nojs-menu-small`, `color-grid-nojs`, `femto-block-nojs`, `examples-nojs` and
+  `examples-dialog-nojs`.
 - Safari has no WebDriver BiDi: the viewport is sized through the window (a size its window cannot
   give fails the check); a check that needs a preload script is skipped (`preload`:
   `color-scheme-flash`, `examples-first-frame`, `examples-first-frame-cold`), except
@@ -267,23 +268,24 @@ light OS and nothing stored unless the table says otherwise.
 
 | Group | Check | Routes | Asserts |
 |---|---|---|---|
-| shell | `theme-toggle` | `/`, `/docs#typography` | No `data-theme` and nothing stored at first; the header toggle reads "Turn on dark mode" with ☀️. A click sets `data-theme="dark"`, stores `'"dark"'`, relabels "Turn off dark mode" with 🌙, URL unchanged; a second click gives light the same way. |
-| shell | `theme-toggle-dark-os` | `/docs` (dark OS) | The toggle follows the OS with no `data-theme`; a click stores `'"light"'`, the next `'"dark"'`. |
-| shell | `theme-toggle-keyboard` | `/`, `/docs#typography` | Enter on the focused toggle gives dark and again light, with no navigation. |
+| shell | `theme-toggle` | `/`, `/docs#typography` | No `data-theme` and nothing stored at first; the header toggle reads "Turn on dark mode" with ☀️. A click sets `data-theme="dark"`, stores `'"dark"'`, relabels "Turn off dark mode" with 🌙, URL unchanged; a second click, back to the OS's light, removes the stored choice and `data-theme` and restores the label and ☀️. |
+| shell | `theme-toggle-dark-os` | `/docs` (dark OS) | The toggle follows the OS with no `data-theme`; a click stores `'"light"'`, and the next, back to the OS's dark, removes it and `data-theme`. |
+| shell | `theme-toggle-keyboard` | `/`, `/docs#typography` | Enter on the focused toggle gives dark, and again the OS's light with nothing stored and no `data-theme`, with no navigation. |
 | shell | `theme-os-live` | `/`, `/docs#table` | With nothing stored, a live switch of the OS scheme relabels the toggle and gives the homepage's femto off and on block the OS's color-scheme, or flips the inverse thead; nothing written. Skipped in Safari. |
 | shell | `theme-stored-dark` | `/`, `/docs#button` (stored dark) | A stored choice wins over a light OS. |
-| shell | `theme-stored-light` | `/docs#button` (dark OS, stored light) | `data-theme="light"`; a click stores dark. |
+| shell | `theme-stored-light` | `/docs#button` (dark OS, stored light) | `data-theme="light"`; a click, to the OS's dark, removes the stored choice and `data-theme`. |
 | shell | `theme-stored-invalid` | `/docs#table` (dark OS, stored `'"blue"'`) | A stored value other than light or dark is ignored and left in storage: no `data-theme`, the page follows the OS. |
-| shell | `theme-color-meta` | `/`, `/docs#table` (stored dark) | The two theme-color metas hold femto's light and dark backgrounds, `#fff` and `rgb(19, 22.5, 30.5)`, with their `prefers-color-scheme` media; a stored choice applies its own scheme's meta (media `all`, the other `not all`), the toggle swaps them, and removing the stored item in another tab gives both their media back. |
-| shell | `theme-cross-tab` | `/docs#typography`, a tab on `/` | A toggle in one tab reaches the other without a reload; removing the stored item removes `data-theme` there. |
+| shell | `theme-color-meta` | `/`, `/docs#table` (stored dark) | The two theme-color metas hold femto's light and dark backgrounds, `#fff` and `rgb(19, 22.5, 30.5)`, with their `prefers-color-scheme` media; a stored choice applies its own scheme's meta (media `all`, the other `not all`); the toggle to the OS's light removes the choice and gives both their media back, and a second click stores dark again; a light choice stored in another tab swaps them, and removing it there gives both their media back. |
+| shell | `theme-cross-tab` | `/docs#typography`, a tab on `/` | A toggle in one tab reaches the other without a reload, and so does a second toggle, back to the OS's light, which removes the stored item and with it `data-theme` there; a light choice stored, then removed, in one tab does the same in the other. |
 | shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Seen from a preload script, `data-theme` appears while the head is parsed, before the first paint, and the first frame sees it. Skipped in Safari. |
 | shell | `header-fixed` | `/docs#modal` | `body > header` (`is-fixed-above-lg`) is sticky: its top is 0 at the top and scrolled to 21, 600, 0 and 300 px; its bottom border (femto's muted border color) is drawn and the same everywhere; its class never changes. |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled 600 px, and scrolls away with the page. |
 | shell | `print-light` | `/`, `/docs#colors`, `/examples` (stored dark) | Print is light, and the controls that only work on screen have no box (PLAN.md Rules, CSS: In print), the Theme picker's swatches with their sentence and option switches, the Color schemes switcher, Grid's Add and Remove column, Typography's rem switch, the Modal demo's opener and the Colors palette's help among them (Chrome's print media emulated over CDP, with the OS light and then dark; Firefox has no way to emulate it, so there only the print below runs); on `/docs` every example's code footer and every standalone code block prints white, and the Colors swatches and the Themes dots keep `print-color-adjust: exact`; on `/examples` every inner and nested host is light with no `data-theme`, and a real WebDriver Print takes `data-theme` off the hosts and gives it back. Skipped in Safari. |
 | shell | `print-light-os-dark` | `/docs#colors` (dark, nothing stored) | The same print assertions as `print-light` on `/docs`, with a dark OS and no stored choice. Chrome only (Firefox records a note); skipped in Safari. |
 | shell | `reflow-320` | `/`, `/docs`, `/examples`, `/does-not-exist` (320 × 640) | No page is wider than the viewport (`<html>`'s scrollWidth is its clientWidth), and no element, open shadow roots included, ends past the viewport's right edge outside a box that scrolls or clips it (WCAG 1.4.10). |
-| shell | `copy-button` | `/docs`, `/docs#modal` | The first and last copy buttons copy their block's text; "Copied" with ✓ within 100 ms, back to ⧉ 900 to 1500 ms later; the button's computed name is "Copy code" throughout (owner decision 17). |
-| shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice and revert once, 900 to 1200 ms after the first. |
+| shell | `copy-button` | `/docs`, `/docs#modal` | The first and last copy buttons, whose tooltip is "Copy code", the words of their name, copy their block's text; "Copied" with ✓ within 100 ms, back to the button's own tooltip with ⧉ 900 to 1500 ms later; the button's computed name is "Copy code" throughout (owner decision 17). |
+| shell | `copy-button-repeat` | `/docs#modal` | Two clicks 500 ms apart copy twice and revert once, 900 to 1200 ms after the last (one timer per button, restarted by every copy). |
+| shell | `copy-failed` | `/docs#modal` | With a clipboard that refuses the write, a click tries to write the block's code and reads "Copy failed" with ⧉ kept, the status line says "Copy failed", and the tooltip is the button's own again 900 to 1500 ms later; with no `navigator.clipboard` at all, a second click fails the same way, the status line repeating its message with a trailing U+00A0. |
 | shell | `modal-helper` | `/docs#modal` | `modal-is-opening` then `modal-is-open` 350 to 700 ms later; Escape closes the same way. |
 | shell | `modal-scrollbar-width` | `/docs#modal` (classic scrollbars) | While open, `--femto-scrollbar-width` is the scrollbar's width and the page keeps its left edge. Skipped in Safari. |
 | shell | `modal-two-dialogs` | `/docs#modal` (classic scrollbars) | One modal helper per dialog (PLAN.md Rules): Modal's demo is a true modal with the page inert; a script opening the color modal hides the demo at once, with one holder of `<html>`'s classes; Escape clears them. |
@@ -294,11 +296,11 @@ light OS and nothing stored unless the table says otherwise.
 | shell | `mobile-menu-link` | `/docs#modal` (375 × 812) | Following Grid in the open menu closes it, with one new entry; back returns to `/docs#modal` in the same document. |
 | shell | `breadcrumb-sticky` | `/docs#modal` (375 × 812) | Sticky at `top: -1px`: from its natural top it moves with the page until it sticks, then stays; its bottom border is drawn and the same everywhere; its class never changes. |
 | shell | `breadcrumb-chapter` | 7 docs routes (375 × 812) | The breadcrumb reads "Documentation > <category> > <section>": after the Documentation button (it opens the menu), the items name the route's category and its section (the h1's text). Below 576 px the button shows ☰ alone, its computed name still "Documentation"; at 700 px the label shows. |
-| shell | `example-forms` | `/docs#forms`, `#group`, `#color-schemes`, `#theme-picker` | Enter in every text-like input and a click on every submit button: no navigation, every submit canceled. |
+| shell | `example-forms` | `/docs#forms`, `#group`, `#color-schemes`, `#theme-picker` | Enter in every text-like input and a click on every submit button: no navigation, URL, history and document kept. No script cancels the submits: `method="dialog"` stops them (the note counts any a handler canceled). |
 | shell | `example-forms-nojs` | `/`, `/docs#forms`, `#group`, `#color-schemes`, `#theme-picker` | The same with the page's JavaScript off (skipped in Safari): no navigation, since every example form has `method="dialog"`. |
-| shell | `theme-toggle-button` | `/`, `/does-not-exist` | The toggle is a `<button type="button">`; Tab from the GitHub link reaches it; Space gives dark and Enter light. |
+| shell | `theme-toggle-button` | `/`, `/does-not-exist` | The toggle is a `<button type="button">`; Tab from the GitHub link reaches it; Space gives dark and Enter the OS's light again, with no `data-theme`. |
 | shell | `mobile-menu-inert` | `/docs#modal` (375 × 812) | While open, everything outside the menu is inert and Tab stays in it; Escape, a nav link and a resize to 1300 all leave nothing inert. |
-| shell | `copy-keyboard` | `/docs#button`, `/examples` | Tab reaches the first copy button; Enter and Space copy, with the tooltip and the `role=status` line reading "Copied" and focus kept. A block's `<pre>` is a tab stop only when its code overflows. The element before the button is looked for inside open shadow roots too, since on `/examples` the button follows its mockup's shadow root. |
+| shell | `copy-keyboard` | `/docs#button`, `/examples` | Tab reaches the first copy button; Enter and Space copy, with the tooltip and the `role=status` line reading "Copied" and focus kept, the tooltip back to "Copy code" after each; Space's copy repeats the status line's last message, so it ends in U+00A0. A block's `<pre>` is a tab stop only when its code overflows. The element before the button is looked for inside open shadow roots too, since on `/examples` the button follows its mockup's shadow root. |
 | shell | `pre-scroll-keyboard` | `/docs` (375 × 812) | Quick start's first overflowing code block is a figure in the tab order with a `:focus-visible` inset ring, and Right arrow scrolls it. |
 | one-page | `spy-deep-link` | `/docs#input` | The fragment scroll puts Input's heading on its line in one jump; the nav's one current link is `#input`, Forms open, the breadcrumb Forms > Input, the title "Input • femto". |
 | one-page | `spy-deep-link-small` | `/docs#input` (375 × 812) | The same under the sticky breadcrumb. |
@@ -329,7 +331,7 @@ light OS and nothing stored unless the table says otherwise.
 | getting-started | `picker-unknown-theme` | `/docs?theme=bogus#theme-picker`, `/docs?theme=JADE#theme-picker` | The picker ignores an unknown theme as the head script does. |
 | getting-started | `picker-popstate` | `/docs#theme-picker` | Back and forward between swatch choices restore each theme in the same document. |
 | getting-started | `picker-links` | `/docs#theme-picker` | Links to `#theme-picker` from the side menu and the footer keep `?theme=` and the options. |
-| getting-started | `color-schemes-toggle` | `/docs#color-schemes` | The section's switcher and the header toggle drive each other. |
+| getting-started | `color-schemes-toggle` | `/docs#color-schemes` | The section's switcher and the header toggle drive each other; the switcher's second click, back to the OS's light, removes the stored choice and `data-theme`. |
 | customization | `color-modal-open` | `/docs#colors` | Red 500 opens one `dialog.color` with its names and five values; Escape closes; Slate's header opens slate 600. |
 | customization | `color-modal-arrows` | `/docs#colors` | The arrow keys step shades and families, wrapping at both ends. |
 | customization | `color-modal-close` | `/docs#colors` | The modal, a true modal (`:modal`), closes on its close button, a backdrop click and Escape; a click inside does not. |
@@ -342,8 +344,8 @@ light OS and nothing stored unless the table says otherwise.
 | customization | `palette-download` | `/docs#colors` | The Download link points at a same-origin JSON file of the vendored `femto.colors.css`'s palette (20 × 19), byte for byte. The modal checks take their hex and RGB values from that file too; only the color names are the site's own. |
 | customization | `color-modal-tab-cycle` | `/docs#colors` | Tab goes from the close button through the five copy buttons, each named by its icon's label alone; Enter copies, and the page's one status region says Copied from inside the dialog, where site.js moves it while the dialog is shown (in Chrome, CDP `Accessibility.getPartialAXTree` has it as a status, not ignored), and is back in `<body>` after the close; Tab past the last never reaches the inert page (focus stays in the dialog or leaves the document) and comes back in. |
 | customization | `color-grid-tab` | `/docs#colors` | Each family's shades are a `role=toolbar` named by the family, with one Tab stop (its 50 at first); Tab visits the 20 families' stops and leaves the grid, and Shift+Tab comes back the same way. |
-| customization | `color-grid-arrows` | `/docs#colors` | With a swatch focused, the arrows step as the modal's do, wrapping; Home and End go to the family's ends; each key's default is cancelled; the swatch reached is its family's stop and draws a ring with 3:1 contrast against it; each family keeps its own stop; in forced colors (Chrome) the focused swatch shows an outline. |
-| customization | `color-grid-ring-dark` | `/docs#colors` (dark OS) | Every swatch the keyboard reaches at 50 and at 950 in the 20 families draws a ring with 3:1 contrast against it. |
+| customization | `color-grid-arrows` | `/docs#colors` | With a swatch focused, Right and Left move within its family, wrapping at its ends, and Home and End go to them; each of those keys' default is cancelled; the swatch reached is its family's stop and draws a ring with 3:1 contrast against it. Down and Up are not handled (a horizontal toolbar): their default is kept and focus stays. Each family keeps its own stop, reached by Tab and Shift+Tab; in forced colors (Chrome) the focused swatch shows an outline. |
+| customization | `color-grid-ring-dark` | `/docs#colors` (dark OS) | Every swatch the keyboard reaches at 50 and at 950 in the 20 families, each family's 50 by Tab and its 950 by End, draws a ring with 3:1 contrast against it. |
 | customization | `color-grid-modal` | `/docs#colors` | Enter and Space open the modal on the focused shade; closing gives focus to the swatch of the color shown last (after the modal's arrows too), which becomes its family's stop; a family header opens its main shade. |
 | customization | `color-grid-nojs` | `/docs#colors` (JavaScript off) | The markup's 380 shade buttons, each a Tab stop, with no toolbar role or name added. Skipped in Safari. |
 | layout | `grid-columns` | `/docs#grid` | Add and Remove column, from 4 up to 10 and down to 1: the columns, the code and its highlighting (the model `tokens_for`, on load too) follow. |
@@ -368,6 +370,7 @@ light OS and nothing stored unless the table says otherwise.
 | landing | `demo-offscreen` | `/` | The demo pauses off screen and resumes on screen. |
 | landing | `demo-pause` | `/` | The Pause button, shown once demo.js runs, stops the demo and the cursor's blink, and Play resumes them. |
 | landing | `demo-reduced-motion` | `/` (reduced motion) | The demo starts paused at its first phase; Play starts it. |
+| landing | `demo-inert` | `/` | The demo's form is inert with no `tabindex` in it, on load and once more controls show: each control refuses focus, and in Chrome the input is ignored in the accessibility tree; Pause sits outside the form. |
 | landing | `hero-link-copy` | `/` | The hero's one code block is Quick start's @3 jsDelivr `<link>` line; its copy button, named "Copy code", copies exactly it. |
 | landing | `femto-switch` | `/` | The femto off and on block: two declarative shadow roots, femto's link first and alone in the inner one, the markup after it the code sample's, with no class; the `role=switch` "femto", shown by demo.js, turns femto off in the block alone and on again; URL kept, nothing stored. |
 | landing | `femto-switch-keyboard` | `/` | Tab from Pause reaches the switch, which in forced colors (Chrome) shows an outline; Space turns femto off and on, with focus kept. |
@@ -380,21 +383,23 @@ light OS and nothing stored unless the table says otherwise.
 | examples | `examples-isolation` | `/examples` | Every mockup element has the computed styles of a femto-only document around the same markup in the same shadow roots: every property, and each of femto's tokens read by name (Rig notes, Firefox), with running CSS animations paused at their start on both sides. No site CSS reaches in. |
 | examples | `examples-isolation-dark` | `/examples` (dark OS) | The same, dark. |
 | examples | `examples-isolation-stored` | `/examples` (stored dark) | Every inner host, and every shadow host inside one, has `data-theme="dark"`, and the styles match. |
-| examples | `examples-scheme` | `/examples` | The inner hosts, and the All theme colors example's 20 nested hosts, follow `<html>`'s `data-theme`. |
-| examples | `examples-forms` | `/examples` | Every mockup form's submit is canceled. |
+| examples | `examples-scheme` | `/examples` | The inner hosts, and the All theme colors example's 20 nested hosts, follow `<html>`'s `data-theme`: dark with the toggle, and none again, light, when it goes back to the OS's light. |
+| examples | `examples-forms` | `/examples` | A click on every mockup form's submit button and Enter in the search field each submit once, with no navigation: no script cancels them, and `method="dialog"` stops them. |
 | examples | `examples-forms-nojs` | `/examples` | With the page's JavaScript off (skipped in Safari), a click on every mockup form's submit button and Enter in the search field: no navigation, since every mockup form has `method="dialog"`. |
 | examples | `examples-links` | `/examples` | Every visible mockup link goes nowhere. |
 | examples | `examples-deep-link` | `/examples#every-element`, `#sign-in`, `#dashboard` | A link to an example lands its section a femto spacing below the viewport's top (`--femto-spacing`, its `scroll-margin-top` in examples.css), within 1 px, with its chapter label clear of the top edge; at the page's end a section may sit lower (noted). The URL keeps the hash. |
 | examples | `examples-deep-link-small` | the same (375 × 812) | The same, where a femto spacing is smaller (16 px against 20). |
 | examples | `examples-dialog` | `/examples` | The confirmation dialog opens as a modal and every way of closing it returns focus to the opener. |
+| examples | `examples-dialog-nojs` | `/examples` (JavaScript off) | Both mockup dialogs open as modals from their openers and close from each of their three closers through `command` and `commandfor` alone. Skipped in Safari. |
 | examples | `examples-dropdown` | `/examples` | The Account dropdown opens and closes on a click outside. |
 | examples | `examples-fit` | `/examples` (375 × 812) | Nothing scrolls sideways or leaves its frame. |
 | examples | `examples-first-frame` | `/examples` (stored dark) | The first frame with the mockups shows them dark with femto applied. Skipped in Safari. |
 | examples | `examples-first-frame-cold` | `/examples` (cold) | The same with the cache emptied. Skipped in Safari. |
 | examples | `examples-fold` | `/examples` | Each example's children are its header, its mockup and one closed `<details>`, whose summary reads "HTML" and whose `div.code` is not rendered while closed; the first and last open on a click, and their copy buttons copy exactly the sample. |
 | examples | `examples-nojs` | `/examples` (JavaScript off) | Every example renders from its declarative roots with femto applied, each sample folded, and the theme select and the Copy as page buttons are not rendered. Skipped in Safari. |
-| examples | `examples-copy-page` | `/examples` | Each Copy as page button copies exactly its sample in Quick start's starter template (read from `/docs`: the h2 for the title, `/vendor/femto/` paths as the template's jsDelivr ones), with jade's theme link after femto when jade is chosen; it reads "Copied" within 100 ms and "Copy as page" 900 to 1500 ms later, at the same width, and the page's one status region says Copied, then nothing. Its timed last copy starts once the status region is empty again, 1 s after the copy before it. |
-| examples | `copy-announce-twice` | `/examples` | Two copies 500 ms apart are both announced: the Sign in example's code copy button (site.js), then its Copy as page button (examples.js), which share the page's one status region (`body > p.visually-hidden[role=status]`). Timed in the page with a MutationObserver on the region: Copied within 100 ms of the first click; within 100 ms of the second it is emptied and says Copied again; it is emptied once more, 900 to 1500 ms after the second click, not 1 s after the first. |
+| examples | `examples-copy-page` | `/examples` | Each Copy as page button copies exactly its sample in Quick start's starter template (read from `/docs`: the h2 for the title, `/vendor/femto/` paths as the template's jsDelivr ones), with jade's theme link after femto when jade is chosen; it reads "Copied" within 100 ms and "Copy as page" 900 to 1500 ms later, at the same width, and the page's one status region says Copied (ending in U+00A0 every other copy, as each repeats the one before), then nothing. Its timed last copy starts once the status region is empty again, 1 s after the copy before it. |
+| examples | `examples-copy-page-failed` | `/examples` | With a clipboard that refuses the write, Copy as page tries once and reads "Copy failed" within 100 ms and "Copy as page" 900 to 1500 ms later, at the same width, the status region saying "Copy failed" too; with no `navigator.clipboard`, a second click fails the same way. |
+| examples | `copy-announce-twice` | `/examples` | Two copies 500 ms apart are both announced: the Sign in example's code copy button (site.js), then its Copy as page button (examples.js), which share the page's one status region (`body > p.visually-hidden[role=status]`). Timed in the page with a MutationObserver on the region: Copied within 100 ms of the first click; within 100 ms of the second it is emptied and says "Copied" and a no-break space (U+00A0), since a screen reader such as VoiceOver skips a message that repeats the one before it; it is emptied once more, 900 to 1500 ms after the second click, not 1 s after the first. |
 | examples | `examples-theme` | `/examples` | The select offers femto's 20 colors in the Theme picker's order (read from `/docs`), azure selected, each labeled with its name capitalized; a choice links its theme right after femto in every inner root, one theme link a root, and azure removes it; the page and the All theme colors roots keep their own; no `?theme=` and no new entry (Decision 8). |
 | examples | `examples-newer` | `/examples` | The index links every example in page order; the five examples added on 2026-11-09 (`every-element`, `all-themes`, `checkout`, `landing-page`, `docs-layout`) hold what they show; Every element's modal opens and closes as a modal; All theme colors has 20 roots, one per theme file, each with a light and a dark card. |
 | loads | `same-origin-loads` | `/`, `/docs`, `/docs?theme=jade`, `/examples`, `/does-not-exist` (cold, request log) | Criterion 15: nothing loads from another origin (Criterion 15's run-time check, below). |
@@ -408,12 +413,12 @@ and may narrow with selectors under it (PLAN.md Rules). The hooks:
   `button[data-menu-close]`) and `nav[data-docs-breadcrumb]`, which holds the Documentation button
   `button[data-menu-open]` (☰ and `<span>Documentation</span>`, which docs.css hides visually below
   576 px), then the category, then the section, the last two written by docs.js;
-- docs.js's regions: `button[data-scheme-switcher]` (getting-started), `section[data-grid-example]`
-  (layout), `section[data-font-size-demo]`, `section[data-inverse-thead]` and
+- docs.js's regions: `section[data-grid-example]` (layout), `section[data-font-size-demo]`, `section[data-inverse-thead]` and
   `article[data-link-example]` (content), `article[data-indeterminate-example]` (forms),
   `article[data-dropdown-example]` (components-a) and `nav[data-nav-example]` (components-b);
 - site.js: `button[data-copy-link]` (named by `aria-labelledby` its icon's `copy-icon-<n>` id, which
-  site.js assigns), `button[data-scheme-toggle]`, `data-modal`, `data-modal-open`,
+  site.js assigns), the theme toggles `button[data-scheme-toggle]` (the header's) and
+  `button[data-scheme-switcher]` (the Color schemes section's), `data-modal`, `data-modal-open`,
   `data-modal-close`, and `pre[data-scroll-focus]`, which build.mjs writes on every highlighted
   `<pre>` and site.js reads to keep only a block that overflows in the tab order. site.js also keeps
   the page's one copy status region, `body > p.visually-hidden[role=status]` (at the end of the
@@ -556,7 +561,19 @@ arguments to `static_checks.main(argv)`.
     2026-11-31 and "next week". `dist/`, a trailing comma and comments holding quotes passed.
 - **5, Build output.** Two builds are byte-identical; `dist/` holds no copy of a partial or a section
   file, no per-route docs page, and no `_redirects`, `_routes.json` or `_worker.js` at any depth
-  (Decision 11), wherever the build copied it from.
+  (Decision 11), wherever the build copied it from. The build's copies (`build_copy_checks`; the
+  build strips comments from the site's own CSS and JavaScript, the owner, 2026-11-10): each
+  `site/assets/**/*.js` in `dist/` has its source's espree tokens, each on its source line, with no
+  comment left and the same line count; each `site/assets/**/*.css` parses with `@eslint/css-tree`
+  (`@eslint/css`'s parser) with no error and no comment, keeps its line count and generates the same
+  CSS as its source (`generate()` drops comments and normalizes whitespace). Every other file the
+  build copies from `site/` (all but `partials/`, `docs/`, dot paths and the four pages at the root),
+  `vendor/femto/` among them, is byte-identical to its source, and `dist/assets/` holds no CSS or JS
+  without a source. espree and `@eslint/css-tree` come with `eslint` and `@eslint/css` from
+  `node_modules`. On 2026-11-10 copies of `dist/` with a changed string, a planted comment and a
+  token moved to the next line in `site.js`, a changed value and a planted comment in the CSS, a
+  vendored file with one byte added, a missing `robots.txt` and an extra script each failed, with
+  the file named.
 - **6, URLs.** It starts `wrangler pages dev` on the build itself and probes every URL of PLAN's URL
   inventory: the pages and every `?theme=` color answer 200; `/docs/` and `/docs.html` 308; the old
   Remix docs routes, the 19 version-picker color routes, the 9 dropped routes, `/demo`,
@@ -576,7 +593,7 @@ arguments to `static_checks.main(argv)`.
   and a JSON report that parses and names only the files given); every rule the config turns off or
   changes needs a reason in a comment above or beside it. Ids across declarative shadow roots count
   page-wide; the section ids, their headings and the side nav. Also `structure_checks`: every link
-  in the Elements index's cells (`site/docs/sections/elements.html`) is `/docs#<id>` of a section in
+  in the Elements index's cells (`site/docs/sections/elements.html`) is `#<id>` of a section in
   `menu.json`. Every `section.example` in `site/examples.html` has exactly one direct, closed
   `<details>` holding `<summary>HTML</summary>` and `div.code` (`button[data-copy-link]`, `pre >
   code.language-html`) and nothing else, and a header with exactly one
@@ -586,7 +603,8 @@ arguments to `static_checks.main(argv)`.
   `tabindex`, `role` or `aria-label` (`colors.js` adds them at run time). The Media section's live
   `<pre>`s hold a `<code>` with no class and a `<samp>`, so the build never highlights them. Every
   live `<form>` in `site/` (a literal `<form`, since a code sample is escaped) has
-  `method="dialog"`, so no example form submits without JavaScript either.
+  `method="dialog"`, so no example form submits, with JavaScript or without: no script cancels a
+  submit.
 - **11, Lint.** The lint, its coverage and the forbidden syntax (Lint, below). Also
   `site_rule_checks`: no file in `site/assets/js` sets `role="group"` (read as tokens:
   `setAttribute("role", "group")`, `.role = "group"`, `{ role: "group" }`, or `role="group"` in a
@@ -627,9 +645,10 @@ arguments to `static_checks.main(argv)`.
     named as `<name>.css` in the docs page's main. (d) The `readme` keys in `site/docs/menu.json` (a
     string, or a list of strings) name every femto README H2 but Contributing and License, and each
     is the exact text of a README H2 or H3: the heading line after its `#`s, trimmed, closing `#`s
-    dropped, fenced code skipped, as `vendor.mjs` reads them. A section with neither `readme` nor
-    `title` names its file's h1: the migration section, so that "Migrating from Pico" stays out of
-    `menu.json` (criterion 14).
+    dropped, fenced code skipped, as `vendor.mjs` reads them. A section whose `readme` is `true`
+    names its file's h1: the migration section, so that "Migrating from Pico" stays out of
+    `menu.json` (criterion 14). A `readme` of any other kind, or `true` on a section file with no
+    h1, fails.
   - Each drift check was proven to fail on altered copies on 2026-11-09: 16 variants of the site and
     a scratch femto clone with a new theme, a new option, a new README H2 and a changed red 500.
   - **femto's facts** (`femto_fact_checks`), read at the vendored commit with git, each failure
@@ -726,6 +745,13 @@ uv run tests/static_checks.py --criteria links --external --dist /path/to/build 
   of the page). A fragment alone is looked up in the page that holds it, since the 404 page is
   served at every missing URL. An SVG `<use href="#id">` names an element of its own tree, shadow
   roots included. Code samples are text and are not read.
+- **The same tab** (`same_tab_checks`; PLAN.md Rules, Markup, the owner, 2026-11-10). The site's own
+  links to other origins (prose, header, footer, the edit links, the homepage's and `/examples`'
+  own) have no `target` and no `rel` `noopener` or `noreferrer`, so they open in the same tab.
+  Example markup that criterion 13 compares with its sample (a declarative shadow root, or a
+  `/docs` article whose last element is its `footer.code`) keeps what femto's examples have and is
+  not judged. A planted `target="_blank"` on an edit link and on the homepage's Baseline link both
+  failed on 2026-11-10.
 - **External links** are listed. With `--external` each distinct URL is fetched once (HEAD, then GET
   when HEAD fails, redirects followed, with a browser's User-Agent, since Figma and npm answer 403
   to a script's), and one that answers 400 or more, or not at all, fails, except one kind, which is
@@ -748,8 +774,10 @@ uv run tests/static_checks.py --criteria links --external --dist /path/to/build 
 ## Lint
 
 `npm run lint` is criterion 11's lint (`eslint.config.js`): `@eslint/css`'s `use-baseline` at
-`widely` on `site/**/*.css`, and on `site/**/*.js` eslint-plugin-baseline-js's `use-baseline` at
-`widely` (`COMPAT_LINT`, owner decision 5) with a never-list of `no-restricted-syntax` and
+`widely` on `site/**/*.css`, and on `site/**/*.js` ESLint's recommended rules
+(`js.configs.recommended`, `no-undef` among them, with `globals.browser`), `no-self-compare`,
+`eqeqeq`, `no-var` and `prefer-const`, eslint-plugin-baseline-js's `use-baseline` at `widely`
+(`COMPAT_LINT`, owner decision 5) and a never-list of `no-restricted-syntax` and
 `no-restricted-globals` rules for what Decision 12 names. `site/vendor/` is ignored (criterion 12).
 `static_checks.py`'s criterion 11 proves what the lint reads, in a temporary copy of the tree, never
 the repository:
@@ -953,9 +981,13 @@ Mac's disk; `static_checks.py` probes neither:
   `PointerEvent`s); forced colors other than Firefox's `browser.display.document_color_use` and
   Chrome's CDP emulation; and whether Cloudflare Pages matches paths case-sensitively.
 - **Fallback paths no check reaches:** a theme stylesheet that fails to load, after which the picker
-  loads the swatch's URL instead (`picker.js`); the typing demo pausing when reduced motion turns on
-  while the page is open (`demo.js`); a color-scheme choice that storage refuses (`site.js`); and a
-  stored value that is not JSON (`partials/head.html`, `site.js`).
+  loads the swatch's URL instead (`picker.js`), the homepage's swatches drop the link and check the
+  swatch of the color still shown again (`demo.js`), and `/examples` keeps the color shown and puts
+  its select back (`examples.js`); the typing demo pausing when reduced motion turns on while the
+  page is open, and waiting while the page is hidden (`demo.js`); a color-scheme choice that storage
+  refuses (`site.js`); and a stored value that is not JSON (`partials/head.html`, `site.js`). The
+  copy buttons' and Copy as page's "Copy failed" are reached with a stubbed clipboard
+  (`copy-failed`, `examples-copy-page-failed`), never with a browser's own refusal.
 - **Not checked:** the All theme colors example's first frame with a stored scheme that differs
   from the OS, before `examples.js` gives its 20 nested hosts `data-theme` (PLAN.md Risks); a screen
   reader's own handling of the copy status region, where `copy-announce-twice` asserts only the DOM

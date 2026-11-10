@@ -548,7 +548,8 @@ def color_schemes_toggle(page):
     """The Color schemes section's own switcher (`#theme-switcher button`; its icon is a decorative `span[role=img]` of Decision 18 holding the emoji of Decision 16) reads
     "Turn on dark mode" with the sun on a light OS; a click sets data-theme="dark", stores
     '"dark"', and both it ("Turn off dark mode", with the moon) and the header toggle relabel; a
-    second click returns to light. The header toggle drives it too."""
+    second click returns to the OS's light, removing the stored choice and data-theme. The header
+    toggle drives it too."""
     def expect_switcher(theme, label):
         page.wait(f"switcher reads {label!r}", "(() => { const b = document.querySelector('#theme-switcher button');"
                   " const i = b.querySelector(':scope > span[role=img]'), h = document.querySelector(arguments[1]);"
@@ -566,7 +567,7 @@ def color_schemes_toggle(page):
     page.click("#theme-switcher button")
     expect_switcher("dark", "Turn off dark mode")
     page.click("#theme-switcher button")
-    expect_switcher("light", "Turn on dark mode")
+    expect_switcher(None, "Turn on dark mode")
     page.click(HEADER_TOGGLE)
     expect_switcher("dark", "Turn off dark mode")
     page.url_kept("the URL is unchanged", url)

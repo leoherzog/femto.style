@@ -189,8 +189,8 @@ def computed_name(el):
     """An element's accessible name as the browser computes it (WebDriver Get Computed Label,
     Selenium's WebElement.accessible_name), not an attribute read from the DOM. A button named by its
     contents reads all of them: a copy button's also include femto's tooltip, the ::before text that
-    its data-tooltip draws ("Copy to clipboard Copy code"), which its icon's aria-label alone does not
-    show."""
+    its data-tooltip draws ("Copy code Copy code", "Copied Copy code"), which its icon's aria-label
+    alone does not show."""
     return el.accessible_name
 
 

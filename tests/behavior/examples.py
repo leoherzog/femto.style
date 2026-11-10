@@ -2,9 +2,11 @@
 mockup is vanilla femto in two declarative shadow roots: the outer one, in div[data-example], holds only
 the inner host, so no page rule can match it; the inner one holds femto's stylesheet link and the
 mockup, and a <details> under it, closed in the markup, holds the same markup to copy. examples.js
-mirrors <html>'s data-theme onto each inner host, cancels the mockups' submits and link clicks, opens
-and closes their dialogs, copies an example as a page (Copy as page, in femto's starter template) and
-links the theme color the page's select names in every inner root."""
+mirrors <html>'s data-theme onto each inner host, cancels the mockups' link clicks, opens and closes
+their dialogs (where command and commandfor have not), copies an example as a page (Copy as page, in
+femto's starter template) and links the theme color the page's select names in every inner root.
+The mockups' forms have method="dialog", which keeps their submits from going anywhere."""
+import json
 import re
 from pathlib import Path
 
@@ -260,8 +262,9 @@ def examples_isolation_stored(page):
 @check("examples-scheme", "/examples")
 def examples_scheme(page):
     """The inner hosts, and the shadow hosts inside them (the All theme colors example's 20), follow
-    <html>'s data-theme: none on load (OS light, nothing stored), then dark and light again with the
-    header toggle, and their backgrounds follow."""
+    <html>'s data-theme: none on load (OS light, nothing stored), then dark with the header toggle,
+    and none again when the toggle goes back to the OS's light (which removes the stored choice), and
+    their backgrounds follow."""
     inner = "[...document.querySelectorAll('div[data-example]')].map(f => f.shadowRoot.firstElementChild)"
     nested = f"{inner}.flatMap(h => [...h.shadowRoot.querySelectorAll('*')].filter(e => e.shadowRoot))"
     page.eq("20 shadow hosts inside the examples", page.js(f"return {nested}.length"), 20)
@@ -273,14 +276,21 @@ def examples_scheme(page):
     dark = page.js(f"return [getComputedStyle({inner}[0]).backgroundColor, getComputedStyle({nested}[0]).backgroundColor]")
     page.expect("the backgrounds follow", dark[0] != light[0] and dark[1] != light[1] and dark[1] == dark[0], light=light, dark=dark)
     page.click("button[data-scheme-toggle]")
-    page.wait("toggle again: every inner host light", f"{inner}.every(h => h.getAttribute('data-theme') === 'light')")
-    page.wait("toggle again: every shadow host inside them light", f"{nested}.every(h => h.getAttribute('data-theme') === 'light')")
+    page.wait("toggle again, to the OS's light: no inner host has data-theme", f"{inner}.every(h => !h.hasAttribute('data-theme'))")
+    page.wait("toggle again: no shadow host inside them has data-theme", f"{nested}.every(h => !h.hasAttribute('data-theme'))")
+    page.wait("the backgrounds are light again",
+              f"JSON.stringify([getComputedStyle({inner}[0]).backgroundColor, getComputedStyle({nested}[0]).backgroundColor])"
+              " === arguments[0]", 2, args=(json.dumps(light, separators=(",", ":")),),
+              got=page.js(f"return [getComputedStyle({inner}[0]).backgroundColor, getComputedStyle({nested}[0]).backgroundColor]"))
 
 
 @check("examples-forms", "/examples")
 def examples_forms(page):
     """Each example form, filled in, is submitted with a real click on its submit button (and the
-    search form with Enter): every submit event is canceled, and the document, URL and history stay."""
+    search form with Enter): each fires one submit event, and the document, URL and history stay. No
+    script cancels the submits: every mockup form has method="dialog" (static criterion 9), whose
+    submit does nothing outside a <dialog>, as examples-forms-nojs holds without JavaScript; the
+    note counts the submits a handler canceled."""
     page.js("window.__marker = 1;")
     before = page.url()
     forms = page.js(HOSTS + r"""
@@ -306,15 +316,17 @@ def examples_forms(page):
     page.sleep(0.3)
     subs = page.js("return window.__submits")
     page.eq("one submit per form", len(subs), len(forms), submits=subs)
-    page.expect("every submit canceled", all(s["prevented"] for s in subs), submits=subs)
+    page.eq("same document after the submit buttons", page.js("return window.__marker"), 1)
+    page.url_kept("no navigation after the submit buttons", before)
     pt = shadow_point(page, "hosts.find(h => h.id === 'search-results').root.querySelector('input[type=search]')")
     page.click_at(*pt)
     page.key("ENTER")
     page.sleep(0.3)
     subs = page.js("return window.__submits")
-    page.expect("Enter in the search field: canceled", len(subs) == len(forms) + 1 and subs[-1]["prevented"], submits=subs[-1:])
+    page.eq("Enter in the search field submits it", [s["id"] for s in subs[len(forms):]], ["search-results"], submits=subs[-1:])
     page.eq("same document", page.js("return window.__marker"), 1)
     page.url_kept("no navigation", before)
+    page.note(f"{len(subs)} submits, {sum(1 for s in subs if s['prevented'])} of them canceled")
 
 
 @check("examples-forms-nojs", "/examples", javascript=False)
@@ -461,6 +473,30 @@ def examples_dialog(page):
     page.expect("a click on its text keeps it open", page.js(f"return {state}.open"))
     page.click_at(5, 5)
     closed("backdrop")
+
+
+@check("examples-dialog-nojs", "/examples", javascript=False)
+def examples_dialog_nojs(page):
+    """With the page's JavaScript off (Chrome and Firefox; skipped in Safari), the two mockup
+    dialogs still open and close through their buttons' command and commandfor (Invoker Commands):
+    Every element's "Open a modal" and Confirmation dialog's "Delete project" opener each shows its
+    dialog as a modal (:modal), and each of its three closers (the header's close button and the
+    footer's two buttons) closes it. No site script ran: the page has no copy status region, which
+    site.js adds on load."""
+    page.eq("no site script ran (no status region)", page.js("return document.querySelectorAll('[role=status]').length"), 0)
+    for ex in ("every-element", "confirm-dialog"):
+        root = f"hosts.find(h => h.id === '{ex}').root"
+        state = f"(() => {{ {HOSTS} const d = {root}.querySelector('dialog'); return [d.open, d.matches(':modal')]; }})()"
+        page.eq(f"{ex}: closed on load", page.js(f"return {state}"), [False, False])
+        for what, expr in [("the close button", "[rel=prev]"), ("its first footer button", "footer button:first-of-type"),
+                           ("its last footer button", "footer button:last-of-type")]:
+            page.click_at(*shadow_point(page, f"{root}.querySelector('[commandfor][command=show-modal]')"))
+            page.wait(f"{ex}: the opener shows it as a modal (before {what})", f"JSON.stringify({state}) === '[true,true]'", 1.5,
+                      got=page.js(f"return {state}"))
+            pt = page.js(HOSTS + f"const b = {root}.querySelector('dialog {expr}'); const r = b.getBoundingClientRect();"
+                         " return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)];")
+            page.click_at(*pt)
+            page.wait(f"{ex}: {what} closes it", f"JSON.stringify({state}) === '[false,false]'", 1.5, got=page.js(f"return {state}"))
 
 
 @check("examples-dropdown", "/examples")
@@ -693,7 +729,8 @@ def examples_copy_page(page):
     select, the copy also links jade's css/themes/ file right after femto. The button reads "Copied"
     within 100 ms of a click and "Copy as page" again 900 to 1500 ms later, at the width it had, so
     it does not move under the pointer; the page's one status region, site.js's
-    (body > p.visually-hidden[role=status]), says "Copied" and then nothing. The URL does not change."""
+    (body > p.visually-hidden[role=status]), says "Copied" (with a no-break space after it when it
+    repeats the message before it, every other copy) and then nothing. The URL does not change."""
     page.js(COPY_SPY)
     template = page.ajs(STARTER)
     page.expect("the docs' starter template has its <h1> and title", template and "<h1>Hello, world!</h1>" in template
@@ -728,7 +765,10 @@ def examples_copy_page(page):
         page.eq(f"{x['id']}: each <pre>'s text unchanged", d["pre"], d["samplePre"])
     page.wait("the last button reverts", "window.__bhPage.length >= 3 && arguments[0].textContent === 'Copy as page'", 2.5, args=(buttons[-1],))
     tl = page.js("return window.__bhPage")
-    page.eq("the steps: click, Copied, Copy as page", [x[1:] for x in tl], [["click"], ["Copied", "Copied"], ["Copy as page", ""]], timeline=tl)
+    # The region's text, its trailing no-break space dropped: the 16 copies alternate "Copied" and
+    # "Copied\u00A0" (copy-announce-twice holds the alternation).
+    steps = [x[1:2] if x[1] == "click" else [x[1], x[2].strip() if x[2] else x[2]] for x in tl]
+    page.eq("the steps: click, Copied, Copy as page", steps, [["click"], ["Copied", "Copied"], ["Copy as page", ""]], timeline=tl)
     page.expect("Copied within 100 ms", tl[1][0] - tl[0][0] <= 100, timeline=tl)
     page.expect("back 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
     widths = page.js("return window.__bhPageWidths")
@@ -745,6 +785,42 @@ def examples_copy_page(page):
         page.eq(f"{eid}, jade: the two links", page.js(READ_PAGE, text, x["sample"], cdn)["links"],
                 [cdn + "dist/femto.min.css", cdn + "css/themes/jade.css"])
     page.url_kept("no navigation", url)
+
+
+# A clipboard that refuses every write (its calls recorded, its promise rejected); with arguments[0]
+# true, no navigator.clipboard at all, as on an insecure origin.
+COPY_REFUSED = r"""
+window.__bhRefused = window.__bhRefused || [];
+if (arguments[0]) Object.defineProperty(navigator, "clipboard", {value: undefined, configurable: true});
+else navigator.clipboard.writeText = (t) => { __bhRefused.push(String(t)); return Promise.reject(new DOMException("refused", "NotAllowedError")); };
+return navigator.clipboard === undefined;
+"""
+
+
+@check("examples-copy-page-failed", "/examples")
+def examples_copy_page_failed(page):
+    """A Copy as page that fails says so (examples.js): with a clipboard whose writeText rejects,
+    the first example's Copy as page button tries to write its page once, reads "Copy failed"
+    within 100 ms and "Copy as page" again 900 to 1500 ms later, at the width it had, and the page's
+    one status region says "Copy failed", then nothing. With no navigator.clipboard at all, a second
+    click reads "Copy failed" again."""
+    button = page.find_all("main section.example > header > button[data-copy-page]")[0]
+    page.eq("the clipboard refuses", page.js(COPY_REFUSED, False), False)
+    page.js(COPY_PAGE_TIMELINE, button)
+    page.click(button)
+    page.wait("the button reverts", "window.__bhPage.length >= 3 && arguments[0].textContent === 'Copy as page'", 2.5, args=(button,))
+    tl = page.js("return window.__bhPage")
+    page.eq("it tried to write once", len(page.js("return window.__bhRefused")), 1)
+    page.eq("the steps: click, Copy failed, Copy as page", [x[1:] for x in tl],
+            [["click"], ["Copy failed", "Copy failed"], ["Copy as page", ""]], timeline=tl)
+    page.expect("Copy failed within 100 ms", tl[1][0] - tl[0][0] <= 100, timeline=tl)
+    page.expect("back 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
+    widths = page.js("return window.__bhPageWidths")
+    page.expect("the button keeps its width while it reads Copy failed", len(widths) >= 3 and max(widths) - min(widths) <= 0.5,
+                widths=widths)
+    page.eq("no navigator.clipboard", page.js(COPY_REFUSED, True), True)
+    page.click(button)
+    page.wait("no clipboard: the button reads Copy failed", "arguments[0].textContent === 'Copy failed'", 1, args=(button,))
 
 
 # Records every change of the status region's text, and each click on the two buttons, with
@@ -766,10 +842,11 @@ def copy_announce_twice(page):
     """Two copies 500 ms apart are both announced. The Sign in example's code copy button (site.js),
     then 500 ms later its Copy as page button (examples.js), which share the page's one status region
     (body > p.visually-hidden[role=status]): the region says "Copied" within 100 ms of the first
-    click; within 100 ms of the second it is emptied and says "Copied" again, a change a screen
-    reader announces (the same text written over itself would be none); and it is emptied once, 900
-    to 1500 ms after the second click, not 1 s after the first. Timed in the page with a
-    MutationObserver on the region."""
+    click; within 100 ms of the second it is emptied and says "Copied" again with a no-break space
+    after it (U+00A0), a change a screen reader announces (the same text written over itself would
+    be none, and VoiceOver skips a message that repeats the one before it even across the emptying);
+    and it is emptied once, 900 to 1500 ms after the second click, not 1 s after the first. Timed in
+    the page with a MutationObserver on the region."""
     page.js(COPY_SPY)
     code = page.js("const s = document.getElementById('sign-in'); s.querySelector(':scope > details').open = true;"
                    " const b = s.querySelector(':scope > details button[data-copy-link]'); b.scrollIntoView({block: 'center'}); return b;")
@@ -786,9 +863,10 @@ def copy_announce_twice(page):
     steps = [x[1] for k, x in enumerate(texts) if k == 0 or x[1] != texts[k - 1][1]]
     page.eq("two clicks", len(clicks), 2, timeline=tl)
     page.expect("the clicks are 300 to 900 ms apart", 300 <= clicks[1] - clicks[0] <= 900, timeline=tl)
-    page.eq("the region's steps: Copied, emptied, Copied, emptied", steps, ["Copied", "", "Copied", ""], timeline=tl)
+    page.eq("the region's steps: Copied, emptied, Copied and a no-break space, emptied", steps, ["Copied", "", "Copied\u00A0", ""],
+            timeline=tl)
     first = next(x[0] for x in texts if x[1] == "Copied")
-    again = next(x[0] for x in texts if x[1] == "Copied" and x[0] >= clicks[1])
+    again = next(x[0] for x in texts if x[1] == "Copied\u00A0" and x[0] >= clicks[1])
     end = texts[-1][0]
     page.expect("the first Copied within 100 ms of the first click", first - clicks[0] <= 100, timeline=tl)
     page.expect("Copied again within 100 ms of the second click", again - clicks[1] <= 100, timeline=tl)
