@@ -10,13 +10,15 @@
     "build": "node build.mjs",
     "dev": "node build.mjs && { node --watch-path=site --watch-path=build.mjs build.mjs & B=$!; wrangler pages dev dist --ip 127.0.0.1 --port 8723 --show-interactive-dev-session=false & S=$!; trap 'kill $B $S 2>/dev/null' EXIT INT TERM; wait; }",
     "vendor": "node vendor.mjs",
-    "lint": "eslint --max-warnings 0 --no-error-on-unmatched-pattern site"
+    "lint": "eslint --max-warnings 0 site"
   },
   "devDependencies": {
     "@eslint/css": "2.0.1",
+    "@eslint/js": "10.0.1",
     "axe-core": "4.14.0",
     "eslint": "10.14.0",
     "eslint-plugin-baseline-js": "0.7.7",
+    "globals": "17.14.0",
     "html-validate": "11.19.0",
     "prismjs": "1.30.0",
     "wrangler": "4.158.0"

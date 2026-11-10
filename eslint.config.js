@@ -1,12 +1,13 @@
-// npm run lint (eslint --max-warnings 0 --no-error-on-unmatched-pattern site): the site's own CSS and
-// JavaScript against femto's browser target, Baseline Widely Available (PLAN.md Decision 12, acceptance
-// criterion 11). It only checks; it never fixes. build.mjs, vendor.mjs and tests/ are tooling that ships
-// nothing, and they are outside the linted folder. --no-error-on-unmatched-pattern dates from before
-// site/ held CSS or JS of its own; it no longer has any effect. static_checks.py's
-// planted-violation probe proves that every site file is linted.
+// npm run lint (eslint --max-warnings 0 site): the site's own CSS and JavaScript against femto's
+// browser target, Baseline Widely Available (PLAN.md Decision 12, acceptance criterion 11). It only
+// checks; it never fixes. build.mjs, vendor.mjs and tests/ are tooling that ships nothing, and they
+// are outside the linted folder. static_checks.py's planted-violation probe proves that every site
+// file is linted, and it lints the two inline head scripts with this config too, as site JS.
 import { defineConfig } from "eslint/config";
+import js from "@eslint/js";
 import css from "@eslint/css";
 import baselineJs from "eslint-plugin-baseline-js";
+import globals from "globals";
 
 export default defineConfig([
   {
@@ -50,8 +51,10 @@ export default defineConfig([
     },
   },
   {
-    files: ["site/**/*.js", "site/**/*.mjs"],
-    languageOptions: { ecmaVersion: "latest", sourceType: "module" },
+    files: ["site/**/*.js"],
+    // ESLint's recommended rules, no-undef among them, which knows the browser's globals.
+    extends: [js.configs.recommended],
+    languageOptions: { ecmaVersion: "latest", sourceType: "module", globals: globals.browser },
     plugins: { "baseline-js": baselineJs },
     rules: {
       // Syntax, and the globals and static members of JavaScript's built-ins and of the Web APIs
@@ -67,8 +70,8 @@ export default defineConfig([
         includeWebApis: { preset: "auto" },
       }],
 
-      // Decision 12 names features the site's JavaScript never uses, Widely Available or not. The
-      // conversion's final review added two outside the target that the plugin above cannot see: the loadingdone
+      // Decision 12 names features the site's JavaScript never uses, Widely Available or not, and
+      // the list adds two outside the target that the plugin above cannot see: the loadingdone
       // event and focus()'s preventScroll. An event name is matched as a string anywhere
       // (addEventListener's first argument among them), as a template literal and as an on<event>
       // handler property. An option (container, preventScroll) is matched as a property of any
@@ -89,27 +92,8 @@ export default defineConfig([
         { selector: ":matches(Property[key.name='container'], Property[key.value='container'])", message: "Decision 12: scrollIntoView({container}) is Chrome only; set the container's scrollTop." },
       ],
 
-      // ESLint core rules that need no browser globals list. The recommended set lives in
-      // @eslint/js, which package.json does not pin (PLAN.md criterion 4), and no-undef would
-      // need the globals package for the same reason.
-      "no-unused-vars": "error",
-      "no-unreachable": "error",
-      "no-dupe-keys": "error",
-      "no-duplicate-case": "error",
-      "no-dupe-else-if": "error",
-      "no-self-assign": "error",
+      // Core rules beyond the recommended set.
       "no-self-compare": "error",
-      "no-const-assign": "error",
-      "no-func-assign": "error",
-      "no-import-assign": "error",
-      "no-unsafe-finally": "error",
-      "no-unsafe-negation": "error",
-      "no-cond-assign": "error",
-      "no-fallthrough": "error",
-      "no-redeclare": "error",
-      "no-sparse-arrays": "error",
-      "use-isnan": "error",
-      "valid-typeof": "error",
       "eqeqeq": "error",
       "no-var": "error",
       "prefer-const": "error",
