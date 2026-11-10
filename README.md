@@ -4,7 +4,7 @@
 
 [PLAN.md](PLAN.md) is the site's spec: its decisions, the acceptance criteria the checks hold, and the open risks. The site was converted from a Remix site, and the tag `conversion-final` holds the record of that conversion. Its text is written for femto 3 from femto's README.
 
-`/docs` is one page. `build.mjs` assembles it from `site/docs/menu.json`, which orders its 43 sections in 8 categories, and one file per section in `site/docs/sections/<id>.html`. It ends each section with an "Edit this section on GitHub" link to its file, written from its id; a section file holds no edit link of its own (the build fails on one). `/examples` is `site/examples.html`: 16 examples in four chapters (Overview, Widgets, Forms and Pages), each one's markup written twice, live in a shadow root and escaped in its code sample, folded in the `<details>` under it. A static check and a behavior check fail if the two differ. Each example has a Copy as page button, which copies its markup in femto's starter template (the page's `template[data-starter-page]`), and a theme select links one of femto's `css/themes/` files into every example, with no URL parameter, unlike the docs page's `?theme=` (Decision 8).
+`/docs` is one page. `build.mjs` assembles it from `site/docs/menu.json`, which orders its 43 sections in 8 categories, and one file per section in `site/docs/sections/<id>.html`. It ends each section with an "Edit this section on GitHub" link to its file, written from its id and named by the section's h1 in visually hidden text; a section file holds no edit link of its own (the build fails on one). `/examples` is `site/examples.html`: 16 examples in four chapters (Overview, Widgets, Forms and Pages), each one's markup written twice, live in a shadow root and escaped in its code sample, folded in the `<details>` under it. A static check and a behavior check fail if the two differ. Each example has a Copy as page button, which copies its markup in femto's starter template (the page's `template[data-starter-page]`), and a theme select links one of femto's `css/themes/` files into every example, with no URL parameter, unlike the docs page's `?theme=` (Decision 8).
 
 ## Develop
 
@@ -26,6 +26,8 @@ To build `dist/` without a server, or into another folder:
 npm run build
 node build.mjs --out /path/to/folder
 ```
+
+The build copies the site's own CSS and JavaScript, `site/assets/**/*.css` and `*.js`, without their comments, each comment replaced by its newlines so that line numbers in `dist/` still match `site/`; femto's files in `site/vendor/femto/` are copied as they are (PLAN.md Decision 3). Their comments never ship, and the static checks fail if the strip changed anything but comments (criterion 5).
 
 To lint the site's CSS and JavaScript:
 
@@ -95,9 +97,9 @@ The ruleset has no bypass. Pages builds every push without waiting for the Check
 
 Pages takes Node's version from `.node-version`: build system v3 reads the `NODE_VERSION` variable, `.node-version` or `.nvmrc`, never `package.json`'s `engines`. It installs the dependencies itself before the build. The first build after `wrangler.jsonc` arrives on `main` should log "Found wrangler.jsonc file" and `pages_build_output_dir: dist`; if it does not, the dashboard's output directory still applies. Confirm it there, with the Node the build used and whether the devDependencies, `prismjs` among them, were installed.
 
-The site relies on Pages' own rules (PLAN.md Decision 11): Pages serves `docs.html` at `/docs` and `examples.html` at `/examples`, answers unknown paths with `404.html` and applies `_headers`, so another host needs the same rules. `site/_headers` gives the fonts in `/assets/fonts/` a year of caching; everything else keeps Pages' default, which revalidates on every request. On `femto.style` that holds only once the zone's Browser Cache TTL is set to Respect Existing Headers. `site/robots.txt` names the sitemap that the build writes, `https://femto.style/sitemap.xml`.
+The site relies on Pages' own rules (PLAN.md Decision 11): Pages serves `docs.html` at `/docs` and `examples.html` at `/examples`, answers unknown paths with `404.html` and applies `_headers`, so another host needs the same rules. `site/_headers` gives the fonts in `/assets/fonts/` a year of caching, and the site's CSS and JavaScript and vendored femto (`/assets/css/*`, `/assets/js/*`, `/vendor/femto/*`) 5 minutes, so a deploy's new CSS and JavaScript reach a returning reader within 5 minutes. The HTML and everything else keep Pages' default, which revalidates on every request, so new pages show at once. On `femto.style` that holds only once the zone's Browser Cache TTL is set to Respect Existing Headers. It also sends every response HSTS (`max-age=300`, to be raised in steps) and a Content-Security-Policy that keeps other origins from framing the site and allows no `<object>` or `<base>` (PLAN.md Risks, Cloudflare). `site/robots.txt` names the sitemap that the build writes, `https://femto.style/sitemap.xml`.
 
-Some settings of the femto.style zone act on `femto.style` but not on `femto-style.pages.dev`, and each is the owner's in the dashboard (PLAN.md Risks, Cloudflare). On 2026-11-09 production showed Email Address Obfuscation off (it rewrites the addresses on `/examples` and cannot reach the two in the mockups' shadow roots) and Always Use HTTPS on (without it `http://www.femto.style/` times out). One step is still open: set Browser Cache TTL to Respect Existing Headers (it still sent `max-age=14400`). Keep the Pages project's own Web Analytics off, so only the zone's is left. The zone's Web Analytics stays on: its beacon is the one cross-origin script production loads, criterion 15's exception. Speed Brain's `speculation-rules` header is harmless. To recheck production against a fresh build:
+Some settings of the femto.style zone act on `femto.style` but not on `femto-style.pages.dev`, and each is the owner's in the dashboard (PLAN.md Risks, Cloudflare). On 2026-11-09 production showed Email Address Obfuscation off (it rewrites the addresses on `/examples` and cannot reach the two in the mockups' shadow roots) and Always Use HTTPS on (without it `http://www.femto.style/` times out). One step is still open: set Browser Cache TTL to Respect Existing Headers (it still sent `max-age=14400`). Keep the Pages project's own Web Analytics off, so only the zone's is left. The zone's Web Analytics stays on: its beacon is the one cross-origin script production loads, criterion 15's exception. Speed Brain's `speculation-rules` header is harmless beside the pages' own speculation rule, a `moderate` prefetch of same-origin links in `site/partials/head.html` (both Chromium only). To recheck production against a fresh build:
 
 ```bash
 out="$TMPDIR/femto-live"; node build.mjs --out "$out"
@@ -107,7 +109,7 @@ for pair in /:index.html /docs:docs.html /examples:examples.html /no-such-page:4
   echo "${pair%%:*} $([ "$live" = "$built" ] && echo same || echo DIFFERENT)"
 done
 curl -sS -H 'Accept: text/html' https://femto.style/examples | grep -c __cf_email__   # 0 with Email Address Obfuscation off
-curl -sSI https://femto.style/assets/css/common.css | grep -i cache-control          # max-age=0 with Respect Existing Headers
+curl -sSI https://femto.style/assets/css/common.css | grep -i cache-control          # max-age=300 with Respect Existing Headers
 curl -sS -o /dev/null -w '%{http_code}\n' http://www.femto.style/                     # 301 with Always Use HTTPS
 ```
 
