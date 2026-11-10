@@ -13,7 +13,7 @@
  * (criterion 10): #667080 in light, #828b9b in dark.
  */
 :root {
-  --site-header-background: light-dark(rgba(255, 255, 255, 0.8), rgba(19, 22.5, 30.5, 0.9));
+  --site-header-background: light-dark(color-mix(in srgb, var(--femto-light-background-color) 80%, transparent), color-mix(in srgb, var(--femto-dark-background-color) 90%, transparent));
   --site-logo-wordmark: light-dark(#2a3140, #fff);
   --site-logo-sparkle: light-dark(#ff9500, #ffbf00);
   --site-code-tag: light-dark(#8b4f00, rgb(186.75, 150.5, 43.75));
@@ -78,7 +78,7 @@ body > header .container nav ul.icons button:is(:hover, :active, :focus) {
 }
 
 /* Hide docs link on mobile */
-@media (max-width: 575px) {
+@media (width < 576px) {
   body > header .container nav ul li.hide-before-sm {
     display: none;
   }
@@ -111,7 +111,7 @@ body > header .container nav ul.icons button:is(:hover, :active, :focus) {
 }
 
 /**
- * Plain buttons: the <button type="button">s drawn as the link or bare icon each replaced, not as
+ * Plain buttons: the <button type="button">s drawn as a link or a bare icon, not as
  * femto's filled button: the header's theme toggle (above), the breadcrumb's Documentation button,
  * the menu's Close and the color dialog's close (docs.css), and the code blocks' copy buttons
  * (code.css). Each place sets its own box and colors after this rule. The dialog in :where() keeps
@@ -127,7 +127,6 @@ button:is([data-scheme-toggle], [data-menu-open], [data-menu-close], [data-copy-
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--femto-border-radius);
   background-color: transparent;
   box-shadow: none;
   font-weight: inherit;
@@ -162,10 +161,8 @@ html {
   overflow-x: hidden;
 }
 
-/* Header, main and footer. The Remix site's rows were auto auto 1fr auto, with the maintenance
-   banner first, which the site drops (Decision 5): main takes the free space, not the footer. The
-   body is at least the viewport's height as it is now: 100dvh follows a mobile browser's toolbars,
-   which 100vh does not */
+/* Header, main and footer: main takes the free space, not the footer. The body is at least the
+   viewport's height as it is now: 100dvh follows a mobile browser's toolbars, which 100vh does not */
 html body {
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -226,9 +223,6 @@ a.skip-to-content {
   background-color: var(--femto-background-color);
   box-shadow: var(--femto-box-shadow);
   color: var(--femto-contrast-inverse);
-  font-weight: var(--femto-font-weight);
-  font-size: 1rem;
-  line-height: var(--femto-line-height);
   text-align: center;
   transform: translateY(-1000%);
   opacity: 0;
@@ -268,8 +262,7 @@ svg.femto-icon {
 
 /* The sparkle of an animated or hovered logo pops */
 svg.femto-logo.animated path:first-of-type,
-a:hover > svg.femto-logo path:first-of-type,
-svg.femto-icon.animated path:first-of-type {
+a:hover > svg.femto-logo path:first-of-type {
   animation-duration: 0.75s;
   animation-timing-function: ease-in-out;
   animation-fill-mode: both;
@@ -278,10 +271,6 @@ svg.femto-icon.animated path:first-of-type {
 
 svg.femto-logo path:first-of-type {
   transform-origin: 1779.5px 360px;
-}
-
-svg.femto-icon path:first-of-type {
-  transform-origin: 2034.8px 200px;
 }
 
 @keyframes sparkle {
@@ -318,12 +307,11 @@ svg.femto-icon path:first-of-type {
  */
 
 /* Theme toggle icon (Decision 16): a sun emoji while the page is light, a moon while it is dark,
-   which site.js and docs.js write into the button's span[role=img] (Decision 18). The glyph is
+   which the site's scripts write into the button's span[role=img] (Decision 18). The glyph is
    transparent and its shadow is drawn in --femto-color, so the emoji shows as a one-color
-   silhouette that follows the button's hover colors. The box is the old SVG icon's box (1.125rem
-   in the header, 1.25rem in the Color schemes section, vertical-align: middle), and the glyph is
-   centered in it and overflows it evenly, so nothing around the icon moves when sun and moon swap.
-   It replaces the Remix site's animated toggles.dev SVG, and that SVG's rules with it. */
+   silhouette that follows the button's hover colors. The box is 1.125rem square (1.25rem in the
+   Color schemes section), vertical-align: middle, and the glyph is centered in it and overflows it
+   evenly, so nothing around the icon moves when sun and moon swap. */
 :is(button[data-scheme-toggle], button[data-scheme-switcher]) > span[role=img] {
   display: inline-flex;
   align-items: center;
@@ -372,8 +360,8 @@ body > header .container nav button[data-scheme-toggle] > span[role=img] {
    button, the theme toggle), and hidden by aria-hidden="true" beside a label of its own, as an
    <img> takes alt text or alt="". The role is the hook, so the markup needs no class. Each icon is
    an inline-block at least 1em wide and one 1em line tall, its characters centered in it and on
-   their line's baseline, as text is. A context sizes an icon with font-size, as it sized the SVG it
-   replaced with height, and draws one glyph larger, bolder or in another font where it needs to.
+   their line's baseline, as text is. A context sizes an icon with font-size, and draws one glyph
+   larger, bolder or in another font where it needs to.
    The text characters (check ✓, close ✕, copy ⧉, edit ✎, menu ☰, arrow →, Grid's ⊕ and ⊖, the
    homepage's ⤢, ◐, ⇄, { } and </>) have no emoji form, so every platform draws them with its own
    text fonts, in the element's color; the emoji (the theme toggle's, the homepage's ⚙️) are drawn
@@ -400,7 +388,6 @@ span[role=img] {
 .chapter {
   color: var(--site-code-tag);
   font-weight: 600;
-  font-size: 13px;
   letter-spacing: 0.0625em;
   text-transform: uppercase;
 }

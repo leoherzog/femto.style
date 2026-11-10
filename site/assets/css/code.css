@@ -1,8 +1,9 @@
 /* Code blocks: the .code card with its copy button, code as an article footer, standalone code
-   blocks with their own responsive spacing, and the four colors of highlighted code (build.mjs,
-   step 4). The colors are common.css's --site-code-* tokens. Code is in femto's monospace font. */
+   blocks, and the four colors of highlighted code (build.mjs, step 4). The colors are common.css's
+   --site-code-* tokens. Code is in femto's monospace font, at femto's size. */
 
-/* All code blocks */
+/* All code blocks: the <pre> carries the card's block spacing, on no background of its own, and the
+   code keeps the end spacing when it scrolls */
 .code {
   position: relative;
   background-color: var(--femto-card-background-color);
@@ -10,18 +11,13 @@
 
 .code pre {
   margin-bottom: 0;
+  padding: calc(var(--femto-block-spacing-vertical) * 0.66) var(--femto-block-spacing-horizontal);
+  background-color: transparent;
 }
 
 .code code {
-  min-width: min-content;
   margin-right: var(--femto-block-spacing-horizontal);
   padding: 0;
-}
-
-@media (min-width: 1024px) {
-  .code code {
-    font-size: 16px;
-  }
 }
 
 /* The copy button, a plain button (common.css): an icon on a square of the card's background at the
@@ -71,11 +67,6 @@
   animation: icon-check 0.2s ease-out;
 }
 
-.code > button[data-copy-link][data-tooltip]::before,
-.code > button[data-copy-link][data-tooltip]::after {
-  font-size: 0.75em;
-}
-
 /* No tooltip once the button shows its check mark */
 .code > button[data-copy-link][data-tooltip=Copied]::after {
   display: none;
@@ -98,13 +89,6 @@
 article footer.code {
   padding: 0;
   border-top-color: var(--femto-muted-border-color);
-  border-top-right-radius: 0;
-  border-top-left-radius: 0;
-}
-
-article footer.code pre {
-  padding: calc(var(--femto-block-spacing-vertical) * 0.66) var(--femto-block-spacing-horizontal);
-  background-color: transparent;
 }
 
 /* In the dark scheme the code footer is darker than the card, as it is below the white card in the
@@ -127,54 +111,15 @@ article footer.code pre {
   }
 }
 
-/* Standalone code blocks: from 576px up, 1.25 to 2.5 times --femto-spacing around the code */
+/* Standalone code blocks, a card of their own: the block spacing around the code is the vertical
+   one where the block sits, which femto's responsive-spacings option steps up at each breakpoint,
+   on both axes, as it is in a card */
 .code:not(article footer.code) {
+  --femto-block-spacing-horizontal: var(--femto-block-spacing-vertical);
   margin-bottom: var(--femto-block-spacing-vertical);
   overflow: hidden;
   border-radius: var(--femto-border-radius);
   box-shadow: var(--femto-card-box-shadow);
-}
-
-@media (min-width: 576px) {
-  .code:not(article footer.code) {
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.25);
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.25);
-  }
-}
-
-@media (min-width: 768px) {
-  .code:not(article footer.code) {
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.5);
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.5);
-  }
-}
-
-@media (min-width: 1024px) {
-  .code:not(article footer.code) {
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 1.75);
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 1.75);
-  }
-}
-
-@media (min-width: 1280px) {
-  .code:not(article footer.code) {
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 2);
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 2);
-  }
-}
-
-@media (min-width: 1536px) {
-  .code:not(article footer.code) {
-    --femto-block-spacing-horizontal: calc(var(--femto-spacing) * 2.5);
-    --femto-block-spacing-vertical: calc(var(--femto-spacing) * 2.5);
-  }
-}
-
-/* "transparent 0 0": the Remix site's served CSS had "background: 0 0", its minifier's form of
-   "transparent", which also sets the position to 0px 0px */
-.code:not(article footer.code) pre {
-  padding: calc(var(--femto-block-spacing-vertical) * 0.66) var(--femto-block-spacing-horizontal);
-  background: transparent 0 0;
 }
 
 /* Small code blocks */
