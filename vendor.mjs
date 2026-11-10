@@ -17,9 +17,9 @@
 import { execFileSync } from "node:child_process";
 import { chmodSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
-import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = import.meta.dirname;
 const DEST = join(ROOT, "site", "vendor", "femto");
 const PATHS = ["dist", "css", "LICENSE.md"];
 
@@ -28,8 +28,14 @@ function fail(message) {
   process.exit(1);
 }
 
-const given = process.argv[2];
-const wanted = process.argv[3];
+let args = [];
+try {
+  args = parseArgs({ allowPositionals: true }).positionals;
+} catch (error) {
+  fail(error.message);
+}
+if (args.length > 2) fail(`unexpected arguments ${args.slice(2).join(" ")} (use npm run vendor -- [<femto checkout> [<commit>]])`);
+const [given, wanted] = args;
 const checkout = given ? resolve(given) : resolve(ROOT, "../femto");
 
 function git(args, options = {}) {
@@ -197,9 +203,8 @@ function readme(at) {
 }
 
 // The ids of the docs sections that name each README heading, by the heading's text: a section's
-// readme key (a heading's text; an array of them is read too). A section with no title in
-// menu.json, the migration section, whose name criterion 14 keeps out of menu.json, names the text
-// of its file's h1 instead, as its nav link takes it (build.mjs, step 3).
+// readme key (a heading's text; an array of them is read too). A key of true, the migration
+// section's, whose name criterion 14 keeps out of menu.json, names the text of the section file's h1.
 function readmeNames() {
   const plain = (html) =>
     html
@@ -215,10 +220,10 @@ function readmeNames() {
   const names = new Map();
   for (const section of menu.categories.flatMap((c) => c.sections)) {
     let keys = section.readme === undefined ? [] : [section.readme].flat();
-    if (section.readme === undefined && section.title === undefined) {
+    if (section.readme === true) {
       const file = readFileSync(join(ROOT, "site", "docs", "sections", `${section.id}.html`), "utf8");
       const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/.exec(file)?.[1];
-      if (h1) keys = [plain(h1)];
+      keys = h1 ? [plain(h1)] : [];
     }
     for (const key of keys) names.set(key, [...(names.get(key) ?? []), `#${section.id}`]);
   }

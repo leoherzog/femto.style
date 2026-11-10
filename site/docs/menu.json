@@ -1,17 +1,15 @@
 {
-  "about": "The docs sections in menu order. build.mjs assembles them into the one docs page, docs.html, and generates its side nav from this file: each category is a <details> in the nav, and each section a link to #<id> (build.mjs header comment, step 3). Per section: id, the section's id (one or two lowercase hyphenated words, PLAN.md Decision 7), which its file site/docs/sections/<id>.html puts on its hgroup's h1, and which names that file in the section's edit link, written by the build; title, that h1's text; label, its nav link as HTML, only where that is not the title; and readme, only where the section covers a part of femto's README.md: the exact text of that part's H2 or H3 heading at the vendored commit (git -C ../femto show <the commit in site/vendor/femto/SOURCE>:README.md), the heading line after its #s, trimmed, as a string. Every README H2 but Contributing and License is named by at least one section, and npm run vendor lists, for each README section that changed, the sections that name it. The build ignores readme. The migration section has no title or readme here: either would hold the name criterion 14 allows only in that section's own file, so its nav link takes the content of the file's h1 (build.mjs, step 3), and it names the README heading with the same text.",
+  "about": "The docs sections in menu order. build.mjs assembles them into the one docs page, docs.html, and generates its side nav from this file: each category is a <details> in the nav, and each section a link to #<id> (build.mjs header comment, step 3). Per section: id, the section's id (one or two lowercase hyphenated words, PLAN.md Decision 7), which its file site/docs/sections/<id>.html puts on its hgroup's h1, and which names that file in the section's edit link, written by the build; label, its nav link as HTML, only where that is not the h1's content, which the link takes otherwise; and readme, only where the section covers a part of femto's README.md: the exact text of that part's H2 or H3 heading at the vendored commit (git -C ../femto show <the commit in site/vendor/femto/SOURCE>:README.md), the heading line after its #s, trimmed, as a string, or true for the heading whose text is the section's h1. Every README H2 but Contributing and License is named by at least one section, and npm run vendor lists, for each README section that changed, the sections that name it. The build ignores readme. The migration section's readme is true, since its heading's text holds the name criterion 14 allows only in that section's own file.",
   "categories": [
     {
       "title": "Getting started",
       "sections": [
         {
           "id": "quick-start",
-          "title": "Quick start",
           "readme": "Quick start"
         },
         {
-          "id": "theme-picker",
-          "title": "Theme picker"
+          "id": "theme-picker"
         }
       ]
     },
@@ -20,27 +18,22 @@
       "sections": [
         {
           "id": "themes",
-          "title": "Themes",
           "readme": "Themes"
         },
         {
           "id": "options",
-          "title": "Options",
           "readme": "Options"
         },
         {
           "id": "color-schemes",
-          "title": "Color schemes",
           "readme": "Color schemes"
         },
         {
           "id": "colors",
-          "title": "Colors",
           "readme": "Color utilities"
         },
         {
-          "id": "css-variables",
-          "title": "CSS variables"
+          "id": "css-variables"
         }
       ]
     },
@@ -48,28 +41,22 @@
       "title": "Layout",
       "sections": [
         {
-          "id": "container",
-          "title": "Container"
+          "id": "container"
         },
         {
-          "id": "landmarks",
-          "title": "Landmarks and sections"
+          "id": "landmarks"
         },
         {
-          "id": "nav",
-          "title": "Nav"
+          "id": "nav"
         },
         {
-          "id": "grid",
-          "title": "Grid"
+          "id": "grid"
         },
         {
-          "id": "card",
-          "title": "Card"
+          "id": "card"
         },
         {
-          "id": "overflow-auto",
-          "title": "Overflow auto"
+          "id": "overflow-auto"
         }
       ]
     },
@@ -77,24 +64,19 @@
       "title": "Content",
       "sections": [
         {
-          "id": "typography",
-          "title": "Typography"
+          "id": "typography"
         },
         {
-          "id": "link",
-          "title": "Link"
+          "id": "link"
         },
         {
-          "id": "button",
-          "title": "Button"
+          "id": "button"
         },
         {
-          "id": "table",
-          "title": "Table"
+          "id": "table"
         },
         {
-          "id": "media",
-          "title": "Media, code and lists"
+          "id": "media"
         }
       ]
     },
@@ -103,36 +85,28 @@
       "sections": [
         {
           "id": "forms",
-          "title": "Forms overview",
           "label": "Overview"
         },
         {
-          "id": "input",
-          "title": "Input"
+          "id": "input"
         },
         {
-          "id": "textarea",
-          "title": "Textarea"
+          "id": "textarea"
         },
         {
-          "id": "select",
-          "title": "Select"
+          "id": "select"
         },
         {
-          "id": "checkboxes",
-          "title": "Checkboxes"
+          "id": "checkboxes"
         },
         {
-          "id": "radios",
-          "title": "Radios"
+          "id": "radios"
         },
         {
-          "id": "switch",
-          "title": "Switch"
+          "id": "switch"
         },
         {
-          "id": "range",
-          "title": "Range"
+          "id": "range"
         }
       ]
     },
@@ -140,32 +114,25 @@
       "title": "Components",
       "sections": [
         {
-          "id": "accordion",
-          "title": "Accordion"
+          "id": "accordion"
         },
         {
-          "id": "dropdown",
-          "title": "Dropdown"
+          "id": "dropdown"
         },
         {
-          "id": "group",
-          "title": "Group"
+          "id": "group"
         },
         {
-          "id": "loading",
-          "title": "Loading"
+          "id": "loading"
         },
         {
-          "id": "modal",
-          "title": "Modal"
+          "id": "modal"
         },
         {
-          "id": "progress",
-          "title": "Progress"
+          "id": "progress"
         },
         {
-          "id": "tooltip",
-          "title": "Tooltip"
+          "id": "tooltip"
         }
       ]
     },
@@ -174,22 +141,18 @@
       "sections": [
         {
           "id": "files",
-          "title": "Files",
           "readme": "Files"
         },
         {
           "id": "modules",
-          "title": "Custom module set",
           "readme": "Custom module set"
         },
         {
           "id": "cascade-layer",
-          "title": "Cascade layer",
           "readme": "Cascade layer"
         },
         {
           "id": "shadow-roots",
-          "title": "Shadow roots",
           "readme": "Shadow roots"
         }
       ]
@@ -198,29 +161,25 @@
       "title": "Reference",
       "sections": [
         {
-          "id": "elements",
-          "title": "Elements"
+          "id": "elements"
         },
         {
           "id": "classes",
-          "title": "Classes and attributes",
           "readme": "Classes and attributes"
         },
         {
-          "id": "tokens",
-          "title": "Tokens"
+          "id": "tokens"
         },
         {
-          "id": "rtl",
-          "title": "RTL"
+          "id": "rtl"
         },
         {
           "id": "browser-support",
-          "title": "Browser support",
           "readme": "Browser support"
         },
         {
-          "id": "migration"
+          "id": "migration",
+          "readme": true
         }
       ]
     }
