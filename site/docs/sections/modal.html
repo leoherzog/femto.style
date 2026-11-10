@@ -15,7 +15,7 @@
       </ul>
     </article>
   </dialog>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
   &lt;article&gt;
     &lt;header&gt;
       &lt;button type="button" aria-label="Close" rel="prev"&gt;&lt;/button&gt;
@@ -46,7 +46,7 @@
       <footer><button type="button" class="secondary">Cancel</button><button type="button">Confirm</button></footer>
     </article>
   </dialog>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
   &lt;article&gt;
     &lt;h2&gt;Confirm your membership&lt;/h2&gt;
     &lt;p&gt;
@@ -74,14 +74,14 @@
 </section>
 <section>
   <h2>Opening and closing</h2>
-  <p>A dialog shows when it has the <code>open</code> attribute, which the <a rel="noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement" target="_blank">HTMLDialogElement</a> methods <code>show()</code> and <code>showModal()</code> set. femto has no JavaScript: your script opens and closes the modal, and sets three classes on <code class="language-html">&lt;html&gt;</code> that lock scrolling and run the animations:</p>
+  <p>A dialog shows when it has the <code>open</code> attribute, which the <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement">HTMLDialogElement</a> methods <code>show()</code> and <code>showModal()</code> set. femto has no JavaScript: your script opens and closes the modal, and sets three classes on <code class="language-html">&lt;html&gt;</code> that lock scrolling and run the animations:</p>
   <ul>
     <li><code>.modal-is-open</code> while a modal is open: the page behind it does not scroll and ignores the pointer.</li>
     <li><code>.modal-is-opening</code> with it, during the opening animation.</li>
     <li><code>.modal-is-closing</code> with it, during the closing animation.</li>
   </ul>
   <p><code>.modal-is-open</code> hides the page’s scrollbar; to keep the page from shifting, also set <code>--femto-scrollbar-width</code> on <code class="language-html">&lt;html&gt;</code> to the scrollbar’s width. This script does all of it:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" data-target="membership"&gt;Open modal&lt;/button&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" data-target="membership"&gt;Open modal&lt;/button&gt;
 
 &lt;dialog id="membership" aria-labelledby="membership-title"&gt;
   &lt;article&gt;
@@ -133,7 +133,7 @@
 </section>
 <section>
   <p>Used in the <a href="/examples#confirm-dialog">Confirmation dialog</a> example.</p>
-  <p><small><code>components/modal.css</code> reads <code>--femto-color</code>, <code>--femto-icon-close</code>, <code>--femto-modal-overlay-backdrop-filter</code>, <code>--femto-modal-overlay-background-color</code>, <code>--femto-scrollbar-width</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="/docs#tokens">Tokens</a>.</small></p>
+  <p><small><code>components/modal.css</code> reads <code>--femto-color</code>, <code>--femto-icon-close</code>, <code>--femto-modal-overlay-backdrop-filter</code>, <code>--femto-modal-overlay-background-color</code>, <code>--femto-scrollbar-width</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="#tokens">Tokens</a>.</small></p>
 </section>
 <dialog data-modal="modal-demo" aria-label="Confirm your membership">
   <article>

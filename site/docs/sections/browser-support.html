@@ -47,11 +47,11 @@
 </section>
 <section>
   <h2>How femto checks its CSS</h2>
-  <p>femto's lint (<code>npm run lint</code>) checks every file in <code>css/</code> against Baseline, with the <code>use-baseline</code> rule of @eslint/css and web-features 3.42.0 (October 2026). It does not check custom property values, where <code>light-dark()</code> and the font stacks live, values nested inside other functions, vendor-prefixed names or browser versions. Its exceptions are explained in <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/eslint.config.mjs" target="_blank"><code>eslint.config.mjs</code></a>.</p>
+  <p>femto's lint (<code>npm run lint</code>) checks every file in <code>css/</code> against Baseline, with the <code>use-baseline</code> rule of @eslint/css and web-features 3.42.0 (October 2026). It does not check custom property values, where <code>light-dark()</code> and the font stacks live, values nested inside other functions, vendor-prefixed names or browser versions. Its exceptions are explained in <a href="https://github.com/leoherzog/femto/blob/{{commit}}/eslint.config.mjs"><code>eslint.config.mjs</code></a>.</p>
 </section>
 <section>
   <h2>Older browsers</h2>
   <p>Browsers without <code>light-dark()</code> (Chrome and Edge before 123, Firefox before 120, Safari before 17.5 and Samsung Internet before 27) get femto's light scheme only. They ignore a dark system setting and <code>data-theme="dark"</code>, on the page, on an element or on a shadow host, and the browser's own controls stay light unless your own CSS sets <code>color-scheme: dark</code>, which femto's colors do not follow there.</p>
-  <p>Themes, plain overrides and <code>--femto-light-*</code> overrides apply in them, but an override of your own written with <code>light-dark()</code> fails where it is used (see <a href="/docs#css-variables">CSS variables</a>). These browsers are below femto's minimum versions, and femto is not tested in them.</p>
-  <p>Tools that rewrite <code>light-dark()</code> for those browsers cause a narrower break in supported ones: <code>data-theme</code> on an element stops changing its colors. To keep a bundler from doing that, set its CSS targets as <a href="/docs#quick-start">Quick start</a> shows under npm.</p>
+  <p>Themes, plain overrides and <code>--femto-light-*</code> overrides apply in them, but an override of your own written with <code>light-dark()</code> fails where it is used (see <a href="#css-variables">CSS variables</a>). These browsers are below femto's minimum versions, and femto is not tested in them.</p>
+  <p>Tools that rewrite <code>light-dark()</code> for those browsers cause a narrower break in supported ones: <code>data-theme</code> on an element stops changing its colors. To keep a bundler from doing that, set its CSS targets as <a href="#quick-start">Quick start</a> shows under npm.</p>
 </section>

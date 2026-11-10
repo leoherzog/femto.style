@@ -98,7 +98,7 @@
   <p><label><input type="checkbox" role="switch" name="toggle-font-size-in-rem"><span>Display in rem</span></label></p>
   <p>The root font size, <code>--femto-font-size</code> on <code>:root</code>, is a percentage, so it follows the visitor's own default font size. It steps up at each breakpoint, from 100% to 131.25%.</p>
   <p>Headings and other elements are sized in <code>rem</code>, a multiple of the root font size, and <code class="language-html">&lt;small&gt;</code>, <code class="language-html">&lt;sub&gt;</code>, <code class="language-html">&lt;sup&gt;</code> and code in <code>em</code>, a multiple of the text around&nbsp;them.</p>
-  <p>To keep the root font size at 100% at every width, load the <code>css/options/fixed-typography.css</code>&nbsp;<a href="/docs#options">option</a>.</p>
+  <p>To keep the root font size at 100% at every width, load the <code>css/options/fixed-typography.css</code>&nbsp;<a href="#options">option</a>.</p>
 </section>
 <section>
   <h2>Headings</h2>
@@ -109,7 +109,7 @@
     <h4>Heading 4</h4>
     <h5>Heading 5</h5>
     <h6>Heading 6</h6>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
 &lt;h2&gt;Heading 2&lt;/h2&gt;
 &lt;h3&gt;Heading 3&lt;/h3&gt;
 &lt;h4&gt;Heading 4&lt;/h4&gt;
@@ -125,7 +125,7 @@
       <h2>Plain CSS for semantic HTML</h2>
       <p>The paragraph after the heading is muted.</p>
     </hgroup>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
   &lt;h2&gt;Plain CSS for semantic HTML&lt;/h2&gt;
   &lt;p&gt;The paragraph after the heading is muted.&lt;/p&gt;
 &lt;/hgroup&gt;</code></pre></footer>
@@ -155,7 +155,7 @@
 <section>
   <h2>Blockquote</h2>
   <blockquote>“Design is a funny word. Some people think design means how it looks. But of course, if you dig deeper, it’s really how it works.”<footer><cite>— Steve Jobs</cite></footer></blockquote>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;blockquote&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;blockquote&gt;
   “Design is a funny word. Some people think
   design means how it looks. But of course, if
   you dig deeper, it’s really how it works.”
@@ -171,12 +171,12 @@
     <p>Paragraph before the horizontal line.</p>
     <hr>
     <p>Paragraph after the horizontal line.</p>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;Paragraph before the horizontal line.&lt;/p&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;Paragraph before the horizontal line.&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;Paragraph after the horizontal line.&lt;/p&gt;</code></pre></footer>
   </article>
 </section>
 <section>
   <p>Used in every example, such as the <a href="/examples#blog-post">Blog post</a>.</p>
-  <p><small><code>content/typography.css</code> reads <code>--femto-blockquote-border-color</code>, <code>--femto-blockquote-footer-color</code>, <code>--femto-color</code>, <code>--femto-del-color</code>, <code>--femto-font-family</code>, <code>--femto-font-size</code>, <code>--femto-font-weight</code>, <code>--femto-h1-color</code>, <code>--femto-h2-color</code>, <code>--femto-h3-color</code>, <code>--femto-h4-color</code>, <code>--femto-h5-color</code>, <code>--femto-h6-color</code>, <code>--femto-ins-color</code>, <code>--femto-line-height</code>, <code>--femto-mark-background-color</code>, <code>--femto-mark-color</code>, <code>--femto-muted-color</code>, <code>--femto-spacing</code>, <code>--femto-text-selection-color</code>, <code>--femto-typography-spacing-top</code> and <code>--femto-typography-spacing-vertical</code>. See <a href="/docs#tokens">Tokens</a>.</small></p>
+  <p><small><code>content/typography.css</code> reads <code>--femto-blockquote-border-color</code>, <code>--femto-blockquote-footer-color</code>, <code>--femto-color</code>, <code>--femto-del-color</code>, <code>--femto-font-family</code>, <code>--femto-font-size</code>, <code>--femto-font-weight</code>, <code>--femto-h1-color</code>, <code>--femto-h2-color</code>, <code>--femto-h3-color</code>, <code>--femto-h4-color</code>, <code>--femto-h5-color</code>, <code>--femto-h6-color</code>, <code>--femto-ins-color</code>, <code>--femto-line-height</code>, <code>--femto-mark-background-color</code>, <code>--femto-mark-color</code>, <code>--femto-muted-color</code>, <code>--femto-spacing</code>, <code>--femto-text-selection-color</code>, <code>--femto-typography-spacing-top</code> and <code>--femto-typography-spacing-vertical</code>. See <a href="#tokens">Tokens</a>.</small></p>
 </section>

@@ -4,7 +4,7 @@
   <p>Moving a site from Pico CSS 2.1.1 to femto 3.0 changes file names, class and custom property names, builds, Sass settings, color schemes and supported browsers.</p>
 </hgroup>
 <section>
-  <p>femto 3.0 is derived from Pico CSS 2.1.1, copyright 2019-2024 Pico, under the MIT License (see <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/LICENSE.md" target="_blank"><code>LICENSE.md</code></a>). It keeps every element and feature of Pico's default build, its 20 theme colors, its options and its color utilities, rewritten as plain CSS with femto names.</p>
+  <p>femto 3.0 is derived from Pico CSS 2.1.1, copyright 2019-2024 Pico, under the MIT License (see <a href="https://github.com/leoherzog/femto/blob/{{commit}}/LICENSE.md"><code>LICENSE.md</code></a>). It keeps every element and feature of Pico's default build, its 20 theme colors, its options and its color utilities, rewritten as plain CSS with femto names.</p>
 </section>
 <section>
   <h2>New file names and URLs</h2>
@@ -24,7 +24,7 @@
         </tr>
         <tr>
           <td>Composer <code>picocss/pico</code></td>
-          <td>None; use npm, a CDN or the <a href="/docs#quick-start">download</a></td>
+          <td>None; use npm, a CDN or the <a href="#quick-start">download</a></td>
         </tr>
         <tr>
           <td><code>css/pico.min.css</code>, <code>css/pico.css</code></td>
@@ -50,11 +50,11 @@
     </table>
   </div>
   <p>The one-file builds moved from <code>css/</code> to <code>dist/</code>, and <code>css/femto.css</code> is now the <code>@import</code> entry. On jsDelivr, this link:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"&gt;</code></pre></div>
   <p>becomes:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
-  <p>A themed build such as <code>pico.jade.min.css</code> becomes femto plus <code>css/themes/jade.css</code>, as two <code>&lt;link&gt;</code> tags or one <a href="/docs#themes">combine URL</a>:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
+  <p>A themed build such as <code>pico.jade.min.css</code> becomes femto plus <code>css/themes/jade.css</code>, as two <code>&lt;link&gt;</code> tags or one <a href="#themes">combine URL</a>:</p>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
 &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/themes/jade.css"&gt;</code></pre></div>
 </section>
 <section>
@@ -69,8 +69,8 @@
 <section>
   <h2>Dropped builds</h2>
   <ul>
-    <li>The conditional builds (<code>pico.conditional*.css</code>), which styled only what is inside <code>.pico</code>, are gone. femto styles the whole page, or a shadow root that loads it (see <a href="/docs#shadow-roots">Shadow roots</a>). Remove the <code>.pico</code> classes.</li>
-    <li>The classless builds (<code>pico.classless*.css</code> and <code>pico.fluid.classless*.css</code>), which made the page's header, main and footer containers on their own, are gone. Load femto and give those three a container class: <code>.container</code> for centered widths, or <code>.container-fluid</code> for the full width (see <a href="/docs#container">Container</a>).</li>
+    <li>The conditional builds (<code>pico.conditional*.css</code>), which styled only what is inside <code>.pico</code>, are gone. femto styles the whole page, or a shadow root that loads it (see <a href="#shadow-roots">Shadow roots</a>). Remove the <code>.pico</code> classes.</li>
+    <li>The classless builds (<code>pico.classless*.css</code> and <code>pico.fluid.classless*.css</code>), which made the page's header, main and footer containers on their own, are gone. Load femto and give those three a container class: <code>.container</code> for centered widths, or <code>.container-fluid</code> for the full width (see <a href="#container">Container</a>).</li>
   </ul>
 </section>
 <section>
@@ -88,7 +88,7 @@
       <tbody>
         <tr>
           <td><code>$theme-color</code></td>
-          <td><code>css/themes/&lt;color&gt;.css</code>, after femto. Azure is built in. See <a href="/docs#themes">Themes</a>.</td>
+          <td><code>css/themes/&lt;color&gt;.css</code>, after femto. Azure is built in. See <a href="#themes">Themes</a>.</td>
         </tr>
         <tr>
           <td><code>$enable-responsive-spacings: true</code></td>
@@ -104,7 +104,7 @@
         </tr>
         <tr>
           <td><code>$modules</code></td>
-          <td>A <a href="/docs#modules">custom module set</a></td>
+          <td>A <a href="#modules">custom module set</a></td>
         </tr>
         <tr>
           <td><code>$breakpoints</code></td>
@@ -141,33 +141,33 @@
       </tbody>
     </table>
   </div>
-  <p>Any other change is a custom property override on <code>:root</code>, after femto, such as <code>:root { --femto-border-radius: 0; }</code> (see <a href="/docs#css-variables">CSS variables</a>). Sass palette variables such as <code>$azure-550</code> are custom properties in <code>femto.colors.css</code>, such as <code>var(--femto-color-azure-550)</code> (see <a href="/docs#colors">Colors</a>).</p>
+  <p>Any other change is a custom property override on <code>:root</code>, after femto, such as <code>:root { --femto-border-radius: 0; }</code> (see <a href="#css-variables">CSS variables</a>). Sass palette variables such as <code>$azure-550</code> are custom properties in <code>femto.colors.css</code>, such as <code>var(--femto-color-azure-550)</code> (see <a href="#colors">Colors</a>).</p>
   <p>If your project still builds with Sass, <code>@use "pkg:@leoherzog/femto";</code> includes <code>dist/femto.min.css</code>. Do not <code>@use</code> <code>css/femto.css</code>: Sass leaves its <code>@import</code>s as they are, and they would not resolve from your output file.</p>
 </section>
 <section>
   <h2>Color scheme changes</h2>
-  <p>Color tokens are now declared once, and <code>data-theme</code> sets the scheme instead of redeclaring the color tokens (see <a href="/docs#color-schemes">Color schemes</a>). That changes five things:</p>
+  <p>Color tokens are now declared once, and <code>data-theme</code> sets the scheme instead of redeclaring the color tokens (see <a href="#color-schemes">Color schemes</a>). That changes five things:</p>
   <ul>
     <li><code>data-theme</code> on a button, heading or form field keeps that element's own colors in the chosen scheme. In Pico 2.1.1 such an element took the page's background and text colors: on a dark page, <code>&lt;button data-theme="light"&gt;</code> was a white box that turned blue on hover.</li>
-    <li><code>data-theme="dark"</code> on a web component's host now makes its shadow root dark when the component loads femto there (see <a href="/docs#shadow-roots">Shadow roots</a>). Pico 2.1.1, loaded only in the shadow root, gave it no color tokens.</li>
-    <li>Custom color overrides now work on plain <code>:root</code> and reach inside <code>data-theme</code> elements. In Pico 2.1.1, the light and automatic dark scheme selectors outranked <code>:root</code>, and every nested <code>data-theme</code> element redeclared the tokens. Likewise, your rules that set <code>--femto-form-element-focus-color</code> on a checkbox or radio take effect from specificity (0,1,1), where Pico 2.1.1 needed (0,2,1) or (0,3,1). To give a token a value per scheme, set its new <code>--femto-light-*</code> and <code>--femto-dark-*</code> pair on <code>:root</code>, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> (see <a href="/docs#css-variables">CSS variables</a>).</li>
+    <li><code>data-theme="dark"</code> on a web component's host now makes its shadow root dark when the component loads femto there (see <a href="#shadow-roots">Shadow roots</a>). Pico 2.1.1, loaded only in the shadow root, gave it no color tokens.</li>
+    <li>Custom color overrides now work on plain <code>:root</code> and reach inside <code>data-theme</code> elements. In Pico 2.1.1, the light and automatic dark scheme selectors outranked <code>:root</code>, and every nested <code>data-theme</code> element redeclared the tokens. Likewise, your rules that set <code>--femto-form-element-focus-color</code> on a checkbox or radio take effect from specificity (0,1,1), where Pico 2.1.1 needed (0,2,1) or (0,3,1). To give a token a value per scheme, set its new <code>--femto-light-*</code> and <code>--femto-dark-*</code> pair on <code>:root</code>, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> (see <a href="#css-variables">CSS variables</a>).</li>
     <li>A <code>color-scheme</code> set on an element without <code>data-theme</code> now switches femto's colors in that subtree.</li>
-    <li>For a color token declared with <code>light-dark()</code> or set from one with <code>var()</code>, such as <code>--femto-primary</code>, <code>getPropertyValue()</code> now returns <code>light-dark(...)</code> text, where Pico 2.1.1 returned a color. To read the color in effect, see <a href="/docs#css-variables">CSS variables</a>.</li>
+    <li>For a color token declared with <code>light-dark()</code> or set from one with <code>var()</code>, such as <code>--femto-primary</code>, <code>getPropertyValue()</code> now returns <code>light-dark(...)</code> text, where Pico 2.1.1 returned a color. To read the color in effect, see <a href="#css-variables">CSS variables</a>.</li>
   </ul>
 </section>
 <section>
   <h2>Supported browsers</h2>
-  <p>Pico 2.1.1 supported every browser in browserslist's <code>defaults</code>. femto 3.0 supports the browsers in <a href="/docs#browser-support">Browser support</a>, and drops the <code>-ms-</code> rules, <code>::-webkit-input-placeholder</code> and <code>::-moz-list-bullet</code>. Browsers without <code>light-dark()</code> get only femto's light scheme and are not tested, so stay on Pico 2.1.1 if you need full support in them.</p>
+  <p>Pico 2.1.1 supported every browser in browserslist's <code>defaults</code>. femto 3.0 supports the browsers in <a href="#browser-support">Browser support</a>, and drops the <code>-ms-</code> rules, <code>::-webkit-input-placeholder</code> and <code>::-moz-list-bullet</code>. Browsers without <code>light-dark()</code> get only femto's light scheme and are not tested, so stay on Pico 2.1.1 if you need full support in them.</p>
 </section>
 <section>
   <h2>Other changes</h2>
   <ul>
     <li>In Firefox, elements that set no outline of their own, such as <code>video</code> and tooltips with <code>tabindex</code>, show the keyboard focus ring again, and a field the user has left invalid shows the focus and <code>aria-invalid</code> rings, as in Chrome and Safari. femto drops 2.1.1's <code>:-moz-focusring { outline: none }</code> and <code>:-moz-ui-invalid { box-shadow: none }</code>.</li>
-    <li>Some rendering bugs of 2.1.1 are fixed, such as an indeterminate <code>&lt;progress&gt;</code> that looked complete in Firefox with reduced motion. The <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/CHANGELOG.md#fixed" target="_blank">changelog</a> lists them.</li>
+    <li>Some rendering bugs of 2.1.1 are fixed, such as an indeterminate <code>&lt;progress&gt;</code> that looked complete in Firefox with reduced motion. The <a href="https://github.com/leoherzog/femto/blob/{{commit}}/CHANGELOG.md#fixed">changelog</a> lists them.</li>
     <li>The focus ring of <code>role="group"</code> and <code>role="search"</code> inside a <code>data-theme</code> element follows that element's scheme.</li>
-    <li>With <code>no-transitions.css</code>, <code>--femto-transition</code> is <code>0s</code> (2.1.1 kept <code>0.2s ease-in-out</code>; see <a href="/docs#options">Options</a>), so your own rules that read it stop animating too, and the group focus ring no longer fades.</li>
-    <li>Two other new tokens: <code>--femto-grid-template-columns</code> (see <a href="/docs#grid">Grid</a>) and <code>--femto-primary-inverse-filter</code> (see <a href="/docs#themes">Themes</a>).</li>
+    <li>With <code>no-transitions.css</code>, <code>--femto-transition</code> is <code>0s</code> (2.1.1 kept <code>0.2s ease-in-out</code>; see <a href="#options">Options</a>), so your own rules that read it stop animating too, and the group focus ring no longer fades.</li>
+    <li>Two other new tokens: <code>--femto-grid-template-columns</code> (see <a href="#grid">Grid</a>) and <code>--femto-primary-inverse-filter</code> (see <a href="#themes">Themes</a>).</li>
     <li>If you used a classless build, classes such as <code>.grid</code>, <code>.secondary</code>, <code>.dropdown</code> and <code>.striped</code> that it ignored are now styled.</li>
   </ul>
-  <p>Every difference from Pico 2.1.1 that the parity tests found is registered, with its reason, in <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/tree/{{commit}}/tests/divergences" target="_blank"><code>tests/divergences/</code></a>, and the <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/CHANGELOG.md" target="_blank">changelog</a> lists the changes in each release.</p>
+  <p>Every difference from Pico 2.1.1 that the parity tests found is registered, with its reason, in <a href="https://github.com/leoherzog/femto/tree/{{commit}}/tests/divergences"><code>tests/divergences/</code></a>, and the <a href="https://github.com/leoherzog/femto/blob/{{commit}}/CHANGELOG.md">changelog</a> lists the changes in each release.</p>
 </section>

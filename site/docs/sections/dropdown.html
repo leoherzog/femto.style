@@ -4,7 +4,7 @@
   <p><code class="language-html">&lt;details class="dropdown"&gt;</code> is a dropdown: a <code class="language-html">&lt;summary&gt;</code> and a <code class="language-html">&lt;ul&gt;</code> that opens below it.</p>
 </hgroup>
 <section>
-  <p>The <code class="language-html">&lt;ul&gt;</code> comes right after the <code class="language-html">&lt;summary&gt;</code>, both directly inside the <code class="language-html">&lt;details&gt;</code>. The summary looks like a select, and the dropdown is as wide as its container, except in a <a href="/docs#nav">nav</a>. A click outside an open dropdown closes it.</p>
+  <p>The <code class="language-html">&lt;ul&gt;</code> comes right after the <code class="language-html">&lt;summary&gt;</code>, both directly inside the <code class="language-html">&lt;details&gt;</code>. The summary looks like a select, and the dropdown is as wide as its container, except in a <a href="#nav">nav</a>. A click outside an open dropdown closes it.</p>
   <p><code>aria-current</code> on an item’s link shows it as current, with its hover colors.</p>
   <article aria-label="Dropdowns as selects" data-dropdown-example>
     <div class="grid"><details class="dropdown">
@@ -16,7 +16,7 @@
         <li><a href="/docs">Plasma</a></li>
       </ul>
     </details><select name="select" aria-label="Select" required><option value="" disabled selected>Select</option><option>Solid</option><option>Liquid</option><option>Gas</option><option>Plasma</option></select></div>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Dropdown --&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Dropdown --&gt;
 &lt;details class="dropdown"&gt;
   &lt;summary&gt;Dropdown&lt;/summary&gt;
   &lt;ul&gt;
@@ -59,7 +59,7 @@
         <li><label><input type="checkbox" name="plasma" value="Plasma">Plasma</label></li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Radios --&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Radios --&gt;
 &lt;details class="dropdown"&gt;
   &lt;summary&gt;
     Select a phase of matter...
@@ -129,7 +129,7 @@
 </section>
 <section>
   <h2>Button variants</h2>
-  <p><code class="language-html">&lt;summary role="button"&gt;</code> makes the dropdown a button, which takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code> like other buttons (see <a href="/docs#button">Button</a>).</p>
+  <p><code class="language-html">&lt;summary role="button"&gt;</code> makes the dropdown a button, which takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code> like other buttons (see <a href="#button">Button</a>).</p>
   <article aria-label="Dropdown as a button example" data-dropdown-example>
     <details class="dropdown">
       <summary role="button">Dropdown as a button</summary>
@@ -140,7 +140,7 @@
         <li><a href="/docs">Plasma</a></li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
   &lt;summary role="button"&gt;
     Dropdown as a button
   &lt;/summary&gt;
@@ -172,7 +172,7 @@
         <li><a href="/docs">Plasma</a></li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
   &lt;summary aria-invalid="false"&gt;
     Valid phase of matter: Solid
   &lt;/summary&gt;
@@ -193,7 +193,7 @@
 </section>
 <section>
   <h2>Usage with <code class="language-html">&lt;nav&gt;</code></h2>
-  <p>In a <a href="/docs#nav">nav</a>, a dropdown is as wide as its summary. <code class="language-html">&lt;ul dir="rtl"&gt;</code> lines the list up with the summary’s right edge.</p>
+  <p>In a <a href="#nav">nav</a>, a dropdown is as wide as its summary. <code class="language-html">&lt;ul dir="rtl"&gt;</code> lines the list up with the summary’s right edge.</p>
   <article aria-label="Dropdowns inside nav" data-dropdown-example>
     <nav aria-label="Dropdown in a nav example">
       <ul>
@@ -214,7 +214,7 @@
         </li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -239,5 +239,5 @@
 </section>
 <section>
   <p>Used in the <a href="/examples#navigation-bar">Navigation bar</a> and <a href="/examples#search-results">Search results</a> examples.</p>
-  <p><small><code>components/dropdown.css</code> reads <code>--femto-border-radius</code>, <code>--femto-border-width</code>, <code>--femto-dropdown-background-color</code>, <code>--femto-dropdown-border-color</code>, <code>--femto-dropdown-box-shadow</code>, <code>--femto-dropdown-color</code>, <code>--femto-dropdown-hover-background-color</code>, <code>--femto-form-element-active-background-color</code>, <code>--femto-form-element-active-border-color</code>, <code>--femto-form-element-background-color</code>, <code>--femto-form-element-border-color</code>, <code>--femto-form-element-focus-color</code>, <code>--femto-form-element-invalid-border-color</code>, <code>--femto-form-element-invalid-focus-color</code>, <code>--femto-form-element-placeholder-color</code>, <code>--femto-form-element-spacing-horizontal</code>, <code>--femto-form-element-spacing-vertical</code>, <code>--femto-form-element-valid-border-color</code>, <code>--femto-form-element-valid-focus-color</code>, <code>--femto-icon-chevron</code>, <code>--femto-line-height</code>, <code>--femto-nav-link-spacing-horizontal</code>, <code>--femto-nav-link-spacing-vertical</code>, <code>--femto-outline-width</code>, <code>--femto-primary-focus</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="/docs#tokens">Tokens</a>.</small></p>
+  <p><small><code>components/dropdown.css</code> reads <code>--femto-border-radius</code>, <code>--femto-border-width</code>, <code>--femto-dropdown-background-color</code>, <code>--femto-dropdown-border-color</code>, <code>--femto-dropdown-box-shadow</code>, <code>--femto-dropdown-color</code>, <code>--femto-dropdown-hover-background-color</code>, <code>--femto-form-element-active-background-color</code>, <code>--femto-form-element-active-border-color</code>, <code>--femto-form-element-background-color</code>, <code>--femto-form-element-border-color</code>, <code>--femto-form-element-focus-color</code>, <code>--femto-form-element-invalid-border-color</code>, <code>--femto-form-element-invalid-focus-color</code>, <code>--femto-form-element-placeholder-color</code>, <code>--femto-form-element-spacing-horizontal</code>, <code>--femto-form-element-spacing-vertical</code>, <code>--femto-form-element-valid-border-color</code>, <code>--femto-form-element-valid-focus-color</code>, <code>--femto-icon-chevron</code>, <code>--femto-line-height</code>, <code>--femto-nav-link-spacing-horizontal</code>, <code>--femto-nav-link-spacing-vertical</code>, <code>--femto-outline-width</code>, <code>--femto-primary-focus</code>, <code>--femto-spacing</code> and <code>--femto-transition</code>. See <a href="#tokens">Tokens</a>.</small></p>
 </section>

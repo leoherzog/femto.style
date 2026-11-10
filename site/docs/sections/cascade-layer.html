@@ -5,11 +5,11 @@
 </hgroup>
 <section>
   <p>The paths below are relative to femto's <code>css/</code> folder, and your own rules follow the imports, unlayered:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import url(femto.css) layer(femto);
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import url(femto.css) layer(femto);
 @import url(themes/jade.css) layer(femto);
 @import url(options/no-transitions.css) layer(femto);</code></pre></div>
   <p>From npm, use package paths instead, such as <code>@import "@leoherzog/femto/css/femto.css" layer(femto);</code>.</p>
   <p>Your unlayered rules then override femto's, whatever their specificity, except femto's few <code>!important</code> declarations.</p>
   <p>Left unlayered, theme and option files would compete with your unlayered rules by specificity instead of always losing to them, and would override any rules in layers of your own.</p>
-  <p><code>dist/femto.min.css</code> can be imported into a layer the same way, and it loads as one file (see <a href="/docs#files">Files</a>).</p>
+  <p><code>dist/femto.min.css</code> can be imported into a layer the same way, and it loads as one file (see <a href="#files">Files</a>).</p>
 </section>

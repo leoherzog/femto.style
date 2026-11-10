@@ -4,11 +4,11 @@
   <p>femto's built-in color is azure, and each of the 19 others is one file in <code>css/themes/</code>.</p>
 </hgroup>
 <section>
-  <p>Load a theme right after femto, then any <a href="/docs#options">options</a>, then your own stylesheets, and in femto's <a href="/docs#cascade-layer">cascade layer</a> if you use one:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
+  <p>Load a theme right after femto, then any <a href="#options">options</a>, then your own stylesheets, and in femto's <a href="#cascade-layer">cascade layer</a> if you use one:</p>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
 &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/themes/jade.css"&gt;
 &lt;link rel="stylesheet" href="styles.css"&gt;</code></pre></div>
-  <p>To see a color on this page and copy the links that load it, use the <a href="/docs#theme-picker">Theme picker</a>.</p>
+  <p>To see a color on this page and copy the links that load it, use the <a href="#theme-picker">Theme picker</a>.</p>
 </section>
 <section>
   <h2>The 20 colors</h2>
@@ -110,8 +110,8 @@
 <section>
   <h2>A color of your own</h2>
   <p>A theme file is one <code>:root, :host</code> rule that sets ten tokens (femto's <code>--femto-*</code> custom properties): <code>--femto-primary</code>, <code>--femto-primary-background</code>, <code>--femto-primary-underline</code>, <code>--femto-primary-hover</code>, <code>--femto-primary-hover-background</code>, <code>--femto-primary-focus</code>, <code>--femto-primary-inverse</code>, <code>--femto-primary-inverse-filter</code>, <code>--femto-text-selection-color</code> and <code>--femto-switch-thumb-box-shadow</code>. That is the same specificity as your own overrides on <code>:root</code>, so a theme loaded after your stylesheet replaces your values of the tokens it sets.</p>
-  <p>A theme sets the six tokens that have a pair (below) as their <code>--femto-light-*</code> and <code>--femto-dark-*</code> pair instead of the token, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> for <code>--femto-primary</code> (see <a href="/docs#color-schemes">Color schemes</a>), even where both values are the same, and it has no <code>light-dark()</code>. It does not replace your plain value of a token it sets as a pair, such as <code>--femto-primary: #c00</code>.</p>
-  <p>For a color of your own, copy a theme file, such as <a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/blob/{{commit}}/css/themes/jade.css" target="_blank"><code>css/themes/jade.css</code></a>, and change its values:</p>
+  <p>A theme sets the six tokens that have a pair (below) as their <code>--femto-light-*</code> and <code>--femto-dark-*</code> pair instead of the token, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> for <code>--femto-primary</code> (see <a href="#color-schemes">Color schemes</a>), even where both values are the same, and it has no <code>light-dark()</code>. It does not replace your plain value of a token it sets as a pair, such as <code>--femto-primary: #c00</code>.</p>
+  <p>For a color of your own, copy a theme file, such as <a href="https://github.com/leoherzog/femto/blob/{{commit}}/css/themes/jade.css"><code>css/themes/jade.css</code></a>, and change its values:</p>
   <ul>
     <li>Six of the ten tokens have a pair: <code>--femto-text-selection-color</code>, <code>--femto-primary</code>, <code>--femto-primary-underline</code>, <code>--femto-primary-hover</code>, <code>--femto-primary-hover-background</code> and <code>--femto-primary-focus</code>. Set a token's pair for a value in each scheme, or the token itself for one value in both, but not both ways: the token's own value replaces its pair. The other four take one value for both schemes.</li>
     <li>Give <code>--femto-primary-inverse</code>, a primary button's text, at least 4.5:1 contrast in both schemes with <code>--femto-primary-background</code> and with <code>--femto-primary-hover-background</code>, which the button uses when hovered, pressed, focused or current.</li>
@@ -121,5 +121,5 @@
 <section>
   <h2>One request</h2>
   <p>femto ships no prebuilt themed copies. To fetch femto, a theme and any options in one request, join them in a jsDelivr combine URL:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@leoherzog/femto@3/dist/femto.min.css,npm/@leoherzog/femto@3/css/themes/jade.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/combine/npm/@leoherzog/femto@3/dist/femto.min.css,npm/@leoherzog/femto@3/css/themes/jade.css"&gt;</code></pre></div>
 </section>

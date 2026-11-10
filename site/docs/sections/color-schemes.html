@@ -5,7 +5,7 @@
 </hgroup>
 <section>
   <p>By default, femto follows the visitor's system setting (<code>prefers-color-scheme</code>) on screen, and prints in the light scheme. To choose a scheme, set <code>data-theme="light"</code> or <code>data-theme="dark"</code> on <code>&lt;html&gt;</code> for the whole page, or on one element for a part of it.</p>
-  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;html lang="en" data-theme="dark"&gt;</code></pre></div>
+  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;html lang="en" data-theme="dark"&gt;</code></pre></div>
   <p>This button sets <code>data-theme</code> on this page's <code>&lt;html&gt;</code>:</p>
   <article aria-label="Color scheme switcher" id="theme-switcher">
     <button type="button" class="contrast" data-scheme-switcher><span role="img" aria-hidden="true">☀️</span>Turn on dark mode</button>
@@ -25,7 +25,7 @@
       </div>
       <label><input type="checkbox" role="switch" name="remember" checked> Remember me</label>
     </form>
-    <footer class="code" data-theme="light"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article data-theme="light"&gt;
+    <footer class="code" data-theme="light"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article data-theme="light"&gt;
   &lt;h2&gt;A light card&lt;/h2&gt;
   &lt;p&gt;This card and the text in it use the light scheme, whatever the rest of the page uses.&lt;/p&gt;
   &lt;form&gt;...&lt;/form&gt;
@@ -42,14 +42,14 @@
       </div>
       <label><input type="checkbox" role="switch" name="remember" checked> Remember me</label>
     </form>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article data-theme="dark"&gt;
+    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article data-theme="dark"&gt;
   &lt;h2&gt;A dark card&lt;/h2&gt;
   &lt;p&gt;This card and the text in it use the dark scheme, whatever the rest of the page uses.&lt;/p&gt;
   &lt;form&gt;...&lt;/form&gt;
 &lt;/article&gt;</code></pre></footer>
   </article>
   <p>It does not change the color the element inherits, so text directly inside it keeps that color, and it adds no background to an element femto gives none, such as a <code>&lt;section&gt;</code> or a <code>&lt;div&gt;</code>. Where you need them, set the color on the element yourself, and the background too if femto gives it none:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">section[data-theme] {
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">section[data-theme] {
   background-color: var(--femto-background-color);
   color: var(--femto-color);
 }</code></pre></div>
@@ -60,20 +60,20 @@
   <ul>
     <li>An element that carries <code>data-theme</code> itself, such as a button, heading or form field, keeps its own colors in that scheme.</li>
     <li>Your own color overrides on <code>:root</code>, loaded after femto, apply inside every <code>data-theme</code> element. Set a token's pair to give each scheme its own value, or one of the two to change one scheme. A plain value of the token itself, such as <code>--femto-primary: #c00</code>, applies in both schemes, in place of its pair.</li>
-    <li><code>data-theme="dark"</code> on a web component's host makes its shadow root dark when the component loads femto there. See <a href="/docs#shadow-roots">Shadow roots</a>.</li>
+    <li><code>data-theme="dark"</code> on a web component's host makes its shadow root dark when the component loads femto there. See <a href="#shadow-roots">Shadow roots</a>.</li>
   </ul>
   <p>For example, this override gives the page a background of your own in each scheme:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">:root {
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">:root {
   --femto-light-background-color: #fffdf7;
   --femto-dark-background-color: #101418;
 }</code></pre></div>
-  <p>femto combines each pair into its token on <code>:root</code> and <code>:host</code>, so a <code>--femto-light-*</code> or <code>--femto-dark-*</code> token set on another element does not change femto's colors. To change a color in one part of a page, set the token itself on that element, such as <code>--femto-primary</code> on a card. <a href="/docs#css-variables">CSS variables</a> has more on overrides, and links to the files that declare the tokens' defaults.</p>
-  <p>Browsers without <code>light-dark()</code> get the light scheme only, and bundlers that rewrite it break color schemes: see <a href="/docs#browser-support">Browser support</a>.</p>
+  <p>femto combines each pair into its token on <code>:root</code> and <code>:host</code>, so a <code>--femto-light-*</code> or <code>--femto-dark-*</code> token set on another element does not change femto's colors. To change a color in one part of a page, set the token itself on that element, such as <code>--femto-primary</code> on a card. <a href="#css-variables">CSS variables</a> has more on overrides, and links to the files that declare the tokens' defaults.</p>
+  <p>Browsers without <code>light-dark()</code> get the light scheme only, and bundlers that rewrite it break color schemes: see <a href="#browser-support">Browser support</a>.</p>
 </section>
 <section>
   <h2>The color-scheme property</h2>
   <p>A <code>color-scheme</code> that your own CSS sets on an element also switches femto's colors in that subtree, as it switches the browser's own colors:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">aside {
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">aside {
   color-scheme: dark;
 }</code></pre></div>
   <p><code>data-theme</code> is still the way to theme an element: it also switches the few values, listed above, that <code>light-dark()</code> cannot carry.</p>

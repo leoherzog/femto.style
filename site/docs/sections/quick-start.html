@@ -1,47 +1,47 @@
 <hgroup>
   <p class="chapter">Getting started</p>
   <h1 id="quick-start">Quick start</h1>
-  <p><a rel="noopener noreferrer" href="https://web.dev/learn/html/semantic-html/" target="_blank">Semantic HTML</a> made beautiful: link one stylesheet and plain HTML looks clean and readable, with no classes needed. femto builds on <a rel="noopener noreferrer" href="https://picocss.com" target="_blank">Pico CSS</a>.</p>
+  <p><a href="https://web.dev/learn/html/semantic-html/">Semantic HTML</a> made beautiful: link one stylesheet and plain HTML looks clean and readable, with no classes needed. femto builds on <a href="https://picocss.com">Pico CSS</a>.</p>
 </hgroup>
 <section>
   <p>Compared to Pico CSS, femto:</p>
   <ul>
     <li>Uses plain CSS, with modules joined by <code>@import</code>, instead of Sass</li>
-    <li>Uses CSS variables for <a href="/docs#themes">theme colors</a>, one small file per color, instead of a compiled copy of the library for each</li>
-    <li>Uses add-on files instead of Sass variables for its <a href="/docs#options">options</a></li>
-    <li>Uses CSS's <a rel="noopener noreferrer" href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/light-dark" target="_blank"><code>light-dark()</code></a> for the light and dark color schemes</li>
+    <li>Uses CSS variables for <a href="#themes">theme colors</a>, one small file per color, instead of a compiled copy of the library for each</li>
+    <li>Uses add-on files instead of Sass variables for its <a href="#options">options</a></li>
+    <li>Uses CSS's <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/light-dark"><code>light-dark()</code></a> for the light and dark color schemes</li>
     <li>Drops the rarely used classless, fluid classless and conditional builds</li>
   </ul>
-  <p>For every change, see <a href="/docs#migration">Migrating from Pico</a>.</p>
+  <p>For every change, see <a href="#migration">Migrating from Pico</a>.</p>
 </section>
 <section>
   <p>The <code>@3</code> links and commands in these docs work once 3.0.0 is released, since jsDelivr and npm skip prereleases for <code>@3</code>. Until then, load the alpha by its version, or write <code>@alpha</code> in place of <code>@3</code>:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@{{version}}/dist/femto.min.css"&gt;</code></pre></div>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@{{version}}/dist/femto.min.css"&gt;</code></pre></div>
   <p>From npm, install it pinned to its exact version, since a later alpha may rename things:</p>
-  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-bash">npm install --save-exact @leoherzog/femto@alpha</code></pre></div>
+  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-bash">npm install --save-exact @leoherzog/femto@alpha</code></pre></div>
 </section>
 <section>
   <h2>From a CDN</h2>
-  <p>Link femto from <a rel="noopener noreferrer" href="https://www.jsdelivr.com/package/npm/@leoherzog/femto" target="_blank">jsDelivr</a> in the <code>&lt;head&gt;</code> of your page:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
+  <p>Link femto from <a href="https://www.jsdelivr.com/package/npm/@leoherzog/femto">jsDelivr</a> in the <code>&lt;head&gt;</code> of your page:</p>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
 </section>
 <section>
   <h2>Download</h2>
-  <p><a rel="noopener noreferrer" href="https://github.com/leoherzog/femto/archive/{{commit}}.zip" target="_blank">Download femto</a> and link <code>dist/femto.min.css</code>:</p>
-  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="dist/femto.min.css"&gt;</code></pre></div>
+  <p><a href="https://github.com/leoherzog/femto/archive/{{commit}}.zip">Download femto</a> and link <code>dist/femto.min.css</code>:</p>
+  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="dist/femto.min.css"&gt;</code></pre></div>
 </section>
 <section>
   <h2>npm</h2>
-  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-bash">npm install @leoherzog/femto</code></pre></div>
-  <p>The <a rel="noopener noreferrer" href="https://www.npmjs.com/package/@leoherzog/femto" target="_blank">package</a>'s main file is <code>dist/femto.min.css</code>, and it exports every file in <code>css/</code> and <code>dist/</code> by its path, such as <code>@leoherzog/femto/css/themes/jade.css</code>. In a CSS file that a bundler processes, import it by those paths:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import "@leoherzog/femto";
+  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-bash">npm install @leoherzog/femto</code></pre></div>
+  <p>The <a href="https://www.npmjs.com/package/@leoherzog/femto">package</a>'s main file is <code>dist/femto.min.css</code>, and it exports every file in <code>css/</code> and <code>dist/</code> by its path, such as <code>@leoherzog/femto/css/themes/jade.css</code>. In a CSS file that a bundler processes, import it by those paths:</p>
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import "@leoherzog/femto";
 @import "@leoherzog/femto/css/themes/jade.css";</code></pre></div>
-  <p>A bundler that rewrites CSS for older browsers can break femto's <a href="/docs#color-schemes">color schemes</a>. Vite 8's production build, for example, minifies CSS with Lightning CSS for browsers older than femto supports, and rewrites every <code>light-dark()</code> into variables that resolve once on <code>:root</code>, so <code>data-theme</code> on an element no longer changes its colors. Set the bundler's CSS targets to femto's <a href="/docs#browser-support">minimum versions</a>. In Vite, set <code>build.cssTarget</code> in <code>vite.config.js</code> to <code>["chrome125", "edge125", "firefox128", "safari17.5", "ios17.5"]</code>.</p>
+  <p>A bundler that rewrites CSS for older browsers can break femto's <a href="#color-schemes">color schemes</a>. Vite 8's production build, for example, minifies CSS with Lightning CSS for browsers older than femto supports, and rewrites every <code>light-dark()</code> into variables that resolve once on <code>:root</code>, so <code>data-theme</code> on an element no longer changes its colors. Set the bundler's CSS targets to femto's <a href="#browser-support">minimum versions</a>. In Vite, set <code>build.cssTarget</code> in <code>vite.config.js</code> to <code>["chrome125", "edge125", "firefox128", "safari17.5", "ios17.5"]</code>.</p>
   <p>List <code>ios17.5</code> as well as <code>safari17.5</code>: without it, Lightning CSS drops <code>-webkit-text-size-adjust</code>, the only form iOS Safari reads. Vite does not accept a Samsung Internet target, and <code>chrome125</code> covers Samsung Internet 27, which is built on Chromium 125.</p>
 </section>
 <section>
   <h2>Starter template</h2>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy to clipboard" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
+  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
 &lt;html lang="en"&gt;
   &lt;head&gt;
     &lt;meta charset="utf-8"&gt;
@@ -56,6 +56,6 @@
     &lt;/main&gt;
   &lt;/body&gt;
 &lt;/html&gt;</code></pre></div>
-  <p>To add a theme color or options, let the <a href="/docs#theme-picker">Theme picker</a> write the links, or see <a href="/docs#themes">Themes</a> and <a href="/docs#options">Options</a>.</p>
+  <p>To add a theme color or options, let the <a href="#theme-picker">Theme picker</a> write the links, or see <a href="#themes">Themes</a> and <a href="#options">Options</a>.</p>
   <p>For whole pages, see the <a href="/examples">examples</a>.</p>
 </section>
