@@ -1,9 +1,30 @@
 # Cloudflare Pages header rules. The build copies this file into dist/, and Pages applies its rules
-# instead of serving it as a file (PLAN.md Decision 11).
+# instead of serving it as a file (PLAN.md Decision 11). Pages itself already sends nosniff and a
+# Referrer-Policy.
 #
-# Only the fonts, the .woff2 files in /assets/fonts/, are cached for long. They are pinned files
-# whose names never change, so a changed font needs a new file name, and fonts.css a new url().
-# Everything else, OFL.txt beside them included, keeps Pages' default,
-# "public, max-age=0, must-revalidate", so a deploy shows at once.
+# Every response gets HSTS, at 300 seconds until it is raised in steps, and a CSP that only keeps
+# other origins from framing the site and allows no <object> or <base>. It has no script-src or
+# style-src: the head scripts are inline, production also loads the zone's analytics beacon, and
+# the examples use style="".
+#
+# Caching: no two rules set Cache-Control on one path. The site's CSS and JavaScript and vendored
+# femto keep 5 minutes, so the next pages of a visit reuse them without asking, and a deploy reaches
+# a returning reader within those 5 minutes. The fonts, the .woff2 files in /assets/fonts/, keep a
+# year: they are pinned files whose names never change, so a changed font needs a new file name, and
+# its @font-face rule a new url(). Everything else, OFL.txt beside them included, keeps Pages'
+# default, "public, max-age=0, must-revalidate", so a deploy shows at once.
+/*
+  Strict-Transport-Security: max-age=300
+  Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'none'
+
+/assets/css/*
+  Cache-Control: public, max-age=300
+
+/assets/js/*
+  Cache-Control: public, max-age=300
+
+/vendor/femto/*
+  Cache-Control: public, max-age=300
+
 /assets/fonts/*.woff2
   Cache-Control: public, max-age=31536000, immutable

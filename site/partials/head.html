@@ -11,24 +11,15 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" type="image/png" sizes="180x180">
 <link rel="manifest" href="/site.webmanifest">
+<script type="speculationrules">
+  {"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"selector_matches": "a[href^='#'], a[href*='theme='], a[download], a[aria-current=page], [data-docs-spy] article a"}}]}, "eagerness": "moderate"}]}
+</script>
 <script>
-  // The first of the page's two render-blocking scripts, the ?theme= script (criterion 15). On the
-  // docs page, ?theme=<color> adds that femto theme color (Decision 8), the color the Theme
-  // picker (/docs?theme=<color>#theme-picker, picker.js) sets and swaps in place. Its <link> is written
-  // by document.write, so the parser inserts it, after femto's stylesheets (docs.html links them
-  // before this partial), and the theme's :root tokens come after femto's. Chrome holds its first
-  // paint for that <link> as a render-blocking stylesheet. Firefox holds its first paint for it only
-  // because the next script, a parser-blocking one, waits for that pending stylesheet before it
-  // runs; so the color-scheme script stays a separate script after this one (probed on 2026-11-04 in
-  // headless Firefox 160 with jade.css held 300 ms: with one script the first contentful paint came
-  // at 80 to 277 ms, before jade.css's responseEnd; with a static inline script after this one, at
-  // 455 to 588 ms, after it; a script that document.write adds after the <link> did not hold the
-  // paint). A <link> added with createElement is not parser-inserted, blocks neither, and the
-  // default paints first. Only the 20 color names in vendor/femto/css/themes/ are taken: azure, the
-  // default, writes nothing, and anything else is ignored.
+  // The ?theme= script (Decision 8): document.write parser-inserts the theme's <link> before paint.
   if (location.pathname === "/docs") {
     const theme = new URLSearchParams(location.search).get("theme");
     const colors = ["amber", "blue", "cyan", "fuchsia", "green", "grey", "indigo", "jade", "lime", "orange",
@@ -37,16 +28,12 @@
   }
 </script>
 <script>
-  // The second render-blocking script, the color-scheme script (criterion 15). The reader's
-  // color-scheme choice is kept as JSON ("light" or "dark") in localStorage femtoColorScheme, the
-  // Remix site's key and format (Decision 14); data-theme is set on <html> only when a choice is stored,
-  // and before the first paint, so a stored choice never flashes. As a parser-blocking script after
-  // the ?theme= script, it is also what holds Firefox's first paint for the theme's <link> (above).
+  // The color-scheme script (Decision 14), which also holds Firefox's paint for that <link>.
   try {
     const scheme = JSON.parse(localStorage.getItem("femtoColorScheme"));
     if (scheme === "light" || scheme === "dark") document.documentElement.dataset.theme = scheme;
   } catch {
-    // No storage (private mode, blocked cookies) or no valid JSON: keep the OS scheme.
+    // No storage or no valid JSON: keep the OS scheme.
   }
 </script>
 <script type="module" src="/assets/js/site.js"></script>
