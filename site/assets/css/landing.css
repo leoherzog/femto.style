@@ -341,25 +341,20 @@ body > main.homepage > .hero > .demo::after {
 }
 
 /* The comparison's, the proof's and the features' headings */
-body > main.homepage > :is(.comparison, .proof, .features) > hgroup {
+body > main.homepage > :is(.comparison, .proof, .features) > h2 {
   max-width: 950px;
   margin-bottom: calc(var(--site-homepage-spacing-vertical) * 0.75);
   margin-inline: auto;
 }
 
 @media (min-width: 576px) {
-  body > main.homepage > :is(.comparison, .proof, .features) > hgroup {
+  body > main.homepage > :is(.comparison, .proof, .features) > h2 {
     text-align: center;
   }
 }
 
-body > main.homepage > .proof > hgroup {
+body > main.homepage > .proof > h2 {
   margin-bottom: calc(var(--site-homepage-spacing-vertical) / 3);
-}
-
-body > main.homepage > :is(.comparison, .proof, .features) > hgroup > :not(:first-child):last-child {
-  /* eslint-disable-next-line css/use-baseline -- a browser without it wraps as usual, a progressive enhancement femto's feature tiers allow */
-  text-wrap: pretty;
 }
 
 /* Features */
