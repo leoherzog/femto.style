@@ -400,7 +400,7 @@ body > main.homepage > .features > .grid article:has(a[href="/docs#typography"])
   transform: scale(1.25);
 }
 
-/* The first and fifth features' { } and </> are code: in the code font at 0.75em, without femto's
+/* The first and second features' { } and </> are code: in the code font at 0.75em, without femto's
    code box */
 body > main.homepage > .features > .grid article > span[role=img] > code {
   padding: 0;
