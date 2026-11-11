@@ -373,7 +373,7 @@ light OS and nothing stored unless the table says otherwise.
 | landing | `demo-inert` | `/` | The demo's form is inert with no `tabindex` in it, on load and once more controls show: each control refuses focus, and in Chrome the input is ignored in the accessibility tree; Pause sits outside the form. |
 | landing | `hero-link-copy` | `/` | The hero's one code block is Quick start's @3 jsDelivr `<link>` line; its copy button, named "Copy code", copies exactly it. |
 | landing | `femto-switch` | `/` | The femto off and on block: two declarative shadow roots, femto's link first and alone in the inner one, the markup after it the code sample's, with no class; the `role=switch` "femto", shown by demo.js, turns femto off in the block alone and on again; URL kept, nothing stored. |
-| landing | `femto-switch-keyboard` | `/` | Tab from Pause reaches the switch, which in forced colors (Chrome) shows an outline; Space turns femto off and on, with focus kept. |
+| landing | `femto-switch-keyboard` | `/` | Tab from Pause reaches the switch, past only the comparison's code samples that scroll sideways, which in forced colors (Chrome) shows an outline; Space turns femto off and on, with focus kept. |
 | landing | `femto-block-nojs` | `/` (JavaScript off) | The block renders in femto's styles; the switch and the swatches keep their `hidden` attribute, with no swatch. Skipped in Safari. |
 | landing | `femto-block-scheme` | `/` | The block follows the header toggle, femto on and off (with femto off, the browser's own text color and no background). |
 | landing | `femto-block-stored-dark` | `/` (stored dark) | The block is dark on a light OS from load. |

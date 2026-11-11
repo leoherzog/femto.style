@@ -5,9 +5,10 @@ and the typing demo, a hand-written loop that drives the form, as the Remix site
 (homepage/Demo). The demo has a pause button and a paused start under prefers-reduced-motion (WCAG
 2.2.2): demo-pause and demo-reduced-motion hold them.
 
-comparison-toggle is gone with the comparison it checked, femto's markup beside a utility
-framework's, whose code samples followed the page's scheme: the femto off and on block took its
-place (the owner, 2026-11-09), and femto-block-scheme checks that the block follows the scheme."""
+The comparison above the block, femto's markup beside a utility framework's, is two static code
+samples, always dark as the homepage's others are, so no script touches it and no check here needs
+it (the owner took it out on 2026-11-09 and brought it back on 2026-11-10, above the femto off and
+on block, which stays). femto-block-scheme checks that the block follows the page's scheme."""
 import time
 
 from behavior import COPY_SPY, PICKER_ORDER, check, expect_forced_focus, expect_name
@@ -510,13 +511,22 @@ def femto_switch(page):
 
 @check("femto-switch-keyboard", "/")
 def femto_switch_keyboard(page):
-    """The femto switch is in the tab order right after the typing demo's Pause button: Tab from
-    the Pause button focuses it, and in forced colors (Chrome), which drop femto's box-shadow ring,
-    it shows an outline. Space turns femto off in the block and unchecks it; Space again turns it on
-    and checks it, with focus kept on the switch throughout."""
+    """The femto switch is in the tab order right after the typing demo's Pause button, past only
+    the comparison's code samples that scroll sideways (site.js keeps those in the tab order): Tab
+    from the Pause button reaches it, and in forced colors (Chrome), which drop femto's box-shadow
+    ring, it shows an outline. Space turns femto off in the block and unchecks it; Space again turns
+    it on and checks it, with focus kept on the switch throughout."""
     page.focus(PAUSE)
-    page.tab()
-    page.eq("Tab from the Pause button reaches the switch", page.js("return document.activeElement === document.querySelector(arguments[0])", SWITCH), True)
+    between = []
+    for _ in range(4):  # the comparison has two samples
+        page.tab()
+        if page.js("return document.activeElement === document.querySelector(arguments[0])", SWITCH):
+            break
+        between.append(page.js("""const a = document.activeElement;
+          return a.matches('main > section.comparison pre[data-scroll-focus][tabindex="0"]') ? null : a.outerHTML.slice(0, 120);"""))
+    reached = page.js("return document.activeElement === document.querySelector(arguments[0])", SWITCH)
+    page.eq("Tab from the Pause button reaches the switch, past only the comparison's scrolling code samples",
+            {"switch": reached, "other stops": [b for b in between if b is not None]}, {"switch": True, "other stops": []})
     expect_forced_focus(page, "the switch")
     for want in (False, True):
         page.key(" ")

@@ -43,10 +43,45 @@
           </article>
         </div>
       </section>
+      <section class="comparison">
+        <hgroup>
+          <h2>Write <mark>less&nbsp;markup</mark></h2>
+          <p>The same form in femto and in a utility CSS framework: femto styles the elements, so the form needs no&nbsp;classes.</p>
+        </hgroup>
+        <div class="grid">
+          <div>
+            <p>femto</p>
+            <div class="code" data-theme="dark">
+              <pre class="prismjs"><code class="language-html">&lt;main class="container"&gt;
+  &lt;form&gt;
+    &lt;input type="text"&gt;
+    &lt;button type="submit"&gt;Action&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/main&gt;</code></pre>
+            </div>
+          </div>
+          <div>
+            <p>Utility CSS framework</p>
+            <div class="code" data-theme="dark">
+              <pre class="prismjs"><code class="language-html">&lt;div class="container display-flex my-md mx-sm"&gt;
+  &lt;form class="form shadow-md my-md mx-sm align-center"&gt;
+    &lt;div class="input-wrapper border-radius-sm"&gt;
+      &lt;input type="text" class="input text-color-gray placeholder-color-light-gray focus-outline-blue"&gt;
+    &lt;/div&gt;
+    &lt;div class="button-wrapper border-radius-sm"&gt;
+      &lt;button type="submit" class="button bg-color-blue text-color-white focus-light-blue hover-light-blue"&gt;
+        Action
+      &lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/form&gt;
+&lt;/div&gt;</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="proof">
         <hgroup>
           <h2><mark>No classes</mark> needed</h2>
-          <p>This markup has no classes. It sits in a shadow root that links femto's stylesheet and nothing&nbsp;else.</p>
         </hgroup>
         <div class="toolbar">
           <label data-femto-switch hidden><input type="checkbox" role="switch" checked>femto</label>
