@@ -40,10 +40,10 @@
   <p>A few features femto uses are missing or partial in some of these versions, and each is either covered by a vendor-prefixed form or ignored harmlessly:</p>
   <ul>
     <li>Safari 17.5 reads <code>backdrop-filter</code> and <code>user-select</code> only with their <code>-webkit-</code> prefix, and iOS Safari reads <code>text-size-adjust</code> only that way.</li>
-    <li>Browsers that lack <code>resize</code>, <code>::selection</code>, the <code>ui-monospace</code> font or some <code>cursor</code> keywords ignore them.</li>
+    <li>Browsers that lack <code>resize</code>, <code>::selection</code>, the <code>ui-monospace</code> font, <code>forced-color-adjust</code>, <code>overscroll-behavior</code> or some <code>cursor</code> keywords ignore them.</li>
     <li><code>accent-color</code>, partial in some, has no visible effect on femto's own controls.</li>
   </ul>
-  <p>femto also has vendor-only rules, such as <code>-webkit-tap-highlight-color</code>, <code>@-moz-document</code> and the <code>::-webkit-</code> and <code>::-moz-</code> form control pseudo-elements, which other browsers ignore.</p>
+  <p>femto also has vendor-only rules, such as <code>-webkit-tap-highlight-color</code> and the <code>::-webkit-</code> and <code>::-moz-</code> form control pseudo-elements, which other browsers ignore.</p>
 </section>
 <section>
   <h2>How femto checks its CSS</h2>

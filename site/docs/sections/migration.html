@@ -166,7 +166,8 @@
     <li>Some rendering bugs of 2.1.1 are fixed, such as an indeterminate <code>&lt;progress&gt;</code> that looked complete in Firefox with reduced motion. The <a href="https://github.com/leoherzog/femto/blob/{{commit}}/CHANGELOG.md#fixed">changelog</a> lists them.</li>
     <li>The focus ring of <code>role="group"</code> and <code>role="search"</code> inside a <code>data-theme</code> element follows that element's scheme.</li>
     <li>With <code>no-transitions.css</code>, <code>--femto-transition</code> is <code>0s</code> (2.1.1 kept <code>0.2s ease-in-out</code>; see <a href="#options">Options</a>), so your own rules that read it stop animating too, and the group focus ring no longer fades.</li>
-    <li>Two other new tokens: <code>--femto-grid-template-columns</code> (see <a href="#grid">Grid</a>) and <code>--femto-primary-inverse-filter</code> (see <a href="#themes">Themes</a>).</li>
+    <li>One other new token: <code>--femto-grid-template-columns</code> (see <a href="#grid">Grid</a>).</li>
+    <li>The accordion and dropdown chevrons and the loading spinner are CSS masks. On filled buttons they take the button's text color, and your own rules that set <code>background-image</code> or <code>filter</code> on them no longer restyle them: set <code>mask</code> and <code>background-color</code> instead.</li>
     <li>If you used a classless build, classes such as <code>.grid</code>, <code>.secondary</code>, <code>.dropdown</code> and <code>.striped</code> that it ignored are now styled.</li>
   </ul>
   <p>Every difference from Pico 2.1.1 that the parity tests found is registered, with its reason, in <a href="https://github.com/leoherzog/femto/tree/{{commit}}/tests/divergences"><code>tests/divergences/</code></a>, and the <a href="https://github.com/leoherzog/femto/blob/{{commit}}/CHANGELOG.md">changelog</a> lists the changes in each release.</p>

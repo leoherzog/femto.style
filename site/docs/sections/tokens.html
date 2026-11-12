@@ -4,7 +4,7 @@
   <p>Every custom property femto declares, but the light and dark pairs, under the section that shows it: what it sets, and whether it has a&nbsp;pair.</p>
 </hgroup>
 <section>
-  <p>femto declares 150 tokens on <code>:root</code> and <code>:host</code> or on the elements that use them, and a light and a dark token for each of the 58 with a pair: 266 custom properties in all. Set one in your own CSS, as <a href="#css-variables">CSS variables</a> shows. Where a row says "set on" or "set per", femto sets the token on those elements, so a value on <code>:root</code> does not reach them: set it on the elements.</p>
+  <p>femto declares 149 tokens on <code>:root</code> and <code>:host</code> or on the elements that use them, and a light and a dark token for each of the 58 with a pair: 265 custom properties in all. Set one in your own CSS, as <a href="#css-variables">CSS variables</a> shows. Where a row says "set on" or "set per", femto sets the token on those elements, so a value on <code>:root</code> does not reach them: set it on the elements.</p>
   <p>Each of the 58 tokens with a pair takes its light and dark values from two tokens of its own, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> for <code>--femto-primary</code> (see <a href="#color-schemes">Color schemes</a>). The validation icons' pairs are switched by the scheme rules instead, since <code>light-dark()</code> cannot carry an image.</p>
   <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
   <div class="overflow-auto" tabindex="0" role="region" aria-label="Tokens">
@@ -661,7 +661,7 @@
         </tr>
         <tr>
           <td><code>--femto-icon-chevron</code><br>
-            The chevron of selects, accordions and dropdowns</td>
+            The chevron of selects, accordions and dropdowns; accordions and dropdowns use only its shape, as a mask</td>
           <td>No</td>
         </tr>
       </tbody>
@@ -815,13 +815,8 @@
           <th scope="rowgroup" colspan="2"><a href="#loading">Loading</a></th>
         </tr>
         <tr>
-          <td><code>--femto-primary-inverse-filter</code><br>
-            The filter that draws the spinner on filled buttons; themes set it</td>
-          <td>No</td>
-        </tr>
-        <tr>
           <td><code>--femto-icon-loading</code><br>
-            The loading spinner</td>
+            The loading spinner, a mask: only its shape is used</td>
           <td>No</td>
         </tr>
         <tr>

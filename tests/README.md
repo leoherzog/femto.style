@@ -356,7 +356,7 @@ light OS and nothing stored unless the table says otherwise.
 | content | `link-examples` | `/docs#link` | The 6 example links go nowhere, clicked and with Enter. |
 | content | `media-femto` | `/docs#media` | Every element of the Media section's four example cards has the computed styles of the same markup in a document that loads only the page's femto stylesheets, in a card of the same width; the image fits at 1200:630, each SVG fills with its text's color, and nothing scrolls sideways. |
 | content | `media-femto-small` | `/docs#media` (375 × 812, dark OS) | The same. |
-| content | `tokens-table` | `/docs#tokens` | 150 distinct tokens in row groups whose headers link to sections; Pair reads Yes exactly when `<html>` has both `--femto-light-*` and `--femto-dark-*` values (58), and every token not "set on" or "set per" elements has a root value. |
+| content | `tokens-table` | `/docs#tokens` | 149 distinct tokens in row groups whose headers link to sections; Pair reads Yes exactly when `<html>` has both `--femto-light-*` and `--femto-dark-*` values (58), and every token not "set on" or "set per" elements has a root value. |
 | forms | `checkbox-indeterminate` | `/docs#checkboxes` | The example checkbox is indeterminate after load; a click checks it. |
 | forms | `select-optgroup` | `/docs#select` | Two optgroups, Italian (Pizza, Risotto) and Japanese (Ramen, Sushi), with the select's font and no margin; choosing Ramen selects it with no navigation. |
 | components-a | `dropdown-items` | `/docs#dropdown` | The 21 example links in five dropdowns go nowhere, by pointer and by keyboard, and the dropdown stays open. |
@@ -654,14 +654,14 @@ arguments to `static_checks.main(argv)`.
   - **femto's facts** (`femto_fact_checks`), read at the vendored commit with git, each failure
     starting `drift:`: the Tokens table's `<code>` tokens are, each once, the names declared
     (`--femto-x:`) in the files `css/femto.css` imports, minus every `--femto-light-*` and
-    `--femto-dark-*` name (150 at 3be36bef), and a row's Pair cell is Yes exactly when both
+    `--femto-dark-*` name (149 at ae9a602f), and a row's Pair cell is Yes exactly when both
     `--femto-light-<rest>` and `--femto-dark-<rest>` are declared (58). Each
     `<p><small><code>MODULE</code> reads <code>T</code>, …` line lists exactly the sorted
     `var(--femto-…)` names that module reads, or says "reads no tokens", and each of
     `READS_SECTIONS` has one (29 lines in 22 sections). The module map's rows are `css/femto.css`'s
     36 `@import`s in order, each Bytes cell the file's size, each summary the first sentence of its
     opening comment (lines joined, ` * ` dropped, whitespace collapsed, up to the first `. `), the
-    tfoot total their sum (111,155), and the copyable list its `@import` lines. Every element in an
+    tfoot total their sum (108,608 at ae9a602f), and the copyable list its `@import` lines. Every element in an
     Elements index row's first cell (62) is a type selector in an imported module (`INHERITED_ONLY`,
     empty, would list one styled only through inheritance, with its reason). `demo.js`'s
     `SWATCHES[i]` is the 6-digit lowercase hex of `--femto-primary-background` in

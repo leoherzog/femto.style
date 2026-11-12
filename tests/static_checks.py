@@ -244,8 +244,8 @@ Interpretations, where PLAN's wording leaves a choice:
   reason; none does); site/assets/js/demo.js's SWATCHES[i] is the 6-digit lowercase hex of
   --femto-primary-background in css/themes/<THEMES[i]>.css; and every prose count in site/ HTML
   (tags dropped) and JS that PROSE_COUNTS reads ("20 theme colors", "19 other theme colors", "19
-  shades each", "On 31 shades", "380 shades", "3 options", "36 modules", "150 tokens", "58 with a
-  pair", "266 custom properties" and the rest) equals the measured number.
+  shades each", "On 31 shades", "380 shades", "3 options", "36 modules", "149 tokens", "58 with a
+  pair", "265 custom properties" and the rest) equals the measured number.
   The example markup (markup_pair_checks): each /docs example, an <article> whose last child is
   its footer.code sample, shows the same markup as the sample, compared as femto reads it: the same
   elements, text (whitespace collapsed; the sample's "..." stands for any text or content),

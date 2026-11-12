@@ -1,10 +1,10 @@
 /*
- * Accordion: details as a block whose summary carries a chevron that turns when it opens, with
- * summary colors for the closed, focused and open states, a full-width summary[role=button], and
- * the chevron on the left in right-to-left text.
+ * Accordion: details whose summary carries a chevron at its inline end that turns when it opens
+ * (a summary with data-tooltip shows the tooltip caret instead), with summary colors for the closed,
+ * focused and open states, and a full-width summary[role=button] whose chevron takes the button's
+ * text color unless it is .outline.
  */
 details {
-  display: block;
   margin-bottom: var(--femto-spacing);
 }
 details summary {
@@ -28,14 +28,18 @@ details summary::after {
   width: 1rem;
   height: 1rem;
   margin-inline-start: calc(var(--femto-spacing, 1rem) * 0.5);
-  float: right;
+  float: inline-end;
   transform: rotate(-90deg);
-  background-image: var(--femto-icon-chevron);
-  background-position: right center;
-  background-size: 1rem auto;
-  background-repeat: no-repeat;
+  background-color: rgb(136, 145, 164);
   content: "";
+  mask: var(--femto-icon-chevron) right center / 1rem auto no-repeat;
+  forced-color-adjust: none;
+  forced-color-adjust: preserve-parent-color;
   transition: transform var(--femto-transition);
+}
+details summary[data-tooltip]::after {
+  mask: none;
+  forced-color-adjust: auto;
 }
 details summary:focus {
   outline: none;
@@ -50,10 +54,13 @@ details summary:focus-visible:not([role]) {
 }
 details summary[role=button] {
   width: 100%;
-  text-align: left;
+  text-align: start;
 }
 details summary[role=button]::after {
   height: calc(1rem * var(--femto-line-height, 1.5));
+}
+details summary[role=button]:not(.outline, [data-tooltip])::after {
+  background-color: currentColor;
 }
 details[open] > summary {
   margin-bottom: var(--femto-spacing);
@@ -63,12 +70,4 @@ details[open] > summary:not([role]):not(:focus) {
 }
 details[open] > summary::after {
   transform: rotate(0);
-}
-
-[dir=rtl] details summary {
-  text-align: right;
-}
-[dir=rtl] details summary::after {
-  float: left;
-  background-position: left center;
 }

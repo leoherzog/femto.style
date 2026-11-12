@@ -333,7 +333,7 @@ return {groups: [...t.tBodies].map(b => { const a = b.rows[0].querySelector("th[
 
 @check("tokens-table", "/docs#tokens")
 def tokens_table(page):
-    """The Tokens table (in div[role=region][aria-label=Tokens]) lists 150 distinct --femto-* tokens,
+    """The Tokens table (in div[role=region][aria-label=Tokens]) lists 149 distinct --femto-* tokens,
     grouped in row groups whose header links to a section of the page (#<a section id>). A
     row's Pair cell reads "Yes" exactly when <html> has a value for both its --femto-light-* and
     --femto-dark-* names (58 rows) and "No" when it has neither, and every token whose row does not
@@ -341,7 +341,7 @@ def tokens_table(page):
     r = page.js(TOKENS_TABLE)
     page.expect("the Tokens table exists", r is not None)
     names = [x["n"] for x in r["rows"]]
-    page.eq("150 tokens", len(names), 150)
+    page.eq("149 tokens", len(names), 149)
     page.eq("no token twice", sorted(n for n in set(names) if names.count(n) > 1), [])
     page.eq("every token is a --femto-* name", [n for n in names if not n.startswith("--femto-") or n.startswith(("--femto-light-", "--femto-dark-"))], [])
     page.eq("every group header links to a section of the page", [g for g in r["groups"] if not (g or "").startswith("#") or g[1:] not in r["ids"]], [])

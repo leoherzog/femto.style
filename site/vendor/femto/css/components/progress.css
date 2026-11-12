@@ -1,14 +1,9 @@
 /*
  * Progress: <progress> as a full-width rounded bar in the progress colors, through the WebKit and
  * Firefox bar pseudo-elements. Without a value it is indeterminate: an empty track that, unless the
- * user prefers reduced motion, runs a sliding stripe animation that reverses in rtl. The display and
+ * user prefers reduced motion, runs a sliding stripe animation that reverses in rtl. The
  * vertical-align reboot follows normalize.css v8.0.1 and sanitize.css v13.0.0.
  */
-progress {
-  display: inline-block;
-  vertical-align: baseline;
-}
-
 progress {
   display: inline-block;
   appearance: none;
@@ -20,6 +15,7 @@ progress {
   border-radius: var(--femto-border-radius);
   background-color: var(--femto-progress-background-color);
   color: var(--femto-progress-color);
+  vertical-align: baseline;
 }
 progress::-webkit-progress-bar {
   border-radius: var(--femto-border-radius);
@@ -32,7 +28,6 @@ progress[value]::-webkit-progress-value {
 progress::-moz-progress-bar {
   background-color: var(--femto-progress-color);
 }
-/* Firefox draws an indeterminate bar at full width. */
 progress:indeterminate::-moz-progress-bar {
   background-color: transparent;
 }
@@ -47,7 +42,7 @@ progress:indeterminate::-moz-progress-bar {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  [dir=rtl] progress:indeterminate {
+  progress:indeterminate:dir(rtl) {
     animation-direction: reverse;
   }
 }
