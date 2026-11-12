@@ -121,15 +121,17 @@ function spy() {
     if (next === current) return;
     const previous = current;
     current = next;
-    // Measure and scroll the nav first, then write: one layout, not one forced by each write
+    // Write the current marks, then measure and scroll the nav once: aria-current sets the link in
+    // bold, which can wrap its label to another line (Media, code, and lists in Firefox), so the
+    // link is measured as it will be drawn
     if (next.details && !next.details.open) next.details.open = true;
-    revealInNav(next.link);
     previous?.link?.removeAttribute("aria-current");
     next.link?.setAttribute("aria-current", "true");
     if (previous?.summary !== next.summary) {
       previous?.summary?.removeAttribute("aria-current");
       next.summary?.setAttribute("aria-current", "true");
     }
+    revealInNav(next.link);
     const category = next.summary?.textContent.trim();
     if (chapter && category && chapter.textContent !== category) chapter.textContent = category;
     if (crumb && crumb.textContent !== next.title) crumb.textContent = next.title;
