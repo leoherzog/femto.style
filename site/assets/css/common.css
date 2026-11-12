@@ -1,128 +1,63 @@
-/* The site's shared styles, on every page after femto and its responsive-spacings option: the
-   site's color tokens, the header, document and footer layout, the plain buttons and what hides
-   without JavaScript, the skip link, screen-reader-only text, logo, theme toggle and chapter label,
-   and print. Code blocks are in code.css. */
+/* The site's shared styles, on every page after femto (and on /docs its responsive-spacings
+   option): the site's color tokens, the header, document and footer layout, the plain buttons and
+   what hides without JavaScript, the skip link, screen-reader-only text, logo and theme toggle, and
+   print. Code blocks are in code.css. */
 
 /**
- * Site tokens: the site's own colors, named --site-* so they never pass for femto's. Each is one
- * light-dark() pair on :root, as femto declares its color tokens: femto's color-scheme, on :root and
- * on every [data-theme] element, picks the side where a color is used, so a data-theme island (a
- * code block's footer.code[data-theme=dark]) gets its own scheme's colors. --site-code-comment, the
- * color of Prism's comment and doctype tokens and of the copy buttons, keeps 4.5:1 on every code
- * block background (the card, the card footer and femto's code background) in both schemes
- * (criterion 10): #667080 in light, #828b9b in dark.
+ * Site tokens: the site's own colors, named --site-* so they never pass for femto's: the logo's
+ * wordmark and sparkle, femto's brand colors. Each is one light-dark() pair on :root, as femto
+ * declares its color tokens, so femto's color-scheme picks the side.
  */
 :root {
-  --site-header-background: light-dark(color-mix(in srgb, var(--femto-light-background-color) 80%, transparent), color-mix(in srgb, var(--femto-dark-background-color) 90%, transparent));
   --site-logo-wordmark: light-dark(#2a3140, #fff);
   --site-logo-sparkle: light-dark(#ff9500, #ffbf00);
-  --site-code-tag: light-dark(#8b4f00, rgb(186.75, 150.5, 43.75));
-  --site-code-attr: light-dark(rgb(152, 45.75, 121), rgb(199, 131.5, 183));
-  --site-code-value: light-dark(#2e685b, rgb(112.5, 163.5, 161.25));
-  --site-code-comment: light-dark(#667080, #828b9b);
-}
-
-/* The footer's logo has a quieter sparkle */
-body > footer {
-  --site-logo-sparkle: light-dark(#b0b9d0, #8191b5);
 }
 
 /**
- * Header
+ * Header: femto's nav, with the logo in its first list, and the site's links, the GitHub link and
+ * the theme toggle in its last. --site-header-height, which docs.css reads, is the docs header's
+ * outer height: its padding and bottom border around its row, whose tallest item is the theme
+ * toggle's, femto's nav item padding around femto's button in a nav (one line, femto's nav link
+ * padding less two borders, and its border).
  */
 html {
-  --site-header-height: calc(4.5rem + var(--femto-border-width));
+  --site-header-height: calc(var(--femto-spacing) + var(--femto-nav-element-spacing-vertical) * 2 + var(--femto-line-height) * 1rem + var(--femto-nav-link-spacing-vertical) * 2 - var(--femto-border-width));
 }
 
+/* Half femto's spacing above and below. The bottom border is transparent until the docs header
+   draws it from lg up (docs.css), so the header keeps one height */
 body > header {
-  z-index: 4;
-  position: relative;
-  padding: 0.5rem 0;
+  padding-block: calc(var(--femto-spacing) / 2);
   border-bottom: var(--femto-border-width) solid transparent;
 }
 
-body > header .container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-body > header .container > a {
-  margin: calc(var(--femto-spacing) * -0.125) calc(var(--femto-spacing) * -0.25);
-  padding: calc(var(--femto-spacing) * 0.125) calc(var(--femto-spacing) * 0.25);
-  border-radius: var(--femto-border-radius);
-}
-
-body > header .container > a svg.femto-logo {
-  transform: translateY(-22%);
-}
-
-body > header .container nav svg {
-  display: inline-block;
-  width: auto;
-  height: 1.125rem;
-  transform: translateY(-0.0625rem);
-}
-
-/* The color-scheme toggle, a plain button (below) drawn as the header's contrast links are: femto's
-   nav link box in the contrast link colors */
-body > header .container nav ul.icons button {
-  --femto-color: var(--femto-contrast);
-  margin: calc(var(--femto-nav-link-spacing-vertical) * -1) calc(var(--femto-nav-link-spacing-horizontal) * -1);
-  padding: var(--femto-nav-link-spacing-vertical) var(--femto-nav-link-spacing-horizontal);
-  color: var(--femto-color);
-}
-
-body > header .container nav ul.icons button:is(:hover, :active, :focus) {
-  --femto-color: var(--femto-contrast-hover);
-}
-
-/* Hide docs link on mobile */
+/* Below 576px the headers leave out their Examples link, and the docs header its Docs link too */
 @media (width < 576px) {
-  body > header .container nav ul li.hide-before-sm {
+  body > header nav li.hide-before-sm {
     display: none;
   }
 }
 
-/* Icons separator */
-@media (min-width: 576px) {
-  body > header .container nav ul.icons::before {
-    display: block;
-    height: 1.125rem;
-    margin-inline: var(--femto-nav-element-spacing-horizontal);
-    border-left: var(--femto-border-width) solid var(--femto-form-element-border-color);
-    content: "";
-  }
-}
-
-/* Fixed header: the docs header, from 1024px up. Its bottom border, femto's muted border color, is
-   always there, so no script has to watch the scroll to draw an edge once content passes under it */
-@media (min-width: 1024px) {
-  body > header.is-fixed-above-lg {
-    z-index: 2;
-    position: sticky;
-    top: 0;
-    border-bottom-color: var(--femto-muted-border-color);
-    -webkit-backdrop-filter: blur(1rem);
-    /* eslint-disable-next-line css/use-baseline -- Baseline 2024 (Safari 18); Safari 17.5 to 17.x has only the -webkit- form above; femto writes the same pair */
-    backdrop-filter: blur(1rem);
-    background-color: var(--site-header-background);
-  }
+/* The brand marks in the header's and the footer's navs (GitHub, jsDelivr, npm), 1.125rem tall. The
+   logo's own rule (below) outweighs this one */
+body > :is(header, footer) nav svg {
+  width: auto;
+  height: 1.125rem;
 }
 
 /**
- * Plain buttons: the <button type="button">s drawn as a link or a bare icon, not as
- * femto's filled button: the header's theme toggle (above), the breadcrumb's Documentation button,
- * the menu's Close and the color dialog's close (docs.css), and the code blocks' copy buttons
- * (code.css). Each place sets its own box and colors after this rule. The dialog in :where() keeps
- * the rule's weight at a class and an element, which those rules outweigh.
+ * Plain buttons: the <button type="button">s drawn as a link or a bare icon, not as femto's filled
+ * button: the breadcrumb's Documentation button, the menu's Close and the color dialog's close
+ * (docs.css), and the code blocks' copy buttons (code.css). Each place sets its own box and colors
+ * after this rule. The dialog in :where() keeps the rule's weight at a class and an element, which
+ * those rules outweigh.
  */
 
-/* No padding, border, background, shadow or font of femto's button. No transition: Firefox styles
-   the docs page once before the site's stylesheets apply (docs.html links them after the head
-   scripts), so a transition here would run on load from femto's button colors, white on the primary
-   background */
-button:is([data-scheme-toggle], [data-menu-open], [data-menu-close], [data-copy-link], :where(dialog.color) .close) {
+/* No padding, border, background, shadow or font weight of femto's button. No transition: Firefox
+   styles the docs page once before the site's stylesheets apply (docs.html links them after the
+   head scripts), so a transition here would run on load from femto's button colors, white on the
+   primary background */
+button:is([data-menu-open], [data-menu-close], [data-copy-link], :where(dialog.color) .close) {
   max-width: none;
   margin: 0;
   padding: 0;
@@ -130,15 +65,12 @@ button:is([data-scheme-toggle], [data-menu-open], [data-menu-close], [data-copy-
   background-color: transparent;
   box-shadow: none;
   font-weight: inherit;
-  font-size: inherit;
-  line-height: inherit;
   transition: none;
 }
 
-/* femto's link focus ring, on keyboard focus only. The transparent outline beside it is for forced
-   colors, which drop box-shadow and draw an outline in a system color */
-button:is([data-scheme-toggle], [data-menu-open], [data-menu-close], [data-copy-link], :where(dialog.color) .close):focus-visible {
-  outline: var(--femto-outline-width) solid transparent;
+/* femto's link focus ring, on keyboard focus only. In forced colors, which drop box-shadow, femto
+   outlines a focused button in Highlight */
+button:is([data-menu-open], [data-menu-close], [data-copy-link], :where(dialog.color) .close):focus-visible {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-primary-focus);
 }
 
@@ -161,116 +93,91 @@ html {
   overflow-x: hidden;
 }
 
-/* Header, main and footer: main takes the free space, not the footer. The body is at least the
-   viewport's height as it is now: 100dvh follows a mobile browser's toolbars, which 100vh does not */
-html body {
+/* Header, main and footer: main takes the free space, not the footer, and the one column is the
+   body's width, which no wide child widens. The body is at least the viewport's height as it is
+   now: 100dvh follows a mobile browser's toolbars, which 100vh does not */
+body {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100dvh;
 }
 
 /**
  * Footer: femto's nav and .grid. The logo, the credits and the resource icons come first, in
  * femto's nav, then the footer nav, whose three lists are a .grid: side by side from 768px, each a
- * column of links, with femto's nav spacing at an eighth of its height. The credits and the license
+ * column of links with the item spacing femto gives a nav in an aside. The credits and the license
  * line are <small>.
  */
-body > footer svg.femto-icon {
+body > footer section > svg {
   display: block;
   margin-bottom: var(--femto-typography-spacing-vertical);
 }
 
-body > footer nav.grid {
-  --femto-nav-element-spacing-vertical: 0.125rem;
-  --femto-nav-link-spacing-vertical: 0.125rem;
+body > footer nav.grid li {
+  padding-block: calc(var(--femto-nav-element-spacing-vertical) * 0.5);
 }
 
-/* Each list's text lines up with its column's start, and no list reaches past the container's end */
+/* Each list's text lines up with its column's start */
 body > footer nav.grid ul {
   flex-direction: column;
   align-items: start;
-  margin-inline: calc(var(--femto-nav-element-spacing-horizontal) * -1) 0;
-}
-
-body > footer nav svg {
-  width: auto;
-  height: 1.125rem;
+  margin-inline-start: calc(var(--femto-nav-element-spacing-horizontal) * -1);
 }
 
 /**
  * Skip to content
  */
 
-/* A plain link (it navigates, so it has no button role), drawn as femto's .contrast button: its
-   padding, border, radius, colors and focus ring from femto's button tokens, with no underline. It
-   sits above the page out of view until it takes focus. Its text color is set directly, not through
-   --femto-color, which femto's link rules set on a focused link at a higher specificity (a focused
-   a.contrast gets --femto-contrast-hover, the color of this link's background) */
+/* femto's link, in femto's button padding and radius, on femto's page background (femto's link is
+   transparent), so it covers the header's logo it sits over. It is above the page, out of view,
+   until it takes focus */
 a.skip-to-content {
-  --femto-background-color: var(--femto-contrast-background);
-  --femto-border-color: var(--femto-contrast-border);
-  --femto-box-shadow: var(--femto-card-box-shadow);
-  --femto-text-decoration: none;
-  display: inline-block;
+  --femto-background-color: light-dark(var(--femto-light-background-color), var(--femto-dark-background-color));
   z-index: 999;
   position: absolute;
   top: calc(var(--femto-spacing) * 0.75);
-  left: calc(var(--femto-spacing) * 0.75);
+  inset-inline-start: calc(var(--femto-spacing) * 0.75);
   padding: var(--femto-form-element-spacing-vertical) var(--femto-form-element-spacing-horizontal);
-  border: var(--femto-border-width) solid var(--femto-border-color);
   border-radius: var(--femto-border-radius);
-  background-color: var(--femto-background-color);
-  box-shadow: var(--femto-box-shadow);
-  color: var(--femto-contrast-inverse);
-  text-align: center;
   transform: translateY(-1000%);
-  opacity: 0;
 }
 
 a.skip-to-content:focus {
-  --femto-background-color: var(--femto-contrast-hover-background);
-  --femto-border-color: var(--femto-contrast-hover-border);
-  --femto-box-shadow: var(--femto-button-hover-box-shadow, 0 0 0 rgba(0, 0, 0, 0)), 0 0 0 var(--femto-outline-width) var(--femto-contrast-focus);
-  --femto-text-decoration: none;
   transform: translateY(0);
-  opacity: 1;
 }
 
-/* Text for screen readers only: the status region site.js writes "Copied" into. Out of the body's
-   grid flow, one pixel, clipped */
+/* Text for screen readers only: the status region site.js writes "Copied" into, and the edit
+   links' section names. Out of the body's grid flow, one pixel, clipped */
 .visually-hidden {
   position: absolute;
   width: 1px;
   height: 1px;
   margin: -1px;
-  padding: 0;
   overflow: hidden;
-  border: 0;
   white-space: nowrap;
   clip-path: inset(50%);
 }
 
 /**
- * Logo
+ * Logo: femto's wordmark, the header nav's first item, and its sparkle atop the footer
  */
-svg.femto-logo,
-svg.femto-icon {
-  width: auto;
+a[data-site-logo] > svg,
+body > footer section > svg {
   height: 2.25rem;
 }
 
-/* The sparkle of an animated or hovered logo pops */
-svg.femto-logo.animated path:first-of-type,
-a:hover > svg.femto-logo path:first-of-type {
+/* The sparkle of a hovered logo pops */
+a[data-site-logo]:hover > svg path:first-of-type {
   animation-duration: 0.75s;
   animation-timing-function: ease-in-out;
   animation-fill-mode: both;
   animation-name: sparkle;
 }
 
-svg.femto-logo path:first-of-type {
-  transform-origin: 1779.5px 360px;
+a[data-site-logo] > svg path:first-of-type {
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 @keyframes sparkle {
@@ -309,9 +216,9 @@ svg.femto-logo path:first-of-type {
 /* Theme toggle icon (Decision 16): a sun emoji while the page is light, a moon while it is dark,
    which the site's scripts write into the button's span[role=img] (Decision 18). The glyph is
    transparent and its shadow is drawn in --femto-color, so the emoji shows as a one-color
-   silhouette that follows the button's hover colors. The box is 1.125rem square (1.25rem in the
-   Color schemes section), vertical-align: middle, and the glyph is centered in it and overflows it
-   evenly, so nothing around the icon moves when sun and moon swap. */
+   silhouette in the button's text color. The box is 1.125rem square (1.25rem in the Color schemes
+   section), vertical-align: middle, and the glyph is centered in it and overflows it evenly, so
+   nothing around the icon moves when sun and moon swap. */
 :is(button[data-scheme-toggle], button[data-scheme-switcher]) > span[role=img] {
   display: inline-flex;
   align-items: center;
@@ -325,20 +232,18 @@ svg.femto-logo path:first-of-type {
   vertical-align: middle;
 }
 
-/* The header's toggle: the glyph is the GitHub icon's size and sits where it does. The GitHub mark
-   (Simple Icons', Decision 17) fills 23.4 of its 24-unit viewBox's height, and each glyph's
-   silhouette is about its font size (sun 0.99, moon 1.01, in Chrome and Firefox); the box is nudged
-   up as the header's SVGs are */
-body > header .container nav button[data-scheme-toggle] > span[role=img] {
+/* The header's toggle, femto's button in femto's nav: its glyph is the GitHub icon's size. The
+   GitHub mark (Simple Icons', Decision 17) fills 23.4 of its 24-unit viewBox's height, and each
+   glyph's silhouette is about its font size (sun 0.99, moon 1.01, in Chrome and Firefox) */
+body > header nav button[data-scheme-toggle] > span[role=img] {
   font-size: calc(1.125rem * 23.4 / 24);
-  transform: translateY(-0.0625rem);
 }
 
 /* The Color schemes section: the switcher button's icon, before its label */
-#theme-switcher button > span[role=img] {
+button[data-scheme-switcher] > span[role=img] {
   width: 1.25rem;
   height: 1.25rem;
-  margin-right: calc(var(--femto-spacing) * 0.5);
+  margin-inline-end: calc(var(--femto-spacing) * 0.5);
 }
 
 /* Forced colors drop the glyph's shadow, and Firefox keeps its transparent color, so the
@@ -360,8 +265,8 @@ body > header .container nav button[data-scheme-toggle] > span[role=img] {
    button, the theme toggle), and hidden by aria-hidden="true" beside a label of its own, as an
    <img> takes alt text or alt="". The role is the hook, so the markup needs no class. Each icon is
    an inline-block at least 1em wide and one 1em line tall, its characters centered in it and on
-   their line's baseline, as text is. A context sizes an icon with font-size, and draws one glyph
-   larger, bolder or in another font where it needs to.
+   their line's baseline, as text is. A context sizes an icon with font-size, and draws one glyph in
+   another font where it needs to.
    The text characters (check ✓, close ✕, copy ⧉, edit ✎, menu ☰, arrow →, Grid's ⊕ and ⊖, the
    homepage's ⤢, ◐, ⇄, { } and </>) have no emoji form, so every platform draws them with its own
    text fonts, in the element's color; the emoji (the theme toggle's, the homepage's ⚙️) are drawn
@@ -373,7 +278,7 @@ span[role=img] {
   text-align: center;
 }
 
-/* The check pops in each time it is added: a copy button's "Copied" (code.css) and the picked theme
+/* The check pops in each time it shows: a copy button's "Copied" (code.css) and the picked theme
    swatch's (docs.css) */
 @keyframes icon-check {
   from {
@@ -383,29 +288,20 @@ span[role=img] {
 }
 
 /**
- * Chapter: the category label in a docs page's hgroup, above its title, in the code blocks' tag color
- */
-.chapter {
-  color: var(--site-code-tag);
-  font-weight: 600;
-  letter-spacing: 0.0625em;
-  text-transform: uppercase;
-}
-
-/**
  * Print: the light scheme, whatever the reader chose. A page prints without its backgrounds, so
  * dark text on the white sheet. femto's automatic dark scheme applies on screen only, but
- * data-theme="dark" (a stored choice, or a code block's dark island) sets color-scheme: dark in print
- * too; light here picks the light side of every light-dark() token, femto's and the site's. The
- * header's nav and the copy buttons only work on screen. The container takes the page's width,
- * and code wraps at its edge instead of scrolling.
+ * data-theme="dark" (a stored choice, or a dark example such as the Color schemes section's card)
+ * sets color-scheme: dark in print too; light here picks the light side of every light-dark()
+ * token, femto's and the site's. The header's links and theme toggle (its nav's last list) and the
+ * copy buttons only work on screen; the logo prints. The container takes the page's width, and
+ * code wraps at its edge instead of scrolling.
  */
 @media print {
   [data-theme] {
     color-scheme: light;
   }
 
-  body > header nav,
+  body > header nav ul:last-of-type,
   button[data-copy-link] {
     display: none;
   }

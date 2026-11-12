@@ -149,21 +149,21 @@ applyTheme();
 // button[data-copy-link], the first child of div.code or footer.code (colors.js's color modal writes
 // its own the same way): a click, or Enter or Space, copies the block's code text. The write starts
 // in the click itself, while it counts as a user activation, and its outcome shows once it settles:
-// the animated check icon with the tooltip "Copied", or the tooltip "Copy failed" (no clipboard, as
-// over plain http, or a refused write) with the copy icon kept. 1 s after the latest copy, one timer
-// per button restores the button's own icon and tooltip and blurs it, unless it has keyboard focus
+// the check icon with the tooltip "Copied", or the tooltip "Copy failed" (no clipboard, as over
+// plain http, or a refused write) with the copy icon kept. 1 s after the latest copy, one timer per
+// button restores the button's own icon and tooltip and blurs it, unless it has keyboard focus
 // (:focus-visible), which stays where the reader left it. A screen reader hears the outcome too,
-// which the tooltip alone does not say, at every copy (announceCopy, below). The icons are Decision
-// 18's: the button's one child, a span[role=img] holding the copy character ⧉ and naming the button
-// (aria-label "Copy code"), which gives way to a check ✓ with the same name, since the button still
-// copies. code.css draws the check in, by the "Copied" tooltip.
+// which the tooltip alone does not say, at every copy (announceCopy, below). The icon is Decision
+// 18's: the button's one child, a span[role=img] holding the copy character ⧉ and naming the
+// button (aria-label "Copy code"), whose character becomes a check ✓ while the name stays, since
+// the button still copies. code.css draws the check in, by the "Copied" tooltip.
 // The button takes its name from the icon through aria-labelledby, not from its contents: femto's
 // tooltip draws data-tooltip as the button's ::before text, which a name from contents would read
 // first ("Copy code Copy code", "Copied Copy code"). nameCopyButton() gives the icon an id,
-// copy-icon-<n>, unique on the page, and points the button's aria-labelledby at it; the check that
-// swaps in carries the same id and aria-label, so the name stays the icon's label throughout. It runs
-// on load for the page's buttons, which do nothing without JavaScript (common.css hides them then,
-// as it hides the theme toggle), and colors.js calls it for the color modal's.
+// copy-icon-<n>, unique on the page, and points the button's aria-labelledby at it; only the icon's
+// character changes, so the name stays the icon's label throughout. It runs on load for the page's
+// buttons, which do nothing without JavaScript (common.css hides them then, as it hides the theme
+// toggle), and colors.js calls it for the color modal's.
 //
 // The status region is one visually hidden p.visually-hidden role="status", the last child of
 // <body>, added once a page has a copy button, before its first text, so that text is announced.
@@ -181,7 +181,7 @@ applyTheme();
 // change is a whole new message, not a trailing space.
 
 const COPIED_FOR = 1000;
-const copies = new WeakMap(); // button -> {icon, check, tooltip, timer} until it reverts
+const copies = new WeakMap(); // button -> {icon, glyph, tooltip, timer} until it reverts
 let copyIcons = 0; // the last n given to a copy-icon-<n> id
 
 // Names the copy button by its icon (span[role=img], its one child): aria-labelledby, pointing at
@@ -195,16 +195,6 @@ export function nameCopyButton(button) {
     icon.id = id;
   }
   setAttr(button, "aria-labelledby", icon.id);
-}
-
-// The check ✓ that stands in for the icon while the button shows "Copied": the icon's id, so the
-// button's aria-labelledby finds it, and its aria-label. Only one of the two is in the page at a time.
-function checkIcon(icon) {
-  const check = document.createElement("span");
-  check.setAttribute("role", "img");
-  for (const name of ["id", "aria-label"]) setAttr(check, name, icon.getAttribute(name));
-  check.textContent = "\u2713";
-  return check;
 }
 
 let copyStatus = null; // the status region
@@ -251,23 +241,26 @@ export function announceCopy(message = "Copied") {
 if (document.querySelector("button[data-copy-link], [data-color-modal]")) statusRegion();
 for (const button of document.querySelectorAll("button[data-copy-link]")) nameCopyButton(button);
 
+// The icon's character: an unchanged one causes no mutation.
+function setGlyph(icon, glyph) {
+  if (icon.textContent !== glyph) icon.textContent = glyph;
+}
+
 // Shows a copy's outcome on its button, and says it, until 1 s after the latest copy.
 function showCopy(button, ok) {
   let state = copies.get(button);
   if (!state) {
     const icon = button.querySelector(":scope > span[role=img]");
     if (!icon) return;
-    state = { icon, check: checkIcon(icon), tooltip: button.getAttribute("data-tooltip"), timer: 0 };
+    state = { icon, glyph: icon.textContent, tooltip: button.getAttribute("data-tooltip"), timer: 0 };
     copies.set(button, state);
   }
-  // replaceWith() does nothing for the one of the two that is not in the page.
-  if (ok) state.icon.replaceWith(state.check);
-  else state.check.replaceWith(state.icon);
+  setGlyph(state.icon, ok ? "\u2713" : state.glyph);
   setAttr(button, "data-tooltip", ok ? "Copied" : "Copy failed");
   announceCopy(ok ? "Copied" : "Copy failed");
   clearTimeout(state.timer);
   state.timer = setTimeout(() => {
-    state.check.replaceWith(state.icon);
+    setGlyph(state.icon, state.glyph);
     setAttr(button, "data-tooltip", state.tooltip);
     copies.delete(button);
     if (!button.matches(":focus-visible")) button.blur();
@@ -287,15 +280,15 @@ document.addEventListener("click", (event) => {
 // without JavaScript each one takes focus: a block whose code is wider than it scrolls sideways, and
 // the keyboard scrolls it only once it has focus (axe's scrollable-region-focusable). Here only a
 // block that overflows keeps tabindex="0", named as a figure, role="figure" with aria-label "HTML
-// code" (or CSS, Bash: its code's language): ARIA's figure is the role for a code snippet, and
-// unlike a region it is no landmark, so a page of code blocks does not fill the landmark list with
-// names that repeat (axe's landmark-unique). The others leave the tab order and carry no role or
+// code" (or CSS, Bash, JavaScript: its code's language): ARIA's figure is the role for a code
+// snippet, and unlike a region it is no landmark, so a page of code blocks does not fill the
+// landmark list with names that repeat (axe's landmark-unique). The others leave the tab order and carry no role or
 // name, so a screen reader neither stops at nor announces them. A ResizeObserver checks a block
 // whenever its box changes (the viewport, a closed <details> opening). Code is in femto's monospace
 // stack, a system font, so no font load changes its width later. A focused block keeps its
 // tabindex until focus has left it.
 
-const LANGUAGES = { html: "HTML", css: "CSS", bash: "Bash" };
+const LANGUAGES = { html: "HTML", css: "CSS", bash: "Bash", js: "JavaScript" };
 const scrollers = [...document.querySelectorAll("pre[data-scroll-focus]")];
 
 function fitFocus(pres) {
@@ -330,12 +323,17 @@ if (scrollers.length) {
 // them takes them away.
 // open(): when the page scrolls vertically, sets --femto-scrollbar-width on <html> to the scrollbar's
 // width (innerWidth minus <html>'s clientWidth; 0px with overlay scrollbars); sets <html> class
-// "modal-is-open modal-is-opening" and opens the dialog; 400 ms later the class is "modal-is-open".
-// close(): "modal-is-open modal-is-closing", and 400 ms later no modal class, no
-// --femto-scrollbar-width (an emptied style="" stays), the dialog closed, then onClosed().
+// "modal-is-open modal-is-opening" and opens the dialog; when femto's animations end, 400 ms later at
+// most, the class is "modal-is-open".
+// close(): "modal-is-open modal-is-closing", and when they end, 400 ms later at most, no modal class,
+// no --femto-scrollbar-width (an emptied style="" stays), the dialog closed, then onClosed(). The
+// 400 ms is femto's documented wait (the Modal section's script); with reduced motion femto's
+// reduce-motion utility ends the animations at once, so the dialog is never invisible yet modal.
 // The dialog is a true modal, shown with showModal() and closed with close(): the page behind is
 // inert, the browser moves focus into the dialog and back to the opener, and Escape (its keydown) and
-// the browser's other close requests (the cancel event) run the animated close instead. A click on
+// the browser's other close requests (the cancel event) run the animated close instead. A close
+// request the browser does not let the page cancel closes the dialog at once, and its close event
+// then gives <html> back. A click on
 // the dialog itself (its backdrop area: femto's dialog is the full-viewport overlay) closes it too,
 // when both the press and the release were on it, so a text selection dragged out of the card leaves
 // it open. While it is shown it holds the copy status region (above), the only place a screen reader
@@ -355,8 +353,21 @@ export function createModal(dialog, { onClosed } = {}) {
   if (modals.has(dialog)) return modals.get(dialog);
   let state = "closed"; // "opening", "open", "closing"
   let timer = 0;
+  let step = 0; // bumped by each wait and each hide(), so a stale wait does nothing
   let styled = false; // this modal set --femto-scrollbar-width
   const isOpen = () => state === "opening" || state === "open";
+
+  // Runs then() once femto's modal animations in the dialog have ended, or after MODAL_DURATION.
+  function afterAnimations(then) {
+    const token = ++step;
+    clearTimeout(timer);
+    const run = () => {
+      if (token === step) then();
+    };
+    const ends = dialog.getAnimations({ subtree: true }).filter((a) => a instanceof CSSAnimation);
+    Promise.allSettled(ends.map((a) => a.finished)).then(run);
+    timer = setTimeout(run, MODAL_DURATION);
+  }
 
   // Escape, from its keydown on the document while the dialog is in the page. A dialog's cancel
   // event can be canceled only within the page's close-watcher allowance, which the Modal section's
@@ -370,6 +381,7 @@ export function createModal(dialog, { onClosed } = {}) {
 
   // The end of a close, after its animation or at once: <html> given back, the dialog hidden.
   function hide() {
+    step++;
     clearTimeout(timer);
     document.removeEventListener("keydown", onKeydown);
     if (holder === hide) {
@@ -402,18 +414,17 @@ export function createModal(dialog, { onClosed } = {}) {
     statusHome = dialog;
     placeStatus();
     state = "opening";
-    timer = setTimeout(() => {
+    afterAnimations(() => {
       modalClasses("modal-is-open");
       state = "open";
-    }, MODAL_DURATION);
+    });
   }
 
   function close() {
     if (!isOpen()) return;
-    clearTimeout(timer);
     modalClasses("modal-is-open", "modal-is-closing");
     state = "closing";
-    timer = setTimeout(hide, MODAL_DURATION);
+    afterAnimations(hide);
   }
 
   // A click's target is the nearest element holding both its press and its release, so a press in
@@ -431,8 +442,12 @@ export function createModal(dialog, { onClosed } = {}) {
   });
   // The browser's other close requests (Android's back gesture), where it lets them be canceled.
   dialog.addEventListener("cancel", (event) => {
+    if (!event.cancelable) return;
     event.preventDefault();
     close();
+  });
+  dialog.addEventListener("close", () => {
+    if (state !== "closed") hide();
   });
 
   const helper = { open, close };
