@@ -22,16 +22,17 @@
 // 3. The typing demo, a small hand-written loop rather than TypeIt, which is GPL-3.0 or commercially
 //    licensed (PLAN.md Risks). It binds to `article[data-typing-demo]`, with its form and
 //    `footer.code pre code`.
-//    - The code sample is a list of characters, each with the color class it is typed in, plus line
-//      breaks, and a cursor among them. Each step types, moves the cursor, deletes or pauses (counts
-//      are in characters, a line break counts as one), then runs the step's form change. The busy
-//      step first types the disabled attribute that phase.busy gives the search input: it moves back
-//      to the input's ">" (the large layout) or to the end of its placeholder line (the small one),
-//      types it, and moves on to the button, and the date step's delete over the input's attributes
-//      takes it too.
+//    - The code sample is a list of characters, each with the class of the span it is typed in,
+//      plus line breaks, and a cursor among them. Each step types, moves the cursor, deletes or
+//      pauses (counts are in characters, a line break counts as one), then runs the step's form
+//      change. The busy step first types the disabled attribute that phase.busy gives the search
+//      input: it moves back to the input's ">" (the large layout) or to the end of its placeholder
+//      line (the small one), types it, and moves on to the button, and the date step's delete over
+//      the input's attributes takes it too.
 //    - The form follows the code: one state object, rendered once per change. The email input has
 //      type="email" from the start, as the code shows it. The form is inert in the markup: it is a
-//      picture of a form, which no pointer, key or screen reader reaches.
+//      picture of a form, which no pointer, key or screen reader reaches, so the control the code
+//      focuses has the class is-focused, which landing.css draws as femto's :focus.
 //    - The large layout (attributes on one line) is used while the viewport is at least 1280 px wide,
 //      the small one below; crossing 1280 px starts the demo over in the other layout.
 //    - The sequence loops until it is paused. It waits while the demo is off screen or the page is
@@ -177,13 +178,13 @@ const delInstant = { instant: true, delay: 0 };
 // The form's state and its initial values.
 const INITIAL = {
   formRole: null, formGroupIsFocused: false,
-  displayInput: true, inputPlaceholder: "Enter your email", inputInvalid: null, inputClass: "", inputType: "email",
+  displayInput: true, inputPlaceholder: "Enter your email", inputInvalid: null, inputType: "email",
   inputValue: "", displayedInputValue: "", inputIsDisabled: false, inputIsFocused: false,
-  inputHelper: null, inputHelperClass: "",
+  inputHelper: null,
   displaySelect: false,
-  displayCheckbox: false, checkboxIsChecked: false, checkboxClass: "", checkboxRole: null, checkboxIsFocused: false,
-  displayRange: false, rangeValue: 0, rangeIsFocused: false, rangeClass: "",
-  displayButton: false, buttonType: null, buttonLabel: null, buttonClass: "", buttonIsBusy: false, buttonIsFocused: false,
+  displayCheckbox: false, checkboxIsChecked: false, checkboxRole: null, checkboxIsFocused: false,
+  displayRange: false, rangeValue: 0, rangeIsFocused: false,
+  displayButton: false, buttonType: null, buttonLabel: null, buttonIsBusy: false, buttonIsFocused: false,
 };
 let state = { ...INITIAL };
 
@@ -202,11 +203,11 @@ const parts = form && {
   // The select is as the code shows it, <select><option>Select...</option></select>: no required
   // and no disabled placeholder option, which femto draws in its placeholder color (select:invalid).
   select: el("select", { name: "select-demo" }, el("option", {}, "Select...")),
-  checkboxLabel: el("label", { class: "" }),
-  checkbox: el("input", { name: "checkbox-demo", type: "checkbox", class: "" }),
-  rangeLabel: el("label", { class: "" }, "Brightness"),
-  range: el("input", { name: "range-demo", type: "range", value: "0", class: "" }),
-  button: el("button", { class: "", "aria-busy": "false" }),
+  checkboxLabel: el("label", {}),
+  checkbox: el("input", { name: "checkbox-demo", type: "checkbox" }),
+  rangeLabel: el("label", {}, "Brightness"),
+  range: el("input", { name: "range-demo", type: "range", value: "0" }),
+  button: el("button", { "aria-busy": "false" }),
 };
 if (parts) {
   parts.checkboxLabel.append(parts.checkbox, "Publish on my profile");
@@ -216,26 +217,23 @@ if (parts) {
 function renderForm() {
   const s = state, { input, helper, select, checkboxLabel, checkbox, rangeLabel, range, button } = parts;
   setAttr(form, "role", s.formRole || null);
-  setAttr(form, "class", s.formGroupIsFocused ? "is-focused" : "");
+  setAttr(form, "class", s.formGroupIsFocused && "is-focused");
   setAttr(input, "type", s.inputType);
   setAttr(input, "placeholder", s.inputPlaceholder);
-  setAttr(input, "class", `${s.inputClass}${s.inputIsFocused ? " is-focused" : ""}`);
+  setAttr(input, "class", s.inputIsFocused && "is-focused");
   input.disabled = s.inputIsDisabled;
   input.value = s.displayedInputValue;
   setAttr(input, "value", s.displayedInputValue);
   setAttr(input, "aria-invalid", s.inputInvalid === null ? null : String(s.inputInvalid));
-  setAttr(helper, "class", s.inputHelperClass);
   if (helper.textContent !== (s.inputHelper ?? "")) helper.textContent = s.inputHelper ?? "";
-  setAttr(checkboxLabel, "class", s.checkboxClass);
   setAttr(checkbox, "role", s.checkboxRole);
-  setAttr(checkbox, "class", s.checkboxIsFocused ? "is-focused" : "");
+  setAttr(checkbox, "class", s.checkboxIsFocused && "is-focused");
   checkbox.checked = s.checkboxIsChecked;
-  setAttr(rangeLabel, "class", s.rangeClass);
-  setAttr(range, "class", s.rangeIsFocused ? "is-focused" : "");
+  setAttr(range, "class", s.rangeIsFocused && "is-focused");
   range.value = String(s.rangeValue);
   setAttr(range, "value", s.rangeValue);
   setAttr(button, "type", s.buttonType);
-  setAttr(button, "class", `${s.buttonClass}${s.buttonIsFocused ? " is-focused" : ""}`);
+  setAttr(button, "class", s.buttonIsFocused && "is-focused");
   setAttr(button, "aria-busy", String(s.buttonIsBusy));
   if (button.textContent !== (s.buttonLabel ?? "")) button.textContent = s.buttonLabel ?? "";
 
@@ -291,10 +289,10 @@ async function fill(v, mine) {
   later(SHOW / 4, () => set({ inputIsFocused: false }));
 }
 
-// The cursor: a zero-width "|" between characters, solid while the code changes and
-// blinking once it rests (and solid while the demo is paused).
-const caret = el("span", { class: "ti-cursor" }, "|");
-caret.style.cssText = "display: inline-block; width: 0; transform: translateX(-0.25em)";
+// The cursor: a zero-width "|" between characters (landing.css), solid while the code changes and
+// blinking once it rests (and solid while the demo is paused). It is no part of the code, so a
+// screen reader skips it.
+const caret = el("span", { "aria-hidden": "true" }, "|");
 let blink = null;
 
 function renderCode() {
@@ -369,24 +367,25 @@ const phase = {
       later(PAUSE * 2, () => set({ inputValue: "invalid@example" }));
     });
   },
-  invalid: () => set({ inputInvalid: true, inputClass: "" }),
-  helper: () => set({ inputHelper: "Please enter a valid email!", inputHelperClass: "fade-in" }),
+  invalid: () => set({ inputInvalid: true }),
+  helper: () => set({ inputHelper: "Please enter a valid email!" }),
   subscribe: () => set({ formRole: "group", inputInvalid: null, inputValue: "", inputHelper: null, displayButton: true,
-    buttonType: "submit", buttonLabel: "Subscribe", buttonClass: "fade-in" }),
+    buttonType: "submit", buttonLabel: "Subscribe" }),
   search: () => set({ formRole: "search", inputType: "search", inputPlaceholder: "Search", buttonLabel: "Search" }),
   busy: () => set({ buttonIsFocused: true, formGroupIsFocused: true, buttonIsBusy: true, inputIsDisabled: true,
     buttonLabel: "Search..." }),
   date: () => {
-    const day = new Date().toISOString().slice(0, 10); // today, as yyyy-MM-dd
-    set({ formGroupIsFocused: false, formRole: null, displayButton: false, buttonIsFocused: false, buttonClass: "",
-      buttonIsBusy: false, inputType: "date", inputClass: "fade-in", displayedInputValue: day, inputValue: day,
+    const now = new Date(); // today in the reader's own time zone, as yyyy-MM-dd
+    const day = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((n) => String(n).padStart(2, "0")).join("-");
+    set({ formGroupIsFocused: false, formRole: null, displayButton: false, buttonIsFocused: false,
+      buttonIsBusy: false, inputType: "date", displayedInputValue: day, inputValue: day,
       inputPlaceholder: null, inputIsDisabled: false });
   },
   // The code's <button>Next</button> has no type, and femto makes only a button[type=submit] full
   // width: the type the subscribe phase set goes (setAttr removes it), until the next loop's.
-  next: () => set({ inputClass: "", displayButton: true, buttonType: null, buttonLabel: "Next", buttonClass: "fade-in" }),
+  next: () => set({ displayButton: true, buttonType: null, buttonLabel: "Next" }),
   select: () => set({ displayInput: false, displaySelect: true }),
-  checkbox: () => set({ displaySelect: false, displayButton: false, displayCheckbox: true, checkboxClass: "fade-in" }),
+  checkbox: () => set({ displaySelect: false, displayButton: false, displayCheckbox: true }),
   check: (checked) => () => {
     set({ checkboxIsFocused: true });
     later(PAUSE, () => {
@@ -395,15 +394,15 @@ const phase = {
     });
   },
   switch: () => set({ checkboxRole: "switch" }),
-  range: () => set({ rangeClass: "fade-in", displayCheckbox: false, displayRange: true, rangeValue: 25 }),
+  range: () => set({ displayCheckbox: false, displayRange: true, rangeValue: 25 }),
   range50: () => {
-    set({ rangeClass: "", rangeIsFocused: true });
+    set({ rangeIsFocused: true });
     later(PAUSE, () => {
       set({ rangeValue: 50 });
       later(PAUSE * 2, () => set({ rangeIsFocused: false }));
     });
   },
-  loop: () => set({ displayRange: false, displayInput: true, inputClass: "fade-in", inputType: "email", inputValue: "",
+  loop: () => set({ displayRange: false, displayInput: true, inputType: "email", inputValue: "",
     displayedInputValue: "", inputPlaceholder: "Enter your email" }),
 };
 
@@ -761,8 +760,8 @@ const small = queue()
 
 // --- Start -------------------------------------------------------------------------------------
 if (article && form && code) {
-  new IntersectionObserver(([entry]) => {
-    onScreen = entry.isIntersecting;
+  new IntersectionObserver((entries) => {
+    onScreen = entries.at(-1).isIntersecting; // the latest, when several queued up
     resume();
   }).observe(article);
   document.addEventListener("visibilitychange", resume);
