@@ -3,8 +3,9 @@ native HTML: the accordions and dropdowns are <details>, the loading indicators 
 group forms have method="dialog", which keeps their submits from going anywhere (shell's
 example-forms covers Group). The one widget is the
 Dropdown section's menu items: docs.dropdown.jsx's Item is a Link to="#" with an onClick that
-prevents the default, so each renders the route's own path (href="/docs/dropdown"; on the one page
-the page's, /docs, or the section's, /docs#dropdown) and goes nowhere, whether it is clicked or activated with Enter."""
+prevents the default; on the one page each is href="#", as its sample has it, and docs.js cancels
+its click, so it goes nowhere (not even to the page's top), whether it is clicked or activated with
+Enter."""
 from behavior import check, self_href
 
 GROUP = "components-a"
@@ -78,7 +79,7 @@ def _state(page, label, summary, link):
 def dropdown_items(page):
     """Every example link of Dropdown (the four menu items of each link dropdown and the nav
     example's "Services": five dropdowns and 21 links since the 2026-11-07 cleanup dropped the
-    six-dropdown button-variants gallery; each points at its own place, /docs or /docs#dropdown) goes nowhere,
+    six-dropdown button-variants gallery; each is href="#", as its sample has it) goes nowhere,
     with the pointer and with the keyboard. Pointer: each dropdown is opened once with a click on its
     summary, then each of its items is clicked in turn inside that open dropdown, and the dropdown is
     closed with its summary again. Keyboard: each dropdown's summary is focused and Enter opens it,

@@ -269,7 +269,7 @@ def picker_code_highlight(page):
 
 
 def swatch(color):
-    return f"#content article.color-picker > header a.femto-background-{color}"
+    return f"#content article[data-version-picker] > header a.femto-background-{color}"
 
 
 # What a color swap must leave exactly as a fresh load of the color has it: the theme example
@@ -279,8 +279,8 @@ def swatch(color):
 # Privacy Policy link's href names the color's page and does nothing (preventDefault), so that href
 # is left out of the tree snapshots.
 PICKER_SNAPSHOT = SNAPSHOT + CODES + """
-const article = S.querySelector("#content article.color-picker");
-const selfLinks = new Set([...S.querySelectorAll("#content article.color-picker form a")]);
+const article = S.querySelector("#content article[data-version-picker]");
+const selfLinks = new Set([...S.querySelectorAll("#content article[data-version-picker] form a")]);
 const clean = (el, s) => {
   if (!Array.isArray(s)) return s;
   const [tag, attrs, kids] = s;
@@ -331,7 +331,7 @@ def expect_like_loaded(page, color, label, options=()):
 
 @check("picker-swatch", PICKER)
 def picker_swatch(page):
-    """A theme color swatch (`article.color-picker > header a`, aria-label its own color's name)
+    """A theme color swatch (`article[data-version-picker] > header a`, aria-label its own color's name)
     switches the theme in place (criterion 7: the picker swaps the theme and updates ?theme=): with
     "abc" typed in the example's Login field and its Privacy switch turned off, the swatches 300 px
     below the viewport's top, a click on pumpkin's swatch keeps the scroll position, makes the URL
@@ -344,8 +344,8 @@ def picker_swatch(page):
     jade's and fixed-typography's links. A reload keeps jade (the URL carries it) and the samples
     follow the switches as the browser restores them. Azure's swatch then gives the picker as a
     fresh load of azure has it: no ?theme=, no theme stylesheet."""
-    example = "#content article.color-picker > form"
-    y = page.js("return Math.round(S.querySelector('article.color-picker').getBoundingClientRect().top + scrollY - 300)")
+    example = "#content article[data-version-picker] > form"
+    y = page.js("return Math.round(S.querySelector('article[data-version-picker]').getBoundingClientRect().top + scrollY - 300)")
     page.scroll_to(y)
     page.click(page.find(f"{example} input[name=login]"))
     page.key("abc")
@@ -363,7 +363,7 @@ def picker_swatch(page):
     page.eq("no new history entry (replaceState)", now["history"], before["history"])
     page.eq("the scroll position is kept", now["y"], before["y"])
     page.eq("the form keeps what was typed", now["form"], [["login", "abc"], ["password", ""], ["switch", False]])
-    page.eq("pumpkin's heading", page.js("return S.querySelector('article.color-picker > hgroup').textContent.replace(/\\s+/g, ' ').trim()"),
+    page.eq("pumpkin's heading", page.js("return S.querySelector('article[data-version-picker] > hgroup').textContent.replace(/\\s+/g, ' ').trim()"),
             "Pumpkin Form example with a pumpkin theme.")
     choose(page, ["fixed-typography"])
     expect_state(page, "pumpkin", ["fixed-typography"], label="pumpkin, fixed typography: ")
@@ -387,38 +387,6 @@ def picker_swatch(page):
     expect_like_loaded(page, "azure", "azure")
 
 
-# Records every change of the header logo's class from now on, and every click, with
-# performance.now() times.
-LOGO_WATCH = """
-const logo = document.querySelector("body > header a[aria-label='femto homepage'] > svg");
-window.__bhLogo = [];
-const t = () => Math.round(performance.now());
-new MutationObserver(() => __bhLogo.push([t(), logo.getAttribute("class")])).observe(logo, {attributes: true, attributeFilter: ["class"]});
-addEventListener("click", () => __bhLogo.push([t(), "click"]), true);
-return logo.getAttribute("class");
-"""
-
-
-@check("picker-logo", PICKER)
-def picker_logo(page):
-    """The header logo animates for 1 s after each route change (HeaderContext.jsx, Logo.jsx), and
-    the picker's swatches change the route (on the one page, the theme and its ?theme=) in place:
-    the logo's class is "femto-logo" on load; after a click on pumpkin's swatch it becomes
-    "femto-logo animated" (within 2 s of the click, once the color's stylesheet has loaded) and
-    "femto-logo" again 900 to 1500 ms later, with no other step."""
-    page.eq("the logo is not animated on load", page.js(LOGO_WATCH), "femto-logo")
-    page.click(swatch("pumpkin"))
-    swapped(page, "pumpkin", "pumpkin")
-    page.wait("the logo animates and stops", "window.__bhLogo.filter(e => e[1] !== 'click').length >= 2", 3,
-              got=page.js("return window.__bhLogo"))
-    page.sleep(0.6)
-    tl = page.js("return window.__bhLogo")
-    page.eq("the steps: click, animated, not animated", [e[1] for e in tl], ["click", "femto-logo animated", "femto-logo"],
-            timeline=tl)
-    page.expect("animated within 2 s of the click", tl[1][0] - tl[0][0] <= 2000, timeline=tl)
-    page.expect("animated for 1 s", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
-
-
 @check("picker-swatch-focus", PICKER)
 def picker_swatch_focus(page):
     """Keyboard use of the swatches: with pumpkin's swatch focused, Enter swaps to pumpkin
@@ -437,7 +405,7 @@ def picker_swatch_focus(page):
     page.wait(f"focus stays on {after}'s swatch", focused, 1, args=(swatch(after),))
 
 
-CURRENT_SWATCH = "S.querySelector('article.color-picker > header a[aria-current=page]').className"
+CURRENT_SWATCH = "S.querySelector('article[data-version-picker] > header a[aria-current=page]').className"
 
 
 @check("picker-unknown-theme", ("/docs?theme=bogus#theme-picker", "/docs?theme=JADE#theme-picker"))
@@ -448,7 +416,7 @@ def picker_unknown_theme(page):
     unknown value: ?theme=jade."""
     page.eq("no theme stylesheet", page.js(THEME_LINKS), [])
     page.eq("azure is current", page.js(f"return {CURRENT_SWATCH}"), "femto-background-azure")
-    page.eq("the heading is Azure", page.js("return S.querySelector('article.color-picker > hgroup > h2').textContent"), "Azure")
+    page.eq("the heading is Azure", page.js("return S.querySelector('article[data-version-picker] > hgroup > h2').textContent"), "Azure")
     expect_state(page, label="unknown theme: ")
     page.eq("the query is left as given", page.js("return location.search"), "?" + page.route.split("?")[1].split("#")[0])
     page.click(swatch("jade"))
@@ -540,7 +508,7 @@ return {text: [...b.childNodes].filter(n => n.nodeType === 3).map(n => n.data).j
         theme: document.documentElement.getAttribute("data-theme"), stored: localStorage.getItem("femtoColorScheme"),
         header: hi && hi.getAttribute("aria-label")};
 """
-HEADER_TOGGLE = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # a button named by its icon (Decision 18)
+HEADER_TOGGLE = "body > header nav button:has(> span[role=img][aria-label$='dark mode'])"   # a button named by its icon (Decision 18)
 
 
 @check("color-schemes-toggle", "/docs#color-schemes")

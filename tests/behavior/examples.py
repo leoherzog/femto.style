@@ -10,7 +10,7 @@ import json
 import re
 from pathlib import Path
 
-from behavior import COPY_SPY, PICKER_ORDER, check
+from behavior import COPY_SPY, PICKER_ORDER, check, expect_name
 
 GROUP = "examples"
 
@@ -149,7 +149,7 @@ REFERENCE = r"""
 const theme = arguments[1];
 const frameCss = [...document.styleSheets].find(s => s.href?.endsWith('/assets/css/examples.css'));
 const frameRules = [...frameCss.cssRules].map(r => r.cssText).filter(t => t.includes('div[data-example]'))
-  .map(t => t.replaceAll('body > main.examples > section.example > div[data-example]', 'div[data-ref]')).join('\n');
+  .map(t => t.replaceAll('body > main > section.example > div[data-example]', 'div[data-ref]')).join('\n');
 const sections = hosts.map(h => {
   const code = h.frame.closest('section').querySelector(':scope > details > .code pre code').textContent;
   return `<div data-ref><template shadowrootmode="open"><div${theme ? ` data-theme="${theme}"` : ''}><template shadowrootmode="open"><link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">${code}</template></div></template></div>`;
@@ -394,18 +394,12 @@ def examples_links(page):
     page.url_kept("no navigation", before)
 
 
-# The deep-linked example: its section's and its chapter label's top, its scroll-margin-top, a femto
-# spacing in px (read from a hidden probe), and whether the page is scrolled to its end.
+# The deep-linked example: its section's and its chapter label's top, and whether the page is
+# scrolled to its end.
 DEEP_LINKED = """
 const s = document.getElementById(location.hash.slice(1)), chapter = s.querySelector(':scope > header .chapter');
-const probe = document.createElement('div');
-probe.style.cssText = 'position: absolute; visibility: hidden; width: var(--femto-spacing)';
-document.body.append(probe);
-const spacing = probe.getBoundingClientRect().width;
-probe.remove();
 const root = document.documentElement;
-return {top: s.getBoundingClientRect().top, chapter: chapter.getBoundingClientRect().top,
-        margin: parseFloat(getComputedStyle(s).scrollMarginTop), spacing, y: scrollY,
+return {top: s.getBoundingClientRect().top, chapter: chapter.getBoundingClientRect().top, y: scrollY,
         atEnd: Math.ceil(scrollY + innerHeight) >= root.scrollHeight - 1};
 """
 
@@ -415,28 +409,27 @@ def examples_deep_link(page):
     page.sleep(0.3)   # the load's scroll has settled
     r = page.js(DEEP_LINKED)
     if r["atEnd"]:
-        page.expect("at the page's end, the section is at least a femto spacing below the top", r["top"] >= r["spacing"] - 1, **r)
+        page.expect("at the page's end, the section is at or below the top", r["top"] >= -1, **r)
         page.note("the page is scrolled to its end, so the section may sit lower")
     else:
-        page.expect("the section is a femto spacing below the top (within 1 px)", abs(r["top"] - r["spacing"]) <= 1, **r)
-    page.expect("its chapter label is clear of the top edge", r["chapter"] >= r["spacing"] - 1, **r)
-    page.expect("the section's scroll-margin-top is a femto spacing", r["spacing"] > 0 and abs(r["margin"] - r["spacing"]) <= 0.5, **r)
+        page.expect("the section is at the top of the viewport (within 1 px)", abs(r["top"]) <= 1, **r)
+    page.expect("its chapter label is in view, not above the top edge", r["chapter"] >= -1, **r)
     page.eq("the URL is the deep link's", page.js("return location.pathname + location.hash"), page.route)
 
 
 @check("examples-deep-link", ("/examples#every-element", "/examples#sign-in", "/examples#dashboard"))
 def examples_deep_link_large(page):
     """A link to an example (the footer's #sign-in and #dashboard, the index's, the docs' "Used
-    in") lands its section a femto spacing (--femto-spacing, its scroll-margin-top in examples.css)
-    below the top of the viewport, within 1 px, with its chapter label clear of the top edge; the
-    page has no sticky header and no scroll padding. At the page's end a section may sit lower, which
-    the note says. The URL keeps the hash."""
+    in") is the browser's own fragment scroll: it lands its section at the top of the viewport,
+    within 1 px, with its chapter label in view; the page has no sticky header, no scroll padding
+    and no scroll margin. At the page's end a section may sit lower, which the note says. The URL
+    keeps the hash."""
     examples_deep_link(page)
 
 
 @check("examples-deep-link-small", ("/examples#every-element", "/examples#sign-in", "/examples#dashboard"), width=375, height=812)
 def examples_deep_link_small(page):
-    """The same at 375 x 812, where a femto spacing is smaller."""
+    """The same at 375 x 812, a phone's viewport."""
     examples_deep_link(page)
 
 
@@ -698,16 +691,18 @@ return {doctype: d.doctype?.name ?? null, lang: d.documentElement.lang, charset:
         samplePre: [...t.content.querySelectorAll('pre')].map(p => p.textContent)};
 """
 
-# Records the button's text and the status line on every change, and the click, with performance.now(),
-# and the button's width at the click and at each change.
+# Records the button's data-tooltip and the status line on every change of the tooltip, and the
+# click, with performance.now(), and the button's width and text at the click and at each change.
 COPY_PAGE_TIMELINE = r"""
 const b = arguments[0];
 window.__bhPage = [];
 window.__bhPageWidths = [];
+window.__bhPageTexts = [];
 const t = () => Math.round(performance.now());
-const w = () => __bhPageWidths.push(Math.round(b.getBoundingClientRect().width * 10) / 10);
+const w = () => { __bhPageWidths.push(Math.round(b.getBoundingClientRect().width * 10) / 10); __bhPageTexts.push(b.textContent); };
 const status = () => document.querySelector('body > p.visually-hidden[role=status]')?.textContent ?? null;
-new MutationObserver(() => { __bhPage.push([t(), b.textContent, status()]); w(); }).observe(b, {childList: true, characterData: true, subtree: true});
+new MutationObserver(() => { __bhPage.push([t(), b.getAttribute('data-tooltip'), status()]); w(); })
+  .observe(b, {attributes: true, attributeFilter: ['data-tooltip']});
 b.addEventListener('click', () => { __bhPage.push([t(), 'click']); w(); }, true);
 """
 
@@ -726,9 +721,12 @@ def examples_copy_page(page):
     (the All theme colors example's) as the template's jsDelivr ones. Read back as a document, the
     copy has the template's doctype, lang, charset, viewport, color-scheme and femto link, one
     main.container holding the sample, and each <pre>'s text unchanged. With jade chosen in the theme
-    select, the copy also links jade's css/themes/ file right after femto. The button reads "Copied"
-    within 100 ms of a click and "Copy as page" again 900 to 1500 ms later, at the width it had, so
-    it does not move under the pointer; the page's one status region, site.js's
+    select, the copy also links jade's css/themes/ file right after femto. Within 100 ms of a click
+    the button's femto tooltip (data-tooltip, which it has only then) says "Copied", and 900 to 1500
+    ms later it has none again, as a code block's copy button does (the owner, 2026-11-11); its label
+    reads "Copy as page" throughout, at the width it had, so it does not move under the pointer, and
+    its computed name stays "Copy as page" while the tooltip shows (its aria-label, so the tooltip's
+    ::before text never joins it). The page's one status region, site.js's
     (body > p.visually-hidden[role=status]), says "Copied" (with a no-break space after it when it
     repeats the message before it, every other copy) and then nothing. The URL does not change."""
     page.js(COPY_SPY)
@@ -754,6 +752,10 @@ def examples_copy_page(page):
             page.js(COPY_PAGE_TIMELINE, button)
         page.click(button)
         page.wait(f"{x['id']}: copied", f"window.__bhCopied.length === {k + 1}", 1)
+        if k == len(buttons) - 1:
+            page.wait(f"{x['id']}: the tooltip says Copied", "arguments[0].getAttribute('data-tooltip') === 'Copied'", 0.5,
+                      args=(button,))
+            expect_name(page, f"{x['id']}: named Copy as page while the tooltip says Copied", button, "Copy as page")
         text = page.js(f"return window.__bhCopied[{k}].text")
         page.eq(f"{x['id']}: exactly its sample in the starter template", text, page_of(template, x["name"], x["sample"], "azure"))
         d = page.js(READ_PAGE, text, x["sample"], cdn)
@@ -763,16 +765,19 @@ def examples_copy_page(page):
                     and d["title"] == x["name"] and d["links"] == [cdn + "dist/femto.min.css"] and d["mains"] == 1
                     and d["body"] == ["main"] and d["same"], **d)
         page.eq(f"{x['id']}: each <pre>'s text unchanged", d["pre"], d["samplePre"])
-    page.wait("the last button reverts", "window.__bhPage.length >= 3 && arguments[0].textContent === 'Copy as page'", 2.5, args=(buttons[-1],))
+    page.wait("the last button's tooltip goes", "window.__bhPage.length >= 3 && !arguments[0].hasAttribute('data-tooltip')", 2.5,
+              args=(buttons[-1],))
     tl = page.js("return window.__bhPage")
     # The region's text, its trailing no-break space dropped: the 16 copies alternate "Copied" and
     # "Copied\u00A0" (copy-announce-twice holds the alternation).
     steps = [x[1:2] if x[1] == "click" else [x[1], x[2].strip() if x[2] else x[2]] for x in tl]
-    page.eq("the steps: click, Copied, Copy as page", steps, [["click"], ["Copied", "Copied"], ["Copy as page", ""]], timeline=tl)
+    page.eq("the steps: click, the tooltip Copied, no tooltip", steps, [["click"], ["Copied", "Copied"], [None, ""]], timeline=tl)
     page.expect("Copied within 100 ms", tl[1][0] - tl[0][0] <= 100, timeline=tl)
-    page.expect("back 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
-    widths = page.js("return window.__bhPageWidths")
-    page.expect("the button keeps its width while it reads Copied", len(widths) >= 3 and max(widths) - min(widths) <= 0.5, widths=widths)
+    page.expect("gone 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
+    widths, texts = page.js("return window.__bhPageWidths"), page.js("return window.__bhPageTexts")
+    page.eq("the label reads Copy as page throughout", sorted(set(texts)), ["Copy as page"], texts=texts)
+    page.expect("the button keeps its width while its tooltip says Copied", len(widths) >= 3 and max(widths) - min(widths) <= 0.5,
+                widths=widths)
     page.eq("one status region on the page", page.js("return document.querySelectorAll('[role=status]').length"), 1)
     choose_theme(page, "jade")
     for eid in ("sign-in", "all-themes"):
@@ -800,27 +805,29 @@ return navigator.clipboard === undefined;
 @check("examples-copy-page-failed", "/examples")
 def examples_copy_page_failed(page):
     """A Copy as page that fails says so (examples.js): with a clipboard whose writeText rejects,
-    the first example's Copy as page button tries to write its page once, reads "Copy failed"
-    within 100 ms and "Copy as page" again 900 to 1500 ms later, at the width it had, and the page's
-    one status region says "Copy failed", then nothing. With no navigator.clipboard at all, a second
-    click reads "Copy failed" again."""
+    the first example's Copy as page button tries to write its page once, its tooltip says "Copy
+    failed" within 100 ms and is gone 900 to 1500 ms later, its label reading "Copy as page" at the
+    width it had throughout, and the page's one status region says "Copy failed", then nothing.
+    With no navigator.clipboard at all, a second click's tooltip says "Copy failed" again."""
     button = page.find_all("main section.example > header > button[data-copy-page]")[0]
     page.eq("the clipboard refuses", page.js(COPY_REFUSED, False), False)
     page.js(COPY_PAGE_TIMELINE, button)
     page.click(button)
-    page.wait("the button reverts", "window.__bhPage.length >= 3 && arguments[0].textContent === 'Copy as page'", 2.5, args=(button,))
+    page.wait("the tooltip goes", "window.__bhPage.length >= 3 && !arguments[0].hasAttribute('data-tooltip')", 2.5, args=(button,))
     tl = page.js("return window.__bhPage")
     page.eq("it tried to write once", len(page.js("return window.__bhRefused")), 1)
-    page.eq("the steps: click, Copy failed, Copy as page", [x[1:] for x in tl],
-            [["click"], ["Copy failed", "Copy failed"], ["Copy as page", ""]], timeline=tl)
+    page.eq("the steps: click, the tooltip Copy failed, no tooltip", [x[1:] for x in tl],
+            [["click"], ["Copy failed", "Copy failed"], [None, ""]], timeline=tl)
     page.expect("Copy failed within 100 ms", tl[1][0] - tl[0][0] <= 100, timeline=tl)
-    page.expect("back 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
-    widths = page.js("return window.__bhPageWidths")
-    page.expect("the button keeps its width while it reads Copy failed", len(widths) >= 3 and max(widths) - min(widths) <= 0.5,
+    page.expect("gone 1 s later", 900 <= tl[2][0] - tl[1][0] <= 1500, timeline=tl)
+    widths, texts = page.js("return window.__bhPageWidths"), page.js("return window.__bhPageTexts")
+    page.eq("the label reads Copy as page throughout", sorted(set(texts)), ["Copy as page"], texts=texts)
+    page.expect("the button keeps its width while its tooltip says Copy failed", len(widths) >= 3 and max(widths) - min(widths) <= 0.5,
                 widths=widths)
     page.eq("no navigator.clipboard", page.js(COPY_REFUSED, True), True)
     page.click(button)
-    page.wait("no clipboard: the button reads Copy failed", "arguments[0].textContent === 'Copy failed'", 1, args=(button,))
+    page.wait("no clipboard: the tooltip says Copy failed", "arguments[0].getAttribute('data-tooltip') === 'Copy failed'", 1,
+              args=(button,))
 
 
 # Records every change of the status region's text, and each click on the two buttons, with

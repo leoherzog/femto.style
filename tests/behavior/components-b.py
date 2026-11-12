@@ -33,7 +33,7 @@ def expect_demo(page, open_, label):
 
 @check("modal-demo", "/docs#modal")
 def modal_demo(page):
-    """Modal's demo: "Open modal" (`#modal-demo button`) opens the demo dialog (the `main
+    """Modal's demo: "Open modal" (`button[data-modal-open=modal-demo]`) opens the demo dialog (the `main
     dialog` without class example: "Confirm your membership", in sentence case); once its opening
     animation ends, its
     Cancel and Confirm buttons close it, a click on the dialog outside its article (the backdrop)
@@ -44,7 +44,7 @@ def modal_demo(page):
     title = "Confirm your membership"
     expect_demo(page, False, "on load")
     for how in ("Cancel", "Confirm", "backdrop"):
-        page.click("#modal-demo button")
+        page.click("button[data-modal-open=modal-demo]")
         expect_demo(page, True, f"before {how}")
         # femto's opening animation moves the article: after a 0.2 s delay it slides in from
         # translateY(-100%) over 0.2 s, and site.js drops modal-is-opening at 400 ms, which ends the
@@ -166,7 +166,7 @@ def nav_example_links(page):
     """Every example link of Nav (those inside the examples' navs, dropdown items included: 22,
     since the 2026-11-07 cleanup moved the nav dropdown example's 5 links to Dropdown alone and
     2026-11-09 dropped the buttons example's "Services", so it fits 320 px; each
-    pointing at its own place, /docs or /docs#nav) goes nowhere. A real click on each (its dropdown opened
+    href="#", as its sample has it) goes nowhere. A real click on each (its dropdown opened
     first with a click on the summary), and Enter on the first link of each nav outside a dropdown,
     leave the document (a marker set on window survives), the URL, history.length and the scroll
     position as they were, keep the dropdown open, and the click event is canceled
@@ -279,9 +279,11 @@ SAME_HASH = "/docs?theme=jade#tooltip"
 
 @check("tooltip-link-same-hash", SAME_HASH, height=700)
 def tooltip_link_same_hash(page):
-    """On /docs?theme=jade#tooltip at 1300 x 700, scrolled 200 px past where the deep link put
-    Tooltip's heading (the URL still /docs?theme=jade#tooltip once the spy has settled), a real
-    click on the example link (`href="/docs#tooltip"`: the URL's own hash, without its query) is
+    """On /docs?theme=jade#tooltip at 1300 x 700, scrolled past where the deep link put Tooltip's
+    heading as far as the example link allows (the link 24 px below the fixed header, and the
+    heading at least 50 px past its line; a fixed 200 px put the link under the header once the
+    header grew, 2026-11-11), with the URL still /docs?theme=jade#tooltip once the spy has settled,
+    a real click on the example link (`href="/docs#tooltip"`: the URL's own hash, without its query) is
     the fragment navigation docs.js makes of it to keep the query, which runs although the hash is
     already the URL's (the hash setter would do nothing): within 3 s Tooltip's heading is on the
     scroll-padding line (within 2 px), the URL is still /docs?theme=jade#tooltip with
@@ -295,10 +297,14 @@ def tooltip_link_same_hash(page):
     link = page.find(TOOLTIP_LINK)
     page.eq("the link points at /docs#tooltip", page.js("return arguments[0].getAttribute('href')", link), "/docs#tooltip")
     page.wait("the deep link puts Tooltip's heading on its line", f"Math.abs(({HEADING_LINE})('tooltip')) <= 2", 3)
-    y = page.scroll_to(page.js(f"return scrollY + ({HEADING_LINE})('tooltip') + 200"))
+    # The link just below the fixed header, so the page is scrolled past the heading as far as the
+    # link allows: how far depends on the header's height and the text above the link.
+    y = page.scroll_to(page.js("""const header = document.querySelector('body > header');
+      return Math.round(arguments[0].getBoundingClientRect().top + scrollY
+                        - Math.max(header ? header.getBoundingClientRect().bottom : 0, 0) - 24);""", link))
     page.sleep(0.5)   # past the spy's URL_DELAY (200 ms): a hash it would write is written
     offset = page.js(f"return ({HEADING_LINE})('tooltip')")
-    page.expect("scrolled 200 px past the heading's line", abs(offset + 200) <= 2, offset=offset, y=y)
+    page.expect("scrolled at least 50 px past the heading's line", offset <= -50, offset=offset, y=y)
     url = page.url()
     page.eq("scrolled: the URL is still the deep link's", str(url), SAME_HASH)
     clear = page.js("""const r = arguments[0].getBoundingClientRect(), h = document.querySelector('body > header');

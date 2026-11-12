@@ -6,9 +6,9 @@ and the typing demo, a hand-written loop that drives the form, as the Remix site
 2.2.2): demo-pause and demo-reduced-motion hold them.
 
 The comparison above the block, femto's markup beside a utility framework's, is two static code
-samples, always dark as the homepage's others are, so no script touches it and no check here needs
-it (the owner took it out on 2026-11-09 and brought it back on 2026-11-10, above the femto off and
-on block, which stays). femto-block-scheme checks that the block follows the page's scheme."""
+samples, femto's own <pre> blocks in the page's scheme, so no script touches it and no check here
+needs it (the owner took it out on 2026-11-09 and brought it back on 2026-11-10, above the femto
+off and on block, which stays). femto-block-scheme checks that the block follows the page's scheme."""
 import time
 
 from behavior import COPY_SPY, PICKER_ORDER, check, expect_forced_focus, expect_name
@@ -220,7 +220,7 @@ def demo_variant(page):
                     and st["role"] is None and st["invalid"] is None, **st)
 
 
-TOGGLE = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # the header's toggle button
+TOGGLE = "body > header nav button:has(> span[role=img][aria-label$='dark mode'])"   # the header's toggle button
 
 
 # Records every change of the demo's state from now on (its code text, the form's markup and its
@@ -523,7 +523,8 @@ def femto_switch_keyboard(page):
         if page.js("return document.activeElement === document.querySelector(arguments[0])", SWITCH):
             break
         between.append(page.js("""const a = document.activeElement;
-          return a.matches('main > section.comparison pre[data-scroll-focus][tabindex="0"]') ? null : a.outerHTML.slice(0, 120);"""))
+          return a.matches('main > section:has(> h2) > .grid > div > pre[data-scroll-focus][tabindex="0"]') ? null
+            : a.outerHTML.slice(0, 120);"""))
     reached = page.js("return document.activeElement === document.querySelector(arguments[0])", SWITCH)
     page.eq("Tab from the Pause button reaches the switch, past only the comparison's scrolling code samples",
             {"switch": reached, "other stops": [b for b in between if b is not None]}, {"switch": True, "other stops": []})

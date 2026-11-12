@@ -143,7 +143,7 @@ def table_inverse_thead(page):
     the sample reads <thead data-theme="dark">; after the header toggle makes the page dark, both
     say "light"; toggled back, "dark" again."""
     expect_thead(page, "dark", "light OS")
-    toggle = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # the header's toggle button
+    toggle = "body > header nav button:has(> span[role=img][aria-label$='dark mode'])"   # the header's toggle button
     page.click(toggle)
     expect_thead(page, "light", "page made dark")
     page.click(toggle)
@@ -189,8 +189,8 @@ return {marker: window.__bhMarker, url: location.pathname + location.search + lo
 @check("link-examples", "/docs#link")
 def link_examples(page):
     """Every example link of Link (Primary, Secondary and Contrast of "Links example", the two
-    Regular links and the Current link of "Current link example": 6 links, each pointing at its own
-    place, /docs or /docs#link) goes nowhere, by pointer and by keyboard. A real click on each, then Enter
+    Regular links and the Current link of "Current link example": 6 links, each href="#", as its
+    sample has it) goes nowhere, by pointer and by keyboard. A real click on each, then Enter
     on each once focused, leaves the document (a marker set on window survives), the URL,
     history.length, the scroll position and the number of tabs as they were, and the click event
     is canceled (defaultPrevented)."""

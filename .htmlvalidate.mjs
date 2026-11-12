@@ -26,8 +26,8 @@ export default {
     // it, so the role is femto's hook, not redundant. Other redundant roles still fail.
     "no-redundant-role": ["error", { exclude: ["button"] }],
 
-    // femto styles [role="button"] as a button, and the docs use it on links that navigate (the skip
-    // link, Get started, the palette download) and show it on a <div> (the Button section), so a
+    // femto styles [role="button"] as a button, and the docs use it on links that navigate (Get
+    // started, the palette download) and show it on a <div> (the Button section), so a
     // <button> would be wrong for them. Other roles still fail; a scrolling div.overflow-auto named
     // as a region carries its own inline directive with its reason.
     "prefer-native-element": ["error", { exclude: ["button"] }],

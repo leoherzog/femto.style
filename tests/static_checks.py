@@ -93,8 +93,10 @@ Interpretations, where PLAN's wording leaves a choice:
   smooth scrolling) covers site/**/*.css outside site/vendor/, plus <style> and style="" in site
   HTML; PLAN names site/assets/css/ for the at-rules, and the site's own CSS anywhere follows the
   same rules. Decision 10's class is the class a rule `html.X`, `:root.X` or `.X` sets
-  `scroll-behavior: smooth` on, inside `@media (prefers-reduced-motion: no-preference)`, where X
-  appears in site/assets/js/docs.js. The lint part proves coverage, not only an exit status, on
+  `scroll-behavior: smooth` on, where X appears in site/assets/js/docs.js; outside `@media
+  (prefers-reduced-motion: no-preference)` it also needs femto's reduce-motion utility in the vendored
+  dist/femto.min.css, a `*` rule under `@media (prefers-reduced-motion: reduce)` that sets
+  `scroll-behavior: auto !important` (the owner, 2026-11-11). The lint part proves coverage, not only an exit status, on
   site/**/*.css and site/**/*.js outside vendor/ (PLAN names those globs). The site's other CSS
   and JS sources, which
   `npm run lint` never reads, are listed in one note: <style> and style="" in site HTML (the
@@ -164,7 +166,11 @@ Interpretations, where PLAN's wording leaves a choice:
   vendored commit, read with git (site.js may change the media at run time); site/site.webmanifest
   is valid JSON with display "browser", a non-empty id and a non-empty description; and
   site/opengraph.png's IHDR is 1200 x 630, equal to og:image:width and og:image:height in the head
-  partial, and the file is at most OG_IMAGE_MAX bytes (32,000).
+  partial, and the file is at most OG_IMAGE_MAX bytes (32,000). And the stylesheets
+  (stylesheet_checks): each dist page's <head> links, in order and nothing else, the
+  link[rel=stylesheet]s PAGE_STYLESHEETS gives it, from PLAN's Rules, CSS: femto, on /docs alone its
+  responsive-spacings option and femto.colors.min.css, common.css, then but on 404 code.css and the
+  page's own stylesheet (the owner, 2026-11-11). A dist page it does not list fails.
 - 11: also site_rule_checks: no file in site/assets/js sets role="group" (read as tokens:
   setAttribute("role", "group"), .role = "group", { role: "group" }, or role="group" in a string's
   markup; a comment is not code), and no dist page has role=group on an element outside example
@@ -253,8 +259,8 @@ Interpretations, where PLAN's wording leaves a choice:
   aria-label, aria-labelledby, aria-describedby, aria-controls, loading and the site's data- hooks,
   which the live copy changes on purpose (Decision 13's prefixes, links to /docs); comments are
   dropped, and a sample that is a single <article> is compared with the live article itself. A pair
-  that differs on purpose is in MARKUP_DIFFERS with its reason, and an entry that matches or names
-  no pair fails. Each /examples mockup's inner shadow root, after exactly femto's link, equals its
+  that differs on purpose is in MARKUP_DIFFERS with its reason; an entry that names no pair fails,
+  and one whose pair now matches its sample is a note. Each /examples mockup's inner shadow root, after exactly femto's link, equals its
   HTML sample, whitespace collapsed, and so does the homepage's femto off/on block with
   section.proof's sample, with no class in it. The homepage (homepage_checks): the hero's link
   snippet is Quick start's From a CDN block, /examples' <template data-starter-page> is its Starter
@@ -424,6 +430,11 @@ COLOR_FUNCTION = re.compile(
 )
 SMOOTH = re.compile(r"(?<![\w-])scroll-behavior\s*:\s*smooth\b", re.I)
 REDUCED_MOTION_OK = re.compile(r"@media\b[^{]*prefers-reduced-motion\s*:\s*no-preference", re.I)
+# femto's reduce-motion utility (css/utilities/reduce-motion.css, in dist/femto.min.css): under
+# prefers-reduced-motion: reduce it sets scroll-behavior: auto !important on every element, which is
+# what keeps Decision 10's class from animating then (the owner, 2026-11-11).
+REDUCED_MOTION = re.compile(r"@media\b[^{]*prefers-reduced-motion\s*:\s*reduce", re.I)
+SCROLL_AUTO_IMPORTANT = re.compile(r"(?<![\w-])scroll-behavior\s*:\s*auto\s*!\s*important\b", re.I)
 SMOOTH_SELECTOR = re.compile(r"^(?:html|:root)?\.([A-Za-z_][\w-]*)$")
 
 
@@ -1649,9 +1660,54 @@ def shell_checks(ctx: Context, r: Result) -> None:
                  f"{len(data):,} bytes (at most {OG_IMAGE_MAX:,})")
 
 
+# Each page's stylesheets, in its <head> and in order (PLAN.md Rules, CSS): femto, on /docs alone its
+# responsive-spacings option and the color utilities (Decision 8; the owner, 2026-11-11), common.css,
+# then on every page but 404 code.css and the page's own stylesheet, never another page's. The
+# ?theme= script's written <link> is text in a script, not an element here.
+FEMTO_SHEET = "/vendor/femto/dist/femto.min.css"
+PAGE_STYLESHEETS = {
+    "index.html": [FEMTO_SHEET, "/assets/css/common.css", "/assets/css/code.css", "/assets/css/landing.css"],
+    "docs.html": [FEMTO_SHEET, "/vendor/femto/css/options/responsive-spacings.css", "/vendor/femto/dist/femto.colors.min.css",
+                  "/assets/css/common.css", "/assets/css/code.css", "/assets/css/docs.css"],
+    "examples.html": [FEMTO_SHEET, "/assets/css/common.css", "/assets/css/code.css", "/assets/css/examples.css"],
+    "404.html": [FEMTO_SHEET, "/assets/css/common.css"],
+}
+
+
+def stylesheet_checks(ctx: Context, r: Result) -> None:
+    """Criterion 8: each dist page's <head> links exactly PAGE_STYLESHEETS' stylesheets, in order."""
+    bad, shown = [], []
+    pages = {p.relative_to(ctx.dist).as_posix(): p for p in ctx.dist_pages()}
+    for name in sorted(set(pages) | set(PAGE_STYLESHEETS)):
+        want = PAGE_STYLESHEETS.get(name)
+        if name not in pages:
+            bad.append(f"dist/{name} is missing")
+            continue
+        head = next(iter(ctx.page(pages[name]).find_all("head")), None)
+        got = [l.attrs.get("href", "") for l in (head.find_all("link") if head else [])
+               if "stylesheet" in l.attrs.get("rel", "").lower().split() and not l.in_template()]
+        if want is None:
+            bad.append(f"dist/{name}: a page PAGE_STYLESHEETS does not list, linking {', '.join(got) or 'no stylesheet'}; "
+                       "add it with the stylesheets PLAN.md's Rules, CSS give it")
+        elif got != want:
+            extra = [h for h in got if h not in want]
+            missing = [h for h in want if h not in got]
+            bad.append(f"site/{name} (or its partials): its <head> links {', '.join(got) or 'no stylesheet'}; it should link "
+                       f"{', '.join(want)}, in that order"
+                       + (f" ({', '.join(extra)} is not one of them)" if extra else "")
+                       + (f" ({', '.join(missing)} is missing)" if missing else ""))
+        else:
+            shown.append(f"{name} {len(got)}")
+    r.fails(f"{len(bad)} page(s) do not link the stylesheets PLAN.md's Rules, CSS give them:", bad)
+    if not bad:
+        r.ok(f"each page's <head> links its stylesheets in order ({', '.join(shown)}): femto, on /docs alone its "
+             "responsive-spacings option and femto.colors.min.css, common.css, then but on 404 code.css and the page's own")
+
+
 def criterion_8(ctx: Context) -> Result:
     r = head_checks(ctx)
     shell_checks(ctx, r)
+    stylesheet_checks(ctx, r)
     return r
 
 
@@ -2026,8 +2082,8 @@ def structure_checks(ctx: Context, r: Result) -> None:
 
     # The Media section's live code block: a plain <code> and a <samp>, which the build never highlights.
     m_rel, m_path = section_source(ctx, "media")
-    pres = [p for p in ctx.page(m_path).find_all("pre") if not any("code" in a.classes() for a in p.ancestors())
-            and "prismjs" not in p.classes()] if m_path.is_file() else []
+    pres = [p for p in ctx.page(m_path).find_all("pre") if not any("code" in a.classes() for a in p.ancestors())] \
+        if m_path.is_file() else []
     codes = [c for p in pres for c in p.find_all("code")]
     samps = [s for p in pres for s in p.find_all("samp")]
     if not any("class" not in c.attrs for c in codes) or not samps or any("class" in c.attrs for c in codes):
@@ -2141,10 +2197,16 @@ def lint_checks(ctx: Context) -> Result:
         r.ok(f"{what}: no forbidden at-rule or function in code; {counts['color functions']} color function calls, "
              f"{counts['color-mix']} of them color-mix()" if len(r.failures) == before else f"{what} scanned")
 
-    # scroll-behavior: smooth only under Decision 10's class.
+    # scroll-behavior: smooth only under Decision 10's class. Under reduced motion femto's reduce-motion
+    # utility keeps it auto, so a rule outside a no-preference wrapper needs femto's rule.
     docs_js = site / "assets/js/docs.js"
     js_text = docs_js.read_text(encoding="utf-8", errors="replace") if docs_js.is_file() else ""
-    smooth_ok, smooth_bad = 0, []
+    femto_min = site / "vendor/femto/dist/femto.min.css"
+    _, femto_masked, _ = scan_css(femto_min.read_text(encoding="utf-8", errors="replace")) if femto_min.is_file() else ("", "", [])
+    autos = [m.start() for m in SCROLL_AUTO_IMPORTANT.finditer(femto_masked)]
+    femto_reduce = any(any(REDUCED_MOTION.match(b) for b in stack) and any(not b.startswith("@") and "*" in b for b in stack)
+                       for stack in enclosing_blocks(femto_masked, autos).values())
+    smooth_ok, smooth_bad, wrapped = 0, [], 0
     for label, text, is_attr in sources:
         _, masked, _ = scan_css(text)
         hits = [m.start() for m in SMOOTH.finditer(masked)]
@@ -2162,12 +2224,15 @@ def lint_checks(ctx: Context) -> Result:
             where = f"{label}:{line_of(text, o)}" if not label.endswith(">") else label
             if not rules or not all(classes):
                 smooth_bad.append(f"{where}: scroll-behavior: smooth under {' > '.join(stack) or 'no rule'} (not a class on <html>)")
-            elif not media:
-                smooth_bad.append(f"{where}: scroll-behavior: smooth outside @media (prefers-reduced-motion: no-preference)")
+            elif not media and not femto_reduce:
+                smooth_bad.append(f"{where}: scroll-behavior: smooth outside @media (prefers-reduced-motion: no-preference), and "
+                                  "site/vendor/femto/dist/femto.min.css has no scroll-behavior: auto !important for every element "
+                                  "under @media (prefers-reduced-motion: reduce) (femto's reduce-motion utility) to stop it")
             elif not all(m.group(1) in js_text for m in classes):
                 smooth_bad.append(f"{where}: class {', '.join(m.group(1) for m in classes)} is not set by site/assets/js/docs.js")
             else:
                 smooth_ok += 1
+                wrapped += bool(media)
     for p in files_under(site / "assets/js", (".js", ".mjs")):
         text = p.read_text(encoding="utf-8", errors="replace")
         for m in re.finditer(r"scrollBehavior\s*=\s*[\"'`]smooth|setProperty\(\s*[\"'`]scroll-behavior[\"'`]\s*,\s*[\"'`]smooth", text):
@@ -2176,7 +2241,10 @@ def lint_checks(ctx: Context) -> Result:
             r.note(f"{rel(root, p)}:{line_of(text, m.start())}: a scroll call asks for smooth behavior (Decision 10 limits smooth scrolling to nav clicks)")
     r.fails(f"{len(smooth_bad)} scroll-behavior: smooth outside Decision 10's class:", smooth_bad, "more")
     if sources and not smooth_bad:
-        r.ok(f"scroll-behavior: smooth appears {smooth_ok} time(s), each under a class docs.js sets, inside prefers-reduced-motion: no-preference")
+        r.ok(f"scroll-behavior: smooth appears {smooth_ok} time(s), each under a class on <html> that docs.js sets"
+             + (f", {wrapped} inside prefers-reduced-motion: no-preference" if wrapped else "")
+             + (f"; under prefers-reduced-motion: reduce femto's reduce-motion utility (dist/femto.min.css) sets "
+                "scroll-behavior: auto !important on every element" if femto_reduce else ""))
 
     # Every lint exception carries a reason: eslint-disable directives need "-- reason".
     skip = (site / "vendor",)
@@ -3516,10 +3584,10 @@ def drift_checks(ctx: Context, r: Result, repo: Path, commit: str, readme: str, 
                            f"{c.capitalize()!r} and {want!r}" + (" or 'Built in'" if c == "azure" else ""))
         lists.append(("site/docs/sections/themes.html", "the table of colors and their css/themes/ files", found, False))
     grid = page("site/docs/sections/colors.html")
-    families = [a for a in grid.iter() if a.tag == "article" and "family" in a.classes()] if grid else []
+    families = [a for a in grid.iter() if "family" in a.classes()] if grid else []
     grid_shades: dict[str, list[str]] = {}
     if not families:
-        shapes.append("site/docs/sections/colors.html: no article.family (the palette's families)")
+        shapes.append("site/docs/sections/colors.html: no .family (the palette's families)")
     else:
         found = []
         for art in families:
@@ -3912,7 +3980,8 @@ def collapse(s: str) -> str:
 # markup its sample shows are compared as femto reads them (markup_projection): the same elements
 # and text, the same classes, and the same attributes but those that only name or link things, which
 # the live copy changes on purpose: Decision 13 prefixes its ids and names with the section's id,
-# its links go to /docs, its fields carry labels and placeholders a sample leaves out, and the site's
+# a few of its links go to /docs (the Tooltip example's, the Theme picker's), its fields carry labels
+# and placeholders a sample leaves out (the Color schemes and Theme picker forms'), and the site's
 # data- hooks bind its widgets; a live <form> also has method="dialog", which its sample leaves
 # out (structure_checks: no example form submits). Comments are dropped, and a
 # sample's "..." stands for any text or any content. A pair that differs in what femto styles,
@@ -3921,13 +3990,9 @@ MARKUP_NOT_COMPARED = {"id", "name", "for", "href", "src", "alt", "placeholder",
                        "aria-describedby", "aria-controls", "loading"}
 FEMTO_DATA_ATTRS = {"data-theme", "data-tooltip", "data-placement"}  # the data- attributes femto reads
 MARKUP_DIFFERS = {
-    ("accordion", "Accordion example"): "the sample shows two of the second panel's five list items",
     ("checkboxes", "Indeterminate checkbox example"): "the sample sets indeterminate with an inline script; docs.js sets it here",
     ("css-variables", "CSS variables example"): "the sample sets the tokens on :root; the live copy scopes them to #css-var-example, or they would restyle the page",
-    ("dropdown", "Dropdowns as selects"): "the live copy sets the dropdown and the select side by side in a .grid",
-    ("loading", "Loading button examples"): "the live copy sets the buttons in two .grid rows",
     ("media", "Inline SVG example"): "the sample also shows <video>, <audio> and <iframe>, which would load media files from another origin (criterion 15)",
-    ("tooltip", "Tooltip placement example"): "the live copy sets the four buttons in a <p>",
 }
 ELLIPSIS = ("...", "…")
 
@@ -4118,8 +4183,9 @@ def homepage_checks(ctx: Context, r: Result) -> None:
         i = next((k for k in range(min(len(a), len(b))) if a[k] != b[k]), min(len(a), len(b)))
         bad.append(f"site/examples.html:{tpl.line}: <template data-starter-page> differs from Quick start's Starter template "
                    f"({qs_rel}) at {a[max(0, i - 30):i + 30]!r} against {b[max(0, i - 30):i + 30]!r}: copy the block's text")
-    # The homepage states no size for femto (femto README's figures are stale): a number with a size
-    # unit fails, unless it is "N KB gzipped" with N femto.min.css's gzip size at WIRE_GZIP_LEVEL, in KB.
+    # The homepage states no size for femto but its measured one, which follows a re-vendor: a number
+    # with a size unit fails, unless it is "N KB gzipped" with N femto.min.css's gzip size at
+    # WIRE_GZIP_LEVEL, in KB.
     sizes = []
     if home_path.is_file():
         prose = collapse(html.unescape(re.sub(r"<[^>]*>", " ", home_path.read_text(encoding="utf-8", errors="replace"))))
@@ -4134,8 +4200,8 @@ def homepage_checks(ctx: Context, r: Result) -> None:
                 bad.append(f"site/index.html: {sentence[-120:]!r} states femto's size; dist/femto.min.css is {want} KB "
                            f"{wire_label('gzip')}: drop the size, or make it {want} KB")
             else:
-                bad.append(f"site/index.html: {sentence[-120:]!r} states a size; the homepage states none of femto's, since femto "
-                           "README's figures are stale: drop it")
+                bad.append(f"site/index.html: {sentence[-120:]!r} states a size; the homepage states none but femto's measured "
+                           "gzip size (\"N KB gzipped\"), which follows the vendored file: drop it")
     r.fails(f"{len(bad)} homepage or /examples text(s) do not follow Quick start or femto's measured size:", bad)
     if not bad:
         r.ok(f"the hero's link snippet (site/index.html) is Quick start's From a CDN block, /examples' <template "

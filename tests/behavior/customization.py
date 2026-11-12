@@ -45,22 +45,19 @@ NAMES = {
 def femto_palette():
     """femto's palette, read from the vendored femto.colors.css (site/vendor/femto/, which criterion 12
     pins to SOURCE's commit), the file criterion 13's drift check holds colors.js to: {family: {shade:
-    hex}}, families in the file's order and shades ascending, and {family: main hex}, the family's
-    unshaded --femto-color-<family>. A change of femto's colors then moves colors.js, the build's
-    palette file and these checks together."""
+    hex}}, families in the file's order and shades ascending. A change of femto's colors then moves
+    colors.js, the build's palette file and these checks together."""
     css = (Path(__file__).resolve().parents[2] / "site/vendor/femto/dist/femto.colors.css").read_text(encoding="utf-8")
     shaded = re.findall(r"--femto-color-([a-z]+)-(\d+)\s*:\s*(#[0-9a-fA-F]{6})\b", css)
     palette = {}
     for family, shade, hexv in shaded:
         palette.setdefault(family, {})[shade] = hexv.lower()
-    palette = {f: dict(sorted(s.items(), key=lambda x: int(x[0]))) for f, s in palette.items()}
-    main = {f: h.lower() for f, h in re.findall(r"--femto-color-([a-z]+)\s*:\s*(#[0-9a-fA-F]{6})\b", css)}
-    return palette, main
+    return {f: dict(sorted(s.items(), key=lambda x: int(x[0]))) for f, s in palette.items()}
 
 
 def color(family, shade):
     """The name, hex and rgb() value the modal shows for a color."""
-    hexv = femto_palette()[0][family][shade]
+    hexv = femto_palette()[family][shade]
     return NAMES[(family, shade)], hexv, "rgb({}, {}, {})".format(*(int(hexv[i:i + 2], 16) for i in (1, 3, 5)))
 
 MODAL = """
@@ -68,8 +65,8 @@ const d = [...document.querySelectorAll("dialog.color")].find(x => x.open) || nu
 const cls = [...document.documentElement.classList].filter(c => c.startsWith("modal-is-")).sort().join(" ");
 if (!d) return {open: false, classes: cls, url: location.pathname + location.search + location.hash};
 const a = d.querySelector(":scope > article"), h = a.querySelector(":scope > header");
-return {open: true, classes: cls, header: h.className, family: h.querySelector("h3.color-family").textContent,
-        name: h.querySelector("p.color-shade").textContent, glow: a.style.getPropertyValue("--site-glowing-color").trim(),
+return {open: true, classes: cls, header: h.className, family: h.querySelector(":scope > hgroup > h3").textContent,
+        name: h.querySelector(":scope > hgroup > p").textContent,
         codes: [...a.querySelectorAll(".grid pre code")].map(c => c.textContent),
         labels: [...a.querySelectorAll(".grid > p")].map(p => p.textContent),
         focusInside: d.contains(document.activeElement), url: location.pathname + location.search + location.hash};
@@ -90,7 +87,6 @@ def expect_color(page, family, shade, label):
     page.eq(f"{label}: header class", m["header"], f"femto-background-{family}-{shade}")
     page.eq(f"{label}: title", m["family"], f"{family.capitalize()} {shade}")
     page.eq(f"{label}: color name", m["name"], name)
-    page.eq(f"{label}: glow is the family's main color at 26 alpha", m["glow"], f"{femto_palette()[1][family]}26")
     page.eq(f"{label}: the five labels", m["labels"], ["Hexadecimal color", "RGB color", "Color utility class",
                                                        "Background utility class", "Custom property"])
     page.eq(f"{label}: the five values", m["codes"], [hexv.upper(), rgb, f"femto-color-{family}-{shade}",
@@ -139,9 +135,8 @@ def color_modal_open(page):
     """A shade button (`.color-families .family .shades > button.femto-background-red-500`) opens
     the color modal: one `dialog.color` is open, <html> has `modal-is-open`, and the dialog's header has
     class femto-background-red-500 and reads "Red 500" (non-breaking space) over the color's name
-    ("Shōjōhi Red"); its article sets --site-glowing-color to the family's main hex plus "26"
-    (femto.colors.css's unshaded --femto-color-red, red 550's #c52f21 on 2026-11-09); the five rows
-    read Hexadecimal color (femto.colors.css's --femto-color-red-500 in capitals, #D93526 that day),
+    ("Shōjōhi Red"), the header's hgroup's h3 and p; the five rows read Hexadecimal color
+    (femto.colors.css's --femto-color-red-500 in capitals, #D93526 on 2026-11-09),
     RGB color (the same in rgb(), rgb(217, 53, 38)), Color utility class femto-color-red-500,
     Background utility class femto-background-red-500, Custom property var(--femto-color-red-500).
     Escape closes it.
@@ -356,7 +351,7 @@ def palette_download(page):
               palette: parsed, families: parsed && Object.keys(parsed),
               shades: parsed && Object.values(parsed).map(f => Object.keys(f)),
               hexes: parsed ? Object.values(parsed).every(f => Object.values(f).every(v => /^#[0-9a-f]{6}$/.test(v))) : false};""")
-    want, _ = femto_palette()
+    want = femto_palette()
     page.expect("the Download link exists", not r.get("missing"))
     page.eq("its text", r["text"], "Download the palette (JSON)")
     page.eq("role=button", r["role"], "button")
@@ -513,7 +508,7 @@ return {swatch: null, active: a ? a.outerHTML.slice(0, 80) : null, inGrid: !!(a 
 
 
 def families():
-    return list(femto_palette()[0])
+    return list(femto_palette())
 
 
 def expect_swatch(page, family, shade, label):
@@ -713,7 +708,7 @@ def color_grid_nojs(page):
               tabindex: document.querySelectorAll(".color-families button[tabindex]").length,
               stops: [...document.querySelectorAll(".color-families .shades > button")].every(b => b.tabIndex === 0),
               added: g.filter(x => x.hasAttribute("role") || x.hasAttribute("aria-label")).length};""")
-    want = " ".join(next(iter(femto_palette()[0].values())))
+    want = " ".join(next(iter(femto_palette().values())))
     page.eq("20 families", r["families"], len(families()))
     page.eq("19 shade buttons each", r["buttons"], [19] * len(families()))
     page.eq("each button shows its shade", r["text"], [want] * len(families()))

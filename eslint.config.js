@@ -32,15 +32,9 @@ export default defineConfig([
           // and the unvisited ones their colors; in Firefox a visited swatch keeps only the border
           // docs.css gives it there. forced-color-adjust is in Chrome 89 and Firefox 113, the browsers
           // with a forced-colors mode; Safari has neither the property nor the mode, so nothing is
-          // lost there. backdrop-filter is not allowed here: its one use (common.css) carries an
-          // eslint-disable-next-line comment beside the -webkit- form it follows.
+          // lost there.
           "forced-color-adjust",
         ],
-        allowPropertyValues: {
-          // The homepage hero's h1 and p (landing.css) balance their lines. A browser without it
-          // wraps the text as usual, a progressive enhancement femto's feature tiers allow.
-          "text-wrap": ["balance"],
-        },
       }],
 
       // The site's CSS uses femto's tokens (--femto-color, --femto-spacing, ...), which the vendored

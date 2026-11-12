@@ -15,7 +15,7 @@ from behavior import COPY_SPY, HEADING_LINE, check, expect_name
 
 GROUP = "shell"
 
-TOGGLE = "body > header nav ul.icons button:has(> span[role=img][aria-label$='dark mode'])"   # a button named by its icon (Decision 18)
+TOGGLE = "body > header nav button:has(> span[role=img][aria-label$='dark mode'])"   # a button named by its icon (Decision 18)
 KEY = "femtoColorScheme"
 
 THEME_STATE = """
@@ -66,8 +66,8 @@ def toggle_and_expect(page, stored, label_after):
 @check("theme-toggle", ("/", "/docs#typography"))
 def theme_toggle(page):
     """With a light OS scheme and nothing stored: <html> has no data-theme, the header toggle
-    (`ul.icons button`; its icon, the
-    `span[role=img]` of Decision 18 holding the emoji of Decision 16, and names the button) reads
+    (femto's button in the header nav's last list; its icon, the `span[role=img]` of Decision 18,
+    holds the emoji of Decision 16 and names the button) reads
     "Turn on dark mode" with the sun ☀️. A click sets data-theme="dark" on <html>, stores
     localStorage femtoColorScheme = '"dark"' (JSON), relabels the toggle "Turn off dark mode" and
     shows the moon 🌙; the URL is unchanged (no `#`).
@@ -319,22 +319,23 @@ def expect_border(page, label, bar):
 
 @check("header-fixed", "/docs#modal")
 def header_fixed(page):
-    """On a docs page (1300 px) the header (`body > header`, class `is-fixed-above-lg`) is sticky:
-    at the top of the page (scrolled there first: the one page loads #modal far down) and scrolled to
-    21, 600, 0 and 300 its top is 0 (within 0.5 px), so it stays in view. Its bottom border is drawn
-    (solid, at least 1 px, not transparent; femto's muted border color) and the same at every
-    position, and its class attribute never changes: no script watches the scroll."""
+    """On a docs page (1300 px) the header (`body > header`, with no class: docs.css makes it sticky
+    from lg up) is sticky at top 0: at the top of the page (scrolled there first: the one page loads
+    #modal far down) and scrolled to 21, 600, 0 and 300 its top is 0 (within 0.5 px), so it stays in
+    view. Its bottom border is drawn (solid, at least 1 px, not transparent; femto's muted border
+    color) and the same at every position, and it never gets a class attribute: no script watches
+    the scroll."""
     header = "body > header"
     page.scroll_to(0)
     first = page.js(BAR, header)
-    page.eq("class is-fixed-above-lg, position sticky", [first["cls"], first["position"]], ["is-fixed-above-lg", "sticky"])
+    page.eq("no class, position sticky at top 0", [first["cls"], first["position"], first["stickyTop"]], [None, "sticky", 0])
     expect_border(page, "at the top", first)
     for y in (21, 600, 0, 300):
         page.scroll_to(y)
         page.sleep(0.2)
         bar = page.js(BAR, header)
         page.expect(f"scrollY {y}: its top is 0", abs(bar["top"]) <= 0.5, **bar)
-        page.eq(f"scrollY {y}: the same class and bottom border", [bar["cls"], bar["border"]], [first["cls"], first["border"]])
+        page.eq(f"scrollY {y}: still no class, and the same bottom border", [bar["cls"], bar["border"]], [None, first["border"]])
 
 
 @check("header-landing", "/")
@@ -376,30 +377,37 @@ return {scrollWidth: root.scrollWidth, clientWidth: root.clientWidth, innerWidth
 
 
 # What prints: <html>'s color-scheme, the /examples hosts' (inner and nested) color-schemes and
-# data-theme, and which of the screen-only controls still have a box.
-SCREEN_ONLY = ["body > header nav", "button[data-copy-link]", "main > aside#documentation-menu", "main > nav[aria-label=breadcrumb]",
-               "article.color-picker > header", "#content section > p:has(+ article[data-version-picker])",
+# data-theme, and which of the screen-only controls still have a box. The header's links and toggle
+# are its nav's last list: the logo, in the first, prints.
+SCREEN_ONLY = ["body > header nav ul:last-of-type", "button[data-copy-link]", "main > aside#documentation-menu",
+               "main > nav[aria-label=breadcrumb]",
+               "article[data-version-picker] > header", "#content section > p:has(+ article[data-version-picker])",
                "[data-picker-options] fieldset", "button[data-scheme-switcher]", "section[data-grid-example] > .grid > button",
                "input[name=toggle-font-size-in-rem]", "button[data-modal-open]", "p[data-palette-help]",
-               "body > main.homepage .grid.ctas", "button[data-demo-pause]", "body > main.homepage > .proof > .toolbar",
+               "body > main > .hero .grid.ctas", "button[data-demo-pause]", "body > main > .proof > .toolbar",
                "p[data-examples-theme]", "button[data-copy-page]"]
 # What /docs prints in its code and colors: the distinct backgrounds of the examples' code footers
-# and of the standalone code blocks, and the print-color-adjust of a Colors swatch and a Themes dot.
+# and of every code block's <pre>, each with femto's light token for it as this browser computes it
+# (a probe painted in the token itself: Chrome rounds femto's rgb(251, 251.5, 252.25) to whole
+# channels), and the print-color-adjust of a Colors swatch and a Themes dot.
 PRINTED_DOCS = """
 const bgs = sel => [...new Set([...document.querySelectorAll(sel)].map(e => getComputedStyle(e).backgroundColor))];
+const token = name => { const e = document.createElement('div'); e.style.backgroundColor = `var(${name})`; document.body.append(e);
+  const c = getComputedStyle(e).backgroundColor; e.remove(); return c; };
 const adjust = sel => { const e = document.querySelector(sel); return e ? getComputedStyle(e).printColorAdjust : null; };
-return {footers: bgs('#content article > footer.code'), blocks: bgs('#content .code:not(article footer.code)'),
+return {footers: bgs('#content article > footer.code'), pres: bgs('#content .code > pre'),
         swatch: adjust('.color-families .family .shades > button'),
-        dot: adjust('#content > section:has(> hgroup > h1[id=themes]) td > span[class^="femto-background-"]')};
+        dot: adjust('#content > section:has(> hgroup > h1[id=themes]) td > span[class^="femto-background-"]'),
+        want: {footers: [token('--femto-light-card-sectioning-background-color')], pres: [token('--femto-light-code-background-color')]}};
 """
-PRINTED_DOCS_WANT = {"footers": ["rgb(255, 255, 255)"], "blocks": ["rgb(255, 255, 255)"], "swatch": "exact", "dot": "exact"}
 
 
 def emulate_print(page, scheme, label, screen):
     """Under Chrome's print media, with prefers-color-scheme at scheme, asserts that <html> is light
-    and the screen-only controls have no box, and on /docs that every code block prints white and
-    the palette and the Themes dots keep their colors; returns what PRINTED read. The emulation is
-    put back to the screen after, with prefers-color-scheme at screen, the check's own."""
+    and the screen-only controls have no box, and on /docs that every code block prints in femto's
+    light code colors and the palette and the Themes dots keep their colors; returns what PRINTED
+    read. The emulation is put back to the screen after, with prefers-color-scheme at screen, the
+    check's own."""
     def features(value):
         return [{"name": "prefers-color-scheme", "value": value}, {"name": "prefers-reduced-motion", "value": "no-preference"}]
     page.driver.execute_cdp_cmd("Emulation.setEmulatedMedia", {"media": "print", "features": features(scheme)})
@@ -414,8 +422,10 @@ def emulate_print(page, scheme, label, screen):
         page.eq(f"print, {label}: <html> is light and the screen-only controls have no box",
                 {"html": got["html"], "shown": got["shown"]}, {"html": "light", "shown": []}, present=got["present"])
         if page.route.startswith("/docs"):
-            page.eq(f"print, {label}: every code block is white, and the palette and the Themes dots keep their colors",
-                    page.js(PRINTED_DOCS), PRINTED_DOCS_WANT)
+            d = page.js(PRINTED_DOCS)
+            page.eq(f"print, {label}: every code block's <pre> has femto's light code background and every code footer femto's "
+                    "light card sectioning color, and the palette and the Themes dots keep their colors",
+                    {k: d[k] for k in ("footers", "pres", "swatch", "dot")}, {**d["want"], "swatch": "exact", "dot": "exact"})
         return got
     finally:
         page.driver.execute_cdp_cmd("Emulation.setEmulatedMedia", {"media": "", "features": features(screen)})
@@ -443,14 +453,16 @@ def print_light(page):
     """A page prints in the light scheme, whatever the stored choice (dark here), and without the
     controls that only work on screen. Under print media (Chrome: CDP Emulation.setEmulatedMedia;
     Firefox has no WebDriver way to emulate it, so only the print below runs there) <html>'s
-    color-scheme is light, and the header's nav, the copy buttons, /docs' side menu and breadcrumb,
+    color-scheme is light, and the header's links and toggle (its nav's last list; the logo prints),
+    the copy buttons, /docs' side menu and breadcrumb,
     the Theme picker's swatches with their sentence and its option switches, the Color schemes
     switcher, Grid's Add and Remove column, Typography's rem switch, the Modal demo's opener and the
     Colors palette's help, the homepage's call-to-action buttons, its
     typing demo's Pause and its femto switch and swatches, and /examples' theme select and Copy as
-    page buttons have no box. On /docs every example's code footer and every standalone code block
-    prints white (rgb(255, 255, 255)), not the dark scheme's darker footer, and the Colors swatches
-    and the Themes table's dots have print-color-adjust: exact. Chrome checks this twice, with the
+    page buttons have no box. On /docs every code block's <pre> prints in femto's light code
+    background (--femto-light-code-background-color) and every example's code footer in femto's
+    light card sectioning color, whatever the scheme on screen, and the Colors swatches and the
+    Themes table's dots have print-color-adjust: exact. Chrome checks this twice, with the
     OS light and with the OS dark. On /examples every inner and nested host is light with no
     data-theme. And on /examples a real print (WebDriver Print) takes data-theme="dark" off the
     hosts between beforeprint and afterprint, so the mockups print light too, and gives it back
@@ -484,9 +496,10 @@ def print_light(page):
 def print_light_os_dark(page):
     """With nothing stored and a dark OS, /docs still prints light: under Chrome's print media
     (Firefox has no WebDriver way to emulate it, and records a note) <html> is light, the
-    screen-only controls have no box, every example's code footer and every standalone code block
-    is white (rgb(255, 255, 255)), and the Colors swatches and the Themes table's dots have
-    print-color-adjust: exact. Back on screen <html> is dark, as the OS is."""
+    screen-only controls have no box, every code block's <pre> has femto's light code background
+    and every example's code footer femto's light card sectioning color, and the Colors swatches
+    and the Themes table's dots have print-color-adjust: exact. Back on screen <html> is dark, as
+    the OS is."""
     if page.browser != "chrome":
         page.note(f"{page.browser} cannot emulate print media over WebDriver")
         return
@@ -501,9 +514,8 @@ def reflow_320(page):
     viewport: <html>'s scrollWidth equals its clientWidth on the homepage, /docs, /examples and the
     404 page, so nothing needs a sideways scroll, which <html>'s overflow-x: hidden would hide. And
     no element ends past the viewport's right edge, open shadow roots included (the /examples
-    mockups), unless a box around it scrolls or clips it: the homepage's and /examples' body clips
-    sideways, so an element sticking out there widens nothing and is only cut off. Code blocks and
-    tables scroll inside their own boxes, which this allows. A behavior check rather than a 320 px
+    mockups), unless a box around it scrolls or clips it: code blocks and tables scroll inside their
+    own boxes, which this allows. No page's body clips sideways. A behavior check rather than a 320 px
     a11y width: axe has no rule for it, and one load per page and browser measures it."""
     r = page.js(REFLOW)
     page.eq("<html>'s scrollWidth is its clientWidth", r["scrollWidth"], r["clientWidth"], innerWidth=r["innerWidth"], wide=r["wide"])
@@ -671,6 +683,9 @@ addEventListener("keydown", (e) => __bhModal.push([t(), "key", e.key]), true);
 """
 
 OPEN, OPENING, CLOSING = "modal-is-open", "modal-is-open modal-is-opening", "modal-is-closing modal-is-open"
+# Modal's demo: its article, and in it the "Open modal" button, found by the modal helper's hook.
+DEMO_ARTICLE = "#content article[aria-label='Modal demo']"
+DEMO_OPENER = "button[data-modal-open=modal-demo]"
 
 
 def modal_timeline(page, label, want):
@@ -696,7 +711,7 @@ def modal_helper(page):
     all. No other class steps happen. Escape again, with nothing open, changes nothing."""
     page.eq("no modal class before", page.js(HTML_CLASSES), "")
     page.js(MODAL_TIMELINE)
-    page.click("#modal-demo button")
+    page.click(DEMO_OPENER)
     page.wait("open", f"(() => {{ {HTML_CLASSES} }})() === '{OPEN}'", 1.5)
     modal_timeline(page, "opening", [(OPENING, 0, 100), (OPEN, 350, 700)])
     page.js("window.__bhModal.length = 0")
@@ -722,13 +737,13 @@ def modal_scrollbar_width(page):
     page.with_classic_scrollbars()
     sb = page.js("return innerWidth - document.documentElement.clientWidth")
     page.expect("the forced scrollbar takes space", sb > 0, scrollbar=sb)
-    left = page.js("return document.querySelector('#modal-demo').getBoundingClientRect().left")
-    page.click("#modal-demo button")
+    left = page.js("return document.querySelector(arguments[0]).getBoundingClientRect().left", DEMO_ARTICLE)
+    page.click(DEMO_OPENER)
     page.wait("open", "document.documentElement.classList.contains('modal-is-open')", 0.5)
     v = page.js("return document.documentElement.style.getPropertyValue('--femto-scrollbar-width').trim()")
     page.eq("--femto-scrollbar-width is the scrollbar width", v, f"{sb}px")
     page.eq("the page behind does not move", page.js(
-        "return document.querySelector('#modal-demo').getBoundingClientRect().left"), left)
+        "return document.querySelector(arguments[0]).getBoundingClientRect().left", DEMO_ARTICLE), left)
     page.key("ESCAPE")
     page.wait("closed", "!document.documentElement.classList.contains('modal-is-open')", 1)
     page.eq("no --femto-scrollbar-width once closed", page.js(
@@ -818,7 +833,7 @@ def modal_two_dialogs(page):
         page.expect("the forced scrollbar takes space", sb > 0, scrollbar=sb)
     width = f"{sb}px"
     page.eq("no dialog open and no modal class on load", page.js(DIALOGS_TIMELINE), ["", "", ""])
-    page.click("#modal-demo button")
+    page.click(DEMO_OPENER)
     page.wait("the demo opens, alone, with modal-is-open alone", f"JSON.stringify({DIALOGS}) === arguments[0]", 1.5,
               args=(json.dumps(["demo", OPEN, width], separators=(",", ":")),), got=page.js(f"return {DIALOGS}"))
     demo = "dialog[data-modal=modal-demo]"
@@ -1254,8 +1269,8 @@ def theme_toggle_button(page):
     (`button[data-scheme-toggle]`): Tab from the header's GitHub link reaches it; Space turns the
     page dark (data-theme="dark") and Enter light again, back to the OS's scheme with no data-theme,
     with no navigation (URL and history kept), and it reads "Turn on dark mode" after."""
-    gh = "body > header nav ul.icons a[aria-label='GitHub repository']"
-    t = "body > header nav ul.icons button[data-scheme-toggle]"
+    gh = "body > header nav a[aria-label='GitHub repository']"
+    t = "body > header nav button[data-scheme-toggle]"
     r = page.js("const b = document.querySelector(arguments[0]); return b && [b.getAttribute('type'), b.hasAttribute('href')]", t)
     page.eq("a button of type button, with no href", r, ["button", False])
     page.key("SHIFT")   # a key press first, so the focus that follows is keyboard focus
@@ -1459,10 +1474,10 @@ def copy_keyboard(page):
 def pre_scroll_keyboard(page):
     """At 375 px Quick start's first code block that overflows sideways is a figure in the tab order
     (tabindex="0", role="figure", aria-label "<language> code", from site.js's Code block focus),
-    takes focus with Tab from its copy button, matches :focus-visible with an inset focus ring
-    (box-shadow), and the Right arrow key scrolls it: each press held 0.1 s, as a person's is
-    (Safari's keyboard scrolling animates while the key is down), and the scroll waited for up to
-    2 s. The note records the keydown events the pre saw, and whether any was canceled."""
+    takes focus with Tab from its copy button, matches :focus-visible with a focus ring, femto's
+    link ring (a box-shadow outside the box, not inset), and the Right arrow key scrolls it: each
+    press held 0.1 s, as a person's is (Safari's keyboard scrolling animates while the key is down),
+    and the scroll waited for up to 2 s. The note records the keydown events the pre saw, and whether any was canceled."""
     pre = page.js("const p = [...S.querySelectorAll('.code pre')].find(p => p.scrollWidth > p.clientWidth);"
                   " p && p.scrollIntoView({block: 'center'}); return p || null;")
     page.expect("a code block overflows", pre is not None)
@@ -1474,7 +1489,7 @@ def pre_scroll_keyboard(page):
     page.eq("Tab focuses the pre", page.js("return document.activeElement === arguments[0]", pre), True)
     page.eq("it matches :focus-visible", page.js("return arguments[0].matches(':focus-visible')", pre), True)
     ring = page.js("return getComputedStyle(arguments[0]).boxShadow", pre)
-    page.expect("its focus ring shows", "inset" in ring, ring=ring)
+    page.expect("its focus ring shows, outside the box", ring not in ("", "none") and "inset" not in ring, ring=ring)
     # On window, as the event bubbles out last: canceled by any handler on its way.
     page.js("window.__bhKeys = []; const p = arguments[0]; addEventListener('keydown', e => { "
             "if (e.target === p) window.__bhKeys.push([e.key, e.defaultPrevented]); }); return 1;", pre)
