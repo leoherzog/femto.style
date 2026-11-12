@@ -241,7 +241,7 @@
 @import "components/tooltip.css";
 @import "utilities/accessibility.css";
 @import "utilities/reduce-motion.css";</code></pre></div>
-  <p>Keep the lines in their order, which is the cascade order, and keep the first four: <code>tokens/base.css</code>, <code>tokens/breakpoints.css</code>, <code>layout/elements.css</code> and <code>tokens/schemes.css</code>. They hold the tokens and per-element settings the other modules read. Without <code>layout/elements.css</code>, for example, headings lose their sizes and weights, and search fields their rounded ends.</p>
+  <p>Keep the lines in their order, which is the cascade order, and keep the first four: <code>tokens/base.css</code>, <code>tokens/breakpoints.css</code>, <code>layout/elements.css</code>, and <code>tokens/schemes.css</code>. They hold the tokens and per-element settings the other modules read. Without <code>layout/elements.css</code>, for example, headings lose their sizes and weights, and search fields their rounded ends.</p>
   <p>The copy loads module by module, like <code>css/femto.css</code>, unless a bundler inlines it (see <a href="#files">Files</a>).</p>
   <p>If you install femto from npm, write the same list in your own CSS with package paths, such as <code>@import "@leoherzog/femto/css/tokens/base.css";</code>, instead of copying the file.</p>
   <p>If you also load <code>no-transitions.css</code>, copy it too and delete its rules for the modules you left out (see <a href="#options">Options</a>).</p>

@@ -16,7 +16,7 @@
       <tbody>
         <tr>
           <td><code>responsive-spacings.css</code></td>
-          <td>Gives the page's header, main and footer, sections and cards (<code>&lt;article&gt;</code>) more vertical spacing at each breakpoint, and cards more horizontal spacing, from 1.25 to 2.25 times <code>--femto-spacing</code>.</td>
+          <td>Gives the page's header, main, and footer, its sections, and its cards (<code>&lt;article&gt;</code>) more vertical spacing at each breakpoint, and cards more horizontal spacing, from 1.25 to 2.25 times <code>--femto-spacing</code>.</td>
         </tr>
         <tr>
           <td><code>fixed-typography.css</code></td>
@@ -24,7 +24,7 @@
         </tr>
         <tr>
           <td><code>no-transitions.css</code></td>
-          <td>Turns off the transitions of links, buttons, form fields and components; the modal opens and closes without animating, and tooltips appear without sliding in. The loading spinner and the indeterminate progress bar still animate.</td>
+          <td>Turns off the transitions of links, buttons, form fields, and components; the modal opens and closes without animating, and tooltips appear without sliding in. The loading spinner and the indeterminate progress bar still animate.</td>
         </tr>
       </tbody>
     </table>
@@ -41,5 +41,5 @@
 <section>
   <h2>No transitions</h2>
   <p>With <code>no-transitions.css</code>, <code>--femto-transition</code> is <code>0s</code>, so your own rules that read it stop animating too.</p>
-  <p>Even without it, <code>utilities/reduce-motion.css</code> stops the motion for visitors who prefer reduced motion: every element but one with <code>aria-busy="true"</code>, and its <code>::before</code> and <code>::after</code>, ends its animations at once and drops transitions, fixed backgrounds and smooth scrolling.</p>
+  <p>Even without it, <code>utilities/reduce-motion.css</code> stops the motion for visitors who prefer reduced motion: every element but one with <code>aria-busy="true"</code>, and its <code>::before</code> and <code>::after</code>, ends its animations at once and drops transitions, fixed backgrounds, and smooth scrolling.</p>
 </section>

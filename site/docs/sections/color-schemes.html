@@ -13,7 +13,7 @@
 </section>
 <section>
   <h2>On an element</h2>
-  <p>On an element, <code>data-theme</code> switches the colors femto sets on it and inside it, such as a card's background and the colors of headings, paragraphs, links, buttons and form fields:</p>
+  <p>On an element, <code>data-theme</code> switches the colors femto sets on it and inside it, such as a card's background and the colors of headings, paragraphs, links, buttons, and form fields:</p>
   <article data-theme="light" aria-label="Light card example">
     <h2>A light card</h2>
     <p>This card and the text in it use the light scheme, whatever the rest of the page uses.</p>
@@ -58,7 +58,7 @@
   <h2>How it works</h2>
   <p>Every color token is declared once, on <code>:root</code> and <code>:host</code>. A token that femto or a theme gives a light and a dark value takes them from a pair of tokens of its own: <code>--femto-primary</code> is <code>light-dark(var(--femto-light-primary), var(--femto-dark-primary))</code>. Other color tokens have no pair: those with one value, such as <code>--femto-primary-background</code>, and those set from another token, such as <code>--femto-primary-hover-underline</code>, which follows <code>--femto-primary-hover</code> in each scheme. <code>--femto-box-shadow</code> uses <code>light-dark()</code> in each of its layers. <code>data-theme</code> sets <code>color-scheme</code>, which picks between the two values, plus the form validation icons, which <code>light-dark()</code> cannot carry. So:</p>
   <ul>
-    <li>An element that carries <code>data-theme</code> itself, such as a button, heading or form field, keeps its own colors in that scheme.</li>
+    <li>An element that carries <code>data-theme</code> itself, such as a button, heading, or form field, keeps its own colors in that scheme.</li>
     <li>Your own color overrides on <code>:root</code>, loaded after femto, apply inside every <code>data-theme</code> element. Set a token's pair to give each scheme its own value, or one of the two to change one scheme. A plain value of the token itself, such as <code>--femto-primary: #c00</code>, applies in both schemes, in place of its pair.</li>
     <li><code>data-theme="dark"</code> on a web component's host makes its shadow root dark when the component loads femto there. See <a href="#shadow-roots">Shadow roots</a>.</li>
   </ul>
@@ -80,5 +80,5 @@
 </section>
 <section>
   <h2>Forced colors</h2>
-  <p>In forced colors mode, such as a Windows contrast theme, the browser replaces femto's colors with the system's. femto then draws focus as a <code>Highlight</code> outline, and the state of checkboxes, radios and switches and the tracks of <code>&lt;progress&gt;</code> and range sliders in system colors.</p>
+  <p>In forced colors mode, such as a Windows contrast theme, the browser replaces femto's colors with the system's. femto then draws focus as a <code>Highlight</code> outline, and the state of checkboxes, radios, and switches and the tracks of <code>&lt;progress&gt;</code> and range sliders in system colors.</p>
 </section>

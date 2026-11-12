@@ -1,7 +1,7 @@
 <hgroup>
   <p class="chapter">Reference</p>
   <h1 id="browser-support">Browser support</h1>
-  <p>femto targets Baseline Widely Available on its release date: Chrome and Edge 125, Firefox 128, Safari 17.5 and Samsung Internet 27.</p>
+  <p>femto targets Baseline Widely Available on its release date: Chrome and Edge 125, Firefox 128, Safari 17.5, and Samsung Internet 27.</p>
 </hgroup>
 <section>
   <p>Its release date is no earlier than 2026-11-13, when <code>light-dark()</code> becomes Widely Available. The minimum versions are:</p>
@@ -33,25 +33,25 @@
       </tbody>
     </table>
   </div>
-  <p>Each is at or above what Baseline Widely Available maps to on 2026-11-13; Safari 17.5 is the first Safari with <code>light-dark()</code>. femto is tested in recent Chrome, Firefox and Safari, not in these versions.</p>
+  <p>Each is at or above what Baseline Widely Available maps to on 2026-11-13; Safari 17.5 is the first Safari with <code>light-dark()</code>. femto is tested in recent Chrome, Firefox, and Safari, not in these versions.</p>
 </section>
 <section>
   <h2>Prefixed and ignored features</h2>
   <p>A few features femto uses are missing or partial in some of these versions, and each is either covered by a vendor-prefixed form or ignored harmlessly:</p>
   <ul>
     <li>Safari 17.5 reads <code>backdrop-filter</code> and <code>user-select</code> only with their <code>-webkit-</code> prefix, and iOS Safari reads <code>text-size-adjust</code> only that way.</li>
-    <li>Browsers that lack <code>resize</code>, <code>::selection</code>, the <code>ui-monospace</code> font, <code>forced-color-adjust</code>, <code>overscroll-behavior</code> or some <code>cursor</code> keywords ignore them.</li>
+    <li>Browsers that lack <code>resize</code>, <code>::selection</code>, the <code>ui-monospace</code> font, <code>forced-color-adjust</code>, <code>overscroll-behavior</code>, or some <code>cursor</code> keywords ignore them.</li>
     <li><code>accent-color</code>, partial in some, has no visible effect on femto's own controls.</li>
   </ul>
   <p>femto also has vendor-only rules, such as <code>-webkit-tap-highlight-color</code> and the <code>::-webkit-</code> and <code>::-moz-</code> form control pseudo-elements, which other browsers ignore.</p>
 </section>
 <section>
   <h2>How femto checks its CSS</h2>
-  <p>femto's lint (<code>npm run lint</code>) checks every file in <code>css/</code> against Baseline, with the <code>use-baseline</code> rule of @eslint/css and web-features 3.42.0 (October 2026). It does not check custom property values, where <code>light-dark()</code> and the font stacks live, values nested inside other functions, vendor-prefixed names or browser versions. Its exceptions are explained in <a href="https://github.com/leoherzog/femto/blob/{{commit}}/eslint.config.mjs"><code>eslint.config.mjs</code></a>.</p>
+  <p>femto's lint (<code>npm run lint</code>) checks every file in <code>css/</code> against Baseline, with the <code>use-baseline</code> rule of @eslint/css and web-features 3.42.0 (October 2026). It does not check custom property values, where <code>light-dark()</code> and the font stacks live, values nested inside other functions, vendor-prefixed names, or browser versions. Its exceptions are explained in <a href="https://github.com/leoherzog/femto/blob/{{commit}}/eslint.config.mjs"><code>eslint.config.mjs</code></a>.</p>
 </section>
 <section>
   <h2>Older browsers</h2>
-  <p>Browsers without <code>light-dark()</code> (Chrome and Edge before 123, Firefox before 120, Safari before 17.5 and Samsung Internet before 27) get femto's light scheme only. They ignore a dark system setting and <code>data-theme="dark"</code>, on the page, on an element or on a shadow host, and the browser's own controls stay light unless your own CSS sets <code>color-scheme: dark</code>, which femto's colors do not follow there.</p>
-  <p>Themes, plain overrides and <code>--femto-light-*</code> overrides apply in them, but an override of your own written with <code>light-dark()</code> fails where it is used (see <a href="#css-variables">CSS variables</a>). These browsers are below femto's minimum versions, and femto is not tested in them.</p>
+  <p>Browsers without <code>light-dark()</code> (Chrome and Edge before 123, Firefox before 120, Safari before 17.5, and Samsung Internet before 27) get femto's light scheme only. They ignore a dark system setting and <code>data-theme="dark"</code>, on the page, on an element, or on a shadow host, and the browser's own controls stay light unless your own CSS sets <code>color-scheme: dark</code>, which femto's colors do not follow there.</p>
+  <p>Themes, plain overrides, and <code>--femto-light-*</code> overrides apply in them, but an override of your own written with <code>light-dark()</code> fails where it is used (see <a href="#css-variables">CSS variables</a>). These browsers are below femto's minimum versions, and femto is not tested in them.</p>
   <p>Tools that rewrite <code>light-dark()</code> for those browsers cause a narrower break in supported ones: <code>data-theme</code> on an element stops changing its colors. To keep a bundler from doing that, set its CSS targets as <a href="#quick-start">Quick start</a> shows under npm.</p>
 </section>
