@@ -10,7 +10,6 @@
     <meta property="og:url" content="https://femto.style/examples">
     <!-- include partials/structured-data.html -->
     <link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">
-    <link rel="stylesheet" href="/vendor/femto/css/options/responsive-spacings.css">
     <link rel="stylesheet" href="/assets/css/common.css">
     <link rel="stylesheet" href="/assets/css/code.css">
     <link rel="stylesheet" href="/assets/css/examples.css">
@@ -19,12 +18,12 @@
   <body>
     <a href="#content" class="skip-to-content">Skip to content</a>
     <!-- include partials/header.html -->
-    <main id="content" class="examples container">
-      <hgroup class="examples-hero">
+    <main id="content" class="container">
+      <hgroup>
         <h1><mark>Examples</mark></h1>
         <p>Widgets, forms and pages built with femto alone.</p>
       </hgroup>
-      <p class="examples-theme" data-examples-theme>
+      <p data-examples-theme>
         <label>
           Theme color
           <select name="theme" autocomplete="off">
@@ -54,14 +53,14 @@
       <section class="examples-index">
         <div class="grid">
           <div>
-            <p class="chapter">Overview</p>
+            <p><strong>Overview</strong></p>
             <ul>
               <li><a href="#every-element">Every element</a></li>
               <li><a href="#all-themes">All theme colors</a></li>
             </ul>
           </div>
           <div>
-            <p class="chapter">Widgets</p>
+            <p><strong>Widgets</strong></p>
             <ul>
               <li><a href="#navigation-bar">Navigation bar</a></li>
               <li><a href="#confirm-dialog">Confirmation dialog</a></li>
@@ -69,7 +68,7 @@
             </ul>
           </div>
           <div>
-            <p class="chapter">Forms</p>
+            <p><strong>Forms</strong></p>
             <ul>
               <li><a href="#sign-in">Sign in</a></li>
               <li><a href="#sign-up">Sign up</a></li>
@@ -78,7 +77,7 @@
             </ul>
           </div>
           <div>
-            <p class="chapter">Pages</p>
+            <p><strong>Pages</strong></p>
             <ul>
               <li><a href="#landing-page">Landing page</a></li>
               <li><a href="#docs-layout">Docs page</a></li>
@@ -465,7 +464,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
 &lt;h2&gt;Heading 2&lt;/h2&gt;
 &lt;h3&gt;Heading 3&lt;/h3&gt;
 &lt;h4&gt;Heading 4&lt;/h4&gt;
@@ -1262,7 +1261,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;femto's 20 theme colors&lt;/h3&gt;
   &lt;p&gt;Each color is a shadow root of its own, which loads femto and the color's theme file.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -1737,7 +1736,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Main"&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;nav aria-label="Main"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;a href="#" class="contrast"&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -1806,7 +1805,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;article&gt;
   &lt;h3&gt;Website redesign&lt;/h3&gt;
   &lt;p&gt;48 tasks shared with 6 members. Deleting the project removes its tasks and files for everyone.&lt;/p&gt;
   &lt;button type="button" class="contrast" aria-haspopup="dialog" aria-controls="confirm-dialog-box" command="show-modal" commandfor="confirm-dialog-box"&gt;Delete project&lt;/button&gt;
@@ -1831,7 +1830,7 @@
           <hgroup>
             <p class="chapter">Widgets</p>
             <h2>FAQ</h2>
-            <p>Questions that open and close, each one a <code class="language-html">&lt;details&gt;</code> element.</p>
+            <p>Questions that open and close, each one a <code>&lt;details&gt;</code> element.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
         </header>
@@ -1864,7 +1863,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Frequently asked questions&lt;/h3&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;h3&gt;Frequently asked questions&lt;/h3&gt;
 &lt;details open&gt;
   &lt;summary&gt;Can I change my plan later?&lt;/summary&gt;
   &lt;p&gt;Yes. Change it in Billing at any time. We charge or credit the difference on your next invoice.&lt;/p&gt;
@@ -1930,7 +1929,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;div class="grid"&gt;
   &lt;hgroup&gt;
     &lt;h3&gt;Welcome back&lt;/h3&gt;
     &lt;p&gt;Sign in to see your orders, saved items and messages.&lt;/p&gt;
@@ -2007,7 +2006,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;article&gt;
   &lt;hgroup&gt;
     &lt;h3&gt;Create your account&lt;/h3&gt;
     &lt;p&gt;Free for 14 days. No credit card needed.&lt;/p&gt;
@@ -2108,7 +2107,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;div class="grid"&gt;
   &lt;div&gt;
     &lt;h3&gt;Get in touch&lt;/h3&gt;
     &lt;p&gt;We answer every message within one business day.&lt;/p&gt;
@@ -2299,7 +2298,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Checkout&lt;/h3&gt;
   &lt;p&gt;Orders placed by 2 p.m. ship the same day.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -2497,7 +2496,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;header&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;header&gt;
   &lt;nav aria-label="Primary"&gt;
     &lt;ul&gt;
       &lt;li&gt;&lt;a href="#" class="contrast"&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/a&gt;&lt;/li&gt;
@@ -2561,7 +2560,7 @@
           <hgroup>
             <p class="chapter">Pages</p>
             <h2>Docs page</h2>
-            <p>A side nav in an <code class="language-html">&lt;aside&gt;</code>, beside the article.</p>
+            <p>A side nav in an <code>&lt;aside&gt;</code>, beside the article.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
         </header>
@@ -2623,7 +2622,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;div class="grid"&gt;
   &lt;aside&gt;
     &lt;nav aria-label="Guide"&gt;
       &lt;details open&gt;
@@ -2749,7 +2748,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Plans for teams of every size&lt;/h3&gt;
   &lt;p&gt;Start for free, and upgrade when your team grows.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -2908,7 +2907,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav aria-label="Dashboard"&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;nav aria-label="Dashboard"&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;
@@ -3077,7 +3076,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;Account settings&lt;/h3&gt;
   &lt;p&gt;Your profile and the email you get from us.&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -3189,7 +3188,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;hgroup&gt;
   &lt;h3&gt;How we cut our page weight in half&lt;/h3&gt;
   &lt;p&gt;By Alex Kim, &lt;time datetime="2026-10-28"&gt;October 28, 2026&lt;/time&gt;&lt;/p&gt;
 &lt;/hgroup&gt;
@@ -3278,7 +3277,7 @@
         </div>
         <details>
           <summary>HTML</summary>
-          <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h3&gt;Help center&lt;/h3&gt;
+          <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;h3&gt;Help center&lt;/h3&gt;
 &lt;form role="search"&gt;
   &lt;input type="search" name="q" value="dark mode" aria-label="Search the help center"&gt;
   &lt;button type="submit"&gt;Search&lt;/button&gt;

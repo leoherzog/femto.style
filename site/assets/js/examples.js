@@ -18,10 +18,12 @@
 //   do. (Each mockup form has method="dialog", whose submit does nothing outside a <dialog>
 //   (criterion 9); its HTML sample keeps a plain <form>.)
 // - dialogs: each opener and closer also has command and commandfor, which open and close the dialog
-//   with no script in a browser that has them, in the Copy as page output too. As the fallback, a
-//   click on an element whose aria-controls names a <dialog> opens it with showModal(), and a click
-//   on its rel="prev" or .close button, on a button in its footer, or on the dialog itself (its
-//   backdrop) closes it; where the command has already acted, these calls do nothing. Escape closes
+//   with no script in a browser that has them, in the Copy as page output too. Only where the
+//   browser lacks them (no commandForElement on HTMLButtonElement.prototype), a click on an element
+//   whose aria-controls names a <dialog> opens it with showModal(), and a click on its rel="prev" or
+//   .close button or on a button in its footer closes it. Everywhere, a click on the dialog itself
+//   (its backdrop: femto's dialog is the full-viewport overlay) closes it when both the press and the
+//   release were on it, so a text selection dragged out of the card leaves it open. Escape closes
 //   it with no script. However it closes, focus goes back to the opener: Chrome and Firefox put it
 //   there themselves, but in Safari a click does not focus a button, so the dialog would give focus
 //   back to <body>. The footer's buttons are type="button", since femto makes every
@@ -32,9 +34,10 @@
 //   start and the docs' Quick start write it), with the example's name for its title, the sample in
 //   place of its <h1>, indented as the <h1> is (a <pre>'s later lines keep their own), and the
 //   chosen theme's link after femto's, written as femto's. The page's own femto paths (/vendor/femto/,
-//   in the All theme colors example) become the folder femto's link names on jsDelivr. For 1 s the
-//   button reads "Copied", or "Copy failed" when the clipboard refuses the text, at the width it
-//   had, and site.js's status region says it.
+//   in the All theme colors example) become the folder femto's link names on jsDelivr. For 1 s
+//   after the latest copy the button's femto tooltip (data-tooltip, which it has only then) says
+//   "Copied", or "Copy failed" when the clipboard refuses the text, as a code block's copy button
+//   does; its label keeps its text, and site.js's status region says it.
 // - The theme color, the select in p[data-examples-theme]: the chosen theme's stylesheet
 //   (css/themes/<color>.css) is linked right after femto's in every inner shadow root, and azure,
 //   femto's own color, removes it. A new link replaces the old one once it has loaded, so the
@@ -79,8 +82,20 @@ if (hosts.length) {
 
 // --- Forms, links and dialogs --------------------------------------------------------------------
 
+const NATIVE_COMMANDS = "commandForElement" in HTMLButtonElement.prototype;
+
 for (const host of hosts) {
   const shadow = host.shadowRoot;
+  // A click's target is the nearest element holding both its press and its release, so each end is
+  // checked on its own (site.js's createModal() does the same).
+  let pressed = null;
+  let released = null;
+  shadow.addEventListener("pointerdown", (event) => {
+    pressed = event.composedPath()[0];
+  });
+  shadow.addEventListener("pointerup", (event) => {
+    released = event.composedPath()[0];
+  });
   shadow.addEventListener("click", (event) => {
     const first = event.composedPath()[0];
     const target = first instanceof Element ? first : null;
@@ -93,7 +108,8 @@ for (const host of hosts) {
     const dialog = opener ? shadow.getElementById(opener.getAttribute("aria-controls")) : null;
     if (dialog instanceof HTMLDialogElement) {
       if (!dialog.open) {
-        dialog.showModal();
+        // This click runs before the browser's own command, so the dialog is still closed here.
+        if (!NATIVE_COMMANDS) dialog.showModal();
         dialog.addEventListener("close", () => {
           if (shadow.activeElement !== opener) opener.focus();
         }, { once: true });
@@ -101,7 +117,9 @@ for (const host of hosts) {
       return;
     }
     const open = target.closest("dialog[open]");
-    if (open && (target === open || target.closest("[rel=prev], .close, footer button"))) open.close();
+    if (!open) return;
+    const onBackdrop = target === open && pressed === open && released === open;
+    if (onBackdrop || (!NATIVE_COMMANDS && target.closest("[rel=prev], .close, footer button"))) open.close();
   });
 }
 
@@ -181,7 +199,9 @@ function pageOf(template, name, markup, color) {
 const copyButtons = starter ? [...document.querySelectorAll("section.example > header > button[data-copy-page]")] : [];
 for (const button of copyButtons) {
   const section = button.closest("section");
-  const label = button.textContent;
+  // femto's tooltip draws data-tooltip as the button's ::before text, which a name from contents
+  // would read first ("Copied Copy as page"): the label names the button throughout.
+  setAttr(button, "aria-label", button.textContent);
   let timer = 0;
   button.addEventListener("click", async () => {
     const name = section.querySelector(":scope > header h2")?.textContent.trim() ?? "";
@@ -195,15 +215,9 @@ for (const button of copyButtons) {
     } catch {
       message = "Copy failed";
     }
-    // The shorter label keeps the button's width, so the button does not move under the pointer.
-    if (!timer) button.style.minWidth = `${button.getBoundingClientRect().width}px`;
-    button.textContent = message;
+    setAttr(button, "data-tooltip", message);
     announceCopy(message);
     clearTimeout(timer);
-    timer = setTimeout(() => {
-      button.textContent = label;
-      button.removeAttribute("style");
-      timer = 0;
-    }, COPIED_FOR);
+    timer = setTimeout(() => setAttr(button, "data-tooltip", null), COPIED_FOR);
   });
 }

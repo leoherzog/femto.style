@@ -1,162 +1,17 @@
-/* The examples page's styles (/examples, site/examples.html), after common.css: the page spacing,
-   the hero, the theme select and the index under it, each example's header, the frame around each
-   example and its folded markup. Nothing here reaches inside an example: it renders in a shadow
-   root that loads femto alone (assets/js/examples.js). */
-
-/**
- * Layout
- */
-body {
-  overflow: clip;
-}
-
-/* Page spacing, larger at each breakpoint, as on the homepage (landing.css). The body is a
-   one-column grid (common.css), and a grid item's min-content width widens that column: the
-   dashboard's table, which scrolls inside its .overflow-auto, would otherwise make the page wider
-   than a 375px screen. */
-body > main {
-  --site-page-spacing-vertical: calc(var(--femto-spacing) * 5);
-  min-width: 0;
-  padding: 0;
-}
-
-@media (min-width: 576px) {
-  body > main {
-    --site-page-spacing-vertical: calc(var(--femto-spacing) * 6);
-  }
-}
-
-@media (min-width: 768px) {
-  body > main {
-    --site-page-spacing-vertical: calc(var(--femto-spacing) * 7);
-  }
-}
-
-@media (min-width: 1024px) {
-  body > main {
-    --site-page-spacing-vertical: calc(var(--femto-spacing) * 8);
-  }
-}
-
-@media (min-width: 1280px) {
-  body > main {
-    --site-page-spacing-vertical: calc(var(--femto-spacing) * 9);
-  }
-}
-
-@media (min-width: 1536px) {
-  body > main {
-    --site-page-spacing-vertical: calc(var(--femto-spacing) * 10);
-  }
-}
-
-/* Hero: an hgroup, which keeps femto's margin below it */
-body > main.examples > .examples-hero {
-  margin-top: calc(var(--site-page-spacing-vertical) / 2);
-}
-
-@media (min-width: 576px) {
-  body > main.examples > .examples-hero {
-    text-align: center;
-  }
-}
-
-/**
- * Theme select: the label and the select on one line, centered under the hero from 576px, as the
- * hero is. examples.js applies the choice to the examples.
- */
-body > main.examples > .examples-theme {
-  margin-bottom: 0;
-}
-
-@media (min-width: 576px) {
-  body > main.examples > .examples-theme {
-    text-align: center;
-  }
-}
-
-body > main.examples > .examples-theme > label {
-  display: inline-flex;
-  align-items: center;
-  gap: calc(var(--femto-spacing) / 2);
-  margin-bottom: 0;
-}
-
-body > main.examples > .examples-theme select {
-  width: auto;
-  margin-bottom: 0;
-}
-
-/**
- * Index: four chapters, in two columns from 576px and in four from 1024px
- */
-body > main.examples > .examples-index {
-  margin-block: calc(var(--site-page-spacing-vertical) / 4) calc(var(--site-page-spacing-vertical) / 2);
-}
-
-body > main.examples > .examples-index .grid {
-  row-gap: 0;
-}
-
-@media (min-width: 576px) {
-  body > main.examples > .examples-index .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 30rem;
-    margin-inline: auto;
-  }
-}
-
-@media (min-width: 1024px) {
-  body > main.examples > .examples-index .grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    max-width: 60rem;
-  }
-}
-
-body > main.examples > .examples-index .chapter {
-  margin-bottom: calc(var(--femto-spacing) / 4);
-}
-
-body > main.examples > .examples-index ul {
-  padding-left: 0;
-}
-
-body > main.examples > .examples-index li {
-  list-style: none;
-}
+/* The examples page's styles (/examples, site/examples.html), after common.css: the frame around
+   each example, and the hiding of the page's own controls without JavaScript and in print. Nothing
+   here reaches inside an example: it renders in a shadow root that loads femto alone
+   (assets/js/examples.js). */
 
 /**
  * Examples
  */
-/* A link to an example (the footer's, the index's, the docs' "Used in") puts its chapter label a
-   femto spacing below the top of the viewport, not against it: the page has no sticky header and
-   no scroll padding */
-body > main.examples > section.example {
-  margin-block: 0 calc(var(--site-page-spacing-vertical) / 2);
-  scroll-margin-top: var(--femto-spacing);
-}
-
-/* The header: the hgroup, then the Copy as page button at the row's end, its bottom on the hgroup's
-   (both keep femto's typography margin under them). On a narrow screen the button wraps under the
-   hgroup. */
-body > main.examples > section.example > header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  column-gap: var(--femto-spacing);
-}
-
-body > main.examples > section.example > header > button {
-  margin-bottom: var(--femto-typography-spacing-vertical);
-}
-
 /* The frame: it passes nothing down (all: initial), so the example's own shadow host starts from
    the initial values, as a page's <html> does. femto's root font size, a percentage on :host, then
    means what it means in a page of its own, not a percentage of this page's. Custom properties
    still inherit, and femto declares on :host every one it reads but --femto-form-label-font-weight,
    which this site never sets. */
-body > main.examples > section.example > div[data-example] {
+body > main > section.example > div[data-example] {
   all: initial;
   display: block;
   margin-bottom: var(--femto-spacing);
@@ -166,34 +21,21 @@ body > main.examples > section.example > div[data-example] {
   color-scheme: inherit;
 }
 
-@media (min-width: 768px) {
-  body > main.examples > section.example > div[data-example] {
-    padding: calc(var(--femto-spacing) * 1.5);
-  }
-}
-
 /* The example's own host takes the page's color scheme, a stored choice too (data-theme on <html>,
    set before the first paint), and light in print (common.css), through ::part(), the one way into
    the frame's shadow root: a page rule wins over femto's :host rules, as on the homepage
    (landing.css), so the first paint already shows the page's scheme. examples.js, a module that
    runs later, then gives the host the data-theme femto reads (which also switches the validation
    icons), and takes it off while the page prints. */
-body > main.examples > section.example > div[data-example]::part(example) {
+body > main > section.example > div[data-example]::part(example) {
   color-scheme: inherit;
-}
-
-/* The example's markup, folded under it in femto's accordion (<details>, closed in the markup): the
-   section's own margin follows it. */
-body > main.examples > section.example > details,
-body > main.examples > section.example > details > .code {
-  margin-bottom: 0;
 }
 
 /* Without JavaScript, and in print, the theme select and the Copy as page buttons do nothing, so
    they are hidden, as common.css hides the copy buttons */
 @media (scripting: none), print {
-  body > main.examples > .examples-theme,
-  body > main.examples > section.example > header > button[data-copy-page] {
+  body > main > p[data-examples-theme],
+  body > main > section.example > header > button[data-copy-page] {
     display: none;
   }
 }
