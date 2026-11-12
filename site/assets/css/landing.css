@@ -191,15 +191,16 @@ body > main > .features > .grid {
   }
 }
 
-/* The features' character icons (Decision 18), at the text's size and in its color. Each is a
-   one-color silhouette, a transparent glyph and its shadow, as Decision 16's toggle is, so the one
-   emoji (⚙️) is drawn as the text characters are. The shadow's color is explicit: a shadow in
-   currentColor takes the transparent color, and Firefox draws no shadow for a glyph whose
-   -webkit-text-fill-color is transparent (checked in Chrome 158 and Firefox 160, and the
-   silhouettes seen in Safari, 2026-11-05) */
+/* The features' character icons (Decision 18), at the text's size and in femto's primary color,
+   the links' color, so they follow the theme color and the scheme. Each is a one-color silhouette,
+   a transparent glyph and its shadow, as Decision 16's toggle is, so the one emoji (⚙️) is drawn as
+   the text characters are. The shadow's color is explicit: a shadow in currentColor takes the
+   transparent color, and Firefox draws no shadow for a glyph whose -webkit-text-fill-color is
+   transparent (checked in Chrome 158 and Firefox 160, and the silhouettes seen in Safari,
+   2026-11-05) */
 body > main > .features > .grid article > span[role=img] {
   color: transparent;
-  text-shadow: 0 0 0 var(--femto-color);
+  text-shadow: 0 0 0 var(--femto-primary);
 }
 
 /* The first and second features' { } and </> are code for its font, without femto's code box */
