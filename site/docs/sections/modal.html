@@ -1,10 +1,10 @@
 <hgroup>
   <p class="chapter">Components</p>
   <h1 id="modal">Modal</h1>
-  <p>A <code class="language-html">&lt;dialog&gt;</code> holding an <code class="language-html">&lt;article&gt;</code> is a modal: a card centered over the page.</p>
+  <p>A <code>&lt;dialog&gt;</code> holding an <code>&lt;article&gt;</code> is a modal: a card centered over the page.</p>
 </hgroup>
 <section>
-  <p>The dialog covers the viewport with an overlay. A <code>.close</code> element, or a link or button with <code>rel="prev"</code>, in the card is a close button: an × icon at the top right, or the top left in right-to-left text. In a <code class="language-html">&lt;header&gt;</code>, it lines up with the title.</p>
+  <p>The dialog covers the viewport with an overlay. A <code>.close</code> element, or a link or button with <code>rel="prev"</code>, in the card is a close button: an × icon at the top right, or the top left in right-to-left text. In a <code>&lt;header&gt;</code>, it lines up with the title.</p>
   <dialog class="example" open>
     <article>
       <header><button type="button" aria-label="Close" rel="prev"></button><p><strong>🗓️ Thank you for registering!</strong></p></header>
@@ -15,7 +15,7 @@
       </ul>
     </article>
   </dialog>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;dialog open&gt;
   &lt;article&gt;
     &lt;header&gt;
       &lt;button type="button" aria-label="Close" rel="prev"&gt;&lt;/button&gt;
@@ -34,7 +34,7 @@
     &lt;/ul&gt;
   &lt;/article&gt;
 &lt;/dialog&gt;</code></pre></div>
-  <p>The card’s <code class="language-html">&lt;footer&gt;</code> aligns its content to the end: right, or left in right-to-left text.</p>
+  <p>The card’s <code>&lt;footer&gt;</code> aligns its content to the end: right, or left in right-to-left text.</p>
   <dialog open class="example">
     <article>
       <h2>Confirm your membership</h2>
@@ -43,10 +43,13 @@
         <li>Membership: Individual</li>
         <li>Price: $10</li>
       </ul>
-      <footer><button type="button" class="secondary">Cancel</button><button type="button">Confirm</button></footer>
+      <footer>
+        <button type="button" class="secondary">Cancel</button>
+        <button type="button">Confirm</button>
+      </footer>
     </article>
   </dialog>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;dialog open&gt;
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;dialog open&gt;
   &lt;article&gt;
     &lt;h2&gt;Confirm your membership&lt;/h2&gt;
     &lt;p&gt;
@@ -68,20 +71,20 @@
 </section>
 <section>
   <h2>Demo</h2>
-  <article aria-label="Modal demo" id="modal-demo">
-    <button type="button" class="contrast" data-modal-open="modal-demo">Open modal</button>
+  <article aria-label="Modal demo">
+    <button type="button" data-modal-open="modal-demo">Open modal</button>
   </article>
 </section>
 <section>
   <h2>Opening and closing</h2>
-  <p>A dialog shows when it has the <code>open</code> attribute, which the <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement">HTMLDialogElement</a> methods <code>show()</code> and <code>showModal()</code> set. femto has no JavaScript: your script opens and closes the modal, and sets three classes on <code class="language-html">&lt;html&gt;</code> that lock scrolling and run the animations:</p>
+  <p>A dialog shows when it has the <code>open</code> attribute, which the <a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement">HTMLDialogElement</a> methods <code>show()</code> and <code>showModal()</code> set. femto has no JavaScript: your script opens and closes the modal, and sets three classes on <code>&lt;html&gt;</code> that lock scrolling and run the animations:</p>
   <ul>
     <li><code>.modal-is-open</code> while a modal is open: the page behind it does not scroll and ignores the pointer.</li>
     <li><code>.modal-is-opening</code> with it, during the opening animation.</li>
     <li><code>.modal-is-closing</code> with it, during the closing animation.</li>
   </ul>
-  <p><code>.modal-is-open</code> hides the page’s scrollbar; to keep the page from shifting, also set <code>--femto-scrollbar-width</code> on <code class="language-html">&lt;html&gt;</code> to the scrollbar’s width. This script does all of it:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" data-target="membership"&gt;Open modal&lt;/button&gt;
+  <p><code>.modal-is-open</code> hides the page’s scrollbar; to keep the page from shifting, also set <code>--femto-scrollbar-width</code> on <code>&lt;html&gt;</code> to the scrollbar’s width. This script does all of it:</p>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;button type="button" data-target="membership"&gt;Open modal&lt;/button&gt;
 
 &lt;dialog id="membership" aria-labelledby="membership-title"&gt;
   &lt;article&gt;
@@ -143,6 +146,9 @@
       <li>Membership: Individual</li>
       <li>Price: $10</li>
     </ul>
-    <footer><button type="button" class="secondary" data-modal-close>Cancel</button><button type="button" data-modal-close>Confirm</button></footer>
+    <footer>
+      <button type="button" class="secondary" data-modal-close>Cancel</button>
+      <button type="button" data-modal-close>Confirm</button>
+    </footer>
   </article>
 </dialog>

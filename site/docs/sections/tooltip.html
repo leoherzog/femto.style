@@ -8,23 +8,21 @@
     <p>Tooltip on a <a data-tooltip="Tooltip" href="/docs#tooltip">link</a></p>
     <p>Tooltip on an <em data-tooltip="Tooltip" tabindex="0">inline element</em></p>
     <p><button type="button" data-tooltip="Tooltip">Tooltip on a button</button></p>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;Tooltip on a &lt;a href="#" data-tooltip="Tooltip"&gt;link&lt;/a&gt;&lt;/p&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;p&gt;Tooltip on a &lt;a href="#" data-tooltip="Tooltip"&gt;link&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;Tooltip on an &lt;em data-tooltip="Tooltip" tabindex="0"&gt;inline element&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;&lt;button type="button" data-tooltip="Tooltip"&gt;Tooltip on a button&lt;/button&gt;&lt;/p&gt;</code></pre></footer>
   </article>
-  <p>Elements other than links, buttons, inputs and <code>role="button"</code> also get a dotted underline and a help cursor. Give an element that cannot take focus, such as an <code class="language-html">&lt;em&gt;</code>, <code>tabindex="0"</code> so its tooltip shows from the keyboard.</p>
+  <p>Elements other than links, buttons, inputs and <code>role="button"</code> also get a dotted underline and a help cursor. Give an element that cannot take focus, such as an <code>&lt;em&gt;</code>, <code>tabindex="0"</code> so its tooltip shows from the keyboard.</p>
 </section>
 <section>
   <h2>Placement</h2>
   <p>The tooltip shows above the element, or where <code>data-placement</code> puts it: <code>top</code>, <code>bottom</code>, <code>left</code> or <code>right</code>.</p>
-  <article aria-label="Tooltip placement example" id="tooltip-placement">
-    <p>
-      <button type="button" data-tooltip="Top">Top</button>
-      <button type="button" data-tooltip="Right" data-placement="right">Right</button>
-      <button type="button" data-tooltip="Bottom" data-placement="bottom">Bottom</button>
-      <button type="button" data-tooltip="Left" data-placement="left">Left</button>
-    </p>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" data-tooltip="Top"&gt;Top&lt;/button&gt;
+  <article aria-label="Tooltip placement example">
+    <button type="button" data-tooltip="Top">Top</button>
+    <button type="button" data-tooltip="Right" data-placement="right">Right</button>
+    <button type="button" data-tooltip="Bottom" data-placement="bottom">Bottom</button>
+    <button type="button" data-tooltip="Left" data-placement="left">Left</button>
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;button type="button" data-tooltip="Top"&gt;Top&lt;/button&gt;
 &lt;button type="button" data-tooltip="Right" data-placement="right"&gt;Right&lt;/button&gt;
 &lt;button type="button" data-tooltip="Bottom" data-placement="bottom"&gt;Bottom&lt;/button&gt;
 &lt;button type="button" data-tooltip="Left" data-placement="left"&gt;Left&lt;/button&gt;</code></pre></footer>
@@ -32,7 +30,7 @@
 </section>
 <section>
   <h2>Switch</h2>
-  <p>A switch shows no tooltip; put it on the switch’s <code class="language-html">&lt;label&gt;</code> instead: see <a href="#switch">Switch</a>.</p>
+  <p>A switch shows no tooltip; put it on the switch’s <code>&lt;label&gt;</code> instead: see <a href="#switch">Switch</a>.</p>
 </section>
 <section>
   <p>Used in the <a href="/examples#dashboard">Dashboard</a> example.</p>

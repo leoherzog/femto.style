@@ -206,7 +206,7 @@ function step({ family, shade }, key) {
 
 // --- Color dialog --------------------------------------------------------------------------------
 // Its close and copy icons are Decision 18's (a span[role=img] holding ✕ or ⧉, which names its
-// button), and each value is a code block (div.code.small, language html), its copy button carrying
+// button), and each value is a code block (div.code, language html), its copy button carrying
 // data-copy-link as the docs' own do, so site.js's copy handler takes it. Prism's markup grammar
 // finds no token in any of the five values, so each is plain text, as the build writes plain text
 // (build.mjs, step 4).
@@ -308,15 +308,15 @@ if (families) {
     return `<button type="button" data-tooltip="${name}" data-placement="left" data-copy-link>${COPY_ICON(name)}</button>`;
   };
   dialog.innerHTML = `<article><header><button type="button" class="close" autofocus>${CLOSE_ICON}</button>`
-    + '<hgroup aria-live="polite" aria-atomic="true"><h3 class="color-family" id="color-dialog-title"></h3>'
-    + '<p class="color-shade"></p></hgroup></header><div class="grid">'
-    + ROWS.map(([label]) => `<p>${label}</p><div class="code small" data-theme="dark">${copyButton(label)}`
-      + '<pre class="prismjs"><code class="language-html"></code></pre></div>').join("")
+    + '<hgroup aria-live="polite" aria-atomic="true"><h3 id="color-dialog-title"></h3><p></p>'
+    + '</hgroup></header><div class="grid">'
+    + ROWS.map(([label]) => `<p>${label}</p><div class="code">${copyButton(label)}`
+      + '<pre><code class="language-html"></code></pre></div>').join("")
     + "</div></article>";
   const article = dialog.querySelector(":scope > article");
   const header = article.querySelector(":scope > header");
-  const title = header.querySelector("h3.color-family");
-  const name = header.querySelector("p.color-shade");
+  const title = header.querySelector(":scope > hgroup > h3");
+  const name = header.querySelector(":scope > hgroup > p");
   const values = [...article.querySelectorAll(".grid pre code")];
   const closeButton = header.querySelector("button.close");
   for (const button of article.querySelectorAll(".grid .code > button")) nameCopyButton(button);
@@ -326,7 +326,6 @@ if (families) {
   // Fills the dialog in place, so focus inside it stays where it is.
   function show(family, shade) {
     current = color(family, shade);
-    article.style.setProperty("--site-glowing-color", `${color(family, mainShade(family)).hex}26`);
     header.className = `femto-background-${family}-${shade}`;
     title.textContent = `${capitalize(family)}\u00a0${shade}`; // a no-break space
     name.textContent = current.name;
@@ -335,12 +334,13 @@ if (families) {
     });
   }
 
-  // While the dialog is in the page. Keys held with Alt, Control or Meta keep their default action
-  // (the browser's own shortcuts), and the arrows still step.
+  // While the dialog is in the page. Keys held with Alt, Control or Meta are the browser's own
+  // shortcuts (Alt+Left goes back), so the arrows step only without them.
   function onKeydown(event) {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.defaultPrevented) return;
     const next = current && step(current, event.key);
     if (!next) return;
-    if (!(event.altKey || event.ctrlKey || event.metaKey)) event.preventDefault();
+    event.preventDefault();
     show(next.family, next.shade);
   }
 

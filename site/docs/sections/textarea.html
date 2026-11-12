@@ -1,12 +1,12 @@
 <hgroup>
   <p class="chapter">Forms</p>
   <h1 id="textarea">Textarea</h1>
-  <p><code class="language-html">&lt;textarea&gt;</code> has the style of the other fields, and the visitor can resize it vertically.</p>
+  <p><code>&lt;textarea&gt;</code> has the style of the other fields, and the visitor can resize it vertically.</p>
 </hgroup>
 <section>
   <article aria-label="Textarea example">
     <textarea name="bio" placeholder="Write a professional short bio..." aria-label="Professional short bio"></textarea>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;textarea
   name="bio"
   placeholder="Write a professional short bio..."
   aria-label="Professional short bio"
@@ -17,20 +17,18 @@
 </section>
 <section>
   <h2>Validation states</h2>
-  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a textarea the invalid or valid border color and an icon at the top right. A <code class="language-html">&lt;small&gt;</code> right after the textarea takes the matching color.</p>
+  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a textarea the invalid or valid border color and an icon at the top right. A <code>&lt;small&gt;</code> right after the textarea takes the matching color.</p>
   <article aria-label="Textarea validation states with helper text example">
-    <textarea name="textarea-helper-valid" placeholder="Valid" aria-label="Valid" aria-invalid="false" aria-describedby="textarea-valid-helper">Valid</textarea>
+    <textarea name="textarea-helper-valid" aria-label="Valid" aria-invalid="false" aria-describedby="textarea-valid-helper">Valid</textarea>
     <small id="textarea-valid-helper">Looks good!</small>
-    <textarea name="textarea-helper-invalid" placeholder="Invalid" aria-label="Invalid" aria-invalid="true" aria-describedby="textarea-invalid-helper">Invalid</textarea>
+    <textarea name="textarea-helper-invalid" aria-label="Invalid" aria-invalid="true" aria-describedby="textarea-invalid-helper">Invalid</textarea>
     <small id="textarea-invalid-helper">Please provide a valid value!</small>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;textarea
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;textarea
   name="valid"
   aria-label="Valid"
   aria-invalid="false"
   aria-describedby="valid-helper"
-&gt;
-  Valid
-&lt;/textarea&gt;
+&gt;Valid&lt;/textarea&gt;
 &lt;small id="valid-helper"&gt;Looks good!&lt;/small&gt;
 
 &lt;textarea
@@ -38,9 +36,7 @@
   aria-label="Invalid"
   aria-invalid="true"
   aria-describedby="invalid-helper"
-&gt;
-  Invalid
-&lt;/textarea&gt;
+&gt;Invalid&lt;/textarea&gt;
 &lt;small id="invalid-helper"&gt;
   Please provide a valid value!
 &lt;/small&gt;</code></pre></footer>

@@ -1,57 +1,57 @@
 <hgroup>
   <p class="chapter">Content</p>
   <h1 id="button">Button</h1>
-  <p>A plain <code class="language-html">&lt;button&gt;</code> needs no class and has the primary color by&nbsp;default.</p>
+  <p>A plain <code>&lt;button&gt;</code> needs no class and has the primary color by default.</p>
 </hgroup>
 <section>
-  <article aria-label="Button example"><button type="button">Button</button><footer class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button"&gt;Button&lt;/button&gt;</code></pre></footer></article>
-  <p>A button is at most as wide as its container, so a long label&nbsp;wraps.</p>
+  <article aria-label="Button example"><button type="button">Button</button><footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;button type="button"&gt;Button&lt;/button&gt;</code></pre></footer></article>
+  <p>A button is at most as wide as its container, so a long label wraps.</p>
 </section>
 <section>
   <h2>Variants</h2>
-  <p><code>.secondary</code> and <code>.contrast</code> give a button the secondary or contrast&nbsp;color.</p>
+  <p><code>.secondary</code> and <code>.contrast</code> give a button the secondary or contrast color.</p>
   <article aria-label="Button colors example">
     <button type="button" class="secondary">Secondary</button>
     <button type="button" class="contrast">Contrast</button>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;button type="button" class="secondary"&gt;Secondary&lt;/button&gt;
 &lt;button type="button" class="contrast"&gt;Contrast&lt;/button&gt;</code></pre></footer>
   </article>
-  <p><code>.outline</code> draws a button as an outline, alone or with <code>.secondary</code> or&nbsp;<code>.contrast</code>.</p>
+  <p><code>.outline</code> draws a button as an outline, alone or with <code>.secondary</code> or <code>.contrast</code>.</p>
   <article aria-label="Buttons outline example">
     <button type="button" class="outline">Primary</button>
     <button type="button" class="outline secondary">Secondary</button>
     <button type="button" class="outline contrast">Contrast</button>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" class="outline"&gt;Primary&lt;/button&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;button type="button" class="outline"&gt;Primary&lt;/button&gt;
 &lt;button type="button" class="outline secondary"&gt;Secondary&lt;/button&gt;
 &lt;button type="button" class="outline contrast"&gt;Contrast&lt;/button&gt;</code></pre></footer>
   </article>
 </section>
 <section>
   <h2>Form buttons</h2>
-  <p>Inputs with <code>type="submit"</code>, <code>"button"</code> or <code>"reset"</code> look like buttons. Like the other form fields, they fill the width of their container, and so does a <code class="language-html">&lt;button type="submit"&gt;</code>.</p>
-  <article aria-label="Input buttons example"><input type="submit"><input type="button" value="Input"><footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="submit"&gt;
+  <p>Inputs with <code>type="submit"</code>, <code>"button"</code> or <code>"reset"</code> look like buttons. Like the other form fields, they fill the width of their container, and so does a <code>&lt;button type="submit"&gt;</code>.</p>
+  <article aria-label="Input buttons example"><input type="submit"><input type="button" value="Input"><footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input type="submit"&gt;
 &lt;input type="button" value="Input"&gt;</code></pre></footer></article>
-  <p>A reset input has the secondary color by&nbsp;default.</p>
-  <article aria-label="Reset input example"><input type="reset"><footer class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="reset"&gt;</code></pre></footer></article>
+  <p>A reset input has the secondary color by default.</p>
+  <article aria-label="Reset input example"><input type="reset"><footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input type="reset"&gt;</code></pre></footer></article>
 </section>
 <section>
   <h2>Disabled</h2>
-  <p>A button with <code>disabled</code>, or inside a disabled <code class="language-html">&lt;fieldset&gt;</code>, is dimmed and takes no&nbsp;clicks.</p>
+  <p>A button with <code>disabled</code>, or inside a disabled <code>&lt;fieldset&gt;</code>, is dimmed and takes no clicks.</p>
   <article aria-label="Disabled buttons example">
     <button type="button" disabled>Disabled</button>
     <button type="button" class="secondary" disabled>Disabled</button>
     <button type="button" class="contrast" disabled>Disabled</button>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" disabled&gt;Disabled&lt;/button&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;button type="button" disabled&gt;Disabled&lt;/button&gt;
 &lt;button type="button" class="secondary" disabled&gt;Disabled&lt;/button&gt;
 &lt;button type="button" class="contrast" disabled&gt;Disabled&lt;/button&gt;</code></pre></footer>
   </article>
 </section>
 <section>
   <h2>Role button</h2>
-  <p><code>role="button"</code> makes another element, such as a link or a <code class="language-html">&lt;summary&gt;</code>, look like a&nbsp;button.</p>
+  <p><code>role="button"</code> makes another element, such as a link or a <code>&lt;summary&gt;</code>, look like a button.</p>
   <article aria-label="Role button example">
     <div role="button" tabindex="0">Div as a button</div>
-    <footer class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div role="button" tabindex="0"&gt;Div as a button&lt;/div&gt;</code></pre></footer>
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;div role="button" tabindex="0"&gt;Div as a button&lt;/div&gt;</code></pre></footer>
   </article>
 </section>
 <section>

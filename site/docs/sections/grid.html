@@ -1,7 +1,7 @@
 <hgroup>
   <p class="chapter">Layout</p>
   <h1 id="grid">Grid</h1>
-  <p><code>.grid</code> lays its children out in equal columns from 768px, and in one column&nbsp;below.</p>
+  <p><code>.grid</code> lays its children out in equal columns from 768px, and in one column below.</p>
 </hgroup>
 <section data-grid-example>
   <div class="grid"><button type="button" class="secondary"><span role="img" aria-hidden="true">⊕</span>Add column</button><button type="button" class="secondary"><span role="img" aria-hidden="true">⊖</span>Remove column</button></div>
@@ -12,7 +12,7 @@
       <div>3</div>
       <div>4</div>
     </div>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="grid"&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;div class="grid"&gt;
   &lt;div&gt;1&lt;/div&gt;
   &lt;div&gt;2&lt;/div&gt;
   &lt;div&gt;3&lt;/div&gt;
@@ -22,8 +22,8 @@
 </section>
 <section>
   <h2>Columns and gaps</h2>
-  <p><code>.grid</code> reads its columns from <code>--femto-grid-template-columns</code>, which femto sets to one equal column per child from 768px. The gaps between rows and columns are <code>--femto-grid-row-gap</code> and <code>--femto-grid-column-gap</code>, both <code>--femto-spacing</code> by default. To give a grid other columns, set the token on it, in a media query of your own to keep one column on small&nbsp;screens:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">/* A narrow first column and a wide second one, from 768px */
+  <p><code>.grid</code> reads its columns from <code>--femto-grid-template-columns</code>, which femto sets to one equal column per child from 768px. The gaps between rows and columns are <code>--femto-grid-row-gap</code> and <code>--femto-grid-column-gap</code>, both <code>--femto-spacing</code> by default. To give a grid other columns, set the token on it, in a media query of your own to keep one column on small screens:</p>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-css">/* A narrow first column and a wide second one, from 768px */
 @media (min-width: 768px) {
   .grid.sidebar {
     --femto-grid-template-columns: 1fr 3fr;
@@ -32,7 +32,7 @@
 </section>
 <section>
   <h2>Other layouts</h2>
-  <p>For other layouts, write CSS grid or flexbox rules of your own. <a href="https://learncssgrid.com/">Learn CSS Grid</a> explains CSS grid, and <a href="https://cssgrid-generator.netlify.app/">CSS Grid Generator</a>, <a href="https://grid.layoutit.com/">Layoutit</a> and <a href="https://griddy.io/">Griddy</a> write grid rules from a layout you&nbsp;draw.</p>
+  <p>For other layouts, write CSS grid or flexbox rules of your own. <a href="https://learncssgrid.com/">Learn CSS Grid</a> explains CSS grid, and <a href="https://cssgrid-generator.netlify.app/">CSS Grid Generator</a>, <a href="https://grid.layoutit.com/">Layoutit</a> and <a href="https://griddy.io/">Griddy</a> write grid rules from a layout you draw.</p>
 </section>
 <section>
   <p>Used in most examples, such as the <a href="/examples#sign-in">Sign in</a>, <a href="/examples#landing-page">Landing page</a> and <a href="/examples#dashboard">Dashboard</a>.</p>

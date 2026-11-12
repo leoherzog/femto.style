@@ -1,17 +1,17 @@
 <hgroup>
   <p class="chapter">Content</p>
   <h1 id="media">Media, code and lists</h1>
-  <p>Images scale down to fit, figures get a muted caption, code blocks scroll, and nested lists sit closer&nbsp;together.</p>
+  <p>Images scale down to fit, figures get a muted caption, code blocks scroll, and nested lists sit closer together.</p>
 </hgroup>
 <section>
   <h2>Figure</h2>
-  <p>A <code class="language-html">&lt;figure&gt;</code> has no margin or padding, and its <code class="language-html">&lt;figcaption&gt;</code> gets vertical padding in the muted color. An <code class="language-html">&lt;img&gt;</code> is never wider than its container, and keeps its aspect ratio as it shrinks.</p>
+  <p>A <code>&lt;figure&gt;</code> has no margin or padding, and its <code>&lt;figcaption&gt;</code> gets vertical padding in the muted color. An <code>&lt;img&gt;</code> is never wider than its container, and keeps its aspect ratio as it shrinks.</p>
   <article aria-label="Figure example">
     <figure>
       <img src="/opengraph.png" alt="The femto wordmark on a dark background" width="1200" height="630" loading="lazy">
       <figcaption>A 1200px image, scaled down to the card.</figcaption>
     </figure>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;figure&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;figure&gt;
   &lt;img src="card.png" alt="..." width="1200" height="630"&gt;
   &lt;figcaption&gt;
     A 1200px image, scaled down to the card.
@@ -21,10 +21,10 @@
 </section>
 <section>
   <h2>Embedded content</h2>
-  <p><code class="language-html">&lt;audio&gt;</code>, <code class="language-html">&lt;canvas&gt;</code>, <code class="language-html">&lt;iframe&gt;</code>, <code class="language-html">&lt;img&gt;</code>, <code class="language-html">&lt;svg&gt;</code> and <code class="language-html">&lt;video&gt;</code> sit on the middle of the line. Audio, video and canvas are inline blocks, an iframe has no border, and an <code class="language-html">&lt;audio&gt;</code> without <code>controls</code> is hidden. An inline <code class="language-html">&lt;svg&gt;</code> without a <code>fill</code> takes the text color:</p>
+  <p><code>&lt;audio&gt;</code>, <code>&lt;canvas&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;img&gt;</code>, <code>&lt;svg&gt;</code> and <code>&lt;video&gt;</code> sit on the middle of the line. Audio, video and canvas are inline blocks, an iframe has no border, and an <code>&lt;audio&gt;</code> without <code>controls</code> is hidden. An inline <code>&lt;svg&gt;</code> without a <code>fill</code> takes the text color:</p>
   <article aria-label="Inline SVG example">
     <p><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg> Text <ins><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg> Inserted</ins> <del><svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle></svg> Deleted</del></p>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;p&gt;
   &lt;svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"&gt;
     &lt;circle cx="12" cy="12" r="10"&gt;&lt;/circle&gt;
   &lt;/svg&gt;
@@ -37,11 +37,11 @@
 &lt;audio src="song.mp3" controls&gt;&lt;/audio&gt;
 &lt;iframe src="map.html" title="Map"&gt;&lt;/iframe&gt;</code></pre></footer>
   </article>
-  <p><code class="language-html">&lt;template&gt;</code> and every element with <code>hidden</code> stay hidden, whatever <code>display</code> other rules give them.</p>
+  <p><code>&lt;template&gt;</code> and every element with <code>hidden</code> stay hidden, whatever <code>display</code> other rules give them.</p>
 </section>
 <section>
   <h2>Code blocks</h2>
-  <p><code class="language-html">&lt;pre&gt;</code>, <code class="language-html">&lt;code&gt;</code>, <code class="language-html">&lt;kbd&gt;</code> and <code class="language-html">&lt;samp&gt;</code> are in the monospace font, <code>--femto-font-family-monospace</code>, at 0.875em. A <code class="language-html">&lt;pre&gt;</code> is a block in the code colors that scrolls sideways, and its <code class="language-html">&lt;code&gt;</code> or <code class="language-html">&lt;samp&gt;</code> child carries the padding. <code class="language-html">&lt;kbd&gt;</code> is bolder, in the text color as its background.</p>
+  <p><code>&lt;pre&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;kbd&gt;</code> and <code>&lt;samp&gt;</code> are in the monospace font, <code>--femto-font-family-monospace</code>, at 0.875em. A <code>&lt;pre&gt;</code> is a block in the code colors that scrolls sideways, and its <code>&lt;code&gt;</code> or <code>&lt;samp&gt;</code> child carries the padding. <code>&lt;kbd&gt;</code> is bolder, in the text color as its background.</p>
   <article aria-label="Code block example">
     <pre><code>&lt;main class="container"&gt;
   &lt;h1&gt;Hello, world!&lt;/h1&gt;
@@ -49,7 +49,7 @@
     <pre><samp>$ echo "Hello, world!"
 Hello, world!</samp></pre>
     <p>Press <kbd>Ctrl</kbd> + <kbd>C</kbd> to copy.</p>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;pre&gt;&lt;code&gt;&amp;lt;main class="container"&amp;gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;pre&gt;&lt;code&gt;&amp;lt;main class="container"&amp;gt;
   &amp;lt;h1&amp;gt;Hello, world!&amp;lt;/h1&amp;gt;
 &amp;lt;/main&amp;gt;&lt;/code&gt;&lt;/pre&gt;
 
@@ -58,11 +58,11 @@ Hello, world!&lt;/samp&gt;&lt;/pre&gt;
 
 &lt;p&gt;Press &lt;kbd&gt;Ctrl&lt;/kbd&gt; + &lt;kbd&gt;C&lt;/kbd&gt; to copy.&lt;/p&gt;</code></pre></footer>
   </article>
-  <p>The code blocks elsewhere in these docs are the site's own, with highlighting and a copy button.</p>
+  <p>The code blocks elsewhere in these docs are the site's own, with a copy button.</p>
 </section>
 <section>
   <h2>Lists</h2>
-  <p>List items are a quarter of <code>--femto-typography-spacing-vertical</code> apart. A list inside a list has no margin but that quarter above it. Items of a <code class="language-html">&lt;ul&gt;</code> have square markers.</p>
+  <p>List items are a quarter of <code>--femto-typography-spacing-vertical</code> apart. A list inside a list has no margin but that quarter above it. Items of a <code>&lt;ul&gt;</code> have square markers.</p>
   <article aria-label="Lists example">
     <ol>
       <li>Link femto
@@ -79,7 +79,7 @@ Hello, world!&lt;/samp&gt;&lt;/pre&gt;
       <dt>css/femto.css</dt>
       <dd>The entry that imports the modules</dd>
     </dl>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;ol&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;ol&gt;
   &lt;li&gt;
     Link femto
     &lt;ul&gt;

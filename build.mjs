@@ -14,18 +14,20 @@
 //    /examples; never the homepage's /) get aria-current="page".
 // 3. Assemble the docs page (Decision 2), written to docs.html and served at /docs (never docs/index.html,
 //    Decision 11). From docs/menu.json, the build fills docs.html's two empty elements: the side nav
-//    (nav.is-sticky-above-lg) gets one open <details> per category, with its summary and one link to
+//    (the menu's <nav>) gets one open <details> per category, with its summary and one link to
 //    #<id> per section (its label, else its h1's content), and #content every docs/sections/<id>.html
-//    in menu order, each wrapped in a <section> and ending with its "Edit this section on GitHub" link
-//    to the file, named ": <h1>" in visually hidden text. A missing file, one that does not begin with
-//    its hgroup (the chapter, then <h1 id="<id>">), or one with its own edit link fails the build. It
-//    also writes the Colors section's palette download, assets/femto-color-palette.json: femto.colors.css's
-//    --femto-color-<family>-<shade> hex values by family and shade, as JSON.stringify(palette, null, 2).
+//    in menu order, each wrapped in a <section> and ending with a <p> of its "Edit this section on
+//    GitHub" link to the file, named ": <h1>" in visually hidden text. A missing file, one that does
+//    not begin with its hgroup (the chapter, then <h1 id="<id>">), or one that holds the link's text
+//    fails the build. It also writes the Colors section's palette download,
+//    assets/femto-color-palette.json: femto.colors.css's --femto-color-<family>-<shade> hex values by
+//    family and shade, as JSON.stringify(palette, null, 2).
 // 4. Highlight. Every <code class="language-X"> holds escaped source text only; Prism tokenizes it and
-//    the build writes each run of one color as one span whose class names the color (colorOf: the
-//    four colors code.css draws); plain text, most punctuation among it, is not wrapped. "html" is
-//    Prism's markup grammar, which inlines CSS and JavaScript.
-//    The <pre class="prismjs"> around such a code block gets tabindex="0" and the hook
+//    the build writes each run of one kind as one span classed by its kind (colorOf: tag, attr, value
+//    or comment; code.css colors none of them, so code is femto's one --femto-code-color); plain
+//    text, most punctuation among it, is not wrapped. "html" is Prism's markup grammar, which inlines
+//    CSS and JavaScript, and "js" its javascript grammar.
+//    The <pre> around such a code block, written <pre> exactly, gets tabindex="0" and the hook
 //    data-scroll-focus: a block whose code is wider than it scrolls sideways, and the keyboard can
 //    scroll it only once it takes focus (axe's scrollable-region-focusable, criterion 10). Which
 //    blocks scroll depends on the viewport, so without JavaScript every one takes focus; site.js then
@@ -42,7 +44,7 @@ require("prismjs/components/prism-bash.js");
 
 const ROOT = import.meta.dirname;
 const SITE = join(ROOT, "site");
-const GRAMMARS = { html: "markup", css: "css", bash: "bash" };
+const GRAMMARS = { html: "markup", css: "css", bash: "bash", js: "javascript" };
 
 const fail = (message) => { throw new Error(`build: ${message}`); };
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -73,7 +75,7 @@ function strip(text, language, where) {
   return out + marked.slice(last);
 }
 
-// --- 4. Highlighting: Prism's tokens as runs of text, each run's color, one span per color run.
+// --- 4. Highlighting: Prism's tokens as runs of text, each run's kind, one span per run of one kind.
 function runs(tokens, types = [], out = []) { // each text run with the types and aliases of the tokens around it
   for (const t of Array.isArray(tokens) ? tokens : [tokens]) {
     if (typeof t !== "string") runs(t.content, types.concat(t.type, t.alias ?? []), out);
@@ -81,8 +83,8 @@ function runs(tokens, types = [], out = []) { // each text run with the types an
   }
   return out;
 }
-// The four colors code.css draws: a tag's punctuation (<, >, the attribute's =) is plain, an
-// attribute value's quotes take its color, and so does a whole doctype.
+// The kinds: a tag's punctuation (<, >, the attribute's =) is plain, an attribute value's quotes
+// are part of the value, and a whole doctype is a comment.
 function colorOf(types) {
   const has = (...names) => names.some((name) => types.has(name));
   if (has("doctype") || has("comment") && !has("punctuation")) return "comment";
@@ -96,7 +98,7 @@ const escText = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>
 function highlight(code, language) {
   const grammar = Prism.languages[GRAMMARS[language]] ?? fail(`no grammar for language-${language}`);
   const list = runs(Prism.tokenize(code, grammar)).map(({ types, text }) => ({ color: /\S/.test(text) ? colorOf(types) : undefined, text }));
-  // Whitespace shows no color: it takes its neighbors' color when they share one, so the three are
+  // Whitespace has no kind of its own: it takes its neighbors' when they share one, so the three are
   // one span, and is plain text otherwise.
   list.forEach((run, i) => {
     if (run.color !== undefined) return;
@@ -111,9 +113,9 @@ function highlight(code, language) {
   }
   return open ? `${html}</span>` : html;
 }
-const highlightAll = (html, where) => html.replace(/(<pre class="prismjs">)?<code class="language-([\w-]+)">([\s\S]*?)<\/code>/g, (m, pre, lang, body) =>
+const highlightAll = (html, where) => html.replace(/(<pre>)?<code class="language-([\w-]+)">([\s\S]*?)<\/code>/g, (m, pre, lang, body) =>
   body.includes("<") ? fail(`${where}: <code class="language-${lang}"> must hold escaped text only`)
-    : `${pre ? '<pre class="prismjs" tabindex="0" data-scroll-focus>' : ""}<code class="language-${lang}">${highlight(unesc(body), lang)}</code>`);
+    : `${pre ? '<pre tabindex="0" data-scroll-focus>' : ""}<code class="language-${lang}">${highlight(unesc(body), lang)}</code>`);
 
 // --- 2. Includes, placeholders and the header and footer links to the page itself.
 function expand(html, page, depth = 0) {
@@ -132,6 +134,7 @@ function render(html, page) {
   html = expand(html, page);
   if (html.includes("<!-- include ")) fail(`${page.file}: an include marker must be alone on its line`);
   if (/<code(?! class="language-[\w-]+">)[^>]*language-/.test(html)) fail(`${page.file}: write code as <code class="language-X"> exactly`);
+  if (/<pre[^>]+><code class="language-/.test(html)) fail(`${page.file}: write a code block's <pre> as <pre> exactly`);
   const values = { version: page.version, commit: page.commit, title: page.title, description: page.description };
   html = html.replace(/\{\{(\w+)\}\}/g, (m, key) => values[key] != null ? esc(values[key]) : fail(`${page.file}: no value for ${m}`));
   return highlightAll(html, page.file);
@@ -144,7 +147,7 @@ function docsPage(menu) {
     const file = `docs/sections/${id}.html`;
     if (!existsSync(join(SITE, file))) fail(`docs/menu.json: no section file ${file}`);
     const text = read(file).trim();
-    if (text.includes('class="edit-on-github"')) fail(`${file}: the build writes the section's edit link`);
+    if (text.includes("Edit this section on GitHub")) fail(`${file}: the build writes the section's edit link`);
     const heading = new RegExp(`^<hgroup>\\n[ \\t]*<p class="chapter">[^<]*</p>\\n[ \\t]*<h1 id="${id}">([\\s\\S]*?)</h1>`);
     return { id, text, h1: text.match(heading)?.[1] ?? fail(`${file}: must begin with <hgroup>, its chapter, then <h1 id="${id}">`) };
   });
@@ -152,10 +155,10 @@ function docsPage(menu) {
     const links = c.sections.map((s) => `\n            <li><a class="secondary" href="#${s.id}">${s.label ?? files.find((f) => f.id === s.id).h1}</a></li>`);
     return `<details open><summary>${esc(c.title)}</summary><ul>${links.join("")}\n          </ul></details>`;
   });
-  const edit = (id, h1) => `<section class="edit-on-github">\n  <p><a class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/${id}.html"><small><span role="img" aria-hidden="true">✎</span>Edit this section on GitHub<span class="visually-hidden">: ${h1}</span></small></a></p>\n</section>`;
+  const edit = (id, h1) => `<p><a class="secondary" href="https://github.com/leoherzog/femto.style/blob/main/site/docs/sections/${id}.html"><small><span role="img" aria-hidden="true">✎</span> Edit this section on GitHub<span class="visually-hidden">: ${h1}</span></small></a></p>`;
   const sections = files.map(({ id, text, h1 }) => `<section>\n${text}\n${edit(id, h1)}\n</section>\n`);
   let html = read("docs.html");
-  html = swap(html, '<nav class="is-sticky-above-lg" aria-label="Documentation"></nav>', `<nav class="is-sticky-above-lg" aria-label="Documentation">\n          ${nav.join("\n          ")}\n        </nav>`, "docs.html");
+  html = swap(html, '<nav class="container" aria-label="Documentation"></nav>', `<nav class="container" aria-label="Documentation">\n          ${nav.join("\n          ")}\n        </nav>`, "docs.html");
   return swap(html, '<div id="content"></div>', `<div id="content">\n${sections.join("")}      </div>`, "docs.html");
 }
 function palette() {

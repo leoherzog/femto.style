@@ -15,10 +15,11 @@
 //   on a link to a section marks it at once, locks the spy until the scroll reaches the section's
 //   heading (or 1 s passes without a scroll event, or 150 ms once the reader's wheel, touch or key
 //   takes over), and sets the class is-scrolling-to-link on <html> meanwhile, which docs.css gives
-//   scroll-behavior: smooth unless the reader prefers reduced motion (Decision 10). popstate only
-//   locks the spy, until 150 ms pass without a scroll event (except the popstate of a link's own
-//   fragment navigation, which keeps the link's lock). Nothing here pushes a history entry of its own. The one link it cancels is a
-//   link to /docs#<id> clicked on /docs?theme=<color>, whose #hash it then follows on this page;
+//   scroll-behavior: smooth (Decision 10; femto's reduce-motion utility keeps it auto for a reader
+//   who prefers reduced motion). popstate only locks the spy, until 150 ms pass without a scroll
+//   event (except the popstate of a link's own fragment navigation, which keeps the link's lock).
+//   Nothing here pushes a history entry of its own. The one link it cancels is a link to
+//   /docs#<id> clicked on /docs?theme=<color>, whose #hash it then follows on this page;
 // - the side menu, aside[data-docs-menu]: the mobile off-canvas (is-open-on-mobile), opened by the
 //   breadcrumb's Documentation button and closed by its Close button, by any of its links and by
 //   Escape, with the opener's aria-expanded, focus moved into the menu and back, and the rest of the
@@ -120,14 +121,15 @@ function spy() {
     if (next === current) return;
     const previous = current;
     current = next;
+    // Measure and scroll the nav first, then write: one layout, not one forced by each write
+    if (next.details && !next.details.open) next.details.open = true;
+    revealInNav(next.link);
     previous?.link?.removeAttribute("aria-current");
     next.link?.setAttribute("aria-current", "true");
     if (previous?.summary !== next.summary) {
       previous?.summary?.removeAttribute("aria-current");
       next.summary?.setAttribute("aria-current", "true");
     }
-    if (next.details && !next.details.open) next.details.open = true;
-    revealInNav(next.link);
     const category = next.summary?.textContent.trim();
     if (chapter && category && chapter.textContent !== category) chapter.textContent = category;
     if (crumb && crumb.textContent !== next.title) crumb.textContent = next.title;
@@ -463,8 +465,9 @@ widgets("content", () => {
     site.onThemeChange(show);
   }
 
-  // The Link section: the links of its two examples, article[data-link-example], show the page's
-  // own path and go nowhere: their click's default is prevented (the link-examples check).
+  // The Link section: the links of its two examples, article[data-link-example], link to "#" as
+  // their samples do, and go nowhere: their click's default is prevented, or "#" would scroll to
+  // the top (the link-examples check).
   for (const link of document.querySelectorAll("[data-link-example] > a")) link.addEventListener("click", (event) => event.preventDefault());
 });
 // endregion:content
@@ -482,11 +485,11 @@ widgets("forms", () => {
 
 // region:components-a
 widgets("components-a", () => {
-  // The Dropdown section: the menu items of its examples with links, article[data-dropdown-example],
-  // and the nav example's "Services" show the page's own path and go nowhere, clicked or activated
-  // with Enter: their click's default is prevented (the dropdown-items check). Only the Dropdown section's: the Nav
-  // section repeats the "Dropdowns inside nav" example, whose links the components-b region cancels,
-  // and the Select section's "Dropdowns as selects" has no link.
+  // The Dropdown section: the menu items of its examples with links, article[data-dropdown-example]
+  // (the "Dropdowns inside nav" example's "Services" among them), link to "#" as femto's samples
+  // do, and go nowhere, clicked or activated with Enter: their click's default is prevented, or "#"
+  // would scroll to the top (the dropdown-items check). Only the Dropdown section's: the Nav section
+  // repeats the "Dropdowns inside nav" example, whose links the components-b region cancels.
   for (const item of document.querySelectorAll("[data-dropdown-example] a:not([data-copy-link])")) {
     item.addEventListener("click", (event) => event.preventDefault());
   }
@@ -498,9 +501,9 @@ widgets("components-b", () => {
   // The Modal section's demo dialog is site.js's (data-modal). Its two dialog.example are always
   // open, and their buttons do nothing.
 
-  // The Nav section: the example links show the page's own path and go nowhere, their click's
-  // default prevented: the links of every example nav, each a nav[data-nav-example] (the breadcrumbs
-  // and the two overflow examples among them).
+  // The Nav section: the example links link to "#" as their samples do, and go nowhere, their
+  // click's default prevented: the links of every example nav, each a nav[data-nav-example] (the
+  // breadcrumbs and the two overflow examples among them).
   for (const link of document.querySelectorAll("[data-nav-example] a")) link.addEventListener("click", (event) => event.preventDefault());
 });
 // endregion:components-b

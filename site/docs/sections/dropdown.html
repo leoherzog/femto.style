@@ -1,22 +1,23 @@
 <hgroup>
   <p class="chapter">Components</p>
   <h1 id="dropdown">Dropdown</h1>
-  <p><code class="language-html">&lt;details class="dropdown"&gt;</code> is a dropdown: a <code class="language-html">&lt;summary&gt;</code> and a <code class="language-html">&lt;ul&gt;</code> that opens below it.</p>
+  <p><code>&lt;details class="dropdown"&gt;</code> is a dropdown: a <code>&lt;summary&gt;</code> and a <code>&lt;ul&gt;</code> that opens below it.</p>
 </hgroup>
 <section>
-  <p>The <code class="language-html">&lt;ul&gt;</code> comes right after the <code class="language-html">&lt;summary&gt;</code>, both directly inside the <code class="language-html">&lt;details&gt;</code>. The summary looks like a select, and the dropdown is as wide as its container, except in a <a href="#nav">nav</a>. A click outside an open dropdown closes it.</p>
+  <p>The <code>&lt;ul&gt;</code> comes right after the <code>&lt;summary&gt;</code>, both directly inside the <code>&lt;details&gt;</code>. The summary looks like a select, and the dropdown is as wide as its container, except in a <a href="#nav">nav</a>. A click outside an open dropdown closes it.</p>
   <p><code>aria-current</code> on an item’s link shows it as current, with its hover colors.</p>
   <article aria-label="Dropdowns as selects" data-dropdown-example>
-    <div class="grid"><details class="dropdown">
+    <details class="dropdown">
       <summary>Dropdown</summary>
       <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs" aria-current="true">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
+        <li><a href="#">Solid</a></li>
+        <li><a href="#" aria-current="true">Liquid</a></li>
+        <li><a href="#">Gas</a></li>
+        <li><a href="#">Plasma</a></li>
       </ul>
-    </details><select name="select" aria-label="Select" required><option value="" disabled selected>Select</option><option>Solid</option><option>Liquid</option><option>Gas</option><option>Plasma</option></select></div>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Dropdown --&gt;
+    </details>
+    <select name="select" aria-label="Select" required><option value="" disabled selected>Select</option><option>Solid</option><option>Liquid</option><option>Gas</option><option>Plasma</option></select>
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;!-- Dropdown --&gt;
 &lt;details class="dropdown"&gt;
   &lt;summary&gt;Dropdown&lt;/summary&gt;
   &lt;ul&gt;
@@ -39,27 +40,27 @@
 </section>
 <section>
   <h2>Dropdowns with checkboxes and radios</h2>
-  <p>With <code class="language-html">&lt;input type="radio"&gt;</code> or <code class="language-html">&lt;input type="checkbox"&gt;</code> in its items, a dropdown is a custom select.</p>
+  <p>With <code>&lt;input type="radio"&gt;</code> or <code>&lt;input type="checkbox"&gt;</code> in its items, a dropdown is a custom select.</p>
   <article aria-label="Dropdowns with radio buttons or checkboxes">
     <details class="dropdown">
       <summary>Select a phase of matter...</summary>
       <ul>
-        <li><label><input type="radio" name="phase" value="Solid">Solid</label></li>
-        <li><label><input type="radio" name="phase" value="Liquid">Liquid</label></li>
-        <li><label><input type="radio" name="phase" value="Gas">Gas</label></li>
-        <li><label><input type="radio" name="phase" value="Plasma">Plasma</label></li>
+        <li><label><input type="radio" name="phase" value="Solid"> Solid</label></li>
+        <li><label><input type="radio" name="phase" value="Liquid"> Liquid</label></li>
+        <li><label><input type="radio" name="phase" value="Gas"> Gas</label></li>
+        <li><label><input type="radio" name="phase" value="Plasma"> Plasma</label></li>
       </ul>
     </details>
     <details class="dropdown">
       <summary>Select phases of matter...</summary>
       <ul>
-        <li><label><input type="checkbox" name="solid" value="Solid">Solid</label></li>
-        <li><label><input type="checkbox" name="liquid" value="Liquid">Liquid</label></li>
-        <li><label><input type="checkbox" name="gas" value="Gas">Gas</label></li>
-        <li><label><input type="checkbox" name="plasma" value="Plasma">Plasma</label></li>
+        <li><label><input type="checkbox" name="solid" value="Solid"> Solid</label></li>
+        <li><label><input type="checkbox" name="liquid" value="Liquid"> Liquid</label></li>
+        <li><label><input type="checkbox" name="gas" value="Gas"> Gas</label></li>
+        <li><label><input type="checkbox" name="plasma" value="Plasma"> Plasma</label></li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Radios --&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;!-- Radios --&gt;
 &lt;details class="dropdown"&gt;
   &lt;summary&gt;
     Select a phase of matter...
@@ -129,18 +130,18 @@
 </section>
 <section>
   <h2>Button variants</h2>
-  <p><code class="language-html">&lt;summary role="button"&gt;</code> makes the dropdown a button, which takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code> like other buttons (see <a href="#button">Button</a>).</p>
+  <p><code>&lt;summary role="button"&gt;</code> makes the dropdown a button, which takes <code>.secondary</code>, <code>.contrast</code> and <code>.outline</code> like other buttons (see <a href="#button">Button</a>).</p>
   <article aria-label="Dropdown as a button example" data-dropdown-example>
     <details class="dropdown">
       <summary role="button">Dropdown as a button</summary>
       <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
+        <li><a href="#">Solid</a></li>
+        <li><a href="#">Liquid</a></li>
+        <li><a href="#">Gas</a></li>
+        <li><a href="#">Plasma</a></li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;details class="dropdown"&gt;
   &lt;summary role="button"&gt;
     Dropdown as a button
   &lt;/summary&gt;
@@ -152,27 +153,27 @@
 </section>
 <section>
   <h2>Validation states</h2>
-  <p><code>aria-invalid="true"</code> or <code>"false"</code> on the <code class="language-html">&lt;summary&gt;</code> gives it the invalid or valid border color, as on a form field.</p>
+  <p><code>aria-invalid="true"</code> or <code>"false"</code> on the <code>&lt;summary&gt;</code> gives it the invalid or valid border color, as on a form field.</p>
   <article aria-label="Dropdowns with validation states" data-dropdown-example>
     <details class="dropdown">
       <summary aria-invalid="false">Valid phase of matter: Solid</summary>
       <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
+        <li><a href="#">Solid</a></li>
+        <li><a href="#">Liquid</a></li>
+        <li><a href="#">Gas</a></li>
+        <li><a href="#">Plasma</a></li>
       </ul>
     </details>
     <details class="dropdown">
       <summary aria-invalid="true">Debated classification: Plasma</summary>
       <ul>
-        <li><a href="/docs">Solid</a></li>
-        <li><a href="/docs">Liquid</a></li>
-        <li><a href="/docs">Gas</a></li>
-        <li><a href="/docs">Plasma</a></li>
+        <li><a href="#">Solid</a></li>
+        <li><a href="#">Liquid</a></li>
+        <li><a href="#">Gas</a></li>
+        <li><a href="#">Plasma</a></li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details class="dropdown"&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;details class="dropdown"&gt;
   &lt;summary aria-invalid="false"&gt;
     Valid phase of matter: Solid
   &lt;/summary&gt;
@@ -192,29 +193,29 @@
   </article>
 </section>
 <section>
-  <h2>Usage with <code class="language-html">&lt;nav&gt;</code></h2>
-  <p>In a <a href="#nav">nav</a>, a dropdown is as wide as its summary. <code class="language-html">&lt;ul dir="rtl"&gt;</code> lines the list up with the summary’s right edge.</p>
+  <h2>Usage with <code>&lt;nav&gt;</code></h2>
+  <p>In a <a href="#nav">nav</a>, a dropdown is as wide as its summary. <code>&lt;ul dir="rtl"&gt;</code> lines the list up with the summary’s right edge.</p>
   <article aria-label="Dropdowns inside nav" data-dropdown-example>
     <nav aria-label="Dropdown in a nav example">
       <ul>
         <li><strong>Acme Corp</strong></li>
       </ul>
       <ul>
-        <li><a class="secondary" href="/docs">Services</a></li>
+        <li><a class="secondary" href="#">Services</a></li>
         <li>
           <details class="dropdown">
             <summary>Account</summary>
             <ul dir="rtl">
-              <li><a href="/docs">Profile</a></li>
-              <li><a href="/docs">Settings</a></li>
-              <li><a href="/docs">Security</a></li>
-              <li><a href="/docs">Log out</a></li>
+              <li><a href="#">Profile</a></li>
+              <li><a href="#">Settings</a></li>
+              <li><a href="#">Security</a></li>
+              <li><a href="#">Log out</a></li>
             </ul>
           </details>
         </li>
       </ul>
     </nav>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;nav&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;strong&gt;Acme Corp&lt;/strong&gt;&lt;/li&gt;
   &lt;/ul&gt;

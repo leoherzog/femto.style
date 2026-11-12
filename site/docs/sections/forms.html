@@ -11,7 +11,7 @@
       <label>Email<input type="email" placeholder="Email" autocomplete="email" name="email"></label>
       <input type="submit" value="Subscribe">
     </form>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;form&gt;
   &lt;label&gt;
     First name
     &lt;input
@@ -37,12 +37,12 @@
   &gt;
 &lt;/form&gt;</code></pre></footer>
   </article>
-  <p>A field can be inside its <code class="language-html">&lt;label&gt;</code>, or after a label that names it with <code>for</code>.</p>
+  <p>A field can be inside its <code>&lt;label&gt;</code>, or after a label that names it with <code>for</code>.</p>
   <article aria-label="Label and input syntax">
     <label>First name<input type="text" placeholder="First name" autocomplete="given-name" name="first_name"></label>
     <label for="email">Email</label>
     <input type="email" id="email" placeholder="Email" autocomplete="email">
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!-- Input inside label --&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;!-- Input inside label --&gt;
 &lt;label&gt;
   First name
   &lt;input
@@ -65,11 +65,11 @@
 </section>
 <section>
   <h2>Helper text</h2>
-  <p>A <code class="language-html">&lt;small&gt;</code> right after a field is its helper text, in the muted color. With <code>aria-invalid</code> on the field, it takes the valid or invalid color: see <a href="#input">Input</a>.</p>
+  <p>A <code>&lt;small&gt;</code> right after a field is its helper text, in the muted color. With <code>aria-invalid</code> on the field, it takes the valid or invalid color: see <a href="#input">Input</a>.</p>
   <article aria-label="Form helpers example">
     <input type="email" placeholder="Email" autocomplete="email" aria-label="Email" aria-describedby="email-helper" name="forms-email">
     <small id="email-helper">We’ll never share your email with anyone else.</small>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input
   type="email"
   name="email"
   placeholder="Email"
@@ -93,7 +93,7 @@
         <input type="submit" value="Log in">
       </div>
     </form>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;form&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;form&gt;
   &lt;div class="grid"&gt;
     &lt;input
       type="text"

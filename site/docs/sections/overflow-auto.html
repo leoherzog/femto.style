@@ -1,7 +1,7 @@
 <hgroup>
   <p class="chapter">Layout</p>
   <h1 id="overflow-auto">Overflow auto</h1>
-  <p><code>.overflow-auto</code> scrolls content that overflows it, such as a wide&nbsp;table.</p>
+  <p><code>.overflow-auto</code> scrolls content that overflows it, such as a wide table.</p>
 </hgroup>
 <section>
   <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
@@ -61,8 +61,8 @@
       </tbody>
     </table>
   </div>
-  <p>A scroll container with nothing focusable inside needs <code>tabindex="0"</code>, so that keyboard users can scroll it, and a role and a name, such as <code>role="region"</code> and an <code>aria-label</code>, so that screen readers announce&nbsp;it.</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;div class="overflow-auto" tabindex="0" role="region" aria-label="Planets"&gt;
+  <p>A scroll container with nothing focusable inside needs <code>tabindex="0"</code>, so that keyboard users can scroll it, and a role and a name, such as <code>role="region"</code> and an <code>aria-label</code>, so that screen readers announce it.</p>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;div class="overflow-auto" tabindex="0" role="region" aria-label="Planets"&gt;
   &lt;table&gt;
     ...
   &lt;/table&gt;

@@ -16,32 +16,33 @@
 </section>
 <section>
   <p>The <code>@3</code> links and commands in these docs work once 3.0.0 is released, since jsDelivr and npm skip prereleases for <code>@3</code>. Until then, load the alpha by its version, or write <code>@alpha</code> in place of <code>@3</code>:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@{{version}}/dist/femto.min.css"&gt;</code></pre></div>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@{{version}}/dist/femto.min.css"&gt;</code></pre></div>
   <p>From npm, install it pinned to its exact version, since a later alpha may rename things:</p>
-  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-bash">npm install --save-exact @leoherzog/femto@alpha</code></pre></div>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-bash">npm install --save-exact @leoherzog/femto@alpha</code></pre></div>
 </section>
 <section>
   <h2>From a CDN</h2>
   <p>Link femto from <a href="https://www.jsdelivr.com/package/npm/@leoherzog/femto">jsDelivr</a> in the <code>&lt;head&gt;</code> of your page:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
 </section>
 <section>
   <h2>Download</h2>
   <p><a href="https://github.com/leoherzog/femto/archive/{{commit}}.zip">Download femto</a> and link <code>dist/femto.min.css</code>:</p>
-  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;link rel="stylesheet" href="dist/femto.min.css"&gt;</code></pre></div>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;link rel="stylesheet" href="dist/femto.min.css"&gt;</code></pre></div>
 </section>
 <section>
   <h2>npm</h2>
-  <div class="code small" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-bash">npm install @leoherzog/femto</code></pre></div>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-bash">npm install @leoherzog/femto</code></pre></div>
   <p>The <a href="https://www.npmjs.com/package/@leoherzog/femto">package</a>'s main file is <code>dist/femto.min.css</code>, and it exports every file in <code>css/</code> and <code>dist/</code> by its path, such as <code>@leoherzog/femto/css/themes/jade.css</code>. In a CSS file that a bundler processes, import it by those paths:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">@import "@leoherzog/femto";
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-css">@import "@leoherzog/femto";
 @import "@leoherzog/femto/css/themes/jade.css";</code></pre></div>
-  <p>A bundler that rewrites CSS for older browsers can break femto's <a href="#color-schemes">color schemes</a>. Vite 8's production build, for example, minifies CSS with Lightning CSS for browsers older than femto supports, and rewrites every <code>light-dark()</code> into variables that resolve once on <code>:root</code>, so <code>data-theme</code> on an element no longer changes its colors. Set the bundler's CSS targets to femto's <a href="#browser-support">minimum versions</a>. In Vite, set <code>build.cssTarget</code> in <code>vite.config.js</code> to <code>["chrome125", "edge125", "firefox128", "safari17.5", "ios17.5"]</code>.</p>
+  <p>A bundler that rewrites CSS for older browsers can break femto's <a href="#color-schemes">color schemes</a>. Vite 8's production build, for example, minifies CSS with Lightning CSS for browsers older than femto supports, and rewrites every <code>light-dark()</code> into variables that resolve once on <code>:root</code>, so <code>data-theme</code> on an element no longer changes its colors. Set the bundler's CSS targets to femto's <a href="#browser-support">minimum versions</a>, for example in <code>vite.config.js</code>:</p>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-js">export default { build: { cssTarget: ["chrome125", "edge125", "firefox128", "safari17.5", "ios17.5"] } };</code></pre></div>
   <p>List <code>ios17.5</code> as well as <code>safari17.5</code>: without it, Lightning CSS drops <code>-webkit-text-size-adjust</code>, the only form iOS Safari reads. Vite does not accept a Samsung Internet target, and <code>chrome125</code> covers Samsung Internet 27, which is built on Chromium 125.</p>
 </section>
 <section>
   <h2>Starter template</h2>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;!doctype html&gt;
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;!doctype html&gt;
 &lt;html lang="en"&gt;
   &lt;head&gt;
     &lt;meta charset="utf-8"&gt;

@@ -35,7 +35,7 @@
     <h1>Music fest mania</h1>
     <p>Get ready to dance and sing your heart out. Join the crowd, jam to your favorite band, and discover new artists.</p>
     <button type="button">Let's rock out!</button>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;style&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;style&gt;
   :root {
     --femto-border-radius: 2rem;
     --femto-typography-spacing-vertical: 1.5rem;
@@ -66,7 +66,7 @@
 <section>
   <h2>Tokens and color schemes</h2>
   <p>femto declares each color token once, on <code>:root, :host</code>, so one override on <code>:root</code> applies inside every <code>data-theme</code> element (see <a href="#color-schemes">Color schemes</a>). A token that femto or a theme gives a light and a dark value takes them from a pair of tokens of its own, such as <code>--femto-light-primary</code> and <code>--femto-dark-primary</code> for <code>--femto-primary</code>. Set the pair to give each scheme its own value, and set the token itself for one value in both:</p>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-css">:root {
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-css">:root {
   --femto-light-text-selection-color: rgba(244, 93, 44, 0.25);
   --femto-dark-text-selection-color: rgba(245, 107, 61, 0.1875);
   --femto-light-primary: #bd3c13;

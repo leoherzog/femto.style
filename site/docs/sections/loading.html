@@ -4,16 +4,20 @@
   <p><code>aria-busy="true"</code> shows a loading spinner before an element’s content.</p>
 </hgroup>
 <section>
-  <p>It works on any element but form fields, <code class="language-html">&lt;form&gt;</code> and <code class="language-html">&lt;html&gt;</code>. In an empty element, the spinner is centered. On a block:</p>
+  <p>It works on any element but form fields, <code>&lt;form&gt;</code> and <code>&lt;html&gt;</code>. In an empty element, the spinner is centered. On a block:</p>
   <article aria-label="Loading block example" aria-busy="true"></article>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;article aria-busy="true"&gt;&lt;/article&gt;</code></pre></div>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;article aria-busy="true"&gt;&lt;/article&gt;</code></pre></div>
   <p>On an inline element:</p>
-  <article aria-label="Loading inline example"><span aria-busy="true">Generating your link...</span><footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;span aria-busy="true"&gt;Generating your link...&lt;/span&gt;</code></pre></footer></article>
+  <article aria-label="Loading inline example"><span aria-busy="true">Generating your link...</span><footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;span aria-busy="true"&gt;Generating your link...&lt;/span&gt;</code></pre></footer></article>
   <p>On a button. A busy button or link ignores the pointer; give an empty button an <code>aria-label</code>:</p>
   <article aria-label="Loading button examples">
-    <div class="grid" id="buttons"><button type="button" aria-busy="true" aria-label="Please wait…"></button><button type="button" aria-busy="true" aria-label="Please wait…" class="secondary"></button><button type="button" aria-busy="true" aria-label="Please wait…" class="contrast"></button></div>
-    <div class="grid" id="outline-buttons"><button type="button" aria-busy="true" class="outline">Please wait…</button><button type="button" aria-busy="true" class="outline secondary">Please wait…</button><button type="button" aria-busy="true" class="outline contrast">Please wait…</button></div>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;button type="button" aria-busy="true" aria-label="Please wait…"&gt;&lt;/button&gt;
+    <button type="button" aria-busy="true" aria-label="Please wait…"></button>
+    <button type="button" aria-busy="true" aria-label="Please wait…" class="secondary"></button>
+    <button type="button" aria-busy="true" aria-label="Please wait…" class="contrast"></button>
+    <button type="button" aria-busy="true" class="outline">Please wait…</button>
+    <button type="button" aria-busy="true" class="outline secondary">Please wait…</button>
+    <button type="button" aria-busy="true" class="outline contrast">Please wait…</button>
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;button type="button" aria-busy="true" aria-label="Please wait…"&gt;&lt;/button&gt;
 &lt;button type="button" aria-busy="true" aria-label="Please wait…" class="secondary"&gt;&lt;/button&gt;
 &lt;button type="button" aria-busy="true" aria-label="Please wait…" class="contrast"&gt;&lt;/button&gt;
 &lt;button type="button" aria-busy="true" class="outline"&gt;Please wait…&lt;/button&gt;

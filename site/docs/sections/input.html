@@ -11,7 +11,7 @@
     <input type="password" placeholder="Password" aria-label="Password" autocomplete="current-password" name="password">
     <input type="tel" placeholder="Tel" aria-label="Tel" autocomplete="tel" name="tel">
     <input type="url" placeholder="URL" aria-label="URL" name="url">
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="text" name="text" placeholder="Text" aria-label="Text"&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input type="text" name="text" placeholder="Text" aria-label="Text"&gt;
 &lt;input type="email" name="email" placeholder="Email" aria-label="Email" autocomplete="email"&gt;
 &lt;input type="number" name="number" placeholder="Number" aria-label="Number"&gt;
 &lt;input type="password" name="password" placeholder="Password" aria-label="Password" autocomplete="current-password"&gt;
@@ -27,7 +27,7 @@
     <input type="datetime-local" aria-label="Datetime local" name="datetime-local">
     <input type="month" aria-label="Month" name="month">
     <input type="time" aria-label="Time" name="time">
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input type="date" name="date" aria-label="Date"&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input type="date" name="date" aria-label="Date"&gt;
 &lt;input type="datetime-local" name="datetime-local" aria-label="Datetime local"&gt;
 &lt;input type="month" name="month" aria-label="Month"&gt;
 &lt;input type="time" name="time" aria-label="Time"&gt;</code></pre></footer>
@@ -38,7 +38,7 @@
   <p><code>type="search"</code> has rounded ends and a magnifier icon at the start.</p>
   <article aria-label="Search input example">
     <input type="search" placeholder="Search" aria-label="Search" name="search">
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input
   type="search"
   name="search"
   placeholder="Search"
@@ -51,7 +51,7 @@
   <p><code>type="color"</code> has the size and border of the other fields, with a rounded swatch inside.</p>
   <article aria-label="Color input example">
     <input type="color" aria-label="Color picker" value="#ff9500">
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input
   type="color"
   value="#ff9500"
   aria-label="Color picker"
@@ -63,7 +63,7 @@
   <p>The button of <code>type="file"</code> has the <a href="#button">secondary button style</a>.</p>
   <article aria-label="File input example">
     <label>Attachment<input type="file" name="attachment"></label>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;label&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;label&gt;
   Attachment
   &lt;input type="file" name="attachment"&gt;
 &lt;/label&gt;</code></pre></footer>
@@ -71,10 +71,10 @@
 </section>
 <section>
   <h2>Disabled input</h2>
-  <p>A <code>disabled</code> field, or any field in a disabled <code class="language-html">&lt;fieldset&gt;</code>, is dimmed and ignores the pointer.</p>
+  <p>A <code>disabled</code> field, or any field in a disabled <code>&lt;fieldset&gt;</code>, is dimmed and ignores the pointer.</p>
   <article aria-label="Disabled input example">
     <input type="text" placeholder="Disabled" aria-label="Disabled input" disabled name="input-disabled">
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input
   type="text"
   name="text"
   placeholder="Disabled"
@@ -88,7 +88,7 @@
   <p>A <code>readonly</code> field keeps its colors when it has focus, with no focus ring.</p>
   <article aria-label="Read-only input example">
     <input type="text" aria-label="Read-only input" readonly name="input-read-only" value="Read-only">
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input
   type="text"
   name="text"
   value="Read-only"
@@ -99,13 +99,13 @@
 </section>
 <section>
   <h2>Validation states</h2>
-  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a field the invalid or valid border color, and an icon in most text fields. A <code class="language-html">&lt;small&gt;</code> right after the field takes the matching color.</p>
+  <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a field the invalid or valid border color, and an icon in most text fields. A <code>&lt;small&gt;</code> right after the field takes the matching color.</p>
   <article aria-label="Input validation states with helper text example">
-    <input type="text" placeholder="Valid" aria-label="Valid" aria-invalid="false" aria-describedby="input-valid-helper" name="input-helper-valid" value="Valid">
+    <input type="text" aria-label="Valid" aria-invalid="false" aria-describedby="input-valid-helper" name="input-helper-valid" value="Valid">
     <small id="input-valid-helper">Looks good!</small>
-    <input type="text" placeholder="Invalid" aria-label="Invalid" aria-invalid="true" aria-describedby="input-invalid-helper" name="input-helper-invalid" value="Invalid">
+    <input type="text" aria-label="Invalid" aria-invalid="true" aria-describedby="input-invalid-helper" name="input-helper-invalid" value="Invalid">
     <small id="input-invalid-helper">Please provide a valid value!</small>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;input
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;input
   type="text"
   name="valid"
   value="Valid"

@@ -12,7 +12,7 @@
 // - template: femto's starter template, its femto <link> followed by the theme's and the options'.
 // The section file writes the samples as azure with the switches checked in its markup (responsive
 // spacings), the state a fresh load shows, so a fresh load rewrites nothing and shifts nothing.
-// The samples keep the spans build.mjs writes (step 4: one span per color, plain text unwrapped):
+// The samples keep the spans build.mjs writes (step 4: one span per kind, plain text unwrapped):
 // each <link> tag is written as those spans, and the template's other lines keep the spans the
 // build gave them. The package and its version range (@leoherzog/femto@3) are read from
 // the cdn sample as built, so the section file is their one source.
@@ -24,7 +24,7 @@
 //   its own color's name), the example's heading and sentence, the code samples, and the example's
 //   links to the page itself (its Privacy Policy link, which goes nowhere), which carry the color's
 //   page, /docs?theme=<color> (/docs for azure).
-// - A swatch (article.color-picker > header a, href /docs?theme=<color>#theme-picker, or
+// - A swatch (article[data-version-picker] > header a, href /docs?theme=<color>#theme-picker, or
 //   /docs#theme-picker for azure, which also works without JavaScript) switches the color in place:
 //   it loads the color's femto theme stylesheet, then swaps it for the old one and shows the color
 //   in the same task, and replaceStates ?theme= (none for azure), keeping the path, the rest of the
@@ -36,7 +36,6 @@
 //   stylesheet (css/options/<option>.css) is linked, and an unchecked one's link is removed. The page
 //   loads responsive-spacings.css, so that switch is checked in the markup. A reload or a return to
 //   the page can restore other states, which the page follows on load.
-// - Every change of color also animates the header logo for 1 s (class "animated" on its svg).
 // - The page's title, description, canonical and og:url stay the docs page's (Decision 9); docs.js
 //   sets document.title for the section being read.
 // It does nothing on a page without the picker.
@@ -75,7 +74,7 @@ function packageOf(text) {
 const span = (cls, text) => `<span class="${cls}">${escapeText(text)}</span>`;
 
 // <link rel="stylesheet" href="<href>"> as the build highlights it: the tag name, the attribute
-// names and the quoted values in their colors, the rest plain.
+// names and the quoted values in their spans, the rest plain.
 function linkTag(href) {
   const attribute = (name, value) => ` ${span("attr", name)}=${span("value", `"${value}"`)}`;
   return `&lt;${span("tag", "link")}${attribute("rel", "stylesheet")}${attribute("href", href)}&gt;`;
@@ -188,13 +187,8 @@ function picker(article) {
   const selfLinks = [...form.querySelectorAll("a")];
   for (const link of selfLinks) link.addEventListener("click", (event) => event.preventDefault());
 
-  function show(next, animate) {
+  function show(next) {
     color = next;
-    const logo = document.querySelector("header a[data-site-logo] > svg.femto-logo");
-    if (logo && animate) {
-      logo.classList.add("animated");
-      setTimeout(() => logo.classList.remove("animated"), 1000);
-    }
     for (const swatch of swatches) {
       if (colorOf(swatch) === next) {
         setAttr(swatch, "aria-current", "page");
@@ -272,7 +266,7 @@ function picker(article) {
         sheet?.remove();
         sheet = link;
       }
-      if (next !== color) show(next, true);
+      if (next !== color) show(next);
       const query = queryOf(location.search, next);
       if (toUrl && query !== location.search) {
         try {
@@ -310,7 +304,7 @@ function picker(article) {
   const start = location.pathname === "/docs" ? colorOfQuery(location.search, colors) : "azure";
   target = start;
   applyOptions();
-  if (start !== color) show(start, false);
+  if (start !== color) show(start);
   else render();
 }
 

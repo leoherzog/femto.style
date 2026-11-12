@@ -1,10 +1,10 @@
 <hgroup>
   <p class="chapter">Components</p>
   <h1 id="accordion">Accordion</h1>
-  <p>A <code class="language-html">&lt;details&gt;</code> is an accordion: its <code class="language-html">&lt;summary&gt;</code> opens and closes the content, without JavaScript.</p>
+  <p>A <code>&lt;details&gt;</code> is an accordion: its <code>&lt;summary&gt;</code> opens and closes the content, without JavaScript.</p>
 </hgroup>
 <section>
-  <p>The summary ends with a chevron, on the left in right-to-left text, which turns when the accordion opens. Give several <code class="language-html">&lt;details&gt;</code> the same <code>name</code> to keep only one of them open at a time; Firefox 128 and 129 ignore <code>name</code>, so there each opens and closes on its own.</p>
+  <p>The summary ends with a chevron, on the left in right-to-left text, which turns when the accordion opens. Give several <code>&lt;details&gt;</code> the same <code>name</code> to keep only one of them open at a time; Firefox 128 and 129 ignore <code>name</code>, so there each opens and closes on its own.</p>
   <article aria-label="Accordion example">
     <details name="example" open>
       <summary>Accordion 1</summary>
@@ -21,7 +21,7 @@
         <li>Some species of kangaroos can leap up to 30 feet in a single bound.</li>
       </ul>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details name="example" open&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;details name="example" open&gt;
   &lt;summary&gt;Accordion 1&lt;/summary&gt;
   &lt;p&gt;...&lt;/p&gt;
 &lt;/details&gt;
@@ -31,21 +31,20 @@
 &lt;details name="example"&gt;
   &lt;summary&gt;Accordion 2&lt;/summary&gt;
   &lt;ul&gt;
-    &lt;li&gt;...&lt;/li&gt;
-    &lt;li&gt;...&lt;/li&gt;
+    ...
   &lt;/ul&gt;
 &lt;/details&gt;</code></pre></footer>
   </article>
 </section>
 <section>
   <h2>Button variants</h2>
-  <p><code>role="button"</code> makes a <code class="language-html">&lt;summary&gt;</code> look like a button as wide as the accordion.</p>
+  <p><code>role="button"</code> makes a <code>&lt;summary&gt;</code> look like a button as wide as the accordion.</p>
   <article aria-label="Accordion button example">
     <details>
       <summary role="button">Button</summary>
       <p>Owls are nocturnal birds of prey that are known for their distinctive hooting calls. A group of owls is called a parliament, and these birds are often associated with wisdom and intelligence. Owls have excellent hearing and vision, which helps them hunt prey in the dark.</p>
     </details>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;details&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;details&gt;
   &lt;summary role="button"&gt;Button&lt;/summary&gt;
   &lt;p&gt;...&lt;/p&gt;
 &lt;/details&gt;</code></pre></footer>

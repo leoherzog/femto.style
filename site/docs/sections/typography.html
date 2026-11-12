@@ -1,7 +1,7 @@
 <hgroup>
   <p class="chapter">Content</p>
   <h1 id="typography">Typography</h1>
-  <p>The root font size steps up at each breakpoint, and text elements are sized relative to it, so text grows with the&nbsp;screen.</p>
+  <p>The root font size steps up at each breakpoint, and text elements are sized relative to it, so text grows with the screen.</p>
 </hgroup>
 <section data-font-size-demo>
   <!-- [html-validate-disable-next prefer-native-element -- a named, focusable scroll container: a div with role="region", since a section element would add femto's section margin] -->
@@ -30,7 +30,7 @@
           <td><span data-tooltip="131.25% * 16px" data-placement="left">21<small>px</small></span></td>
         </tr>
         <tr>
-          <th scope="row"><code class="language-html">&lt;h1&gt;</code></th>
+          <th scope="row"><code>&lt;h1&gt;</code></th>
           <td><span data-tooltip="100% * 2rem * 16px" data-placement="bottom">32<small>px</small></span></td>
           <td><span data-tooltip="106.25% * 2rem * 16px" data-placement="bottom">34<small>px</small></span></td>
           <td><span data-tooltip="112.5% * 2rem * 16px" data-placement="bottom">36<small>px</small></span></td>
@@ -39,7 +39,7 @@
           <td><span data-tooltip="131.25% * 2rem * 16px" data-placement="left">42<small>px</small></span></td>
         </tr>
         <tr>
-          <th scope="row"><code class="language-html">&lt;h2&gt;</code></th>
+          <th scope="row"><code>&lt;h2&gt;</code></th>
           <td><span data-tooltip="100% * 1.75rem * 16px" data-placement="bottom">28<small>px</small></span></td>
           <td><span data-tooltip="106.25% * 1.75rem * 16px" data-placement="bottom">29.75<small>px</small></span></td>
           <td><span data-tooltip="112.5% * 1.75rem * 16px" data-placement="bottom">31.5<small>px</small></span></td>
@@ -48,7 +48,7 @@
           <td><span data-tooltip="131.25% * 1.75rem * 16px" data-placement="left">36.75<small>px</small></span></td>
         </tr>
         <tr>
-          <th scope="row"><code class="language-html">&lt;h3&gt;</code></th>
+          <th scope="row"><code>&lt;h3&gt;</code></th>
           <td><span data-tooltip="100% * 1.5rem * 16px" data-placement="bottom">24<small>px</small></span></td>
           <td><span data-tooltip="106.25% * 1.5rem * 16px" data-placement="bottom">25.5<small>px</small></span></td>
           <td><span data-tooltip="112.5% * 1.5rem * 16px" data-placement="bottom">27<small>px</small></span></td>
@@ -57,7 +57,7 @@
           <td><span data-tooltip="131.25% * 1.5rem * 16px" data-placement="left">31.5<small>px</small></span></td>
         </tr>
         <tr>
-          <th scope="row"><code class="language-html">&lt;h4&gt;</code></th>
+          <th scope="row"><code>&lt;h4&gt;</code></th>
           <td><span data-tooltip="100% * 1.25rem * 16px" data-placement="bottom">20<small>px</small></span></td>
           <td><span data-tooltip="106.25% * 1.25rem * 16px" data-placement="bottom">21.25<small>px</small></span></td>
           <td><span data-tooltip="112.5% * 1.25rem * 16px" data-placement="bottom">22.5<small>px</small></span></td>
@@ -66,7 +66,7 @@
           <td><span data-tooltip="131.25% * 1.25rem * 16px" data-placement="left">26.25<small>px</small></span></td>
         </tr>
         <tr>
-          <th scope="row"><code class="language-html">&lt;h5&gt;</code></th>
+          <th scope="row"><code>&lt;h5&gt;</code></th>
           <td><span data-tooltip="100% * 1.125rem * 16px" data-placement="bottom">18<small>px</small></span></td>
           <td><span data-tooltip="106.25% * 1.125rem * 16px" data-placement="bottom">19.125<small>px</small></span></td>
           <td><span data-tooltip="112.5% * 1.125rem * 16px" data-placement="bottom">20.25<small>px</small></span></td>
@@ -75,7 +75,7 @@
           <td><span data-tooltip="131.25% * 1.125rem * 16px" data-placement="left">23.625<small>px</small></span></td>
         </tr>
         <tr>
-          <th scope="row"><code class="language-html">&lt;h6&gt;</code></th>
+          <th scope="row"><code>&lt;h6&gt;</code></th>
           <td><span data-tooltip="100% * 1rem * 16px" data-placement="bottom">16<small>px</small></span></td>
           <td><span data-tooltip="106.25% * 1rem * 16px" data-placement="bottom">17<small>px</small></span></td>
           <td><span data-tooltip="112.5% * 1rem * 16px" data-placement="bottom">18<small>px</small></span></td>
@@ -84,7 +84,7 @@
           <td><span data-tooltip="131.25% * 1rem * 16px" data-placement="left">21<small>px</small></span></td>
         </tr>
         <tr>
-          <th scope="row"><code class="language-html">&lt;small&gt;</code></th>
+          <th scope="row"><code>&lt;small&gt;</code></th>
           <td><span data-tooltip="100% * 0.875em * 16px" data-placement="bottom">14<small>px</small></span></td>
           <td><span data-tooltip="106.25% * 0.875em * 16px" data-placement="bottom">14.875<small>px</small></span></td>
           <td><span data-tooltip="112.5% * 0.875em * 16px" data-placement="bottom">15.75<small>px</small></span></td>
@@ -95,10 +95,10 @@
       </tbody>
     </table>
   </div>
-  <p><label><input type="checkbox" role="switch" name="toggle-font-size-in-rem"><span>Display in rem</span></label></p>
+  <p><label><input type="checkbox" role="switch" name="toggle-font-size-in-rem"> Display in rem</label></p>
   <p>The root font size, <code>--femto-font-size</code> on <code>:root</code>, is a percentage, so it follows the visitor's own default font size. It steps up at each breakpoint, from 100% to 131.25%.</p>
-  <p>Headings and other elements are sized in <code>rem</code>, a multiple of the root font size, and <code class="language-html">&lt;small&gt;</code>, <code class="language-html">&lt;sub&gt;</code>, <code class="language-html">&lt;sup&gt;</code> and code in <code>em</code>, a multiple of the text around&nbsp;them.</p>
-  <p>To keep the root font size at 100% at every width, load the <code>css/options/fixed-typography.css</code>&nbsp;<a href="#options">option</a>.</p>
+  <p>Headings and other elements are sized in <code>rem</code>, a multiple of the root font size, and <code>&lt;small&gt;</code>, <code>&lt;sub&gt;</code>, <code>&lt;sup&gt;</code> and code in <code>em</code>, a multiple of the text around them.</p>
+  <p>To keep the root font size at 100% at every width, load the <code>css/options/fixed-typography.css</code> <a href="#options">option</a>.</p>
 </section>
 <section>
   <h2>Headings</h2>
@@ -109,7 +109,7 @@
     <h4>Heading 4</h4>
     <h5>Heading 5</h5>
     <h6>Heading 6</h6>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;h1&gt;Heading 1&lt;/h1&gt;
 &lt;h2&gt;Heading 2&lt;/h2&gt;
 &lt;h3&gt;Heading 3&lt;/h3&gt;
 &lt;h4&gt;Heading 4&lt;/h4&gt;
@@ -119,13 +119,13 @@
 </section>
 <section>
   <h2>Heading group</h2>
-  <p>Inside an <code class="language-html">&lt;hgroup&gt;</code>, the elements have no margins, and the last one, after the heading, is muted.</p>
+  <p>Inside an <code>&lt;hgroup&gt;</code>, the elements have no margins, and the last one, after the heading, is muted.</p>
   <article aria-label="Heading group example">
     <hgroup>
       <h2>Plain CSS for semantic HTML</h2>
       <p>The paragraph after the heading is muted.</p>
     </hgroup>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;hgroup&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;hgroup&gt;
   &lt;h2&gt;Plain CSS for semantic HTML&lt;/h2&gt;
   &lt;p&gt;The paragraph after the heading is muted.&lt;/p&gt;
 &lt;/hgroup&gt;</code></pre></footer>
@@ -135,27 +135,27 @@
   <h2>Inline text elements</h2>
   <div class="grid">
     <div>
-      <p><abbr title="Abbreviation">Abbr.</abbr> <code class="language-html">&lt;abbr&gt;</code></p>
-      <p><strong>Bold</strong> <code class="language-html">&lt;strong&gt;</code> <code class="language-html">&lt;b&gt;</code></p>
-      <p><em>Italic</em> <code class="language-html">&lt;i&gt;</code> <code class="language-html">&lt;em&gt;</code> <code class="language-html">&lt;cite&gt;</code></p>
-      <p><del>Deleted</del> <code class="language-html">&lt;del&gt;</code></p>
-      <p><ins>Inserted</ins> <code class="language-html">&lt;ins&gt;</code></p>
-      <p><kbd>Ctrl + S</kbd> <code class="language-html">&lt;kbd&gt;</code></p>
+      <p><abbr title="Abbreviation">Abbr.</abbr> <code>&lt;abbr&gt;</code></p>
+      <p><strong>Bold</strong> <code>&lt;strong&gt;</code> <code>&lt;b&gt;</code></p>
+      <p><em>Italic</em> <code>&lt;i&gt;</code> <code>&lt;em&gt;</code> <code>&lt;cite&gt;</code></p>
+      <p><del>Deleted</del> <code>&lt;del&gt;</code></p>
+      <p><ins>Inserted</ins> <code>&lt;ins&gt;</code></p>
+      <p><kbd>Ctrl + S</kbd> <code>&lt;kbd&gt;</code></p>
     </div>
     <div>
-      <p><mark>Highlighted</mark> <code class="language-html">&lt;mark&gt;</code></p>
-      <p><s>Strikethrough</s> <code class="language-html">&lt;s&gt;</code></p>
-      <p><small>Small </small><code class="language-html">&lt;small&gt;</code></p>
-      <p>Text <sub>Sub</sub> <code class="language-html">&lt;sub&gt;</code></p>
-      <p>Text <sup>Sup</sup> <code class="language-html">&lt;sup&gt;</code></p>
-      <p><u>Underline</u> <code class="language-html">&lt;u&gt;</code></p>
+      <p><mark>Highlighted</mark> <code>&lt;mark&gt;</code></p>
+      <p><s>Strikethrough</s> <code>&lt;s&gt;</code></p>
+      <p><small>Small </small><code>&lt;small&gt;</code></p>
+      <p>Text <sub>Sub</sub> <code>&lt;sub&gt;</code></p>
+      <p>Text <sup>Sup</sup> <code>&lt;sup&gt;</code></p>
+      <p><u>Underline</u> <code>&lt;u&gt;</code></p>
     </div>
   </div>
 </section>
 <section>
   <h2>Blockquote</h2>
   <blockquote>“Design is a funny word. Some people think design means how it looks. But of course, if you dig deeper, it’s really how it works.”<footer><cite>— Steve Jobs</cite></footer></blockquote>
-  <div class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;blockquote&gt;
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;blockquote&gt;
   “Design is a funny word. Some people think
   design means how it looks. But of course, if
   you dig deeper, it’s really how it works.”
@@ -166,12 +166,12 @@
 </section>
 <section>
   <h2>Horizontal rule</h2>
-  <p>An <code class="language-html">&lt;hr&gt;</code> draws a horizontal&nbsp;line.</p>
+  <p>An <code>&lt;hr&gt;</code> draws a horizontal line.</p>
   <article aria-label="Horizontal rule example">
     <p>Paragraph before the horizontal line.</p>
     <hr>
     <p>Paragraph after the horizontal line.</p>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;p&gt;Paragraph before the horizontal line.&lt;/p&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;p&gt;Paragraph before the horizontal line.&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;Paragraph after the horizontal line.&lt;/p&gt;</code></pre></footer>
   </article>

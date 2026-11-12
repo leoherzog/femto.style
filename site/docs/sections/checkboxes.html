@@ -1,20 +1,20 @@
 <hgroup>
   <p class="chapter">Forms</p>
   <h1 id="checkboxes">Checkboxes</h1>
-  <p><code class="language-html">&lt;input type="checkbox"&gt;</code> is drawn as a bordered box that fills with the primary color and a check when checked.</p>
+  <p><code>&lt;input type="checkbox"&gt;</code> is drawn as a bordered box that fills with the primary color and a check when checked.</p>
 </hgroup>
 <section>
-  <p>Put each checkbox inside its <code class="language-html">&lt;label&gt;</code>. <code>aria-disabled="true"</code> on the label of a disabled checkbox dims the label too.</p>
+  <p>Put each checkbox inside its <code>&lt;label&gt;</code>. <code>aria-disabled="true"</code> on the label of a disabled checkbox dims the label too.</p>
   <article aria-label="Checkboxes example">
     <fieldset>
       <legend>Language preferences:</legend>
-      <label><input type="checkbox" name="english" checked>English</label>
-      <label><input type="checkbox" name="french" checked>French</label>
-      <label><input type="checkbox" name="mandarin">Mandarin</label>
-      <label><input type="checkbox" name="thai">Thai</label>
-      <label aria-disabled="true"><input type="checkbox" disabled name="dothraki">Dothraki</label>
+      <label><input type="checkbox" name="english" checked> English</label>
+      <label><input type="checkbox" name="french" checked> French</label>
+      <label><input type="checkbox" name="mandarin"> Mandarin</label>
+      <label><input type="checkbox" name="thai"> Thai</label>
+      <label aria-disabled="true"><input type="checkbox" disabled name="dothraki"> Dothraki</label>
     </fieldset>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;fieldset&gt;
   &lt;legend&gt;Language preferences:&lt;/legend&gt;
   &lt;label&gt;
     &lt;input type="checkbox" name="english" checked&gt;
@@ -41,10 +41,18 @@
 </section>
 <section>
   <h2>Horizontal stacking</h2>
-  <p>Checkboxes followed by their <code class="language-html">&lt;label for&gt;</code>, rather than inside it, sit side by side on one line.</p>
+  <p>Checkboxes followed by their <code>&lt;label for&gt;</code>, rather than inside it, sit side by side on one line.</p>
   <article aria-label="Horizontal checkboxes example">
-    <fieldset><legend>Language preferences:</legend><input type="checkbox" id="checkboxes-hindi" name="hindi" checked><label for="checkboxes-hindi">Hindi</label><input type="checkbox" id="checkboxes-swahili" name="swahili"><label for="checkboxes-swahili">Swahili</label><input type="checkbox" id="checkboxes-navi" disabled name="navi"><label for="checkboxes-navi" aria-disabled="true">Na'vi</label></fieldset>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;fieldset&gt;
+    <fieldset>
+      <legend>Language preferences:</legend>
+      <input type="checkbox" id="checkboxes-hindi" name="hindi" checked>
+      <label for="checkboxes-hindi">Hindi</label>
+      <input type="checkbox" id="checkboxes-swahili" name="swahili">
+      <label for="checkboxes-swahili">Swahili</label>
+      <input type="checkbox" id="checkboxes-navi" disabled name="navi">
+      <label for="checkboxes-navi" aria-disabled="true">Na'vi</label>
+    </fieldset>
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;fieldset&gt;
   &lt;legend&gt;Language preferences:&lt;/legend&gt;
   &lt;input type="checkbox" id="hindi" name="hindi" checked&gt;
   &lt;label for="hindi"&gt;Hindi&lt;/label&gt;
@@ -59,8 +67,8 @@
   <h2>Indeterminate</h2>
   <p>A checkbox whose <code>indeterminate</code> property a script sets to <code>true</code> shows a dash instead of a check.</p>
   <article aria-label="Indeterminate checkbox example" data-indeterminate-example>
-    <label><input type="checkbox" name="indeterminate">Indeterminate</label>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;label&gt;
+    <label><input type="checkbox" name="indeterminate"> Indeterminate</label>
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;label&gt;
   &lt;input type="checkbox" id="indeterminate" name="indeterminate"&gt;
   Indeterminate
 &lt;/label&gt;
@@ -75,9 +83,9 @@
   <h2>Validation states</h2>
   <p><code>aria-invalid="true"</code> or <code>"false"</code> gives a checkbox the invalid or valid border color, and fills a checked one with that color.</p>
   <article aria-label="Checkbox validation states example">
-    <label><input type="checkbox" aria-invalid="false" name="checkboxes-valid">Valid</label>
-    <label><input type="checkbox" aria-invalid="true" name="checkboxes-invalid">Invalid</label>
-    <footer class="code" data-theme="dark"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre class="prismjs"><code class="language-html">&lt;label&gt;
+    <label><input type="checkbox" aria-invalid="false" name="checkboxes-valid"> Valid</label>
+    <label><input type="checkbox" aria-invalid="true" name="checkboxes-invalid"> Invalid</label>
+    <footer class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;label&gt;
   &lt;input type="checkbox" name="valid" aria-invalid="false"&gt;
   Valid
 &lt;/label&gt;
