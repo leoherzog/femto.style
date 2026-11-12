@@ -1,7 +1,7 @@
 /* Code blocks: femto's <pre> in a .code wrapper with its copy button, as an article footer or on
-   its own, and the focus of a code block that scrolls. The code is femto's: its one code color,
-   monospace font, size and padding. The highlighting spans that build.mjs writes (step 4) take
-   that one color too. */
+   its own, the focus of a code block that scrolls, and the four colors of highlighted code
+   (build.mjs, step 4), common.css's --site-code-* tokens. The rest of the code is femto's: its code
+   color for plain text, monospace font, size and padding. */
 
 /* The wrapper places the copy button, outside the <pre>, which scrolls */
 .code {
@@ -62,4 +62,25 @@ article footer.code {
 
 article footer.code pre {
   margin-bottom: 0;
+}
+
+/* The colors of highlighted code: one class per color, which build.mjs writes from Prism's tokens
+   (step 4), and picker.js, docs.js, demo.js and index.html's demo sample write the same way. tag:
+   tag names and CSS properties; attr: attribute names, selectors, keywords, booleans and functions;
+   value: attribute values with their quotes, and strings; comment: comments and doctypes. Plain
+   text between them, most punctuation among it, keeps femto's code color */
+code .tag {
+  color: var(--site-code-tag);
+}
+
+code .attr {
+  color: var(--site-code-attr);
+}
+
+code .value {
+  color: var(--site-code-value);
+}
+
+code .comment {
+  color: var(--site-code-comment);
 }

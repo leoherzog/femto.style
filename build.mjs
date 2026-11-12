@@ -23,10 +23,10 @@
 //    assets/femto-color-palette.json: femto.colors.css's --femto-color-<family>-<shade> hex values by
 //    family and shade, as JSON.stringify(palette, null, 2).
 // 4. Highlight. Every <code class="language-X"> holds escaped source text only; Prism tokenizes it and
-//    the build writes each run of one kind as one span classed by its kind (colorOf: tag, attr, value
-//    or comment; code.css colors none of them, so code is femto's one --femto-code-color); plain
-//    text, most punctuation among it, is not wrapped. "html" is Prism's markup grammar, which inlines
-//    CSS and JavaScript, and "js" its javascript grammar.
+//    the build writes each run of one color as one span whose class names the color (colorOf: tag,
+//    attr, value or comment, the four colors code.css draws); plain text, most punctuation among it,
+//    is not wrapped and keeps femto's --femto-code-color. "html" is Prism's markup grammar, which
+//    inlines CSS and JavaScript, and "js" its javascript grammar.
 //    The <pre> around such a code block, written <pre> exactly, gets tabindex="0" and the hook
 //    data-scroll-focus: a block whose code is wider than it scrolls sideways, and the keyboard can
 //    scroll it only once it takes focus (axe's scrollable-region-focusable, criterion 10). Which
@@ -75,7 +75,7 @@ function strip(text, language, where) {
   return out + marked.slice(last);
 }
 
-// --- 4. Highlighting: Prism's tokens as runs of text, each run's kind, one span per run of one kind.
+// --- 4. Highlighting: Prism's tokens as runs of text, each run's color, one span per color run.
 function runs(tokens, types = [], out = []) { // each text run with the types and aliases of the tokens around it
   for (const t of Array.isArray(tokens) ? tokens : [tokens]) {
     if (typeof t !== "string") runs(t.content, types.concat(t.type, t.alias ?? []), out);
@@ -83,8 +83,8 @@ function runs(tokens, types = [], out = []) { // each text run with the types an
   }
   return out;
 }
-// The kinds: a tag's punctuation (<, >, the attribute's =) is plain, an attribute value's quotes
-// are part of the value, and a whole doctype is a comment.
+// The four colors code.css draws: a tag's punctuation (<, >, the attribute's =) is plain, an
+// attribute value's quotes take its color, and so does a whole doctype.
 function colorOf(types) {
   const has = (...names) => names.some((name) => types.has(name));
   if (has("doctype") || has("comment") && !has("punctuation")) return "comment";

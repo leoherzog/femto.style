@@ -5,12 +5,19 @@
 
 /**
  * Site tokens: the site's own colors, named --site-* so they never pass for femto's: the logo's
- * wordmark and sparkle, femto's brand colors. Each is one light-dark() pair on :root, as femto
- * declares its color tokens, so femto's color-scheme picks the side.
+ * wordmark and sparkle, femto's brand colors, and the four colors of highlighted code (code.css).
+ * Each is one light-dark() pair on :root, as femto declares its color tokens, so femto's
+ * color-scheme picks the side. Each code color keeps 4.5:1 on femto's code background and its card
+ * sectioning background in both schemes (criterion 10); --site-code-comment, the lowest, is 4.57:1
+ * in light and 4.83:1 in dark on the code background (femto ae9a602).
  */
 :root {
   --site-logo-wordmark: light-dark(#2a3140, #fff);
   --site-logo-sparkle: light-dark(#ff9500, #ffbf00);
+  --site-code-tag: light-dark(#8b4f00, rgb(186.75, 150.5, 43.75));
+  --site-code-attr: light-dark(rgb(152, 45.75, 121), rgb(199, 131.5, 183));
+  --site-code-value: light-dark(#2e685b, rgb(112.5, 163.5, 161.25));
+  --site-code-comment: light-dark(#667080, #828b9b);
 }
 
 /**
