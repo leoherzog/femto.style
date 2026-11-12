@@ -275,7 +275,7 @@ button[data-scheme-switcher] > span[role=img] {
    their line's baseline, as text is. A context sizes an icon with font-size, and draws one glyph in
    another font where it needs to.
    The text characters (check ✓, close ✕, copy ⧉, edit ✎, menu ☰, arrow →, Grid's ⊕ and ⊖, the
-   homepage's ⤢, ◐, ⇄, { } and </>) have no emoji form, so every platform draws them with its own
+   homepage's ⇱, ◐, ⇄, { } and </>) have no emoji form, so every platform draws them with its own
    text fonts, in the element's color; the emoji (the theme toggle's, the homepage's ⚙️) are drawn
    in one color by their contexts, as a transparent glyph and its shadow. */
 span[role=img] {
