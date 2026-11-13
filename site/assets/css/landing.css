@@ -17,6 +17,11 @@ body > main > section {
  * Hero
  */
 
+/* The hero starts 4rem below femto's main padding, half the sections' distance */
+body > main > .hero {
+  margin-top: 4rem;
+}
+
 /* The one <link> to copy, a one-line code block under the tagline. In femto's 950px container,
    from 1024px to 1279px, its <pre> is 0.68em in place of femto's 0.875em, so at the browser's
    default font size the line fits without a scroll; from 1280px it fits at femto's size. Below
