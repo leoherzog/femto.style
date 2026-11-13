@@ -17,9 +17,9 @@ body > main > section {
  * Hero
  */
 
-/* The hero starts 4rem below femto's main padding, half the sections' distance */
+/* The hero starts 8rem below femto's main padding, the sections' distance (the owner, 2026-11-13) */
 body > main > .hero {
-  margin-top: 4rem;
+  margin-top: 8rem;
 }
 
 /* The one <link> to copy, a one-line code block under the tagline. In femto's 950px container,
