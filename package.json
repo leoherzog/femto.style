@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "dev": "node build.mjs && { node --watch-path=site --watch-path=build.mjs build.mjs & B=$!; wrangler pages dev dist --ip 127.0.0.1 --port 8723 --show-interactive-dev-session=false & S=$!; trap 'kill $B $S 2>/dev/null' EXIT INT TERM; wait; }",
+    "dev": "node build.mjs && { node --watch-path=site --watch-path=build.mjs --watch-path=markdown.mjs build.mjs & B=$!; wrangler pages dev dist --ip 127.0.0.1 --port 8723 --show-interactive-dev-session=false & S=$!; trap 'kill $B $S 2>/dev/null' EXIT INT TERM; wait; }",
     "vendor": "node vendor.mjs",
     "lint": "eslint --max-warnings 0 site"
   },

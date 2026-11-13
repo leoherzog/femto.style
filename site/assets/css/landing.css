@@ -1,18 +1,21 @@
-/* The homepage's styles, after common.css: the hero's link snippet, the typing demo, femto off and
-   on with its theme swatches, the features' icons and the arrow icon. The page, its sections and
-   cards keep femto's own spacing, and the colors here are femto's tokens, so they follow femto's
-   scheme and theme color. */
+/* The homepage's styles, after common.css: the sections' spacing, the hero's link snippet, the
+   typing demo, femto off and on with its theme swatches, the features' icons and the arrow icon.
+   The page and its cards keep femto's own spacing, and the colors here are femto's tokens, so they
+   follow femto's scheme and theme color. */
+
+/**
+ * Sections
+ */
+
+/* The homepage's sections (the hero, the typing demo, less markup, femto off and on, and the
+   features) stand 8rem apart, in place of femto's one block spacing (the owner, 2026-11-12) */
+body > main > section {
+  margin-bottom: 8rem;
+}
 
 /**
  * Hero
  */
-
-/* The hook (the hgroup, the link snippet and the call-to-action buttons) and the demo card fill the
-   container, one above the other. femto's .grid has no margin, so the hook ends with a block
-   spacing before the card */
-body > main > .hero > .hook {
-  margin-bottom: var(--femto-block-spacing-vertical);
-}
 
 /* The one <link> to copy, a one-line code block under the tagline. In femto's 950px container,
    from 1024px to 1279px, its <pre> is 0.68em in place of femto's 0.875em, so at the browser's
@@ -32,7 +35,7 @@ body > main > .hero > .hook {
    at the default font size), so the page below it never moves as the demo changes. Its code is a
    moving picture that demo.js redraws at every step, which would tear down a reader's text
    selection, so the card takes none */
-body > main > .hero > .demo > article {
+body > main > .demo > article {
   position: relative;
   height: 24.3125rem;
   -webkit-user-select: none;
@@ -41,79 +44,79 @@ body > main > .hero > .demo > article {
 }
 
 @media (min-width: 1280px) {
-  body > main > .hero > .demo > article {
+  body > main > .demo > article {
     height: 20.5rem;
   }
 }
 
 /* The form ends at its last control, with no margin below it: the input alone, the helper text, a
    checkbox's or range's label, or the group */
-body > main > .hero > .demo > article form input:only-child,
-body > main > .hero > .demo > article form small,
-body > main > .hero > .demo > article form label,
-body > main > .hero > .demo > article form:is([role=group], [role=search]) {
+body > main > .demo > article form input:only-child,
+body > main > .demo > article form small,
+body > main > .demo > article form label,
+body > main > .demo > article form:is([role=group], [role=search]) {
   margin-bottom: 0;
 }
 
 /* The form is inert (index.html), so it never takes focus: demo.js marks the control the code
    focuses with .is-focused, drawn here as femto's :focus rules draw it. The search form with its
    focused button (phase.busy) takes the group's focus ring */
-body > main > .hero > .demo > article form[role=search].is-focused {
+body > main > .demo > article form[role=search].is-focused {
   --femto-group-box-shadow: var(--femto-group-box-shadow-focus-with-button);
 }
 
-body > main > .hero > .demo > article form[role=search].is-focused input:not([type=checkbox], [type=radio]) {
+body > main > .demo > article form[role=search].is-focused input:not([type=checkbox], [type=radio]) {
   border-color: transparent;
 }
 
-body > main > .hero > .demo > article form[role=search].is-focused button {
+body > main > .demo > article form[role=search].is-focused button {
   box-shadow: none;
 }
 
 /* A focused input, as femto's basics.css draws one: the active background on all but a checkbox,
    the active border on all but a switch, and the focus ring on all but a range */
-body > main > .hero > .demo > article form input:not([type=checkbox]).is-focused {
+body > main > .demo > article form input:not([type=checkbox]).is-focused {
   --femto-background-color: var(--femto-form-element-active-background-color);
 }
 
-body > main > .hero > .demo > article form input:not([role=switch]).is-focused {
+body > main > .demo > article form input:not([role=switch]).is-focused {
   --femto-border-color: var(--femto-form-element-active-border-color);
 }
 
-body > main > .hero > .demo > article form input:not([type=range]).is-focused {
+body > main > .demo > article form input:not([type=range]).is-focused {
   --femto-box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-form-element-focus-color);
 }
 
 /* The range as it is moved: femto's active track and thumb colors, and the thumb grown as femto
    grows it while it is pressed */
-body > main > .hero > .demo > article form input[type=range].is-focused {
+body > main > .demo > article form input[type=range].is-focused {
   --femto-range-border-color: var(--femto-range-active-border-color);
   --femto-range-thumb-color: var(--femto-range-thumb-active-color);
 }
 
-body > main > .hero > .demo > article form input[type=range].is-focused::-webkit-slider-thumb {
+body > main > .demo > article form input[type=range].is-focused::-webkit-slider-thumb {
   transform: scale(1.25);
 }
 
-body > main > .hero > .demo > article form input[type=range].is-focused::-moz-range-thumb {
+body > main > .demo > article form input[type=range].is-focused::-moz-range-thumb {
   transform: scale(1.25);
 }
 
 /* A focused button, in femto's focused button colors */
-body > main > .hero > .demo > article form button.is-focused {
+body > main > .demo > article form button.is-focused {
   --femto-background-color: var(--femto-primary-hover-background);
   --femto-border-color: var(--femto-primary-hover-border);
 }
 
 /* The code never scrolls, as the picture it is, and it has no background of its own: it sits on
    the card's footer, and passes under the Pause button's box */
-body > main > .hero > .demo > article footer.code pre {
+body > main > .demo > article footer.code pre {
   overflow: clip;
   background: none;
 }
 
 /* demo.js's caret, a "|" that takes no width, centered on the point between two characters */
-body > main > .hero > .demo > article footer.code code > span[aria-hidden=true] {
+body > main > .demo > article footer.code code > span[aria-hidden=true] {
   display: inline-block;
   width: 0;
   transform: translateX(-0.25em);
@@ -121,7 +124,7 @@ body > main > .hero > .demo > article footer.code code > span[aria-hidden=true] 
 
 /* The pause control (WCAG 2.2.2): femto's secondary outline button at the card's bottom right. Its
    box takes the card's background, so code that reaches the corner passes under it */
-body > main > .hero > .demo > article .controls {
+body > main > .demo > article .controls {
   position: absolute;
   inset-inline-end: 0;
   bottom: 0;
@@ -131,7 +134,7 @@ body > main > .hero > .demo > article .controls {
 }
 
 /* femto's [type=button] margin would lift the button in its box */
-body > main > .hero > .demo > article .controls button {
+body > main > .demo > article .controls button {
   margin: 0;
 }
 
@@ -235,7 +238,7 @@ body > main a > span[role=img] {
    demo's Pause, and the femto switch and theme swatches */
 @media print {
   body > main > .hero .hook .grid.ctas,
-  body > main > .hero > .demo > article .controls,
+  body > main > .demo > article .controls,
   body > main > .proof > .toolbar {
     display: none;
   }

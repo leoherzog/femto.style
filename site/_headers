@@ -13,9 +13,21 @@
 # year: they are pinned files whose names never change, so a changed font needs a new file name, and
 # its @font-face rule a new url(). Everything else, OFL.txt beside them included, keeps Pages'
 # default, "public, max-age=0, must-revalidate", so a deploy shows at once.
+#
+# Markdown (PLAN.md Decision 19): the zone answers /docs with /docs.md's body when the request's
+# Accept names text/markdown, so both vary on Accept. /docs also names /docs.md in a Link header, for
+# a client that reads headers and not the page's head. No rule sets a Content-Type: Pages types .md
+# files itself, and a rule's type would also reach the 404 page under its path.
 /*
   Strict-Transport-Security: max-age=300
   Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'none'
+
+/docs
+  Vary: Accept
+  Link: </docs.md>; rel="alternate"; type="text/markdown"
+
+/docs.md
+  Vary: Accept
 
 /assets/css/*
   Cache-Control: public, max-age=300

@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Mechanical checks for PLAN.md acceptance criteria 4 to 15, the link check and femto's release check.
+"""Mechanical checks for PLAN.md acceptance criteria 4 to 16, the link check and femto's release check.
 
   uv run tests/static_checks.py                        every criterion and the link check
   uv run tests/static_checks.py --criteria 4,5,12      some of them
@@ -320,6 +320,13 @@ Interpretations, where PLAN's wording leaves a choice:
   any element (a Decision 12 violation); scripts in <template> or <noscript> never run on load. The
   run-time loads and the layout-shift part (the behavior mode) need a browser, so 15 stays NOT-YET
   here, like 7 and 10.
+- 16: the docs as Markdown (Decision 19), read from dist/: docs/<id>.md for each section in
+  menu.json and nothing else under docs/, docs-full.md their join and llms.txt docs.md; the index's
+  categories and section links in menu order; each section file's h1 and its fenced blocks against
+  the code samples of site/docs/sections/<id>.html, which this check parses itself; no HTML but <br>
+  outside code and only absolute links; docs.html's rel="alternate" link; and _headers' Vary: Accept
+  on /docs and /docs.md, its Link header naming /docs.md on /docs, and no Content-Type rule. The zone's rewrite rule is not checked: it runs
+  only on femto.style (PLAN.md Risks, Markdown).
 """
 
 from __future__ import annotations
@@ -6270,11 +6277,164 @@ def check_release(ctx: Context) -> Result:
     return r
 
 
+# ---------------------------------------------------------------------------- criterion 16
+
+MD_ORIGIN = "https://femto.style"
+MD_FENCE = re.compile(r"^(`{3,})([\w-]*)\n(.*?)\n\1$", re.M | re.S)
+
+
+def md_prose(text: str) -> str:
+    """A Markdown file without its fenced code blocks and code spans."""
+    return re.sub(r"(`+)(?!`).+?(?<!`)\1(?!`)", "", MD_FENCE.sub("", text))
+
+
+def criterion_16(ctx: Context) -> Result:
+    """The docs as Markdown (Decision 19), read from dist/ and compared with the section files, which
+    this check parses itself (parse_html), never through build.mjs or markdown.mjs."""
+    r = Result(16, "Markdown")
+    site, dist = ctx.site, ctx.dist
+    if not dist.is_dir():
+        r.not_yet("no dist/ (npm run build writes it)")
+        return r
+    try:
+        categories = json.loads((site / "docs/menu.json").read_text(encoding="utf-8"))["categories"]
+        ids = [s["id"] for c in categories for s in c["sections"]]
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        r.fail(f"site/docs/menu.json cannot be read for its categories and sections: {exc}")
+        return r
+
+    def read(name: str) -> str | None:
+        f = dist / name
+        return f.read_text(encoding="utf-8") if f.is_file() else None
+
+    # (a) The files: one per section, the index twice and the whole.
+    want = {f"docs/{i}.md" for i in ids}
+    have = {p.relative_to(dist).as_posix() for p in (dist / "docs").rglob("*") if p.is_file()} if (dist / "docs").is_dir() else set()
+    r.fails(f"{len(want - have)} section(s) have no Markdown file in dist/docs/:", sorted(want - have), "more files")
+    r.fails(f"dist/docs/ holds {len(have - want)} file(s) that are not a section's Markdown:", sorted(have - want), "more files")
+    index, whole = read("docs.md"), read("docs-full.md")
+    for name, text in (("docs.md", index), ("docs-full.md", whole), ("llms.txt", read("llms.txt"))):
+        if text is None:
+            r.fail(f"dist/{name} is missing")
+    if want - have or have - want or index is None or whole is None:
+        return r
+    files = {i: read(f"docs/{i}.md") for i in ids}
+    if read("llms.txt") not in (None, index):
+        r.fail("dist/llms.txt is not dist/docs.md byte for byte")
+    if whole != "\n".join(files[i] for i in ids):
+        r.fail("dist/docs-full.md is not the section files in menu order, joined by one newline")
+    else:
+        r.ok(f"dist/docs/ holds one Markdown file for each of the {len(ids)} sections and nothing else; docs-full.md is all "
+             "of them in menu order, and llms.txt is docs.md")
+
+    # (b) The index: the docs page's description, then each category with its sections' links, in menu order.
+    docs = ctx.page(dist / "docs.html") if (dist / "docs.html").is_file() else None
+    description = next((m.attrs.get("content", "") for m in docs.find_all("meta") if m.attrs.get("name") == "description"), None) if docs else None
+    lines = index.split("\n")
+    bad = []
+    if lines[0] != "# femto":
+        bad.append(f"line 1 is {lines[0]!r}, not '# femto'")
+    if description is None or f"> {description}" not in lines:
+        bad.append(f"no line is the docs page's description as a quote: > {description}")
+    found = []
+    for line in lines[1:]:
+        if m := re.fullmatch(r"## (.+)", line):
+            found.append(("category", m.group(1)))
+        elif m := re.match(r"- \[.+?\]\((\S+?)\)(?:: \S.*)?$", line):
+            found.append(("section", m.group(1)))
+        elif line.startswith(("-", "#")):
+            bad.append(f"a line that is neither a category nor a section's link: {line[:80]!r}")
+    wanted = [x for c in categories for x in [("category", c["title"]), *(("section", f"{MD_ORIGIN}/docs/{s['id']}.md") for s in c["sections"])]]
+    if found != wanted:
+        at = next((i for i, (a, b) in enumerate(zip(found, wanted)) if a != b), min(len(found), len(wanted)))
+        bad.append(f"its categories and section links are not menu.json's, in order: item {at + 1} is "
+                   f"{found[at] if at < len(found) else None}, expected {wanted[at] if at < len(wanted) else None}")
+    if f"]({MD_ORIGIN}/docs-full.md)" not in index:
+        bad.append(f"no link to {MD_ORIGIN}/docs-full.md")
+    r.fails("dist/docs.md is not the index of the sections:", bad)
+    if not bad:
+        r.ok(f"docs.md opens with '# femto' and the docs page's description, links docs-full.md, and lists menu.json's "
+             f"{len(categories)} categories and {len(ids)} sections in order, each section linked at {MD_ORIGIN}/docs/<id>.md")
+
+    # (c) Each section file: its h1, and exactly the section's code samples, in order.
+    source = ctx.source() or {}
+    bad, blocks = [], 0
+    for i in ids:
+        src = (site / "docs/sections" / f"{i}.html").read_text(encoding="utf-8")
+        src = re.sub(r"\{\{(version|commit)\}\}", lambda m: html.escape(source.get(m.group(1), "")), src)
+        doc = parse_html(src)
+        h1 = next((" ".join(n.text().split()) for n in doc.find_all("h1")), "")
+        first = files[i].split("\n", 1)[0]
+        if md_prose(first).replace("\\", "") != md_prose(f"# {h1}").replace("\\", "") or not first.startswith("# "):
+            bad.append(f"dist/docs/{i}.md: line 1 is {first!r}, not the section's h1, {h1!r}")
+        samples = [(next(c[9:] for c in n.classes() if c.startswith("language-")), n.text().removesuffix("\n"))
+                   for n in doc.find_all("code") if any(c.startswith("language-") for c in n.classes())]
+        fences = [(m.group(2), m.group(3)) for m in MD_FENCE.finditer(files[i])]
+        blocks += len(fences)
+        if fences != samples:
+            at = next((k for k, (a, b) in enumerate(zip(fences, samples)) if a != b), min(len(fences), len(samples)))
+            bad.append(f"dist/docs/{i}.md has {len(fences)} fenced block(s) and site/docs/sections/{i}.html {len(samples)} code "
+                       f"sample(s); the first difference is block {at + 1}")
+    r.fails(f"{len(bad)} section file(s) do not open with their h1 or do not hold exactly their section's code samples:", bad, "more")
+    if not bad:
+        r.ok(f"each section file opens with its h1, and its fenced blocks are its section's code samples, language and text, "
+             f"in order ({blocks} in all)")
+
+    # (d) No markup left over, and every link absolute, the docs' own to a section's file.
+    bad = []
+    for name, text in [("docs.md", index), *((f"docs/{i}.md", files[i]) for i in ids)]:
+        prose = md_prose(text)
+        tags = sorted(set(re.findall(r"(?<!\\)<(?!br>)[A-Za-z/!][^>\n]{0,30}", prose)))
+        if tags:
+            bad.append(f"dist/{name}: HTML outside code: {', '.join(tags[:4])}")
+        if "{{" in text:
+            bad.append(f"dist/{name}: an unfilled {{{{placeholder}}}}")
+        for url in re.findall(r"\]\(([^)\s]*)\)", prose):
+            u = urlsplit(url)
+            if u.scheme not in ("http", "https") or not u.netloc:
+                bad.append(f"dist/{name}: the link {url!r} is not absolute")
+            elif url.startswith(f"{MD_ORIGIN}/docs/") and url.removeprefix(f"{MD_ORIGIN}/") not in want:
+                bad.append(f"dist/{name}: the link {url!r} names no section's file")
+            elif url.startswith(f"{MD_ORIGIN}/docs#"):
+                bad.append(f"dist/{name}: the link {url!r} goes to the HTML page, not the section's file")
+    r.fails(f"{len(bad)} problem(s) in the Markdown files' prose and links:", bad, "more")
+    if not bad:
+        r.ok("outside code the Markdown files hold no HTML but <br>, no unfilled placeholder, and only absolute links, "
+             "each link into the docs naming a section's file")
+
+    # (e) How an agent finds it: the docs page's alternate link, and Vary on the two negotiated paths.
+    alternates = [n for n in (docs.find_all("link") if docs else []) if "alternate" in n.attrs.get("rel", "").split()]
+    if [(n.attrs.get("type"), n.attrs.get("href")) for n in alternates] != [("text/markdown", "/docs.md")]:
+        r.fail('dist/docs.html does not have exactly one <link rel="alternate">, type text/markdown, href /docs.md')
+    else:
+        r.ok('docs.html links its Markdown: <link rel="alternate" type="text/markdown" href="/docs.md">')
+    headers = (site / "_headers").read_text(encoding="utf-8") if (site / "_headers").is_file() else ""
+    rules: dict[str, list[str]] = {}
+    path = None
+    for line in headers.splitlines():
+        if line.strip() and not line.startswith("#"):
+            if line[0] in " \t":
+                rules.setdefault(path, []).append(" ".join(line.split()).lower())
+            else:
+                path = line.strip()
+    no_vary = [p for p in ("/docs", "/docs.md") if "vary: accept" not in rules.get(p, [])]
+    r.fails("site/_headers does not send Vary: Accept on:", no_vary)
+    typed = sorted(p for p, lines in rules.items() if any(x.startswith("content-type:") for x in lines))
+    r.fails("site/_headers sets a Content-Type, which would also reach the 404 page under that path (Pages types .md "
+            "files itself):", typed)
+    link = 'link: </docs.md>; rel="alternate"; type="text/markdown"'
+    if link not in rules.get("/docs", []):
+        r.fail(f"site/_headers does not send /docs the header {link!r}")
+    if not no_vary and not typed and link in rules.get("/docs", []):
+        r.ok("_headers sends Vary: Accept on /docs and /docs.md, a Link header naming /docs.md on /docs, and sets no Content-Type")
+    return r
+
+
 # ---------------------------------------------------------------------------- main
 
 
 CHECKS = {4: criterion_4, 5: criterion_5, 6: criterion_6, 7: criterion_7, 8: criterion_8, 9: criterion_9,
-          10: criterion_10, 11: criterion_11, 12: criterion_12, 13: criterion_13, 14: criterion_14, 15: criterion_15,
+          10: criterion_10, 11: criterion_11, 12: criterion_12, 13: criterion_13, 14: criterion_14, 15: criterion_15, 16: criterion_16,
           "links": check_links, "release": check_release}
 NAMED_ONLY = {"release"}  # runs only when --criteria names it: it asks GitHub, so it runs by hand
 RETIRED = {1, 2, 3}  # the conversion's parity criteria (the owner, 2026-11-09)
@@ -6282,8 +6442,8 @@ RETIRED = {1, 2, 3}  # the conversion's parity criteria (the owner, 2026-11-09)
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="static_checks.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--criteria", help="comma-separated criterion numbers, 4 to 15, 'links' for the link check and "
-                                           "'release' for femto's release check (default: 4 to 15 and links)")
+    parser.add_argument("--criteria", help="comma-separated criterion numbers, 4 to 16, 'links' for the link check and "
+                                           "'release' for femto's release check (default: 4 to 16 and links)")
     parser.add_argument("--external", action="store_true", help="the link check also fetches every external URL once")
     parser.add_argument("--json", metavar="FILE", help="also write the results to FILE as JSON")
     parser.add_argument("--strict", action="store_true", help="count NOT-YET as a failure")

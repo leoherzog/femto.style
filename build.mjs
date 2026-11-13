@@ -33,10 +33,14 @@
 //    blocks scroll depends on the viewport, so without JavaScript every one takes focus; site.js then
 //    keeps tabindex="0" only on the blocks that overflow, and names those.
 // 5. Sitemap. sitemap.xml lists the canonical URL of every page except 404.html and noindex pages.
+// 6. Markdown (Decision 19). markdown.mjs turns each section file, its placeholders filled, into
+//    docs/<id>.md, and writes their index, docs.md and llms.txt, and all of them, docs-full.md. Their
+//    links are absolute, at the origin of the docs page's canonical URL.
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { markdown } from "./markdown.mjs";
 
 const require = createRequire(import.meta.url);
 const Prism = require("prismjs"); // core with markup, css, clike and javascript
@@ -130,20 +134,19 @@ function expand(html, page, depth = 0) {
     return text;
   });
 }
+const fill = (html, values, where) => html.replace(/\{\{(\w+)\}\}/g, (m, key) => values[key] != null ? esc(values[key]) : fail(`${where}: no value for ${m}`));
 function render(html, page) {
   html = expand(html, page);
   if (html.includes("<!-- include ")) fail(`${page.file}: an include marker must be alone on its line`);
   if (/<code(?! class="language-[\w-]+">)[^>]*language-/.test(html)) fail(`${page.file}: write code as <code class="language-X"> exactly`);
   if (/<pre[^>]+><code class="language-/.test(html)) fail(`${page.file}: write a code block's <pre> as <pre> exactly`);
-  const values = { version: page.version, commit: page.commit, title: page.title, description: page.description };
-  html = html.replace(/\{\{(\w+)\}\}/g, (m, key) => values[key] != null ? esc(values[key]) : fail(`${page.file}: no value for ${m}`));
-  return highlightAll(html, page.file);
+  return highlightAll(fill(html, page, page.file), page.file);
 }
 const swap = (html, from, to, where) => html.split(from).length === 2 ? html.replace(from, () => to) : fail(`${where}: expected one ${from}`);
 
 // --- 3. The docs page and its palette file.
-function docsPage(menu) {
-  const files = menu.categories.flatMap((c) => c.sections).map(({ id }) => {
+function docsSections(menu) {
+  return menu.categories.flatMap((c) => c.sections).map(({ id }) => {
     const file = `docs/sections/${id}.html`;
     if (!existsSync(join(SITE, file))) fail(`docs/menu.json: no section file ${file}`);
     const text = read(file).trim();
@@ -151,6 +154,8 @@ function docsPage(menu) {
     const heading = new RegExp(`^<hgroup>\\n[ \\t]*<p class="chapter">[^<]*</p>\\n[ \\t]*<h1 id="${id}">([\\s\\S]*?)</h1>`);
     return { id, text, h1: text.match(heading)?.[1] ?? fail(`${file}: must begin with <hgroup>, its chapter, then <h1 id="${id}">`) };
   });
+}
+function docsPage(menu, files) {
   const nav = menu.categories.map((c) => {
     const links = c.sections.map((s) => `\n            <li><a class="secondary" href="#${s.id}">${s.label ?? files.find((f) => f.id === s.id).h1}</a></li>`);
     return `<details open><summary>${esc(c.title)}</summary><ul>${links.join("")}\n          </ul></details>`;
@@ -168,7 +173,7 @@ function palette() {
   return JSON.stringify(palette, null, 2);
 }
 
-// --- 1. Copy, then 5. the sitemap, then write.
+// --- 1. Copy, then 5. the sitemap and 6. the Markdown, then write.
 const walk = (dir) => readdirSync(dir, { recursive: true, withFileTypes: true }).filter((d) => d.isFile())
   .map((d) => relative(dir, join(d.parentPath, d.name)).split("\\").join("/")).filter((f) => !/(^|\/)\./.test(f)).sort();
 function build() {
@@ -177,12 +182,13 @@ function build() {
   const commit = source.match(/^commit: ([0-9a-f]{40})$/m)?.[1] ?? fail("site/vendor/femto/SOURCE has no commit");
   const files = new Map();
   const pages = [];
+  const menu = JSON.parse(read("docs/menu.json")), sections = docsSections(menu);
   for (const file of walk(SITE)) {
     if (/^(partials|docs)\//.test(file)) continue;
     const own = /^assets\/.*\.(css|js)$/.exec(file)?.[1];
     if (own) { files.set(file, Buffer.from(strip(read(file), own === "js" ? "javascript" : "css", file))); continue; }
     if (!/^[^/]+\.html$/.test(file)) { files.set(file, readFileSync(join(SITE, file))); continue; }
-    const html = file === "docs.html" ? docsPage(JSON.parse(read("docs/menu.json"))) : read(file);
+    const html = file === "docs.html" ? docsPage(menu, sections) : read(file);
     const title = html.match(/<title>([^<{]*)<\/title>/)?.[1];
     const description = html.match(/<meta name="description" content="([^"{]*)">/)?.[1];
     pages.push({ html, file, path: /^(index|404)\.html$/.test(file) ? null : `/${file.slice(0, -5)}`, version, commit,
@@ -196,6 +202,11 @@ function build() {
     if (page.file === "404.html" || /<meta name="robots" content="[^"]*noindex/.test(html)) continue;
     locs.push(new URL(html.match(/<link rel="canonical" href="([^"]+)">/)?.[1] ?? fail(`${page.file}: no rel=canonical`)).href);
   }
+  const docs = pages.find((page) => page.file === "docs.html");
+  const categories = menu.categories.map((c) => ({ title: c.title, sections: c.sections.map(({ id }) =>
+    ({ id, text: fill(sections.find((s) => s.id === id).text, docs, `docs/sections/${id}.html`) })) }));
+  const origin = new URL(locs.find((loc) => new URL(loc).pathname === "/docs") ?? fail("docs.html: no canonical /docs URL")).origin;
+  for (const [file, text] of markdown({ categories, origin, description: docs.description, unesc, fail })) files.set(file, Buffer.from(text));
   const urls = [...new Set(locs)].sort().map((loc) => `  <url><loc>${esc(loc)}</loc></url>\n`).join("");
   files.set("sitemap.xml", Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}</urlset>\n`));
   return files;

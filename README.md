@@ -4,7 +4,7 @@
 
 [PLAN.md](PLAN.md) is the site's spec: its decisions, the acceptance criteria the checks hold, and the open risks. The site was converted from a Remix site, and the tag `conversion-final` holds the record of that conversion. Its text is written for femto 3 from femto's README.
 
-`/docs` is one page. `build.mjs` assembles it from `site/docs/menu.json`, which orders its 43 sections in 8 categories, and one file per section in `site/docs/sections/<id>.html`. It ends each section with an "Edit this section on GitHub" link to its file, written from its id and named by the section's h1 in visually hidden text; a section file holds no edit link of its own (the build fails on one). `/examples` is `site/examples.html`: 16 examples in four chapters (Overview, Widgets, Forms and Pages), each one's markup written twice, live in a shadow root and escaped in its code sample, folded in the `<details>` under it. A static check and a behavior check fail if the two differ. Each example has a Copy as page button, which copies its markup in femto's starter template (the page's `template[data-starter-page]`), and a theme select links one of femto's `css/themes/` files into every example, with no URL parameter, unlike the docs page's `?theme=` (Decision 8).
+`/docs` is one page. `build.mjs` assembles it from `site/docs/menu.json`, which orders its 43 sections in 8 categories, and one file per section in `site/docs/sections/<id>.html`. It ends each section with an "Edit this section on GitHub" link to its file, written from its id and named by the section's h1 in visually hidden text; a section file holds no edit link of its own (the build fails on one). `markdown.mjs` also writes each section as Markdown for agents, at `/docs/<id>.md`, with an index at `/docs.md` and `/llms.txt` and the whole at `/docs-full.md` (PLAN.md Decision 19); it fails the build on an element it has no rule for, so new markup in a section may need a rule there. `/examples` is `site/examples.html`: 16 examples in four chapters (Overview, Widgets, Forms and Pages), each one's markup written twice, live in a shadow root and escaped in its code sample, folded in the `<details>` under it. A static check and a behavior check fail if the two differ. Each example has a Copy as page button, which copies its markup in femto's starter template (the page's `template[data-starter-page]`), and a theme select links one of femto's `css/themes/` files into every example, with no URL parameter, unlike the docs page's `?theme=` (Decision 8).
 
 ## Develop
 
@@ -65,7 +65,7 @@ A docs section names the README section it covers with its `readme` key in `site
 `tests/` holds the checks that hold the site: the static checks and a link check, which need no browser; the behavior suite, in real Chrome, Firefox and Safari on macOS; and axe-core accessibility, in Chrome and Firefox. They run with [uv](https://docs.astral.sh/uv/); [tests/README.md](tests/README.md) has the setup, every mode and every check.
 
 ```bash
-uv run tests/static_checks.py                  # criteria 4 to 15's static parts, and the link check
+uv run tests/static_checks.py                  # criteria 4 to 16's static parts, and the link check
 uv run tests/run.py behavior --target dist     # criterion 7 and 15's run-time checks, in Chrome and Firefox
 uv run tests/run.py a11y --target dist         # criterion 10
 uv run tests/run.py rig                        # the browser mechanisms the harness relies on

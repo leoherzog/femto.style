@@ -10,7 +10,7 @@ included, is at tag `conversion-final` (the owner, 2026-11-09).
 ## Quick start
 
 ```sh
-uv run tests/static_checks.py                                  # criteria 4 to 15's static parts and the link check, on dist/
+uv run tests/static_checks.py                                  # criteria 4 to 16's static parts and the link check, on dist/
 uv run tests/static_checks.py --dist /path/to/build            # the same on another build (node build.mjs --out /path/to/build)
 uv run tests/static_checks.py --criteria links --external      # the link check, every external URL fetched once
 uv run tests/static_checks.py --criteria release --external    # femto has no release tag newer than SOURCE's version
@@ -60,7 +60,7 @@ for a setup or usage error.
 | `harness/targets.py`, `harness/targets.json` | the `dist` target and its server (Targets) |
 | `harness/locks.py`, `harness/paths.py` | the machine-wide locks, shared with femto's harness, and the folder paths |
 | `behavior/` | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per group (Behavior) |
-| `static_checks.py` | the static checks: criteria 4 to 15's static parts, the link check and the release check (Static checks) |
+| `static_checks.py` | the static checks: criteria 4 to 16's static parts, the link check and the release check (Static checks) |
 | `owner-safari.sh` | the owner's Safari passes (Owner's Safari steps) |
 | `results/` | generated, gitignored: one folder per run |
 
@@ -512,7 +512,7 @@ focus of the Colors grid and the homepage's switch and swatches (`expect_forced_
 
 ## Static checks
 
-`static_checks.py` checks criteria 4 to 15's static parts, the link check and, when named, the
+`static_checks.py` checks criteria 4 to 16's static parts, the link check and, when named, the
 release check. `--help` prints its full statement, with every interpretation where PLAN's wording
 leaves a choice.
 
@@ -529,7 +529,7 @@ uv run tests/static_checks.py --dist DIR             # check a built folder inst
 Each criterion reports PASS, FAIL or NOT-YET (with why), with evidence lines and notes. A criterion
 with several parts fails if any part fails, is NOT-YET if none fails and some part cannot run, and
 passes only when every part ran and passed. The exit status is 1 if any criterion fails (or, with
-`--strict`, is not yet checkable), 2 on a usage error, and 0 otherwise. The check ids are 4 to 15,
+`--strict`, is not yet checkable), 2 on a usage error, and 0 otherwise. The check ids are 4 to 16,
 `links` and `release`; `--criteria 1`, `2` or `3` is a usage error, since those criteria were
 retired (the owner, 2026-11-09). Criteria 7 and 10, and 15's run-time parts, need a browser and
 report NOT-YET with the harness command, in the Check workflow too. `run.py static` passes its
@@ -720,6 +720,16 @@ arguments to `static_checks.main(argv)`.
   closest level that is not smaller than what Pages serves. That day a build of the working tree
   gives `/docs` 420,408 bytes raw, 61,185 gzipped and 62,476 with Brotli, within the budget (PLAN.md
   Risks, Page size). The run-time parts point at the behavior suite.
+- **16, Markdown.** Decision 19's files in `dist/`, compared with the section files, which the
+  check parses itself, never through `build.mjs` or `markdown.mjs`: `docs/<id>.md` for each section
+  and nothing else under `docs/`, `docs-full.md` their join in menu order, and `llms.txt` equal to
+  `docs.md`; the index's description, categories and section links, in menu order; each section
+  file's h1, and its fenced blocks against the section's code samples, language and text, in order;
+  no HTML but `<br>` outside code, no unfilled placeholder, and only absolute links, each link into
+  the docs naming a section's file; `docs.html`'s one `rel="alternate"` link; and `_headers`'
+  `Vary: Accept` on `/docs` and `/docs.md` and `Link` header naming `/docs.md` on `/docs`, with no
+  `Content-Type` rule. The zone's rewrite rule
+  runs only on `femto.style`, so no check covers it (PLAN.md Risks, Markdown).
 - **Release** (`--criteria release --external`, never in the default run; NOT-YET without
   `--external`). `git ls-remote --tags --refs https://github.com/leoherzog/femto` must list no
   version tag newer than `SOURCE`'s version by semver precedence. A prerelease tag counts only
