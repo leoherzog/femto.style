@@ -695,3 +695,53 @@ def theme_swatches_keyboard(page):
         page.key(key)
         page.eq(f"{key}: focus on {color}", page.js("return document.activeElement?.value ?? null"), color)
         expect_theme(page, key, color, primary)
+
+
+# The hero's <link> line (demo.js, 2): its code as text and as the spans the build gave it, and
+# whether its <pre> scrolls, with the focus attributes site.js gives a block that does.
+HERO_HREF = "https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"
+HERO_THEMED_HREF = ("https://cdn.jsdelivr.net/combine/npm/@leoherzog/femto@3/dist/femto.min.css,"
+                    "npm/@leoherzog/femto@3/css/themes/{}.css")
+HERO_LINE = """
+const pre = document.querySelector('main > section.hero .hook .code[data-femto-link] pre');
+const code = pre?.querySelector('code') ?? null;
+return {text: code?.textContent ?? null, html: code?.innerHTML ?? null,
+        scrolls: !!pre && pre.scrollWidth > pre.clientWidth, left: pre?.scrollLeft ?? null,
+        atEnd: !!pre && Math.abs(pre.scrollLeft + pre.clientWidth - pre.scrollWidth) <= 1,
+        focus: pre ? ['tabindex', 'role', 'aria-label'].map(n => pre.getAttribute(n)) : null};
+"""
+
+
+@check("hero-link-theme", "/")
+def hero_link_theme(page):
+    """The hero's <link> line, `.code[data-femto-link]`, follows the theme swatches. On load it is
+    femto's own jsDelivr link, the @3 one. A click on Jade makes its href the jsDelivr combine URL of
+    femto and css/themes/jade.css, in the same spans: only the href's text changes. That line is wider
+    than its <pre>, which is scrolled to its end, where the theme file is, and takes focus as a figure
+    named "HTML code". A click on Pumpkin names pumpkin.css instead, and the copy button then copies
+    that line. A click on Azure gives back the markup the page loaded with, scrolled to its start."""
+    page.js(COPY_SPY)
+    built = page.js(HERO_LINE)
+    page.eq("on load: femto's own link", built["text"], HERO_LINK)
+    page.expect("on load: the href is in the built markup once", (built["html"] or "").count(HERO_HREF) == 1, html=built["html"])
+    for color in ("jade", "pumpkin"):
+        href = HERO_THEMED_HREF.format(color)
+        page.click(RADIO.format(color))
+        page.wait(f"{color.capitalize()} clicked: the line links femto and {color}.css in one combine URL",
+                  "document.querySelector('main > section.hero .hook .code[data-femto-link] pre code').textContent === arguments[0]",
+                  1, args=(HERO_LINK.replace(HERO_HREF, href),))
+        s = page.js(HERO_LINE)
+        page.eq(f"{color.capitalize()} clicked: the spans are the built ones, with the new href", s["html"], built["html"].replace(HERO_HREF, href))
+        page.eq(f"{color.capitalize()} clicked: the block scrolls, is at its end, and takes focus as a figure",
+                [s["scrolls"], s["atEnd"], s["focus"]], [True, True, ["0", "figure", "HTML code"]], left=s["left"])
+    page.click(HERO_COPY)
+    page.wait("a click on the copy button copies", "window.__bhCopied.length > 0", 1)
+    page.eq("it copies the pumpkin line, once", page.js("return window.__bhCopied.map(c => c.text)"),
+            [HERO_LINK.replace(HERO_HREF, HERO_THEMED_HREF.format("pumpkin"))])
+    page.click(RADIO.format("azure"))
+    page.wait("Azure clicked: femto's own link again",
+              "document.querySelector('main > section.hero .hook .code[data-femto-link] pre code').textContent === arguments[0]",
+              1, args=(HERO_LINK,))
+    s = page.js(HERO_LINE)
+    page.eq("Azure clicked: the markup and the block's focus are as loaded, and it is at its start",
+            [s["html"], s["focus"], s["left"]], [built["html"], built["focus"], 0])

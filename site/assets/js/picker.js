@@ -40,7 +40,7 @@
 //   sets document.title for the section being read.
 // It does nothing on a page without the picker.
 
-import { capitalize, escapeText, setAttr } from "./site.js";
+import { capitalize, combineUrl, escapeText, fileUrl, packageOf, setAttr } from "./site.js";
 
 // --- The files (femto's README: Themes, Options, Quick start) -------------------------------------
 
@@ -53,19 +53,6 @@ const STYLESHEET = "styles.css";
 function filesOf(color, options) {
   return ["dist/femto.min.css", ...(color === "azure" ? [] : [`css/themes/${color}.css`]),
     ...OPTIONS.filter((option) => options.includes(option)).map((option) => `css/options/${option}.css`)];
-}
-
-// jsDelivr's URL for one file of the package (e.g. @leoherzog/femto@3), and the combine URL for
-// several, which is the one file's URL when there is only one.
-const fileUrl = (pkg, file) => `https://cdn.jsdelivr.net/npm/${pkg}/${file}`;
-function combineUrl(pkg, files) {
-  return files.length === 1 ? fileUrl(pkg, files[0])
-    : `https://cdn.jsdelivr.net/combine/${files.map((file) => `npm/${pkg}/${file}`).join(",")}`;
-}
-
-// The package as the cdn sample names it, from its text; null if it names none.
-function packageOf(text) {
-  return /https:\/\/cdn\.jsdelivr\.net\/npm\/(@[\w.-]+\/[\w.-]+@[\w.-]+)\/dist\/femto\.min\.css/.exec(text)?.[1] ?? null;
 }
 
 // --- The highlighted samples (build.mjs, step 4) -------------------------------------------------

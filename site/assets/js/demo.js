@@ -17,7 +17,12 @@
 //    block's shadow root, and the old color's link goes once the new one has loaded, so the page
 //    never shows a mix. A theme file that fails to load goes too, and the swatch goes back to the
 //    color the page keeps. Azure, femto's own color, needs no file. The URL does not change: ?theme=
-//    is the docs page's (PLAN.md Decision 8), and nothing is stored.
+//    is the docs page's (PLAN.md Decision 8), and nothing is stored. The hero's <link> line,
+//    div[data-femto-link], follows the checked swatch: femto's own link for azure, and for another
+//    color the jsDelivr combine URL of femto and that color's file, in the span the build gave the
+//    href. The package and its version range are read from the line as built. A color's line is
+//    wider than the hero, so its block is scrolled to its end, where the theme file is; azure's
+//    goes back to its start.
 //
 // 3. The typing demo, a small hand-written loop rather than TypeIt, which is GPL-3.0 or commercially
 //    licensed (PLAN.md Risks). It binds to `article[data-typing-demo]`, with its form and
@@ -43,7 +48,7 @@
 //      nothing changes: the steps, the form changes they scheduled and the email's letters wait, and
 //      the cursor stops blinking.
 
-import { capitalize, setAttr } from "./site.js";
+import { capitalize, combineUrl, fileUrl, packageOf, refitCode, setAttr } from "./site.js";
 
 // --- 1. femto off and on -----------------------------------------------------------------------
 const block = document.querySelector("div[data-femto-demo]")?.shadowRoot?.firstElementChild?.shadowRoot;
@@ -82,11 +87,28 @@ if (swatches && pageFemto) {
   const themed = new Map([[pageFemto, []]]);
   if (blockFemto) themed.set(blockFemto, []);
   const THEMES_PATH = "/vendor/femto/css/themes/";
+  // The hero's <link> line: the span that holds its href, quotes included.
+  const FEMTO_FILE = "dist/femto.min.css";
+  const linkCode = document.querySelector("div[data-femto-link] pre > code");
+  const pkg = packageOf(linkCode?.textContent ?? "");
+  const href = pkg && [...linkCode.querySelectorAll("span")]
+    .find((span) => span.textContent === `"${fileUrl(pkg, FEMTO_FILE)}"`);
+  const showLink = (color) => {
+    if (!href) return;
+    const files = color === "azure" ? [FEMTO_FILE] : [FEMTO_FILE, `css/themes/${color}.css`];
+    const text = `"${combineUrl(pkg, files)}"`;
+    if (href.textContent === text) return;
+    href.textContent = text;
+    const pre = linkCode.parentElement;
+    pre.scrollLeft = color === "azure" ? 0 : pre.scrollWidth;
+    refitCode(pre);
+  };
   // The newest link, once it has loaded, replaces the older ones.
   const settle = (links) => {
     if (links.at(-1)?.sheet) for (const old of links.splice(0, links.length - 1)) old.remove();
   };
   const recolor = (color) => {
+    showLink(color);
     for (const [femto, links] of themed) {
       if (color === "azure") {
         for (const old of links.splice(0)) old.remove();
@@ -108,6 +130,7 @@ if (swatches && pageFemto) {
         settle(links);
         const kept = links.at(-1)?.getAttribute("href").slice(THEMES_PATH.length, -".css".length) ?? "azure";
         swatches.querySelector(`input[value="${kept}"]`).checked = true;
+        showLink(kept);
       });
       femto.after(link);
     }

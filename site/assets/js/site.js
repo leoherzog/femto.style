@@ -15,6 +15,8 @@
 // - announceCopy(message): says "Copied" (or the message, "Copy failed") in the page's one copy
 //   status region, for a module's own copy control;
 // - perFrame(fn): a passive scroll or resize handler that runs fn at most once per frame;
+// - refitCode(pre): fits a code block's focus again, for a module that rewrites its code;
+// - fileUrl(pkg, file), combineUrl(pkg, files), packageOf(text): femto's jsDelivr URLs;
 // - setAttr(element, name, value), capitalize(text), escapeText(text): small DOM and text helpers.
 // Import them with `import { createModal } from "./site.js";` (the same URL, so the same instance as
 // the page's own <script type="module" src="/assets/js/site.js">).
@@ -50,6 +52,19 @@ export const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1)
 
 // Text as HTML: &, < and > escaped, as the browser serializes text.
 export const escapeText = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+// jsDelivr's URL for one file of the package (e.g. @leoherzog/femto@3), and the combine URL for
+// several, which is the one file's URL when there is only one.
+export const fileUrl = (pkg, file) => `https://cdn.jsdelivr.net/npm/${pkg}/${file}`;
+export function combineUrl(pkg, files) {
+  return files.length === 1 ? fileUrl(pkg, files[0])
+    : `https://cdn.jsdelivr.net/combine/${files.map((file) => `npm/${pkg}/${file}`).join(",")}`;
+}
+
+// The package as a code sample's femto <link> names it, from the sample's text; null if it names none.
+export function packageOf(text) {
+  return /https:\/\/cdn\.jsdelivr\.net\/npm\/(@[\w.-]+\/[\w.-]+@[\w.-]+)\/dist\/femto\.min\.css/.exec(text)?.[1] ?? null;
+}
 
 // --- Color scheme (Decision 14) ----------------------------------------------------------------
 // The reader's choice is localStorage femtoColorScheme as JSON ('"light"' or '"dark"'). data-theme
@@ -312,6 +327,12 @@ if (scrollers.length) {
     const pre = event.target instanceof Element && event.target.matches("pre[data-scroll-focus]") ? event.target : null;
     if (pre) setTimeout(() => fitFocus([pre])); // once focus has moved on
   });
+}
+
+// Rewriting a block's code can change whether it scrolls without resizing its box, which the
+// observer never sees.
+export function refitCode(pre) {
+  if (scrollers.includes(pre)) fitFocus([pre]);
 }
 
 // --- Modal helper (one per dialog) ---------------------------------------------------------------
