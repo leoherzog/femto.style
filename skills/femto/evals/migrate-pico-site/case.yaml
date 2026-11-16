@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: migrate-pico-site
+expected_outcome: |
+  No Pico file, class or custom property remains. index.html loads dist/femto.min.css, then
+  css/themes/jade.css, and dist/femto.colors.min.css, all before custom.css. Color classes become femto-color-* and
+  femto-background-*. custom.css renames every --pico-* token and collapses the three scheme blocks into one
+  :root rule, with femto's light and dark token pairs or light-dark(). The theme-color script no longer reads
+  light-dark() text as a color. The agent reads femto's docs before writing.
+context:
+  scaffold_script: place-files.sh

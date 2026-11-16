@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Mechanical checks for PLAN.md acceptance criteria 4 to 16, the link check and femto's release check.
+"""Mechanical checks for PLAN.md acceptance criteria 4 to 17, the link check and femto's release check.
 
   uv run tests/static_checks.py                        every criterion and the link check
   uv run tests/static_checks.py --criteria 4,5,12      some of them
@@ -86,8 +86,8 @@ Interpretations, where PLAN's wording leaves a choice:
   line count; every site/assets/**/*.css in dist/ parses with @eslint/css-tree with no error and no
   comment, keeps its line count and generates the same CSS as its source (css-tree's generate()
   drops comments); every other file the build copies from site/ (all but partials/, docs/, dot
-  paths and the pages at the root; vendor/femto/ among them) is byte-identical to its source; and
-  dist/assets/ holds no CSS or JS without a source.
+  paths, .well-known/ aside, and the pages at the root; vendor/femto/ among them) is byte-identical
+  to its source; and dist/assets/ holds no CSS or JS without a source.
 - 11: the forbidden-syntax scans look at code only (comments removed, strings blanked), as femto's
   own checks do; mentions in comments are notes. Every scan (forbidden syntax, color functions,
   smooth scrolling) covers site/**/*.css outside site/vendor/, plus <style> and style="" in site
@@ -133,7 +133,8 @@ Interpretations, where PLAN's wording leaves a choice:
   and one that configures a use-baseline rule fails outright (the level and allow lists belong in
   the config file).
 - 14 and 13's No Pico: `git grep -il pico` as PLAN gives it, run once on tracked files and once with
-  --untracked (new files not committed yet), and the union is compared with the list.
+  --untracked (new files not committed yet), and the union is compared with the list: PICO_ALLOWED's
+  files, and the two folders of PICO_ALLOWED_DIRS, vendored femto and the migration eval's fixture.
 - 9: declarative shadow roots (<template shadowrootmode>, the /examples mockups) are part of their
   page for the duplicate-id check (ids across shadow roots count page-wide) and their section.example
   is the example a radio or details name belongs to; ids in other <template>s are excluded. With
@@ -327,6 +328,25 @@ Interpretations, where PLAN's wording leaves a choice:
   outside code and only absolute links; docs.html's rel="alternate" link; and _headers' Vary: Accept
   on /docs and /docs.md, its Link header naming /docs.md on /docs, and no Content-Type rule. The zone's rewrite rule is not checked: it runs
   only on femto.style (PLAN.md Risks, Markdown).
+- 17: the agent skill (Decision 20). "Its frontmatter" is read by this check's own reader
+  (skill_frontmatter), which knows plain one-line `key: value` lines and one nested level, under
+  metadata, and fails on every other line, since the script has no YAML parser; build.mjs reads no
+  more. "Names a page or a file the build wrote": a path with an extension is that file in dist/,
+  never an .html name, and a path without one is a page, as criterion 6 serves it; the one pattern
+  allowed is SKILL_PATTERNS'. A femto.style/<path> with no scheme is read as https. URLs on other
+  origins are not judged. "Every other link" is read inline, by reference and in raw HTML, and is
+  absolute when it has a scheme. "femto's classes" are the class selectors of the vendored
+  dist/femto.css and dist/femto.colors.css, compared with every `.name`, every class= value and
+  every code span that is exactly a class name, anywhere in SKILL.md's body. A femto file is a
+  dist/… or css/… path, bare or after the package's name. The index is compared as parsed JSON with
+  the object this check builds from SKILL.md (skill_index), so the build's spacing is free;
+  SKILL_SCHEMA is compared as a string and never fetched. No other dist/ file has the bytes of a
+  file under skills/. "The repository's files" are those tracked or to be tracked
+  (effective_files), and the three files must be among them. README.md's install commands are the
+  lines of its code blocks that begin with one of SKILL_COMMANDS. Of the evals the check reads only
+  the .sh files' mode and the femto version, range or tag they pin (a numeric prefix passes, as in
+  criterion 13); no check runs them. SKILL_CONTROLS plants each fault in a copy on every run that
+  the copy passes. Production's answer is not checked (PLAN.md Risks, Agent skill).
 """
 
 from __future__ import annotations
@@ -365,10 +385,22 @@ PICO_ALLOWED = (
     "site/partials/footer.html",
     "site/docs/sections/migration.html",
     "site/docs/sections/quick-start.html",  # its intro credits Pico CSS (the owner, 2026-11-08)
+    "skills/femto/SKILL.md",  # it names what femto succeeds and links the migration section (Decision 20)
 )
 # femto's own files, which criterion 12 pins to its commit: its LICENSE.md and the MIT banners in its
-# CSS keep Pico's copyright line (from 74e65f6e on).
-PICO_ALLOWED_DIR = "site/vendor/femto/"
+# CSS keep Pico's copyright line (from 74e65f6e on). And the one eval whose fixture is a Pico CSS site
+# to migrate (Decision 20): the build publishes nothing of the evals.
+PICO_ALLOWED_DIRS = ("site/vendor/femto/", "skills/femto/evals/migrate-pico-site/")
+# Criterion 17 (Decision 20): the agent skill, its marketplace file and where the build publishes it.
+SKILL_NAME = "femto"
+SKILL_DIR = f"skills/{SKILL_NAME}"
+SKILL_SOURCE = f"{SKILL_DIR}/SKILL.md"
+SKILL_EVALS = f"{SKILL_DIR}/evals"
+SKILL_REPO = "leoherzog/femto.style"  # Decision 11's repository, which the installers read on GitHub
+SKILL_MARKETPLACE = ".claude-plugin/marketplace.json"
+SKILL_SERVED = ".well-known/agent-skills"  # in dist/: index.json and <name>/SKILL.md
+# The Agent Skills Discovery draft's version, 0.2.0. Clients compare it as a string; it names no file to fetch.
+SKILL_SCHEMA = "https://schemas.agentskills.io/discovery/0.2.0/schema.json"
 PICO_SPEC = ["--", ".", ":!tests", ":!PLAN.md"]
 SCRIPTS = {"build", "dev", "vendor", "lint"}  # criterion 4; no deploy script since Decision 11's change (2026-11-06)
 # wrangler pages deploy, its hidden alias publish (wrangler 4.158.0 still accepts it), and either through
@@ -1255,9 +1287,9 @@ def build_copy_checks(ctx: Context, r: Result) -> None:
         if not p.is_file():
             continue
         name = p.relative_to(site).as_posix()
-        # build.mjs's walk() and build(): no dot segment, partials/ and docs/ are its inputs, and the
-        # four pages at the root are written, not copied.
-        if re.search(r"(^|/)\.", name) or re.match(r"(partials|docs)/", name) or re.fullmatch(r"[^/]+\.html", name):
+        # build.mjs's walk() and build(): no dot segment but .well-known/, partials/ and docs/ are its
+        # inputs, and the four pages at the root are written, not copied.
+        if re.search(r"(^|/)\.(?!well-known/)", name) or re.match(r"(partials|docs)/", name) or re.fullmatch(r"[^/]+\.html", name):
             continue
         (own if re.fullmatch(r"assets/.*\.(css|js)", name) else copied).append(name)
     missing = [f"dist/{n}" for n in own + copied if not (dist / n).is_file()]
@@ -1377,6 +1409,8 @@ PAGES_INHERENT = {
     "/docs/index": (308, "/docs/", "redirects an index page's name to its folder, which then redirects to /docs"),
     # A page that exists; /docs/forms/input.html has no page, so it answers 404 (below).
     "/examples.html": (308, "/examples", "redirects a page's .html name to its clean URL"),
+    # index.json is no index page, so the name finds nothing, and the folder then answers 404 (below).
+    "/.well-known/agent-skills/index": (308, "/.well-known/agent-skills/", "redirects any path that ends /index to its folder"),
 }
 
 
@@ -1393,11 +1427,22 @@ def criterion_6(ctx: Context) -> Result:
     themes = sorted(p.stem for p in (ctx.site / "vendor/femto/css/themes").glob("*.css")) or list(COLORS)
     ok_200 = {"/", "/docs"} | set(pages)
     ok_200 |= {f"/docs?theme={c}" for c in themes}
+    # The files the URL inventory gives 200, each with the media type it names (Decisions 19 and 20).
+    try:
+        sections = menu_ids(json.loads((ctx.site / "docs/menu.json").read_text(encoding="utf-8")))
+    except (OSError, ValueError):
+        sections = []
+        r.fail("site/docs/menu.json cannot be read for the sections' Markdown URLs")
+    file_200 = {"/docs.md": "text/markdown", "/llms.txt": "text/plain", "/docs-full.md": "text/markdown",
+                f"/{SKILL_SERVED}/index.json": "application/json", f"/{SKILL_SERVED}/{SKILL_NAME}/SKILL.md": "text/markdown"}
+    file_200 |= {f"/docs/{i}.md": "text/markdown" for i in sections}
     old = {f"/docs/{x}" for x in KEPT_ROUTES + COLOR_ROUTES}
     gone = {f"/docs/{x}" for x in DROPPED_ROUTES} | {"/docs/v1/", "/no-such-page", "/docs/no-such-section", "/assets/no-such-file.css"}
     gone |= {f"/docs/v1/{x}" for x in V1_PAGES}
     # An old route's .html name too: with no page behind it Pages has nothing to redirect to.
     gone |= old | {"/docs/forms/input.html"}
+    # The folders around the skill have no index page.
+    gone |= {"/.well-known/", f"/{SKILL_SERVED}/", f"/{SKILL_SERVED}/{SKILL_NAME}/"}
     ok_200 -= old
     # PLAN.md URL inventory and Owner answers 5: /demo is not built, so it is a 404.
     gone.add("/demo")
@@ -1444,6 +1489,21 @@ def criterion_6(ctx: Context) -> Result:
                 bad200.append(f"{path}: 200, but dist/ has no page for it (a fallback answered)")
             elif body != file.read_bytes():
                 bad200.append(f"{path}: 200, but the body is not {rel(ctx.root, file)}")
+        bad_files = []
+        for path, want in sorted(file_200.items()):
+            status, kind, body = fetch(port, path, "Content-Type")
+            file = dist / path.lstrip("/")
+            if status != 200:
+                bad_files.append(f"{path}: {status}")
+            elif not file.is_file() or body != file.read_bytes():
+                bad_files.append(f"{path}: 200, but the body is not dist{path}")
+            elif (kind or "").split(";")[0].strip().lower() != want:
+                bad_files.append(f"{path}: served as {kind}, not {want}")
+        r.fails(f"{len(bad_files)} file URL(s) of the URL inventory do not answer 200 with their dist/ file and its media type:",
+                bad_files, "more URLs")
+        if not bad_files:
+            r.ok(f"{len(file_200)} file URLs answer 200 with their dist/ file and media type: the docs' Markdown ({len(sections)} "
+                 "sections, docs.md, docs-full.md and llms.txt as text/plain) and the agent skill's index.json and SKILL.md")
         for path in ("/docs/", "/docs.html"):
             status, location, _ = fetch(port, path)
             target = urlsplit(location or "")
@@ -1490,12 +1550,13 @@ def page_file(dist: Path, path: str) -> Path | None:
     return next((c for c in candidates if c.is_file()), None)
 
 
-def fetch(port: int, path: str) -> tuple[int, str | None, bytes]:
+def fetch(port: int, path: str, header: str = "Location") -> tuple[int, str | None, bytes]:
+    """A GET's status, one response header (the redirect's target, or a file's Content-Type) and body."""
     conn = http.client.HTTPConnection("127.0.0.1", port, timeout=30)
     try:
         conn.request("GET", path, headers={"Accept": "text/html", "Accept-Encoding": "identity"})
         resp = conn.getresponse()
-        return resp.status, resp.getheader("Location"), resp.read()
+        return resp.status, resp.getheader(header), resp.read()
     finally:
         conn.close()
 
@@ -4705,7 +4766,7 @@ def criterion_13(ctx: Context) -> Result:
 
 
 def pico_allowed(path: str) -> bool:
-    return path in PICO_ALLOWED or path.startswith(PICO_ALLOWED_DIR)
+    return path in PICO_ALLOWED or path.startswith(PICO_ALLOWED_DIRS)
 
 
 def pico_grep(ctx: Context) -> tuple[list[str], list[str]]:
@@ -6430,11 +6491,449 @@ def criterion_16(ctx: Context) -> Result:
     return r
 
 
+# ---------------------------------------------------------------------------- criterion 17
+
+SKILL_FIELDS = ("name", "description", "license", "compatibility", "metadata", "allowed-tools")  # the Agent Skills specification's
+SKILL_PATTERNS = {"/docs/<id>.md"}  # the one URL pattern the skill may give: a section's file (criterion 16)
+SKILL_URL = re.compile(r"https?://[^\s)`\"'|\]*]+")
+SKILL_BARE = re.compile(r"(?<![\w./@:-])femto\.style(/[^\s)`\"'|\]*]*)")  # the site's host with a path and no scheme
+SKILL_KEY = re.compile(r"^([a-z][a-z-]*):(?: (.*))?$")
+SKILL_PIN = re.compile(re.escape(FEMTO_PACKAGE) + r"(?:@|\"\s*:\s*\")([^\s\"'/,;)]+)")
+SKILL_COMMANDS = ("npx skills add ", "gh skill install ", "/plugin marketplace add ", "/plugin install ")
+
+
+def skill_installs(marketplace: str) -> list[str]:
+    """README.md's install commands: GitHub's three routes and the site's own index."""
+    return [f"npx skills add {SKILL_REPO}", f"npx skills add {SITE_ORIGIN}", f"gh skill install {SKILL_REPO} {SKILL_NAME}",
+            f"/plugin marketplace add {SKILL_REPO}", f"/plugin install {SKILL_NAME}@{marketplace}"]
+
+
+def skill_urls(text: str) -> set[str]:
+    """The URLs SKILL.md writes, without the Markdown around them: closing punctuation, and the > of an
+    autolink, which is kept only as the end of a <pattern>. A femto.style/<path> with no scheme is
+    read as https."""
+    out = set()
+    for m in [*SKILL_URL.finditer(text), *SKILL_BARE.finditer(text)]:
+        url = m.group().rstrip(".,;:!?")
+        if url.endswith(">") and (text[:m.start()].endswith("<") or "<" not in url):
+            url = url[:-1].rstrip(".,;:!?")
+        out.add(url if "://" in url else f"https://{url}")
+    return out
+
+
+def skill_frontmatter(text: str) -> tuple[dict, list[str]]:
+    """SKILL.md's YAML frontmatter, read as the subset this check understands and nothing more: `key:
+    value` lines whose value is a plain one-line scalar, and one level of two-space-indented `key:
+    value` lines under a key with no value. Any other line is a problem."""
+    m = re.match(r"---\n(.*?)\n---\n", text, re.S)
+    if not m:
+        return {}, ["it does not open with a --- frontmatter block"]
+    data: dict = {}
+    bad, parent = [], None
+    for n, line in enumerate(m.group(1).split("\n"), 2):
+        nested = line.startswith("  ") and not line.startswith("   ")
+        k = SKILL_KEY.match(line[2:] if nested else line)
+        if not k or (nested and parent is None) or (nested and k.group(2) is None):
+            bad.append(f"line {n}: not a `key: value` line this check reads: {line[:60]!r}")
+            continue
+        key, value = k.group(1), k.group(2)
+        into = data[parent] if nested else data
+        if key in into:
+            bad.append(f"line {n}: {key} appears twice")
+        if value is not None and (value[:1] in "-?:,[]{}#&*!|>'\"%@`" or ": " in value or " #" in value or value.endswith(":")
+                                  or value != value.strip() or "\t" in value or not value):
+            bad.append(f"line {n}: {key}'s value is not a plain YAML scalar (a quote, an indicator, `: ` or ` #` changes how YAML reads it)")
+        if nested:
+            into[key] = value
+        elif value is None:
+            data[key], parent = {}, key
+        else:
+            data[key], parent = value, None
+    return data, bad
+
+
+def json_strict(text: str):
+    """JSON as a client parses it, except that a repeated key fails."""
+    def unique(pairs):
+        keys = [k for k, _ in pairs]
+        if len(set(keys)) != len(keys):
+            raise ValueError(f"key {next(k for k in keys if keys.count(k) > 1)!r} appears twice")
+        return dict(pairs)
+
+    return json.loads(text, object_pairs_hook=unique)
+
+
+def skill_index(name: str, description: str, data: bytes) -> dict:
+    """The discovery index for one skill-md skill, as the Agent Skills Discovery draft 0.2.0 has it."""
+    return {"$schema": SKILL_SCHEMA, "skills": [{"name": name, "type": "skill-md", "description": description,
+                                                 "url": f"/{SKILL_SERVED}/{SKILL_NAME}/SKILL.md",
+                                                 "digest": "sha256:" + hashlib.sha256(data).hexdigest()}]}
+
+
+def skill_check(root: Path, dist: Path, files: list[str], classes: set[str]) -> tuple[list[str], list[str]]:
+    """Criterion 17's failures and evidence. root holds the skill, the marketplace file, README.md and
+    site/vendor/femto/; dist is the build; files are the repository's files under skills/ and
+    .claude-plugin/; classes are vendored femto's."""
+    bad: list[str] = []
+    ok: list[str] = []
+    src = root / SKILL_SOURCE
+    if not src.is_file():
+        return [f"{SKILL_SOURCE} is missing"], ok
+    data = src.read_bytes()
+    text = data.decode("utf-8", errors="replace")
+
+    # (a) Where it lives: one skill with its license and its evals, and the marketplace file alone.
+    before = len(bad)
+    keep = (SKILL_SOURCE, f"{SKILL_DIR}/LICENSE.md", SKILL_MARKETPLACE)
+    bad += [f"{f}: not a file of the skill: skills/ holds only {SKILL_SOURCE}, its LICENSE.md and its evals/, and .claude-plugin/ "
+            "only marketplace.json (a manifest or a package.json beside either would make a plugin of more than the skill)"
+            for f in files if f not in keep and not f.startswith(f"{SKILL_EVALS}/")]
+    bad += [f"{f} is missing, or git ignores it" for f in keep if f not in files or not (root / f).is_file()]
+    if len(bad) == before:
+        ok.append(f"skills/ holds {SKILL_SOURCE}, its LICENSE.md and {sum(f.startswith(SKILL_EVALS + '/') for f in files)} eval "
+                  f"files, and .claude-plugin/ only marketplace.json")
+
+    # (b) The frontmatter, by the Agent Skills specification.
+    meta, problems = skill_frontmatter(text)
+    name, description = meta.get("name"), meta.get("description")
+    problems += [f"{k} is not a field of the Agent Skills specification ({', '.join(SKILL_FIELDS)})" for k in meta if k not in SKILL_FIELDS]
+    problems += [f"{k} has no one-line value: only metadata nests" for k, v in meta.items() if isinstance(v, dict) and k != "metadata"]
+    if not isinstance(name, str) or name != SKILL_NAME or not re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", name) or len(name) > 64:
+        problems.append(f"name is {name!r}, not its folder's name, {SKILL_NAME!r}")
+    if not isinstance(description, str) or not 1 <= len(description) <= 1024:
+        problems.append(f"description is missing, or not 1 to 1024 characters ({len(description) if isinstance(description, str) else 0})")
+    license_file = root / SKILL_DIR / "LICENSE.md"
+    if meta.get("license") != "MIT":
+        problems.append(f"license is {meta.get('license')!r}, not 'MIT' (Decision 20)")
+    if license_file.is_file() and not license_file.read_text(encoding="utf-8", errors="replace").startswith("MIT License\n"):
+        problems.append(f"{SKILL_DIR}/LICENSE.md does not open with 'MIT License', the license SKILL.md names")
+    repository = meta.get("metadata", {}).get("repository") if isinstance(meta.get("metadata"), dict) else None
+    if repository != f"https://github.com/{SKILL_REPO}":
+        problems.append(f"metadata.repository is {repository!r}, not 'https://github.com/{SKILL_REPO}'")
+    bad += [f"{SKILL_SOURCE}: {p}" for p in problems]
+    if not problems:
+        ok.append(f"{SKILL_SOURCE}: its frontmatter is plain `key: value` lines with the specification's fields: name {name!r}, as "
+                  f"its folder, a description of {len(description)} characters, license MIT with its text beside it, and "
+                  f"metadata.repository on GitHub at {SKILL_REPO}")
+
+    # (c) Every femto.style URL names a page or a file the build wrote, and it links nothing beside itself.
+    before = len(bad)
+    body = text.split("\n---\n", 1)[1] if text.startswith("---\n") and "\n---\n" in text else text
+    pages = {page_url(dist, p): p for p in files_under(dist, (".html",)) if p.relative_to(dist).as_posix() != "404.html"}
+    urls = sorted(skill_urls(text))
+    own = [u for u in urls if urlsplit(u).hostname == "femto.style" or (urlsplit(u).hostname or "").endswith(".femto.style")]
+    for url in own:
+        u = urlsplit(url)
+        path = unquote(u.path) or "/"
+        if f"{u.scheme}://{u.netloc}" != SITE_ORIGIN:
+            bad.append(f"{SKILL_SOURCE}: {url}: not at {SITE_ORIGIN}")
+        elif path in SKILL_PATTERNS and not u.query and not u.fragment:
+            continue
+        elif "<" in url:
+            bad.append(f"{SKILL_SOURCE}: {url}: a URL pattern this check does not know (SKILL_PATTERNS)")
+        elif u.query:
+            bad.append(f"{SKILL_SOURCE}: {url}: has a query")
+        elif path in pages:
+            if u.fragment and unquote(u.fragment) not in fragment_targets(parse_html(pages[path].read_text(encoding="utf-8"))):
+                bad.append(f"{SKILL_SOURCE}: {url}: dist/{pages[path].relative_to(dist).as_posix()} has no id for #{u.fragment}")
+        elif ".." in path.split("/") or path.endswith(("/", ".html")) or u.fragment or not (dist / path.lstrip("/")).is_file():
+            bad.append(f"{SKILL_SOURCE}: {url}: no page or file at {path}{'#' + u.fragment if u.fragment else ''} in dist/")
+    if f"{SITE_ORIGIN}/docs.md" not in own:
+        bad.append(f"{SKILL_SOURCE}: it does not name {SITE_ORIGIN}/docs.md, the index an agent fetches first")
+    plain = MD_FENCE.sub("", body)
+    slugs = {re.sub(r"\s", "-", re.sub(r"[^\w\s-]", "", h.strip().lower())) for h in re.findall(r"^#{1,6} (.+)$", plain, re.M)}
+    prose = md_prose(body)
+    targets = re.findall(r"\]\(\s*<?([^)\s>]*)>?(?:\s[^)]*)?\)", prose)  # inline, with or without a title
+    targets += re.findall(r"^ {0,3}\[[^\]]+\]:\s*<?([^\s>]+)", prose, re.M)  # a reference definition
+    targets += re.findall(r"(?:href|src)=[\"']([^\"']*)[\"']", prose)  # raw HTML
+    for target in targets:
+        if not re.match(r"[a-z][a-z0-9+.-]*:", target) and not (target.startswith("#") and target[1:] in slugs):
+            bad.append(f"{SKILL_SOURCE}: the link ({target}) is neither absolute nor one of its own headings: the site serves "
+                       "SKILL.md alone, with no file beside it")
+    if len(bad) == before:
+        ok.append(f"{SKILL_SOURCE}: its {len(own)} {SITE_ORIGIN} URLs each name a page or a file in dist/, {SITE_ORIGIN}/docs.md "
+                  f"among them ({len(urls) - len(own)} URLs on other origins not judged), and its other links are its own headings")
+
+    # (d) It lists none of femto's names: no custom property, no class, and no package but femto's.
+    before = len(bad)
+    props = sorted(set(re.findall(r"--femto-[\w*-]*", text)) - {"--femto-*"})
+    if props:
+        bad.append(f"{SKILL_SOURCE}: it names {', '.join(props)}: the skill lists none of femto's custom properties, which the "
+                   "docs hold (only the pattern --femto-*)")
+    code = " ".join(m.group(3) for m in MD_FENCE.finditer(body)) + " " + " ".join(re.findall(r"`([^`\n]+)`", plain))
+    written = set(re.findall(r"(?<![\w/.>-])\.(-?[_a-zA-Z][\w-]*)", code))
+    written |= {c for v in re.findall(r"class=[\"']([^\"']*)[\"']", code) for c in v.split()}
+    # femto's own classes are looked for in every spelling, anywhere in the body, code or not.
+    loose = set(re.findall(r"\.(-?[_a-zA-Z][\w-]*)", body)) | set(re.findall(r"class=([\w-]+)", body)) | set(re.findall(r"`([^`\n]+)`", body))
+    loose |= {c for v in re.findall(r"class=[\"']([^\"']*)[\"']", body) for c in v.split()}
+    named = sorted((written | loose) & classes)
+    if named:
+        bad.append(f"{SKILL_SOURCE}: it names femto's class(es) {', '.join('.' + c for c in named)}: the skill lists none of "
+                   "femto's classes, which the docs hold, and the classes it calls foreign must do nothing in femto")
+    paths = sorted(set(re.findall(r"(?<![\w/.@-])((?:dist|css)/[\w./-]*\.\w+)", text))
+                   | set(re.findall(re.escape(FEMTO_PACKAGE) + r"(?:@[^/\s]+)?/((?:dist|css)/[\w./-]*\.\w+)", text)))
+    bad += [f"{SKILL_SOURCE}: it names femto's file {p}, which site/vendor/femto/ does not hold" for p in paths
+            if not (root / "site/vendor/femto" / p).is_file()]
+    package_findings(SKILL_SOURCE, [("prose", 1, text)], bad, [], set())
+    if len(bad) == before:
+        ok.append(f"{SKILL_SOURCE}: it names no --femto- custom property but the pattern --femto-*, none of femto's "
+                  f"{len(classes)} classes ({len(written)} class names it writes are other frameworks'), femto's package as "
+                  f"{FEMTO_PACKAGE}, and {len(paths)} femto file(s) that site/vendor/femto/ holds")
+
+    # (e) What the build publishes: the skill byte for byte and its index, nothing else under .well-known/,
+    # and no other file of skills/ anywhere in dist/.
+    before = len(bad)
+    served = f"{SKILL_SERVED}/{SKILL_NAME}/SKILL.md"
+    want = {f"{SKILL_SERVED}/index.json", served}
+    have = {p.relative_to(dist).as_posix() for p in (dist / ".well-known").rglob("*") if p.is_file()} if (dist / ".well-known").is_dir() else set()
+    bad += [f"dist/{f} is missing" for f in sorted(want - have)]
+    bad += [f"dist/{f}: not a file of the skill (dist/.well-known/ holds only {', '.join(sorted(want))})" for f in sorted(have - want)]
+    sources = {hashlib.sha256((root / f).read_bytes()).hexdigest(): f for f in files
+               if f.startswith("skills/") and (root / f).is_file() and (root / f).stat().st_size}
+    for p in sorted(dist.rglob("*")) if dist.is_dir() else []:
+        f = p.relative_to(dist).as_posix()
+        source = sources.get(hashlib.sha256(p.read_bytes()).hexdigest()) if p.is_file() and f != served else None
+        if source:
+            bad.append(f"dist/{f} is a copy of {source}: the build publishes nothing of skills/ but {SKILL_SOURCE} and its index")
+    if served in have and (dist / served).read_bytes() != data:
+        bad.append(f"dist/{served} is not {SKILL_SOURCE} byte for byte")
+    if f"{SKILL_SERVED}/index.json" in have:
+        try:
+            index = json_strict((dist / SKILL_SERVED / "index.json").read_text(encoding="utf-8"))
+        except ValueError as exc:
+            index = None
+            bad.append(f"dist/{SKILL_SERVED}/index.json is not JSON a client reads: {exc}")
+        if index is not None:
+            first = index["skills"][0] if isinstance(index, dict) and isinstance(index.get("skills"), list) and index["skills"] \
+                and isinstance(index["skills"][0], dict) else {}
+            # A name or description the frontmatter check already failed is not judged again here.
+            expected = skill_index(name if isinstance(name, str) else first.get("name"),
+                                   description if isinstance(description, str) else first.get("description"), data)
+            if index != expected:
+                got, exp = (index if isinstance(index, dict) else {}), expected
+                if got.get("$schema") == exp["$schema"] and isinstance(got.get("skills"), list) and len(got["skills"]) == 1 \
+                        and isinstance(got["skills"][0], dict) and set(got) == set(exp):
+                    got, exp = got["skills"][0], exp["skills"][0]
+                diff = sorted(k for k in set(got) | set(exp) if got.get(k) != exp.get(k))
+                bad.append(f"dist/{SKILL_SERVED}/index.json is not the index of {SKILL_SOURCE} (one skill-md entry: name, type, "
+                           f"description, url and the digest of its bytes, under the draft's $schema): it differs in {', '.join(diff)}")
+    if len(bad) == before:
+        ok.append(f"dist/.well-known/ holds {SKILL_SOURCE} byte for byte and index.json, which names it by path with its "
+                  f"SHA-256 digest under {SKILL_SCHEMA}, and nothing else, and no other file in dist/ is a copy of a file under skills/")
+
+    # (f) The marketplace file: one plugin, the skill's folder, never the repository's root.
+    before = len(bad)
+    market_name = None
+    if (root / SKILL_MARKETPLACE).is_file():
+        try:
+            market = json_strict((root / SKILL_MARKETPLACE).read_text(encoding="utf-8"))
+        except ValueError as exc:
+            market = None
+            bad.append(f"{SKILL_MARKETPLACE} is not valid JSON: {exc}")
+        if market is not None:
+            market = market if isinstance(market, dict) else {}
+            market_name = market.get("name")
+            if not isinstance(market_name, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]*", market_name) or ".." in market_name:
+                bad.append(f"{SKILL_MARKETPLACE}: name is {market_name!r}, not letters, digits, dots, hyphens and underscores")
+                market_name = None
+            if not isinstance(market.get("owner"), dict) or not isinstance(market["owner"].get("name"), str) or not market["owner"]["name"]:
+                bad.append(f"{SKILL_MARKETPLACE}: no owner.name")
+            plugins = market.get("plugins")
+            if not isinstance(plugins, list) or len(plugins) != 1 or not isinstance(plugins[0], dict):
+                bad.append(f"{SKILL_MARKETPLACE}: plugins is not a list of exactly one plugin")
+            else:
+                entry = plugins[0]
+                for key, value, why in (
+                        ("name", SKILL_NAME, "the skill's name"),
+                        ("source", f"./{SKILL_DIR}", "the skill's folder: any wider source, the root above all, copies the "
+                         "repository to each user and installs the site's packages there"),
+                        ("license", "MIT", "Decision 20"),
+                        ("repository", f"https://github.com/{SKILL_REPO}", "this repository")):
+                    if entry.get(key) != value:
+                        bad.append(f"{SKILL_MARKETPLACE}: the plugin's {key} is {entry.get(key)!r}, not {value!r} ({why})")
+                if "version" in entry:
+                    bad.append(f"{SKILL_MARKETPLACE}: the plugin pins version {entry['version']!r}: with no version a user gets "
+                               "each commit on main, and with one a skill edit reaches nobody until it is raised")
+    if len(bad) == before and market_name:
+        ok.append(f"{SKILL_MARKETPLACE}: marketplace {market_name!r} with one plugin, {SKILL_NAME}, whose source is ./{SKILL_DIR}, "
+                  "MIT, with no pinned version")
+
+    # (g) README.md's install commands.
+    readme = (root / "README.md").read_text(encoding="utf-8") if (root / "README.md").is_file() else ""
+    found = sorted({line.strip() for m in MD_FENCE.finditer(readme) for line in m.group(3).split("\n")
+                    if line.strip().startswith(SKILL_COMMANDS)})
+    wanted = sorted(skill_installs(market_name or ""))
+    if market_name is None:  # the marketplace's name already failed: its command is not judged again
+        found, wanted = ([c for c in x if not c.startswith("/plugin install ")] for x in (found, wanted))
+    if found != wanted:
+        bad.append("README.md's install commands are not the ones the skill installs by: "
+                   + "; ".join([f"missing `{c}`" for c in wanted if c not in found] + [f"not expected `{c}`" for c in found if c not in wanted]))
+    else:
+        ok.append(f"README.md gives the {len(wanted)} install commands: {'; '.join(wanted)}")
+
+    # (h) The evals: every scaffold script runs, and every femto version, range or tag one pins is SOURCE's.
+    before = len(bad)
+    evals = [f for f in files if f.startswith(f"{SKILL_EVALS}/")]
+    cases = sorted({f.split("/")[3] for f in evals if f.count("/") >= 4})
+    if not cases:
+        bad.append(f"{SKILL_EVALS}/ holds no case")
+    bad += [f"{f}: not executable, so the eval's scaffold skips or fails it" for f in evals
+            if f.endswith(".sh") and not os.access(root / f, os.X_OK)]
+    source_file = root / "site/vendor/femto/SOURCE"
+    version = next(iter(re.findall(r"^version: (\S+)$", source_file.read_text(encoding="utf-8"), re.M)), None) if source_file.is_file() else None
+    pins = 0
+    for f in evals:
+        try:
+            t = (root / f).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for found_version in SKILL_PIN.findall(t):
+            pins += 1
+            if version is None or not version_ok(found_version, version):
+                bad.append(f"{f}: it pins {FEMTO_PACKAGE} {found_version}, not SOURCE's version, {version}")
+    if len(bad) == before:
+        ok.append(f"{SKILL_EVALS}/ holds {len(cases)} cases ({', '.join(cases)}), every .sh among them executable, and their "
+                  f"{pins} pins of {FEMTO_PACKAGE} are SOURCE's {version}")
+    return bad, ok
+
+
+def _put(text: str):
+    return lambda old: (old or b"") + text.encode()
+
+
+def _sub(pattern: str, repl: str):
+    return lambda old: re.sub(pattern.encode(), repl.encode(), old or b"", count=1, flags=re.M)
+
+
+# Each control plants one fault in one file of a copy that passes, and criterion 17 must then fail with
+# exactly one failure, which holds the phrase. A fault in the source is published into the copy's dist/
+# as the build would, so only the fault itself fails. None edits SKILL.md's prose or changes its
+# description's length, and the README control edits only a whole command line: each appends, or
+# matches the file's structure. {case} is the first eval case.
+# (name, the file under the copy, its new bytes from its old bytes or None, or the path of the file in
+# the copy whose bytes it gets, the phrase)
+SKILL_CONTROLS = (
+    ("a file beside SKILL.md", f"{SKILL_DIR}/package.json", _put("{}\n"), f"{SKILL_DIR}/package.json: not a file of the skill"),
+    ("a plugin manifest at the root", ".claude-plugin/plugin.json", _put('{"name": "femto"}\n'), ".claude-plugin/plugin.json: not a file"),
+    ("a name that is not its folder's", SKILL_SOURCE, _sub(r"^name: .*$", "name: femto-css"), "name is 'femto-css'"),
+    ("a description YAML reads otherwise", SKILL_SOURCE, _sub(r"^(description: \S+) \S", r"\1: "), "not a plain YAML scalar"),
+    ("another repository in its metadata", SKILL_SOURCE, _sub(r"^  repository: .*$", "  repository: https://github.com/leoherzog/femto"),
+     "metadata.repository is 'https://github.com/leoherzog/femto'"),
+    ("a scheme-less URL that names no file", SKILL_SOURCE, _put("\nfemto.style/docs/no-such-section.md\n"), "/docs/no-such-section.md: no page or file"),
+    ("a URL that names no file", SKILL_SOURCE, _put("\nhttps://femto.style/docs/no-such-section.md\n"), "/docs/no-such-section.md: no page or file"),
+    ("a page's .html name", SKILL_SOURCE, _put("\nhttps://femto.style/examples.html\n"), "/examples.html: no page or file"),
+    ("a link to a file beside it", SKILL_SOURCE, _put("\n[The license](LICENSE.md)\n"), "the link (LICENSE.md)"),
+    ("one of femto's custom properties", SKILL_SOURCE, _put("\n`--femto-primary`\n"), "it names --femto-primary"),
+    ("one of femto's classes", SKILL_SOURCE, _put("\n`.secondary`\n"), "femto's class(es) .secondary"),
+    ("a served copy that differs", f"dist/{SKILL_SERVED}/{SKILL_NAME}/SKILL.md", _put("\n"), "byte for byte"),
+    ("an index with another digest", f"dist/{SKILL_SERVED}/index.json", _sub(r'"sha256:[0-9a-f]{4}', '"sha256:0000'), "it differs in digest"),
+    ("the skill's license published", "dist/skill-license.md", f"{SKILL_DIR}/LICENSE.md", f"dist/skill-license.md is a copy of {SKILL_DIR}/LICENSE.md"),
+    ("a stale file under .well-known/", f"dist/{SKILL_SERVED}/old/SKILL.md", _put("old\n"), "old/SKILL.md: not a file of the skill"),
+    ("the repository's root as the plugin", SKILL_MARKETPLACE, _sub(r'"source": "[^"]*"', '"source": "./"'), "the plugin's source is './'"),
+    ("an install command for another repository", "README.md", _sub(r"^npx skills add leoherzog/\S+$", "npx skills add leoherzog/femto"),
+     "not expected `npx skills add leoherzog/femto`"),
+    ("an eval that installs femto by a tag", f"{SKILL_EVALS}/{{case}}/files/control-tag.txt", _put(f"npm install {FEMTO_PACKAGE}@latest\n"),
+     "it pins @leoherzog/femto latest"),
+    ("an eval that pins another femto", f"{SKILL_EVALS}/{{case}}/files/control-pin.txt", _put(f"npm install {FEMTO_PACKAGE}@0.0.1\n"),
+     "it pins @leoherzog/femto 0.0.1"),
+)
+
+
+def criterion_17(ctx: Context) -> Result:
+    """The agent skill (Decision 20), held to the build: skills/femto/, .claude-plugin/marketplace.json
+    and README.md's install commands, against dist/, site/vendor/femto/ and the Agent Skills
+    specification. The check reads SKILL.md's frontmatter itself, never through build.mjs."""
+    r = Result(17, "Agent skill")
+    root, dist = ctx.root, ctx.dist
+    if not dist.is_dir():
+        r.not_yet("no dist/ (npm run build writes it)")
+        return r
+    files = [f for f in effective_files(root) if f.startswith(("skills/", ".claude-plugin/"))]
+    classes: set[str] = set()
+    for sheet in ("dist/femto.css", "dist/femto.colors.css"):
+        if (ctx.site / "vendor/femto" / sheet).is_file():
+            classes |= css_classes((ctx.site / "vendor/femto" / sheet).read_text(encoding="utf-8"))
+        else:
+            r.fail(f"site/vendor/femto/{sheet} is missing, so femto's classes cannot be read")
+    bad, ok = skill_check(root, dist, files, classes)
+    r.fails(f"{len(bad)} problem(s) with the agent skill:", bad, "more")
+    for line in ok:
+        r.ok(line)
+    if SKILL_SOURCE not in files or not (root / SKILL_SOURCE).is_file():
+        return r
+    # The controls: a copy of the skill's files and dist/, whose .well-known/ is written from the
+    # copy's source, so a fault in the real dist/ never hides or doubles a control.
+    tmp = Path(tempfile.mkdtemp(prefix="femto-style-skill-"))
+    try:
+        for f in [*files, "README.md"]:
+            if (root / f).is_file():
+                (tmp / f).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(root / f, tmp / f)
+        (tmp / "site").mkdir()
+        (tmp / "site/vendor").symlink_to(ctx.site / "vendor", target_is_directory=True)
+        shutil.copytree(dist, tmp / "dist", symlinks=True)
+
+        def listing() -> list[str]:
+            return sorted(p.relative_to(tmp).as_posix() for d in ("skills", ".claude-plugin") for p in (tmp / d).rglob("*") if p.is_file())
+
+        def publish():
+            data = (tmp / SKILL_SOURCE).read_bytes()
+            meta, _ = skill_frontmatter(data.decode("utf-8", errors="replace"))
+            folder = tmp / "dist" / SKILL_SERVED
+            shutil.rmtree(tmp / "dist/.well-known", ignore_errors=True)
+            (folder / SKILL_NAME).mkdir(parents=True)
+            (folder / SKILL_NAME / "SKILL.md").write_bytes(data)
+            index = skill_index(meta.get("name") or "", meta.get("description") or "", data)
+            (folder / "index.json").write_text(json.dumps(index, indent=2, ensure_ascii=False), encoding="utf-8")
+
+        publish()
+        base = skill_check(tmp, tmp / "dist", listing(), classes)[0]
+        if base and bad:
+            r.note("controls not run: the skill fails, and each control needs a copy that passes")
+            return r
+        if base:
+            r.fail(f"the controls' copy fails where the skill passes: {[x[:160] for x in base[:3]]}")
+            return r
+        case = next(iter(sorted(p.name for p in (tmp / SKILL_EVALS).iterdir() if p.is_dir())), "none") if (tmp / SKILL_EVALS).is_dir() else "none"
+        passed = []
+        for name, where, edit, phrase in SKILL_CONTROLS:
+            target = tmp / where.format(case=case)
+            old = target.read_bytes() if target.is_file() else None
+            made = next((p for p in reversed(target.parents) if not p.exists()), None)
+            try:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                new_bytes = (tmp / edit).read_bytes() if isinstance(edit, str) else edit(old)
+                target.write_bytes(new_bytes)
+                if not where.startswith("dist/"):
+                    publish()
+                new = skill_check(tmp, tmp / "dist", listing(), classes)[0]
+            finally:
+                if old is None:
+                    target.unlink(missing_ok=True)
+                else:
+                    target.write_bytes(old)
+                if made is not None:
+                    shutil.rmtree(made, ignore_errors=True)
+                publish()
+            if new_bytes != old and len(new) == 1 and phrase in new[0]:
+                passed.append(name)
+            else:
+                r.fail(f"control '{name}' (planted in {where.format(case=case)}) did not fail with exactly its fault, "
+                       f"{phrase!r}: {[x[:160] for x in new[:3]]}")
+        if len(passed) == len(SKILL_CONTROLS):
+            r.ok(f"controls: {len(passed)} of {len(SKILL_CONTROLS)} planted faults fail as intended, each alone, in a copy "
+                 f"({', '.join(passed)})")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    return r
+
+
 # ---------------------------------------------------------------------------- main
 
 
 CHECKS = {4: criterion_4, 5: criterion_5, 6: criterion_6, 7: criterion_7, 8: criterion_8, 9: criterion_9,
           10: criterion_10, 11: criterion_11, 12: criterion_12, 13: criterion_13, 14: criterion_14, 15: criterion_15, 16: criterion_16,
+          17: criterion_17,
           "links": check_links, "release": check_release}
 NAMED_ONLY = {"release"}  # runs only when --criteria names it: it asks GitHub, so it runs by hand
 RETIRED = {1, 2, 3}  # the conversion's parity criteria (the owner, 2026-11-09)
@@ -6442,8 +6941,8 @@ RETIRED = {1, 2, 3}  # the conversion's parity criteria (the owner, 2026-11-09)
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="static_checks.py", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--criteria", help="comma-separated criterion numbers, 4 to 16, 'links' for the link check and "
-                                           "'release' for femto's release check (default: 4 to 16 and links)")
+    parser.add_argument("--criteria", help="comma-separated criterion numbers, 4 to 17, 'links' for the link check and "
+                                           "'release' for femto's release check (default: 4 to 17 and links)")
     parser.add_argument("--external", action="store_true", help="the link check also fetches every external URL once")
     parser.add_argument("--json", metavar="FILE", help="also write the results to FILE as JSON")
     parser.add_argument("--strict", action="store_true", help="count NOT-YET as a failure")

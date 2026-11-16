@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Trailhead Coffee</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.jade.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css">
+    <link rel="stylesheet" href="custom.css">
+  </head>
+  <body>
+    <header class="container">
+      <nav>
+        <ul><li><strong>Trailhead Coffee</strong></li></ul>
+        <ul>
+          <li><a href="#menu">Menu</a></li>
+          <li><a href="#visit" role="button">Visit us</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main class="container">
+      <section id="menu">
+        <h2>Menu</h2>
+        <div class="grid">
+          <article>
+            <header>Drip</header>
+            <p>Single origin, rotating weekly.</p>
+            <footer><span class="pico-background-jade-500 badge">$3</span></footer>
+          </article>
+          <article>
+            <header>Cortado</header>
+            <p>Equal parts espresso and steamed milk.</p>
+            <footer><span class="pico-background-pumpkin-300 badge">$4.50</span></footer>
+          </article>
+        </div>
+      </section>
+      <section id="visit">
+        <h2>Visit</h2>
+        <p class="pico-color-slate-500">Open daily 7am to 3pm.</p>
+        <form>
+          <fieldset role="group">
+            <input type="email" name="email" placeholder="Email for news" aria-label="Email">
+            <input type="submit" value="Subscribe">
+          </fieldset>
+        </form>
+      </section>
+    </main>
+    <footer class="container"><small>© Trailhead Coffee</small></footer>
+    <script>
+      // Paint the browser UI with the brand color.
+      const meta = document.createElement("meta");
+      meta.name = "theme-color";
+      meta.content = getComputedStyle(document.documentElement).getPropertyValue("--pico-primary").trim();
+      document.head.append(meta);
+    </script>
+  </body>
+</html>

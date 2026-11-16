@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: vite-brand-purple
+expected_outcome: |
+  vite.config.js sets build.cssTarget to femto's minimum browsers (chrome125, edge125, firefox128, safari17.5,
+  ios17.5), which stops Lightning CSS from rewriting light-dark() and fixes data-theme on the card. The brand purple is set by overriding femto's theme tokens on
+  :root after the femto import, with femto's light and dark token pairs or light-dark() where the dark scheme
+  needs a lighter value. Nothing in node_modules is edited. The agent reads femto's docs before writing.
+context:
+  scaffold_script: place-files.sh

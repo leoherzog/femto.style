@@ -1,10 +1,10 @@
-// npm run build [-- --out DIR]: site/ into dist/ (PLAN.md Decision 3).
+// npm run build [-- --out DIR]: site/ and the agent skill into dist/ (PLAN.md Decisions 3 and 20).
 // Node built-ins and prismjs only. The same input always gives byte-identical output: no timestamps,
 // sorted listings, and the output folder is synced (stale files removed, changed files written), so a
 // server watching it never sees it vanish.
 //
-// 1. Copy. Every file under site/ except partials/, docs/ (menu.json and the section files) and
-//    dotfiles: vendor/femto/ included, whose stylesheets every page links. The site's own CSS and
+// 1. Copy. Every file under site/ except partials/, docs/ (menu.json and the section files) and dot names
+//    but .well-known/: vendor/femto/ included, whose stylesheets every page links. The site's own CSS and
 //    JavaScript, assets/**/*.css and *.js, lose their comments (strip); the rest is copied as it is.
 // 2. Include. A line `<!-- include partials/<file> -->` is replaced by the partial, indented to the
 //    marker (so partials hold no <pre> or <textarea>); partials may include partials. The placeholders
@@ -36,6 +36,10 @@
 // 6. Markdown (Decision 19). markdown.mjs turns each section file, its placeholders filled, into
 //    docs/<id>.md, and writes their index, docs.md and llms.txt, and all of them, docs-full.md. Their
 //    links are absolute, at the origin of the docs page's canonical URL.
+// 7. The agent skill (Decision 20). skills/femto/SKILL.md, the one source outside site/, is written
+//    unchanged to .well-known/agent-skills/femto/SKILL.md, with index.json one folder up: the Agent
+//    Skills Discovery index, which names the file with the SHA-256 digest of its bytes.
+import { hash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
@@ -173,9 +177,20 @@ function palette() {
   return JSON.stringify(palette, null, 2);
 }
 
-// --- 1. Copy, then 5. the sitemap and 6. the Markdown, then write.
+// --- 7. The skill and its index. Its name and description are plain one-line scalars in the frontmatter.
+function skill() {
+  const where = "skills/femto/SKILL.md", data = readFileSync(join(ROOT, where)), url = "/.well-known/agent-skills/femto/SKILL.md";
+  const front = data.toString().match(/^---\n([\s\S]*?)\n---\n/)?.[1] ?? fail(`${where}: no frontmatter`);
+  const field = (key) => front.match(new RegExp(`^${key}: ([^\\s"'>|].*)$`, "m"))?.[1] ?? fail(`${where}: no plain ${key} in its frontmatter`);
+  const index = { $schema: "https://schemas.agentskills.io/discovery/0.2.0/schema.json", skills: [{ name: field("name"), type: "skill-md",
+    description: field("description"), url, digest: `sha256:${hash("sha256", data)}` }] };
+  return [[url.slice(1), data], [".well-known/agent-skills/index.json", Buffer.from(JSON.stringify(index, null, 2))]];
+}
+
+// --- 1. Copy, then 5. the sitemap, 6. the Markdown and 7. the skill, then write. A dot name is never
+// listed, .well-known/ aside, so the sync below also removes a stale file there.
 const walk = (dir) => readdirSync(dir, { recursive: true, withFileTypes: true }).filter((d) => d.isFile())
-  .map((d) => relative(dir, join(d.parentPath, d.name)).split("\\").join("/")).filter((f) => !/(^|\/)\./.test(f)).sort();
+  .map((d) => relative(dir, join(d.parentPath, d.name)).split("\\").join("/")).filter((f) => !/(^|\/)\.(?!well-known\/)/.test(f)).sort();
 function build() {
   const source = read("vendor/femto/SOURCE");
   const version = source.match(/^version: (\S+)$/m)?.[1] ?? fail("site/vendor/femto/SOURCE has no version");
@@ -207,6 +222,7 @@ function build() {
     ({ id, text: fill(sections.find((s) => s.id === id).text, docs, `docs/sections/${id}.html`) })) }));
   const origin = new URL(locs.find((loc) => new URL(loc).pathname === "/docs") ?? fail("docs.html: no canonical /docs URL")).origin;
   for (const [file, text] of markdown({ categories, origin, description: docs.description, unesc, fail })) files.set(file, Buffer.from(text));
+  for (const [file, data] of skill()) files.set(file, data);
   const urls = [...new Set(locs)].sort().map((loc) => `  <url><loc>${esc(loc)}</loc></url>\n`).join("");
   files.set("sitemap.xml", Buffer.from(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}</urlset>\n`));
   return files;

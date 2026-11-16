@@ -1,0 +1,17 @@
+{
+  "name": "femto.style",
+  "owner": { "name": "Leo Herzog", "url": "https://github.com/leoherzog" },
+  "description": "The agent skill for femto, the semantic CSS framework.",
+  "plugins": [
+    {
+      "name": "femto",
+      "source": "./skills/femto",
+      "description": "Guides agents on writing HTML and CSS with femto: its semantic HTML approach, and how to fetch its current docs as Markdown.",
+      "author": { "name": "Leo Herzog", "url": "https://github.com/leoherzog" },
+      "homepage": "https://femto.style",
+      "repository": "https://github.com/leoherzog/femto.style",
+      "license": "MIT",
+      "keywords": ["css", "femto", "semantic-html", "agent-skill"]
+    }
+  ]
+}

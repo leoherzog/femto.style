@@ -13,3 +13,8 @@ Thumbs.db
 /dist/
 tests/results/
 __pycache__/
+
+# The agent skill: its eval results, and skill-creator's workspace
+skills/femto/evals/results/
+/evals/results/
+femto-workspace/

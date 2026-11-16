@@ -10,7 +10,7 @@ included, is at tag `conversion-final` (the owner, 2026-11-09).
 ## Quick start
 
 ```sh
-uv run tests/static_checks.py                                  # criteria 4 to 16's static parts and the link check, on dist/
+uv run tests/static_checks.py                                  # criteria 4 to 17's static parts and the link check, on dist/
 uv run tests/static_checks.py --dist /path/to/build            # the same on another build (node build.mjs --out /path/to/build)
 uv run tests/static_checks.py --criteria links --external      # the link check, every external URL fetched once
 uv run tests/static_checks.py --criteria release --external    # femto has no release tag newer than SOURCE's version
@@ -60,7 +60,7 @@ for a setup or usage error.
 | `harness/targets.py`, `harness/targets.json` | the `dist` target and its server (Targets) |
 | `harness/locks.py`, `harness/paths.py` | the machine-wide locks, shared with femto's harness, and the folder paths |
 | `behavior/` | the behavior suite: `__init__.py` (the `@check` registry and shared in-page helpers) and one module per group (Behavior) |
-| `static_checks.py` | the static checks: criteria 4 to 16's static parts, the link check and the release check (Static checks) |
+| `static_checks.py` | the static checks: criteria 4 to 17's static parts, the link check and the release check (Static checks) |
 | `owner-safari.sh` | the owner's Safari passes (Owner's Safari steps) |
 | `results/` | generated, gitignored: one folder per run |
 
@@ -513,7 +513,7 @@ focus of the Colors grid and the homepage's switch and swatches (`expect_forced_
 
 ## Static checks
 
-`static_checks.py` checks criteria 4 to 16's static parts, the link check and, when named, the
+`static_checks.py` checks criteria 4 to 17's static parts, the link check and, when named, the
 release check. `--help` prints its full statement, with every interpretation where PLAN's wording
 leaves a choice.
 
@@ -530,7 +530,7 @@ uv run tests/static_checks.py --dist DIR             # check a built folder inst
 Each criterion reports PASS, FAIL or NOT-YET (with why), with evidence lines and notes. A criterion
 with several parts fails if any part fails, is NOT-YET if none fails and some part cannot run, and
 passes only when every part ran and passed. The exit status is 1 if any criterion fails (or, with
-`--strict`, is not yet checkable), 2 on a usage error, and 0 otherwise. The check ids are 4 to 16,
+`--strict`, is not yet checkable), 2 on a usage error, and 0 otherwise. The check ids are 4 to 17,
 `links` and `release`; `--criteria 1`, `2` or `3` is a usage error, since those criteria were
 retired (the owner, 2026-11-09). Criteria 7 and 10, and 15's run-time parts, need a browser and
 report NOT-YET with the harness command, in the Check workflow too. `run.py static` passes its
@@ -568,7 +568,8 @@ arguments to `static_checks.main(argv)`.
   comment left and the same line count; each `site/assets/**/*.css` parses with `@eslint/css-tree`
   (`@eslint/css`'s parser) with no error and no comment, keeps its line count and generates the same
   CSS as its source (`generate()` drops comments and normalizes whitespace). Every other file the
-  build copies from `site/` (all but `partials/`, `docs/`, dot paths and the four pages at the root),
+  build copies from `site/` (all but `partials/`, `docs/`, dot paths other than `.well-known/` and
+  the four pages at the root),
   `vendor/femto/` among them, is byte-identical to its source, and `dist/assets/` holds no CSS or JS
   without a source. espree and `@eslint/css-tree` come with `eslint` and `@eslint/css` from
   `node_modules`. On 2026-11-10 copies of `dist/` with a changed string, a planted comment and a
@@ -576,7 +577,11 @@ arguments to `static_checks.main(argv)`.
   vendored file with one byte added, a missing `robots.txt` and an extra script each failed, with
   the file named.
 - **6, URLs.** It starts `wrangler pages dev` on the build itself and probes every URL of PLAN's URL
-  inventory: the pages and every `?theme=` color answer 200; `/docs/` and `/docs.html` 308; the old
+  inventory: the pages and every `?theme=` color answer 200; each file the inventory gives 200
+  (`/docs.md`, `/llms.txt`, `/docs-full.md`, `/docs/<id>.md` for every section of `menu.json`, and
+  PLAN.md Decision 20's `/.well-known/agent-skills/index.json` and `femto/SKILL.md`) answers 200 with
+  its `dist/` file as the body and the inventory's media type, read from `Content-Type` without its
+  parameters; the folders around the skill answer 404; `/docs/` and `/docs.html` 308; the old
   Remix docs routes, the 19 version-picker color routes, the 9 dropped routes, `/demo`,
   `/docs/forms/input.html`, `/docs/v1/` and its 20 pages (`V1_PAGES`) and other paths answer 404
   with the `404.html` body. The Pages-inherent paths (`PAGES_INHERENT`) must answer exactly as
@@ -710,7 +715,9 @@ arguments to `static_checks.main(argv)`.
     mutations in a scratch copy, each failing with its file named, and a positive control (a correct
     homepage size sentence) that passed.
 - **14, No Pico.** `git grep -il pico -- . ':!tests' ':!PLAN.md'`, run on tracked files and with
-  `--untracked`, lists only `PICO_ALLOWED` and `site/vendor/femto/`.
+  `--untracked`, lists only `PICO_ALLOWED`, `skills/femto/SKILL.md` among it, and the two folders of
+  `PICO_ALLOWED_DIRS`: `site/vendor/femto/` and `skills/femto/evals/migrate-pico-site/` (PLAN.md
+  Decision 20). The grep reads contents, so a file that only names that folder is listed too.
 - **15, Performance (static parts).** Same-origin loading as markup, CSS and scripts write it, the
   render-blocking scripts, and the `/docs` HTML budget, read from PLAN.md's Risks section: the first
   sentence there that says "budget" and gives sizes after it ("900 KB raw", "70 KB gzipped", "66 KB
@@ -731,6 +738,55 @@ arguments to `static_checks.main(argv)`.
   `Vary: Accept` on `/docs` and `/docs.md` and `Link` header naming `/docs.md` on `/docs`, with no
   `Content-Type` rule. The zone's rewrite rule
   runs only on `femto.style`, so no check covers it (PLAN.md Risks, Markdown).
+- **17, Agent skill.** PLAN.md Decision 20's files (`skill_check`), read from the repository and
+  `dist/`, never through `build.mjs`:
+  - The files: among those tracked or to be tracked, `skills/` holds only `skills/femto/SKILL.md`,
+    its `LICENSE.md` and its `evals/`, and `.claude-plugin/` only `marketplace.json`. Each of the
+    three must be among them, so an ignored one fails.
+  - The frontmatter, read by `skill_frontmatter`, since the script has no YAML parser: plain
+    one-line `key: value` lines and one nested level, under `metadata` only, and any other line
+    fails, as does a value YAML would quote or cut (a leading indicator, `: `, ` #`). The fields are
+    the Agent Skills specification's (`SKILL_FIELDS`); `name` is the folder's, `description` 1 to
+    1024 characters, `license` `MIT` with `LICENSE.md` beside it, and `metadata.repository` this
+    repository on GitHub (`SKILL_REPO`).
+  - The URLs: every `femto.style` URL in `SKILL.md` is at `https://femto.style`, with no query, and
+    names a file in `dist/` (never an `.html` name) or a page, a fragment being an id of that page;
+    the one pattern is `SKILL_PATTERNS`', and `/docs.md` must be named. A `femto.style/<path>`
+    written without a scheme is held to the same. Any other link, inline, by reference or in raw
+    HTML, is absolute (it has a scheme) or the slug of one of the file's own headings. URLs on other
+    origins are not judged.
+  - femto's names: no `--femto-` name but `--femto-*`; no class that the vendored `dist/femto.css` or
+    `dist/femto.colors.css` declares, among every `.name`, every `class=` value and every code span
+    that is exactly a class name, anywhere in its body; femto's package as criterion 13's
+    `package_findings` reads it; and every `dist/…` or `css/…` file it names, bare or after the
+    package's name, in `site/vendor/femto/`. A code span that is exactly a femto class name fails
+    even when it means CSS (`outline`, `grid`), so the skill writes the declaration instead
+    (`outline: none`, `display: grid`).
+  - The build: `dist/.well-known/` holds exactly the skill, byte for byte, and `index.json`, which
+    parses with no repeated key and equals the object the check builds (`skill_index`:
+    `SKILL_SCHEMA`, compared and never fetched, and one entry with the frontmatter's `name` and
+    `description`, `type` `skill-md`, the `url` and the `sha256:` digest of the source's bytes).
+    No other file in `dist/` is a copy of a file under `skills/`, compared by SHA-256.
+  - The marketplace file: JSON with no repeated key, a valid `name`, an `owner.name`, and one plugin,
+    `femto`, with `source` `./skills/femto`, `license` `MIT`, this repository and no `version`.
+  - `README.md`: the lines of its code blocks that begin with one of `SKILL_COMMANDS` are exactly
+    `skill_installs()`'s five.
+  - The evals: at least one case, every `.sh` file executable, and each version, range or tag an
+    eval gives `@leoherzog/femto` is `SOURCE`'s version (a numeric prefix passes, as in criterion
+    13). No check runs the evals, or reads their prerelease wording or browser versions.
+  - **Controls.** Every run copies the skill's files, `README.md` and `dist/`, writes the copy's
+    `.well-known/` from the copy's own source, and plants the faults of `SKILL_CONTROLS` one at a
+    time, each in one file: a `package.json` beside `SKILL.md`, a root `plugin.json`, a wrong
+    `name`, a description with `: `, another repository in the metadata, a scheme-less URL to no
+    file, a URL to no file, a page's `.html` name, a relative link, a femto custom property, a
+    femto class, a changed served copy, a changed digest, a published copy of the skill's license,
+    a stale file under `.well-known/`, `source` `./`, another repository's install command, a femto
+    tag in an eval and another femto version in an eval. Each must be the run's one failure, or the
+    criterion fails. They run only when the copy passes without them. None edits `SKILL.md`'s prose
+    or changes its description's length, and the README control edits only a whole command line, so
+    rewording either breaks no control.
+  Production's answer for the two `/.well-known/` URLs is not checked (PLAN.md Risks, Agent skill);
+  criterion 6 probes them on the local Pages server.
 - **Release** (`--criteria release --external`, never in the default run; NOT-YET without
   `--external`). `git ls-remote --tags --refs https://github.com/leoherzog/femto` must list no
   version tag newer than `SOURCE`'s version by semver precedence. A prerelease tag counts only

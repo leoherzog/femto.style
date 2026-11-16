@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: pricing-page-cdn
+expected_outcome: |
+  index.html and styles.css build the page from femto's semantic markup: plan cards as <article> in a .grid,
+  the FAQ as <details>, the signup as a form. femto loads from jsDelivr's dist/femto.min.css with a version
+  that resolves before 3.0.0 ships, followed by css/themes/jade.css and then styles.css. The toggle sets
+  data-theme to light or dark on <html>, remembers it, and applies it before the first paint. No invented
+  utility classes and no unknown --femto-* names. The agent reads femto's docs before writing.

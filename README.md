@@ -1,6 +1,6 @@
 # femto Documentation
 
-[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`. Nothing from npm ships: `dist/` is static files, and Node and npm are only needed to build, preview and check it.
+[femto.style](https://femto.style) is the documentation site of [femto](https://github.com/leoherzog/femto). It is plain HTML, CSS and JavaScript: `site/` is the source, and `npm run build` writes the site to `dist/`. `skills/femto/` holds femto's agent skill, which the build also publishes ([Agent skill](#agent-skill)). Nothing from npm ships: `dist/` is static files, and Node and npm are only needed to build, preview and check it.
 
 [PLAN.md](PLAN.md) is the site's spec: its decisions, the acceptance criteria the checks hold, and the open risks. The site was converted from a Remix site, and the tag `conversion-final` holds the record of that conversion. Its text is written for femto 3 from femto's README.
 
@@ -14,7 +14,7 @@ You need Node 26.13 or later (`.node-version`). First install the dependencies:
 npm install
 ```
 
-Next, build the site and run the development server at <http://127.0.0.1:8723>. It rebuilds on every change under `site/` or to `build.mjs`:
+Next, build the site and run the development server at <http://127.0.0.1:8723>. It rebuilds on every change under `site/` or `skills/femto/`, or to `build.mjs` or `markdown.mjs`:
 
 ```bash
 npm run dev
@@ -59,19 +59,54 @@ A docs section names the README section it covers with its `readme` key in `site
 1. Vendor the release tag, `git -C ../femto fetch --tags` then `npm run vendor -- ../femto v3.0.0`, and review what it prints.
 2. Delete the prerelease note: the `<section>` in `site/docs/sections/quick-start.html` that begins "The `@3` links and commands in these docs work once 3.0.0 is released", with its `@alpha` commands, and the "Until 3.0.0 is released" paragraph in `site/docs/sections/theme-picker.html`. Once `SOURCE`'s version is a release, criterion 13's prerelease wording check fails until both are gone.
 3. The docs' `@3` links work once 3.0.0 is on npm. Once `SOURCE` says 3.0.0, the link check no longer exempts them, so `uv run tests/static_checks.py --criteria links --external` passes only after femto is published.
+4. Bring the skill's evals up to the release. Criterion 17 fails until the version pinned in `skills/femto/evals/vite-brand-purple/files/package.json` and `place-femto.sh` is `SOURCE`'s. No check reads the prerelease wording in `pricing-page-cdn`'s `case.yaml` and its grader `02-version-resolves.md`, so change that by hand, then run the evals ([Agent skill](#agent-skill)).
+
+## Agent skill
+
+`skills/femto/` is an [Agent Skill](https://agentskills.io) that teaches AI coding agents to build pages with femto (PLAN.md Decision 20). It is one short file, `SKILL.md`: femto's approach, what semantic HTML is and a few rules for a framework with almost no classes. It lists none of femto's custom properties or classes. It tells agents to fetch the docs' Markdown from this site, so they always read the current docs, and criterion 17 holds every `femto.style` URL it names to the build.
+
+Install it with the [skills CLI](https://github.com/vercel-labs/skills), from GitHub or from the site's own index:
+
+```bash
+npx skills add leoherzog/femto.style
+npx skills add https://femto.style
+```
+
+With the GitHub CLI:
+
+```bash
+gh skill install leoherzog/femto.style femto
+```
+
+As a Claude Code plugin:
+
+```
+/plugin marketplace add leoherzog/femto.style
+/plugin install femto@femto.style
+```
+
+The GitHub routes read `main` and copy the whole `skills/femto/` folder, its evals included. The site's route installs `SKILL.md` alone: the build publishes it at `/.well-known/agent-skills/femto/SKILL.md`, with the [Agent Skills Discovery](https://github.com/cloudflare/agent-skills-discovery-rfc) index at `/.well-known/agent-skills/index.json`, and the command needs the bare origin with its scheme. `.claude-plugin/marketplace.json` pins no version, so Claude Code users get each commit on `main` when they update.
+
+Run the evals by hand after editing the skill:
+
+```bash
+claude plugin eval skills/femto --scaffold --allow-tools Write Edit Bash WebFetch WebSearch "WebFetch(domain:femto.style)" "WebFetch(domain:registry.npmjs.org)" "WebFetch(domain:cdn.jsdelivr.net)"
+```
+
+`--scaffold` runs each case's `place-files.sh`, and `--allow-tools` grants the tools the cases ask for and the hosts their shell commands may reach. Without them a case starts in an empty folder with read-only tools. The evals need an agent and the network, so no check runs them, and their results, in `skills/femto/evals/results/`, are gitignored.
 
 ## Tests
 
 `tests/` holds the checks that hold the site: the static checks and a link check, which need no browser; the behavior suite, in real Chrome, Firefox and Safari on macOS; and axe-core accessibility, in Chrome and Firefox. They run with [uv](https://docs.astral.sh/uv/); [tests/README.md](tests/README.md) has the setup, every mode and every check.
 
 ```bash
-uv run tests/static_checks.py                  # criteria 4 to 16's static parts, and the link check
+uv run tests/static_checks.py                  # criteria 4 to 17's static parts, and the link check
 uv run tests/run.py behavior --target dist     # criterion 7 and 15's run-time checks, in Chrome and Firefox
 uv run tests/run.py a11y --target dist         # criterion 10
 uv run tests/run.py rig                        # the browser mechanisms the harness relies on
 ```
 
-Besides the criteria, the static checks hold the docs to femto at the vendored commit (the drift checks and femto's facts), compare every example's live markup with its code sample, keep the prerelease wording in step with `SOURCE`'s version, and measure `/docs` at the compression Cloudflare Pages serves it with. `uv run tests/static_checks.py --criteria release --external` asks femto's GitHub repository for a release tag newer than `SOURCE`'s version. Safari's runs are the owner's: `tests/owner-safari.sh final` and `reduced`.
+Besides the criteria, the static checks hold the docs to femto at the vendored commit (the drift checks and femto's facts), compare every example's live markup with its code sample, keep the prerelease wording in step with `SOURCE`'s version, measure `/docs` at the compression Cloudflare Pages serves it with, and hold the agent skill to the build, to vendored femto and to the Agent Skills specification (criterion 17). `uv run tests/static_checks.py --criteria release --external` asks femto's GitHub repository for a release tag newer than `SOURCE`'s version. Safari's runs are the owner's: `tests/owner-safari.sh final` and `reduced`.
 
 On every push and pull request, GitHub runs `.github/workflows/check.yml` on Linux: `npm ci`, `npm run build`, `npm run lint` and `uv run tests/static_checks.py`. It fetches femto at the commit `SOURCE` names into `../femto`, beside the checkout, so the vendored copy and the docs are checked against that commit. The criteria that need the browsers report NOT-YET there, and any failing criterion fails the run. The checks that ask the network, every external link and a newer femto release, run only by hand (tests/README.md). The workflow never deploys.
 
@@ -119,4 +154,4 @@ On `femto.style` itself the pages never hash the same as the build when the requ
 
 femto.style is adapted from the [Pico CSS documentation](https://github.com/picocss/picocss.com) by [Lucas Larroche](https://lucaslarroche.com/), licensed under [CC BY-SA 4.0](https://github.com/picocss/picocss.com/blob/main/LICENSE.md), and has been changed to document [femto](https://github.com/leoherzog/femto). This adaptation is also licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); see [LICENSE.md](LICENSE.md).
 
-Some parts keep their own licenses: femto itself, in `site/vendor/femto/`, is MIT-licensed (its [LICENSE.md](site/vendor/femto/LICENSE.md)); the font in `site/assets/fonts/` (Pacifico, subset to the CSS variables example's heading) is under the SIL Open Font License 1.1 ([OFL.txt](site/assets/fonts/OFL.txt)); and the GitHub, npm and jsDelivr icons are [Simple Icons](https://simpleicons.org)' SVGs, under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). The site's other icons, apart from femto's own logo, are Unicode characters (PLAN.md Decision 17).
+Some parts keep their own licenses: femto itself, in `site/vendor/femto/`, is MIT-licensed (its [LICENSE.md](site/vendor/femto/LICENSE.md)); the agent skill, in `skills/femto/` with its marketplace file in `.claude-plugin/`, is MIT-licensed too (its [LICENSE.md](skills/femto/LICENSE.md)); the font in `site/assets/fonts/` (Pacifico, subset to the CSS variables example's heading) is under the SIL Open Font License 1.1 ([OFL.txt](site/assets/fonts/OFL.txt)); and the GitHub, npm and jsDelivr icons are [Simple Icons](https://simpleicons.org)' SVGs, under [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). The site's other icons, apart from femto's own logo, are Unicode characters (PLAN.md Decision 17).

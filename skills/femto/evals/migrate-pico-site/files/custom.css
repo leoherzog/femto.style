@@ -1,0 +1,28 @@
+/* Brand overrides for Pico */
+:root {
+  --pico-border-radius: 0.75rem;
+  --pico-font-family: "Georgia", serif;
+}
+
+[data-theme=light],
+:root:not([data-theme=dark]) {
+  --pico-background-color: #fffaf3;
+  --pico-card-background-color: #fff;
+}
+
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --pico-background-color: #1b1611;
+    --pico-card-background-color: #241d16;
+  }
+}
+
+[data-theme=dark] {
+  --pico-background-color: #1b1611;
+  --pico-card-background-color: #241d16;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--pico-border-radius);
+}
