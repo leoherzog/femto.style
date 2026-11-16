@@ -25,7 +25,7 @@ femto rewards that choice. An `<article>` is a card and a `<details>` is an acco
 - **Bring no classes from other frameworks.** femto has no utility classes for spacing, alignment, columns or sizes, so `.btn`, `.row`, `.col-6`, `.text-center` and `.mt-2` do nothing. Use only the classes the docs list.
 - **Let attributes carry state.** femto styles states from the attributes assistive technology already reads, such as `aria-invalid`, `aria-busy` and `aria-current`. Set those instead of inventing state classes, and the page both looks right and announces right.
 - **Customize from your own stylesheet.** Load it after femto's files and set femto's custom properties there. Never edit femto's files.
-- **Use femto's colors, not literals.** A hardcoded color looks right in one color scheme and wrong in the other. Read the color from a femto custom property, and look at the page in both schemes.
+- **Give every color both schemes.** A single literal looks right in one color scheme and wrong in the other. In your own rules, read colors from femto's custom properties. To set a color of your own, give it a light and a dark value: through the token's light and dark pair if it has one, with `light-dark()` if not. The Tokens section says which tokens have a pair, and an override of a pair that does not exist does nothing.
 - **Write your own rule when a layout needs more.** Put it in the project's stylesheet and build it from femto's custom properties, so it follows femto's spacing and both color schemes.
 - **Expect to write the scripts.** femto ships no JavaScript. Where a component needs one, such as opening a modal, its docs section has it.
 
@@ -48,13 +48,13 @@ curl -fsSL https://femto.style/docs/quick-start.md
 
 Read the files verbatim. If your fetch tool summarizes pages, use `curl` instead, because token names and code samples must arrive exact. Fetch `docs-full.md` only when a task spans most of the docs, such as a full audit.
 
-Links inside a section are absolute. A link that ends in `.md` is another section's file, so fetch it the same way. Any other link is an HTML page, often a large one: never print one whole. Five sections answer most questions:
+Links inside a section are absolute. A link of the form `https://femto.style/docs/<id>.md` is another section's file, so fetch it the same way. Most other links are HTML pages, often large ones: never print one whole. Five sections answer most questions:
 
+- [Quick start](https://femto.style/docs/quick-start.md): the link, the install command and a starter page. Its npm part has the fix for colors or `data-theme` that break only in a production build, where a bundler has rewritten femto's `light-dark()` colors for older browsers.
 - [Elements](https://femto.style/docs/elements.md): what femto does to each HTML element, with a link to its section.
-- [Classes and attributes](https://femto.style/docs/classes.md): every class and attribute femto reads.
+- [Classes and attributes](https://femto.style/docs/classes.md): the classes and attributes femto reads, but for `data-theme`, the modal's state classes and the color utility classes, which the Color schemes, Modal and Colors sections hold.
 - [Tokens](https://femto.style/docs/tokens.md): each token, what it sets, and whether it has a light and dark pair. It leaves out the pairs' own names and the palette, which [CSS variables](https://femto.style/docs/css-variables.md) and [Colors](https://femto.style/docs/colors.md) describe.
 - [Migrating from Pico](https://femto.style/docs/migration.md): every change from Pico CSS 2.
-- [Browser support](https://femto.style/docs/browser-support.md): the browsers femto needs. Read it when colors or `data-theme` break only in a production build: a bundler has rewritten femto's `light-dark()` colors for older browsers.
 
 Whole-page examples are at [femto.style/examples](https://femto.style/examples): one large HTML page, each example a `<section>` with an id. A docs link to `/examples#<id>` names one of them, so print only that one:
 
@@ -64,7 +64,7 @@ curl -fsSL https://femto.style/examples | sed -n '/id="pricing"/,/<section class
 
 ### The version in use
 
-The site documents the newest femto. Check which version the project loads, from its `package.json`, lockfile or CDN URL. For a new project, take the link or the install command from Quick start, with any note there about prereleases. When the project loads an older version, its own README describes it, with the CSS it ships beside it:
+The site documents the newest femto. Check which version the project loads, from its `package.json`, lockfile or CDN URL. A link or install command in any docs section can name a version that is not released yet, and then answers 404. While femto is in prerelease, Quick start says what to write instead: apply that to every femto URL and command you copy, in a new project or an old one. When the project loads an older version, its own README describes it, with the CSS it ships beside it:
 
 - `node_modules/@leoherzog/femto/README.md`, with `css/` and `dist/`
 - `https://cdn.jsdelivr.net/npm/@leoherzog/femto@<version>/README.md`
@@ -77,8 +77,8 @@ Read the README and CSS in the installed package: `dist/femto.css` and `dist/fem
 
 ## Before you finish
 
-Search the femto CSS the project loads for every femto class and `--femto-*` name you wrote. The CSS holds them all, and the docs' Tokens section does not, so a name missing there is not yet wrong.
+Search the femto CSS the project loads for every femto class and `--femto-*` name you wrote. A name absent from the CSS is wrong. A name absent from the docs' Tokens section may still be valid, since that section leaves some out.
 
-Request every femto URL you linked and confirm it answers with CSS. A stylesheet that answers 404 leaves the page unstyled, with no error.
+Request every femto URL you linked and confirm it answers with CSS. A stylesheet that answers 404 leaves the page unstyled, with no error, and Quick start's note on prereleases is the usual remedy.
 
 If you can open the page in a browser, look at it in both color schemes.
