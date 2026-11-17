@@ -22,6 +22,12 @@ body > main > .hero {
   margin-top: 8rem;
 }
 
+/* The hero's heading keeps its own bottom margin inside its hgroup, where femto removes it, so
+   the highlighted words stand clear of the two-line tagline */
+body > main > .hero hgroup > h1 {
+  margin-bottom: var(--femto-typography-spacing-vertical);
+}
+
 /* The one <link> to copy, a one-line code block under the tagline. In femto's 950px container,
    from 1024px to 1279px, its <pre> is 0.68em in place of femto's 0.875em, so at the browser's
    default font size the line fits without a scroll; from 1280px it fits at femto's size. Below
