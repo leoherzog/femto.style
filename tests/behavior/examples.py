@@ -4,7 +4,8 @@ the inner host, so no page rule can match it; the inner one holds femto's styles
 mockup, and a <details> under it, closed in the markup, holds the same markup to copy. examples.js
 mirrors <html>'s data-theme onto each inner host, cancels the mockups' link clicks, opens and closes
 their dialogs (where command and commandfor have not), copies an example as a page (Copy as page, in
-femto's starter template) and links the theme color the page's select names in every inner root.
+femto's starter template), shows one alone in a modal (Pop out, which moves its frame into the
+dialog and back) and links the theme color the page's select names in every inner root.
 The mockups' forms have method="dialog", which keeps their submits from going anywhere."""
 import re
 from pathlib import Path
@@ -142,8 +143,10 @@ const collect = (hosts) => hosts.map(h => {
 REFERENCE = r"""
 const theme = arguments[1];
 const frameCss = [...document.styleSheets].find(s => s.href?.endsWith('/assets/css/examples.css'));
-const frameRules = [...frameCss.cssRules].map(r => r.cssText).filter(t => t.includes('div[data-example]'))
-  .map(t => t.replaceAll('body > main > section.example > div[data-example]', 'div[data-ref]')).join('\n');
+// The frame's rules as they apply in a section (the Pop out dialog's own are left out), each
+// selector for the frame, plain or in an :is() with the dialog's, made div[data-ref].
+const frameRules = [...frameCss.cssRules].map(r => r.cssText).filter(t => t.includes('section.example') && t.includes('div[data-example]'))
+  .map(t => t.replace(/(?::is\([^)]*\)|body > main > section\.example) > div\[data-example\]/g, 'div[data-ref]')).join('\n');
 const sections = hosts.map(h => {
   const code = h.frame.closest('section').querySelector(':scope > details > .code pre code').textContent;
   return `<div data-ref><template shadowrootmode="open"><div${theme ? ` data-theme="${theme}"` : ''}><template shadowrootmode="open"><link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">${code}</template></div></template></div>`;
@@ -614,19 +617,21 @@ def examples_fold(page):
 def examples_nojs(page):
     """With the page's JavaScript off (skipped in Safari), every example still renders, its two roots
     declarative with femto's sheet applied, each sample is folded in its closed <details>, and the
-    theme select and every Copy as page button, which do nothing without JavaScript, are not
-    rendered (examples.css, scripting: none)."""
+    theme select and every Copy as page and Pop out button, which do nothing without JavaScript, are
+    not rendered (examples.css, scripting: none)."""
     r = page.js(r"""const frames = [...document.querySelectorAll('div[data-example]')];
       return {frames: frames.length,
               styled: frames.filter(f => f.shadowRoot?.firstElementChild?.shadowRoot?.styleSheets[0]?.cssRules.length > 100).length,
               closed: document.querySelectorAll('main section.example > details:not([open])').length,
               select: document.querySelector('p[data-examples-theme]')?.getClientRects().length ?? null,
-              buttons: [...document.querySelectorAll('button[data-copy-page]')].map(b => b.getClientRects().length)};""")
+              buttons: [...document.querySelectorAll('button[data-copy-page]')].map(b => b.getClientRects().length),
+              pops: [...document.querySelectorAll('button[data-pop-out]')].map(b => b.getClientRects().length)};""")
     page.expect("the page has examples", r["frames"] > 0)
     page.eq("every example styled by femto", r["styled"], r["frames"])
     page.eq("every sample folded", r["closed"], r["frames"])
     page.eq("the theme select is not rendered", r["select"], 0)
     page.eq("no Copy as page button is rendered, one in each example", r["buttons"], [0] * r["frames"])
+    page.eq("no Pop out button is rendered, one in each example", r["pops"], [0] * r["frames"])
 
 
 # femto's starter template as the docs' Quick start shows it: the text of the code block after the
@@ -979,3 +984,179 @@ def examples_newer(page):
     page.expect("checkout: a submit button", out["submit"])
     page.eq("checkout: the order summary table", out["table"], ["thead:1", "tbody:2", "tfoot:3"])
     page.expect("checkout: side by side", out["side"])
+
+
+# --- Pop out ---------------------------------------------------------------------------------------
+
+# The Pop out dialog and the example whose id is arguments[0]: the dialog, its title and focus, the
+# frame's place (its section, or the card) and its email field's value, the placeholder, the
+# section's children and its <details>' top, scrollY, <html>'s modal classes, and the card's edges
+# with --femto-spacing in px (a probe sized by the token, in the card).
+POP_STATE = r"""
+const id = arguments[0];
+const section = document.getElementById(id);
+const dialogs = document.querySelectorAll('dialog[data-example-modal]');
+const dialog = dialogs[0] ?? null;
+const article = dialog?.querySelector(':scope > article') ?? null;
+const close = article?.querySelector(':scope > header > button[rel=prev]') ?? null;
+const title = document.getElementById('example-modal-title');
+const frame = document.querySelector(`div[data-example="${id}"]:not([data-example-placeholder])`);
+const root = frame?.shadowRoot?.firstElementChild?.shadowRoot ?? null;
+const placeholder = section.querySelector(':scope > div[data-example-placeholder]');
+const kids = (el) => [...el.children].map(c => c.localName + (c.hasAttribute('data-example-placeholder') ? '[data-example-placeholder]'
+  : c.hasAttribute('data-example') ? '[data-example]' : ''));
+const active = document.activeElement;
+let bounds = null;
+if (article) {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position: absolute; width: var(--femto-spacing); height: 0';
+  article.append(probe);
+  const spacing = probe.getBoundingClientRect().width;
+  probe.remove();
+  const r = article.getBoundingClientRect();
+  bounds = {left: r.left, right: r.right, top: r.top, viewport: document.documentElement.clientWidth, spacing};
+}
+return {
+  dialogs: dialogs.length, open: dialog?.open ?? false, modal: dialog?.matches(':modal') ?? false,
+  inMain: dialog?.parentElement === document.querySelector('body > main'),
+  labelledby: dialog?.getAttribute('aria-labelledby') ?? null,
+  title: title && article?.contains(title) && title.matches('dialog > article > header > h2') ? title.textContent : null,
+  closeName: close?.getAttribute('aria-label') ?? null,
+  card: article ? kids(article) : null,
+  focus: active === close ? 'close' : active === section.querySelector(':scope > header > button[data-pop-out]') ? 'pop out'
+    : active?.outerHTML.slice(0, 80) ?? null,
+  frame: frame?.parentElement === section ? 'section' : frame && frame.parentElement === article ? 'card' : null,
+  shadow: !!root, value: root?.querySelector('input[type=email]')?.value ?? null,
+  frameHeight: frame?.getBoundingClientRect().height ?? null,
+  placeholders: document.querySelectorAll('[data-example-placeholder]').length,
+  placeholder: placeholder ? {height: placeholder.getBoundingClientRect().height, inline: parseFloat(placeholder.style.height),
+                              empty: !placeholder.shadowRoot && !placeholder.childNodes.length} : null,
+  section: kids(section),
+  details: section.querySelector(':scope > details').getBoundingClientRect().top, y: scrollY,
+  classes: [...document.documentElement.classList].filter(c => c.startsWith('modal-')),
+  bounds,
+};
+"""
+# The Pop out dialog is open and its opening animation is done (createModal(): modal-is-open alone).
+POPPED = ("(() => { const d = document.querySelector('dialog[data-example-modal]'), c = document.documentElement.classList;"
+          " return !!d?.open && c.contains('modal-is-open') && !c.contains('modal-is-opening'); })()")
+# The popped-out example's inner shadow root.
+POPPED_ROOT = "document.querySelector('dialog[data-example-modal] > article > div[data-example]').shadowRoot.firstElementChild.shadowRoot"
+# A point on the dialog, the overlay, halfway between the viewport's top left corner and the card's.
+OVERLAY_POINT = r"""
+const d = document.querySelector('dialog[data-example-modal]'), r = d.querySelector(':scope > article').getBoundingClientRect();
+const x = Math.floor(r.left / 2), y = Math.floor(r.top / 2);
+return document.elementFromPoint(x, y) === d ? [x, y] : null;
+"""
+TYPED = "sam@example.com"
+
+
+def pop_open(page, eid, label):
+    """Click the example's Pop out button, scrolled to the middle first, and wait until its dialog
+    has opened; returns the example's POP_STATE before the click and once open."""
+    button = page.el(f"#{eid} > header > button[data-pop-out]")
+    page.js("arguments[0].scrollIntoView({block: 'center', behavior: 'instant'})", button)
+    page.sleep(0.05)
+    before = page.js(POP_STATE, eid)
+    page.click(button, scroll=False)
+    page.wait(f"{label}: the Pop out dialog opens", POPPED, 1.5, got=page.js(POP_STATE, eid))
+    return before, page.js(POP_STATE, eid)
+
+
+def pop_closed(page, eid, label, value=None):
+    """Wait until the Pop out dialog has left the page (createModal() closes after femto's animations,
+    400 ms at most), then assert that the example's frame is back between its header and its
+    details with its shadow roots (and Sign in's typed email), no placeholder is left, <html> has no
+    modal class and focus is on the Pop out button."""
+    page.wait(f"{label}: the Pop out dialog leaves the page", "!document.querySelector('dialog[data-example-modal]')", 1.5)
+    s = page.js(POP_STATE, eid)
+    page.eq(f"{label}: the frame back in its section, its shadow roots kept, no placeholder",
+            {k: s[k] for k in ("frame", "shadow", "section", "placeholders")},
+            {"frame": "section", "shadow": True, "section": ["header", "div[data-example]", "details"], "placeholders": 0})
+    if value is not None:
+        page.eq(f"{label}: the email field keeps what was typed", s["value"], value)
+    page.eq(f"{label}: no modal class on <html>", s["classes"], [])
+    page.eq(f"{label}: focus back on the Pop out button", s["focus"], "pop out")
+
+
+def pop_out(page):
+    n = page.js("return document.querySelectorAll('main section.example').length")
+    page.eq("one Pop out button in each example header, reading Pop out",
+            page.js("return [...document.querySelectorAll('main section.example')].map(s =>"
+                    " [...s.querySelectorAll(':scope > header > button[data-pop-out]')].map(b => b.textContent).join('|'))"),
+            ["Pop out"] * n)
+    page.click_at(*shadow_point(page, "hosts.find(h => h.id === 'sign-in').root.querySelector('input[type=email]')"))
+    page.key(TYPED)
+    page.eq("Sign in: the email field holds what was typed", page.js(POP_STATE, "sign-in")["value"], TYPED)
+
+    before, s = pop_open(page, "sign-in", "Sign in")
+    page.eq("Sign in: one dialog, in <main>, open as a modal", {k: s[k] for k in ("dialogs", "inMain", "open", "modal")},
+            {"dialogs": 1, "inMain": True, "open": True, "modal": True})
+    page.eq("Sign in: named by #example-modal-title, its h2, which reads Sign in", [s["labelledby"], s["title"]],
+            ["example-modal-title", "Sign in"])
+    page.eq("Sign in: focus on the dialog's close button", [s["focus"], s["closeName"]], ["close", "Close"])
+    page.eq("Sign in: the card holds its header and the frame, with its shadow roots and the typed email",
+            [s["card"], s["frame"], s["shadow"], s["value"]], [["header", "div[data-example]"], "card", True, TYPED])
+    page.eq("Sign in: an empty placeholder holds the frame's place", s["section"], ["header", "div[data-example-placeholder]", "details"])
+    ph = s["placeholder"]
+    page.expect("Sign in: the placeholder has the frame's height (within 1 px), inline, and no example",
+                ph["empty"] and abs(ph["height"] - before["frameHeight"]) <= 1 and abs(ph["inline"] - before["frameHeight"]) <= 1,
+                placeholder=ph, frame=before["frameHeight"])
+    page.expect("Sign in: the section's details did not move (within 1 px) and the page did not scroll",
+                abs(s["details"] - before["details"]) <= 1 and s["y"] == before["y"],
+                details=[before["details"], s["details"]], y=[before["y"], s["y"]])
+    b = s["bounds"]
+    page.expect("Sign in: the card spans the viewport less --femto-spacing on each side (within 1 px)",
+                b["spacing"] > 0 and abs(b["left"] - b["spacing"]) <= 1 and abs(b["right"] - (b["viewport"] - b["spacing"])) <= 1, **b)
+    page.click(page.el("dialog[data-example-modal] > article > header > button[rel=prev]"))
+    pop_closed(page, "sign-in", "the close button", TYPED)
+
+    pop_open(page, "sign-in", "again")
+    page.key("ESCAPE")
+    pop_closed(page, "sign-in", "Escape", TYPED)
+
+    _, s = pop_open(page, "sign-in", "once more")
+    page.eq("once more: the frame in the card, the email kept", [s["frame"], s["value"]], ["card", TYPED])
+    pt = page.js(OVERLAY_POINT)
+    page.expect("a point on the overlay, outside the card", pt, bounds=s["bounds"])
+    page.click_at(*pt)
+    pop_closed(page, "sign-in", "a click on the overlay", TYPED)
+
+    pop_open(page, "confirm-dialog", "Confirmation dialog")
+    inner = (f"(() => {{ const r = {POPPED_ROOT}, d = r.querySelector('dialog');"
+             " return {open: d.open, modal: d.matches(':modal'), opener: r.activeElement === r.querySelector('[aria-controls]')}; })()")
+    page.click_at(*shadow_point(page, f"{POPPED_ROOT}.querySelector('[aria-controls]')"))
+    page.wait("Confirmation dialog: its Delete project dialog opens as a modal in the card",
+              f"(() => {{ const s = {inner}; return s.open && s.modal; }})()", 1.5)
+    page.key("ESCAPE")
+    page.wait("Escape closes the example's own dialog", f"!{inner}.open", 1.5)
+    page.holds("the Pop out dialog stays open after that Escape", f"{POPPED} && !document.documentElement.classList.contains('modal-is-closing')", 0.6)
+    page.expect("focus back on the example's opener", page.js(f"return {inner}")["opener"], state=page.js(f"return {inner}"))
+    page.key("ESCAPE")
+    pop_closed(page, "confirm-dialog", "a second Escape")
+
+
+@check("examples-pop-out", "/examples")
+def examples_pop_out(page):
+    """Each example's header has one Pop out button (button[data-pop-out]). With an email typed into
+    Sign in, its Pop out opens one dialog[data-example-modal] in <main> as a modal (:modal), named by
+    aria-labelledby="example-modal-title", the card's h2, which reads "Sign in", with focus on the
+    card's close button. The card holds its header and the frame itself, its shadow roots and the
+    typed email kept; the section holds an empty placeholder frame in its place, of the frame's
+    height (within 1 px), so the section's <details> keeps its top (within 1 px) and scrollY its
+    value. The card spans the viewport less --femto-spacing (read from the page) on each side,
+    within 1 px. The close button, Escape and a click on the overlay (press and release on the
+    dialog, outside the card) each close it: once the dialog has left the page (createModal() waits
+    for femto's animations, 400 ms at most), the frame is back between the section's header and its
+    <details> with the email kept, no placeholder is left, <html> has no modal class and focus is
+    on the Pop out button. With Confirmation dialog popped out and its Delete project dialog open
+    inside the card, Escape closes only that dialog, focus going back to its opener, and the Pop
+    out dialog stays open; a second Escape closes the Pop out dialog."""
+    pop_out(page)
+
+
+@check("examples-pop-out-small", "/examples", width=375, height=812)
+def examples_pop_out_small(page):
+    """The same at 375 x 812, a phone's viewport, where femto's card already takes the viewport's
+    width less its margin."""
+    pop_out(page)

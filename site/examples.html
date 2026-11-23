@@ -84,8 +84,10 @@
         </div>
       </section>
       <!-- Each example's markup is written twice: in its inner shadow root, after the femto link, and
-           escaped in the code sample in the <details> under it. Change both the same way. examples.css
-           and examples.js explain the two shadow roots, the Copy as page buttons and the theme select. -->
+           escaped in the code sample in the <details> under it. Change both the same way. Its frame's
+           data-example is the section's id, which the window bar shows as its address. examples.css
+           and examples.js explain the two shadow roots, the window bar, the Copy as page and Pop out
+           buttons and the theme select. -->
       <section class="example" id="navigation-bar" aria-label="Navigation bar example">
         <header>
           <hgroup>
@@ -94,8 +96,9 @@
             <p>A site's links with the current page marked, an account dropdown, and breadcrumbs.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="navigation-bar">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -174,8 +177,9 @@
             <p>A modal that asks before a project is deleted, opened by <code>commandfor</code> or a script.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="confirm-dialog">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -232,8 +236,9 @@
             <p>Questions that open and close, each one a <code>&lt;details&gt;</code> element.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="faq">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -290,8 +295,9 @@
             <p>An email and password form in a card, beside a short welcome.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="sign-in">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -364,8 +370,9 @@
             <p>A registration form whose fields show their state with <code>aria-invalid</code> and helper text.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="sign-up">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -444,8 +451,9 @@
             <p>Contact details beside a form with a select, a textarea, and radio buttons.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="contact">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -566,8 +574,9 @@
             <p>A checkout form in fieldsets, beside an order summary in a table.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="checkout">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -826,8 +835,9 @@
             <p>A header with navigation, a hero, three features, a quotation, and a footer.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="landing-page">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -962,8 +972,9 @@
             <p>A side nav in an <code>&lt;aside&gt;</code>, beside the article.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="docs-layout">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -1078,8 +1089,9 @@
             <p>Three plans in cards on a grid, with a switch for yearly billing.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="pricing">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -1214,8 +1226,9 @@
             <p>Summary cards, a progress bar, a loading card, and a striped table that scrolls on small screens.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="dashboard">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -1396,8 +1409,9 @@
             <p>A settings form with switches, a disabled option, and radio buttons.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="settings">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -1552,8 +1566,9 @@
             <p>An article with a byline, a list, a quotation, and a code block.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="blog-post">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">
@@ -1620,8 +1635,9 @@
             <p>A search field joined to its button, a sort dropdown, results, and page links.</p>
           </hgroup>
           <button type="button" class="secondary outline" data-copy-page>Copy as page</button>
+          <button type="button" class="secondary outline" data-pop-out>Pop out</button>
         </header>
-        <div data-example>
+        <div data-example="search-results">
           <template shadowrootmode="open">
             <div part="example">
               <template shadowrootmode="open">

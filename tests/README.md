@@ -103,8 +103,8 @@ Options: `--target` (required), `--groups`, `--checks` (names), `--browsers` (de
 `--ready static|none` (the target's hook by default), `--workers chrome=2,firefox=2` (sessions per
 browser, 1 by default), `--run-id`, `--label` (stored in `result.json`), `--no-shots` and `--list`.
 The groups, in order: shell, one-page, getting-started, customization, layout, content, forms,
-components-a, components-b, landing, examples and loads. On 2026-11-11 the suite holds 135 checks
-over 185 check-routes: 370 runs in Chrome and Firefox (`--list` prints the count).
+components-a, components-b, landing, examples and loads. The suite holds 138 checks over 188
+check-routes: 376 runs in Chrome and Firefox (`--list` prints the count).
 
 **How a check runs.** A check drives a top-level document directly, so the URL, history, focus,
 storage events between tabs and resizes are the browser's own. Each browser runs headless (timers
@@ -281,7 +281,7 @@ light OS and nothing stored unless the table says otherwise.
 | shell | `color-scheme-flash` | `/`, `/docs` (stored dark) | Seen from a preload script, `data-theme` appears while the head is parsed, before the first paint, and the first frame sees it. Skipped in Safari. |
 | shell | `header-fixed` | `/docs#modal` | `body > header`, with no class (docs.css makes it sticky from lg), is sticky at `top: 0`: its top is 0 at the top and scrolled to 21, 600, 0 and 300 px; its bottom border (femto's muted border color) is drawn and the same everywhere; it never gets a class. |
 | shell | `header-landing` | `/` | The landing header has no class, at the top and scrolled 600 px, and scrolls away with the page. |
-| shell | `print-light` | `/`, `/docs#colors`, `/examples` (stored dark) | Print is light, and the controls that only work on screen have no box (PLAN.md Rules, CSS: In print), the header's links and toggle (its nav's last list; the logo prints), the Theme picker's swatches with their sentence and option switches, the Color schemes switcher, Grid's Add and Remove column, Typography's rem switch, the Modal demo's opener and the Colors palette's help among them (Chrome's print media emulated over CDP, with the OS light and then dark; Firefox has no way to emulate it, so there only the print below runs); on `/docs` every code block's `<pre>` prints femto's light code background and every example's code footer femto's light card sectioning color (each compared with the token as the browser computes it), and the Colors swatches and the Themes dots keep `print-color-adjust: exact`; on `/examples` every inner host is light with no `data-theme`, and a real WebDriver Print takes `data-theme` off the hosts and gives it back. Skipped in Safari. |
+| shell | `print-light` | `/`, `/docs#colors`, `/examples` (stored dark) | Print is light, and the controls that only work on screen have no box (PLAN.md Rules, CSS: In print), the header's links and toggle (its nav's last list; the logo prints), the Theme picker's swatches with their sentence and option switches, the Color schemes switcher, Grid's Add and Remove column, Typography's rem switch, the Modal demo's opener, the Colors palette's help and `/examples`' Copy as page and Pop out buttons among them (Chrome's print media emulated over CDP, with the OS light and then dark; Firefox has no way to emulate it, so there only the print below runs); on `/docs` every code block's `<pre>` prints femto's light code background and every example's code footer femto's light card sectioning color (each compared with the token as the browser computes it), and the Colors swatches and the Themes dots keep `print-color-adjust: exact`; on `/examples` every inner host is light with no `data-theme`, and a real WebDriver Print takes `data-theme` off the hosts and gives it back. Skipped in Safari. |
 | shell | `print-light-os-dark` | `/docs#colors` (dark, nothing stored) | The same print assertions as `print-light` on `/docs`, with a dark OS and no stored choice. Chrome only (Firefox records a note); skipped in Safari. |
 | shell | `reflow-320` | `/`, `/docs`, `/examples`, `/does-not-exist` (320 × 640) | No page is wider than the viewport (`<html>`'s scrollWidth is its clientWidth), and no element, open shadow roots included, ends past the viewport's right edge outside a box that scrolls or clips it (WCAG 1.4.10). |
 | shell | `copy-button` | `/docs`, `/docs#modal` | The first and last copy buttons, whose tooltip is "Copy code", the words of their name, copy their block's text; "Copied" with ✓ within 100 ms, back to the button's own tooltip with ⧉ 900 to 1500 ms later; the button's computed name is "Copy code" throughout (owner decision 17). |
@@ -307,7 +307,7 @@ light OS and nothing stored unless the table says otherwise.
 | one-page | `spy-deep-link-small` | `/docs#input` (375 × 812) | The same under the sticky breadcrumb. |
 | one-page | `deep-link-cold` | `/docs#input` (cold) | Criterion 15: the heading on its line, and in Chrome layout shift below 0.01. |
 | one-page | `nojs-deep-link` | `/docs#forms` (JavaScript off) | The heading on its line, the title unchanged. Skipped in Safari. |
-| one-page | `nojs-focus` | `/docs`, `/`, `/examples` (JavaScript off) | Every tabbable element, the document's and its open shadow roots', is on screen and seen once focused; the controls that need JavaScript (PLAN.md Rules, CSS: the copy buttons, the header toggle and each page's own, on `/docs` the Theme picker's swatches with their sentence among them) are in the markup with no box. Skipped in Safari. |
+| one-page | `nojs-focus` | `/docs`, `/`, `/examples` (JavaScript off) | Every tabbable element, the document's and its open shadow roots', is on screen and seen once focused; the controls that need JavaScript (PLAN.md Rules, CSS: the copy buttons, the header toggle and each page's own, on `/docs` the Theme picker's swatches with their sentence and on `/examples` the Copy as page and Pop out buttons among them) are in the markup with no box. Skipped in Safari. |
 | one-page | `nojs-focus-small` | the same (375 × 812, JavaScript off) | The same, where the menu's links sat off screen before docs.css's `(scripting: none)` rules. Skipped in Safari. |
 | one-page | `nojs-menu` | `/docs` (JavaScript off) | The side nav's links, one per section, are all seen and inside the page's width; a click on Grid is the browser's own fragment navigation: `/docs#grid`, one new entry, the heading on its line, the title unchanged. Skipped in Safari. |
 | one-page | `nojs-menu-small` | `/docs` (375 × 812, JavaScript off) | The same, where the menu is a static block before the sections, and the heading's line leaves room for its chapter label. Skipped in Safari. |
@@ -397,12 +397,14 @@ light OS and nothing stored unless the table says otherwise.
 | examples | `examples-first-frame` | `/examples` (stored dark) | The first frame with the mockups shows them dark with femto applied. Skipped in Safari. |
 | examples | `examples-first-frame-cold` | `/examples` (cold) | The same with the cache emptied. Skipped in Safari. |
 | examples | `examples-fold` | `/examples` | Each example's children are its header, its mockup and one closed `<details>`, whose summary reads "HTML" and whose `div.code` is not rendered while closed; the first and last open on a click, and their copy buttons copy exactly the sample. |
-| examples | `examples-nojs` | `/examples` (JavaScript off) | Every example renders from its declarative roots with femto applied, each sample folded, and the theme select and the Copy as page buttons are not rendered. Skipped in Safari. |
+| examples | `examples-nojs` | `/examples` (JavaScript off) | Every example renders from its declarative roots with femto applied, each sample folded, and the theme select and the Copy as page and Pop out buttons are not rendered. Skipped in Safari. |
 | examples | `examples-copy-page` | `/examples` | Each Copy as page button copies exactly its sample in Quick start's starter template (read from `/docs`, with the h2 for the title), with jade's theme link after femto when jade is chosen, and no sample names a `/vendor/femto/` path, which a copied page could not load; its femto tooltip (`data-tooltip`) says "Copied" within 100 ms and is gone 900 to 1500 ms later, while its label reads "Copy as page" at the same width and its computed name stays "Copy as page", and the page's one status region says Copied (ending in U+00A0 every other copy, as each repeats the one before), then nothing. Its timed last copy starts once the status region is empty again, 1 s after the copy before it. |
 | examples | `examples-copy-page-failed` | `/examples` | With a clipboard that refuses the write, Copy as page tries once and its tooltip says "Copy failed" within 100 ms and is gone 900 to 1500 ms later, its label "Copy as page" at the same width throughout, the status region saying "Copy failed" too; with no `navigator.clipboard`, a second click fails the same way. |
 | examples | `copy-announce-twice` | `/examples` | Two copies 500 ms apart are both announced: the Sign in example's code copy button (site.js), then its Copy as page button (examples.js), which share the page's one status region (`body > p.visually-hidden[role=status]`). Timed in the page with a MutationObserver on the region: Copied within 100 ms of the first click; within 100 ms of the second it is emptied and says "Copied" and a no-break space (U+00A0), since a screen reader such as VoiceOver skips a message that repeats the one before it; it is emptied once more, 900 to 1500 ms after the second click, not 1 s after the first. |
 | examples | `examples-theme` | `/examples` | The select offers femto's 20 colors in the Theme picker's order (read from `/docs`), azure selected, each labeled with its name capitalized; a choice links its theme right after femto in every inner root, one theme link a root, and azure removes it; the page keeps its own; no `?theme=` and no new entry (Decision 8). |
 | examples | `examples-newer` | `/examples` | The index links every example in page order; `checkout`, `landing-page` and `docs-layout` hold what they show. |
+| examples | `examples-pop-out` | `/examples` | Each example header has one Pop out button. With an email typed into Sign in, its Pop out opens one `dialog[data-example-modal]` in `<main>` as a modal, named by its h2 `#example-modal-title` ("Sign in"), focus on the card's close button; the frame itself is in the card with its shadow roots and the typed email, and an empty placeholder of the frame's height (within 1 px) holds its place, so the section's `<details>` keeps its top (within 1 px) and `scrollY` its value; the card spans the viewport less `--femto-spacing` (read from the page) on each side. The close button, Escape and a click on the overlay each close it: once the dialog has left the page (`createModal()` waits 400 ms at most), the frame is back with the email, no placeholder is left, `<html>` has no modal class and focus is on the Pop out button. With Confirmation dialog popped out, Escape closes its open Delete project dialog alone, focus back on its opener, and a second Escape closes the Pop out dialog. |
+| examples | `examples-pop-out-small` | `/examples` (375 × 812) | The same at a phone's width. |
 | loads | `same-origin-loads` | `/`, `/docs`, `/docs?theme=jade`, `/examples`, `/does-not-exist` (cold, request log) | Criterion 15: nothing loads from another origin (Criterion 15's run-time check, below). |
 | loads | `render-blocking-scripts` | the same five | Criterion 15: the only render-blocking scripts are the two inline head scripts. |
 
@@ -428,9 +430,9 @@ and may narrow with selectors under it (PLAN.md Rules). The hooks:
 - colors.js: `data-color-modal`; picker.js: `article[data-version-picker]` (the Theme picker's
   swatches; the hook keeps its old name), `section[data-picker-options]` and
   `section[data-picker-usage]`; examples.js: `div[data-example]`, `button[data-copy-page]`,
-  `p[data-examples-theme]` and `template[data-starter-page]`; demo.js: `article[data-typing-demo]`,
-  `button[data-demo-pause]`, `div[data-femto-demo]` (its inner host `div[part=page]`),
-  `label[data-femto-switch]` and `fieldset[data-swatches]`;
+  `button[data-pop-out]`, `p[data-examples-theme]` and `template[data-starter-page]`; demo.js:
+  `article[data-typing-demo]`, `button[data-demo-pause]`, `div[data-femto-demo]` (its inner host
+  `div[part=page]`), `label[data-femto-switch]` and `fieldset[data-swatches]`;
 - a CSS hook only: `p[data-palette-help]` (colors.html), which docs.css hides without JavaScript.
 
 demo.js's pause button, femto switch and swatches are hidden in the markup and shown by their
@@ -609,14 +611,14 @@ arguments to `static_checks.main(argv)`.
   `menu.json`. Every `section.example` in `site/examples.html` has exactly one direct, closed
   `<details>` holding `<summary>HTML</summary>` and `div.code` (`button[data-copy-link]`, `pre >
   code.language-html`) and nothing else, and a header with exactly one
-  `button[type=button][data-copy-page]`. No `<select multiple>` or `<select size>` inside a
-  declarative shadow root there has a preselected `<option>` (Firefox starts its layout before the
-  head stylesheets apply). No element inside `section[data-color-modal]` in `colors.html` has
-  `tabindex`, `role` or `aria-label` (`colors.js` adds them at run time). The Media section's live
-  `<pre>`s hold a `<code>` with no class and a `<samp>`, so the build never highlights them. Every
-  live `<form>` in `site/` (a literal `<form`, since a code sample is escaped) has
-  `method="dialog"`, so no example form submits, with JavaScript or without: no script cancels a
-  submit.
+  `button[type=button][data-copy-page]` and exactly one `button[type=button][data-pop-out]`. No
+  `<select multiple>` or `<select size>` inside a declarative shadow root there has a preselected
+  `<option>` (Firefox starts its layout before the head stylesheets apply). No element inside
+  `section[data-color-modal]` in `colors.html` has `tabindex`, `role` or `aria-label` (`colors.js`
+  adds them at run time). The Media section's live `<pre>`s hold a `<code>` with no class and a
+  `<samp>`, so the build never highlights them. Every live `<form>` in `site/` (a literal `<form`,
+  since a code sample is escaped) has `method="dialog"`, so no example form submits, with
+  JavaScript or without: no script cancels a submit.
 - **11, Lint.** The lint, its coverage and the forbidden syntax (Lint, below). Also
   `site_rule_checks`: no file in `site/assets/js` sets `role="group"` (read as tokens:
   `setAttribute("role", "group")`, `.role = "group"`, `{ role: "group" }`, or `role="group"` in a

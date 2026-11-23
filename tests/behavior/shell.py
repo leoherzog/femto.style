@@ -385,7 +385,7 @@ SCREEN_ONLY = ["body > header nav ul:last-of-type", "button[data-copy-link]", "m
                "[data-picker-options] fieldset", "button[data-scheme-switcher]", "section[data-grid-example] > .grid > button",
                "input[name=toggle-font-size-in-rem]", "button[data-modal-open]", "p[data-palette-help]",
                "body > main > .hero .grid.ctas", "button[data-demo-pause]", "body > main > .proof > .toolbar",
-               "p[data-examples-theme]", "button[data-copy-page]"]
+               "p[data-examples-theme]", "button[data-copy-page]", "button[data-pop-out]"]
 # What /docs prints in its code and colors: the distinct backgrounds of the examples' code footers
 # and of every code block's <pre>, each with femto's light token for it as this browser computes it
 # (a probe painted in the token itself: Chrome rounds femto's rgb(251, 251.5, 252.25) to whole
@@ -457,12 +457,13 @@ def print_light(page):
     the Theme picker's swatches with their sentence and its option switches, the Color schemes
     switcher, Grid's Add and Remove column, Typography's rem switch, the Modal demo's opener and the
     Colors palette's help, the homepage's call-to-action buttons, its
-    typing demo's Pause and its femto switch and swatches, and /examples' theme select and Copy as
-    page buttons have no box. On /docs every code block's <pre> prints in femto's light code
-    background (--femto-light-code-background-color) and every example's code footer in femto's
-    light card sectioning color, whatever the scheme on screen, and the Colors swatches and the
-    Themes table's dots have print-color-adjust: exact. Chrome checks this twice, with the
-    OS light and with the OS dark. On /examples every inner host is light with no data-theme. And
+    typing demo's Pause and its femto switch and swatches, and /examples' theme select, Copy as
+    page buttons and Pop out buttons have no box. On /docs every code block's <pre> prints in
+    femto's light code background (--femto-light-code-background-color) and every example's code
+    footer in femto's light card sectioning color, whatever the scheme on screen, and the Colors
+    swatches and the Themes table's dots have print-color-adjust: exact. Chrome checks this twice,
+    with the OS light and with the OS dark. On /examples every inner host is light with no
+    data-theme. And
     on /examples a real print (WebDriver Print) takes data-theme="dark" off the hosts between
     beforeprint and afterprint, so the mockups print light too, and gives it back after."""
     if page.browser == "chrome":

@@ -24,7 +24,7 @@
 //   there themselves, but in Safari a click does not focus a button, so the dialog would give focus
 //   back to <body>. The footer's buttons are type="button", since femto makes every
 //   button[type=submit] full width.
-// And two controls of the page's own, which examples.css hides without JavaScript:
+// And three controls of the page's own, which examples.css hides without JavaScript:
 // - Copy as page, button[data-copy-page] in each example's header: copies the example's code sample
 //   in femto's starter template (the page's template[data-starter-page], as femto README's Quick
 //   start and the docs' Quick start write it), with the example's name for its title, the sample in
@@ -33,6 +33,13 @@
 //   button's femto tooltip (data-tooltip, which it has only then) says "Copied", or "Copy failed"
 //   when the clipboard refuses the text, as a code block's copy button does; its label keeps its
 //   text, and site.js's status region says it.
+// - Pop out, button[data-pop-out] in each example's header: shows the example alone in a modal,
+//   site.js's createModal(), whose card takes the viewport's width (examples.css). The frame itself
+//   moves into the card and back, so the example keeps what was typed into it, its theme and its
+//   scheme; where the browser has moveBefore() the move also keeps its stylesheets loaded. An empty
+//   frame of the same size holds its place, so nothing behind the dialog moves. The dialog is
+//   named by its title, the example's name, and closes by its close button, Escape or a click on
+//   the overlay; focus then goes back to the button, which Safari does not focus on a click.
 // - The theme color, the select in p[data-examples-theme]: the chosen theme's stylesheet
 //   (css/themes/<color>.css) is linked right after femto's in every inner shadow root, and azure,
 //   femto's own color, removes it. A new link replaces the old one once it has loaded, so the
@@ -41,12 +48,13 @@
 //   its color. No URL parameter: ?theme= belongs to the docs page (Decision 8).
 // It does nothing on a page without div[data-example].
 
-import { announceCopy, escapeText, onThemeChange, setAttr } from "./site.js";
+import { announceCopy, createModal, escapeText, onThemeChange, setAttr } from "./site.js";
 
 const root = document.documentElement;
 const hosts = [...document.querySelectorAll("div[data-example]")]
   .map((frame) => frame.shadowRoot?.firstElementChild)
   .filter((host) => host?.shadowRoot);
+let popped = null; // the frame shown in the Pop out dialog
 
 // --- Color scheme --------------------------------------------------------------------------------
 
@@ -113,6 +121,64 @@ for (const host of hosts) {
     const onBackdrop = target === open && pressed === open && released === open;
     if (onBackdrop || (!NATIVE_COMMANDS && target.closest("[rel=prev], .close, footer button"))) open.close();
   });
+  // In a popped-out example, Escape closes the example's own open dialog first: its preventDefault()
+  // keeps the Pop out dialog's Escape (createModal()'s document listener) from closing the card.
+  shadow.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || popped !== shadow.host.getRootNode().host) return;
+    const open = shadow.querySelector("dialog[open]");
+    if (!open) return;
+    event.preventDefault();
+    open.close();
+  });
+}
+
+// --- Pop out -------------------------------------------------------------------------------------
+
+const move = (parent, node, before) => ("moveBefore" in Element.prototype
+  ? parent.moveBefore(node, before)
+  : parent.insertBefore(node, before));
+
+const popButtons = hosts.length ? [...document.querySelectorAll("section.example > header > button[data-pop-out]")] : [];
+if (popButtons.length) {
+  const dialog = document.createElement("dialog");
+  dialog.setAttribute("data-example-modal", "");
+  dialog.setAttribute("aria-labelledby", "example-modal-title");
+  // femto's own close button, its icon femto's. autofocus keeps showModal() from focusing a control
+  // inside the example.
+  dialog.innerHTML = '<article><header><button type="button" aria-label="Close" rel="prev" autofocus></button>'
+    + '<h2 id="example-modal-title"></h2></header></article>';
+  const article = dialog.querySelector(":scope > article");
+  const title = article.querySelector(":scope > header > h2");
+  let placeholder = null;
+  let opener = null;
+  const modal = createModal(dialog, {
+    onClosed() {
+      move(placeholder.parentNode, popped, placeholder);
+      placeholder.remove();
+      dialog.remove();
+      popped = null;
+      placeholder = null;
+      if (document.activeElement !== opener) opener.focus();
+    },
+  });
+  article.querySelector(":scope > header > [rel=prev]").addEventListener("click", () => modal.close());
+  for (const button of popButtons) {
+    const section = button.closest("section");
+    button.addEventListener("click", () => {
+      const frame = section.querySelector(":scope > div[data-example]");
+      if (popped || !frame?.shadowRoot) return;
+      opener = button;
+      popped = frame;
+      title.textContent = section.querySelector(":scope > header h2")?.textContent.trim() ?? "";
+      placeholder = frame.cloneNode(false);
+      placeholder.setAttribute("data-example-placeholder", "");
+      placeholder.style.height = `${frame.getBoundingClientRect().height}px`;
+      frame.before(placeholder);
+      document.querySelector("body > main").append(dialog);
+      move(article, frame, null);
+      modal.open();
+    });
+  }
 }
 
 // --- Theme color ---------------------------------------------------------------------------------

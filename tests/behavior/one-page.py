@@ -279,7 +279,7 @@ def nojs_deep_link(page):
 # ancestor's). Returns how many took focus, the first that fail, and the controls that need the
 # page's JavaScript and still show (they have a box): the copy buttons and the header's theme toggle,
 # /docs' breadcrumb, its Documentation button, the menu's Close and the sections' script-driven
-# controls, /examples' theme select and Copy as page buttons, and the homepage's widgets.
+# controls, /examples' theme select, Copy as page and Pop out buttons, and the homepage's widgets.
 NOJS_FOCUS = """
 const tabbable = "a[href], area[href], button, input:not([type=hidden]), select, textarea, summary, iframe, [tabindex], [contenteditable]";
 const all = [];
@@ -311,8 +311,8 @@ const dead = ["button[data-copy-link]", "button[data-scheme-toggle]", "nav[data-
               "button[data-menu-close]", "button[data-scheme-switcher]", "section[data-grid-example] > .grid > button",
               "input[name=toggle-font-size-in-rem]", "button[data-modal-open]", "p[data-palette-help]",
               "article[data-version-picker] > header a", "#content section > p:has(+ article[data-version-picker])",
-              "button[data-copy-page]", "p[data-examples-theme]", "label[data-femto-switch]", "fieldset[data-swatches]",
-              "button[data-demo-pause]"];
+              "button[data-copy-page]", "button[data-pop-out]", "p[data-examples-theme]", "label[data-femto-switch]",
+              "fieldset[data-swatches]", "button[data-demo-pause]"];
 const shown = dead.filter((sel) => [...document.querySelectorAll(sel)].some((el) => el.getClientRects().length > 0));
 return {candidates: all.length, focused, bad, shown, present: dead.filter((sel) => document.querySelector(sel))};
 """
@@ -329,7 +329,7 @@ def nojs_focus(page):
             "section[data-grid-example] > .grid > button", "input[name=toggle-font-size-in-rem]", "button[data-modal-open]",
             "p[data-palette-help]", "article[data-version-picker] > header a",
             "#content section > p:has(+ article[data-version-picker])"} if page.section else set()) \
-        | ({"button[data-copy-page]", "p[data-examples-theme]"} if page.route == "/examples" else set()) \
+        | ({"button[data-copy-page]", "button[data-pop-out]", "p[data-examples-theme]"} if page.route == "/examples" else set()) \
         | ({"label[data-femto-switch]", "fieldset[data-swatches]", "button[data-demo-pause]"} if page.route == "/" else set())
     page.expect("those controls are in the markup, hidden rather than missing", want <= set(r["present"]),
                 want=sorted(want), present=r["present"])
@@ -346,9 +346,9 @@ def nojs_focus_large(page):
     the menu's Close, the Color schemes switcher, Grid's Add and Remove column, Typography's rem
     switch, the Modal demo's opener, the Colors palette's help, and the Theme picker's swatches with
     the sentence that introduces them (each a link to ?theme=, which only a head script applies);
-    on /examples the theme select
-    and the Copy as page buttons; on the homepage the femto switch, the theme swatches and the
-    typing demo's Pause. Skipped in Safari (JavaScript cannot be turned off there)."""
+    on /examples the theme select and the Copy as page and Pop out buttons; on the homepage the
+    femto switch, the theme swatches and the typing demo's Pause. Skipped in Safari (JavaScript
+    cannot be turned off there)."""
     nojs_focus(page)
 
 

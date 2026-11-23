@@ -154,12 +154,12 @@ Interpretations, where PLAN's wording leaves a choice:
   (site/docs/sections/elements.html) is #<id> of a section in menu.json; every section.example
   in site/examples.html has exactly one direct, closed <details> holding <summary>HTML</summary> and
   div.code (button[data-copy-link], pre > code.language-html) and nothing else, and one header with
-  exactly one button[type=button][data-copy-page]; no <select multiple> or <select size> inside a
-  declarative shadow root there has a preselected <option> (Firefox starts its layout before the
-  head stylesheets apply); no element inside site/docs/sections/colors.html's
-  section[data-color-modal] has tabindex, role or aria-label (colors.js adds them at run time); and
-  the Media section's live <pre>s (outside a .code sample) hold a <code> with no class and a <samp>,
-  so the build never highlights them.
+  exactly one button[type=button][data-copy-page] and exactly one button[type=button][data-pop-out];
+  no <select multiple> or <select size> inside a declarative shadow root there has a preselected
+  <option> (Firefox starts its layout before the head stylesheets apply); no element inside
+  site/docs/sections/colors.html's section[data-color-modal] has tabindex, role or aria-label
+  (colors.js adds them at run time); and the Media section's live <pre>s (outside a .code sample)
+  hold a <code> with no class and a <samp>, so the build never highlights them.
 - 8: also the shell (shell_checks): site/partials/head.html has exactly two meta[name=theme-color],
   media (prefers-color-scheme: light) and (prefers-color-scheme: dark), whose content equals, as a
   color (hex, rgb() and rgba() read to channels, compared exactly), femto's
@@ -2089,7 +2089,7 @@ def structure_checks(ctx: Context, r: Result) -> None:
     if not bad:
         r.ok(f"the Elements index's {links} links ({el_rel}) each target a section's h1")
 
-    # /examples: each example's code sample, its Copy as page button, and no preselected list box option.
+    # /examples: each example's code sample, its Copy as page and Pop out buttons, and no preselected list box option.
     ex_path = site / "examples.html"
     ex = ctx.page(ex_path) if ex_path.is_file() else None
     bad, count = [], 0
@@ -2114,9 +2114,12 @@ def structure_checks(ctx: Context, r: Result) -> None:
                            "and pre > code.language-html, and nothing else")
         headers = [c for c in kids if c.tag == "header"]
         copies = [b for h in headers for b in h.find_all("button") if "data-copy-page" in b.attrs]
-        if len(headers) != 1 or len(copies) != 1 or copies[0].attrs.get("type") != "button":
-            bad.append(f"{where}: its header needs exactly one button[type=button][data-copy-page] ({len(headers)} header(s), "
-                       f"{len(copies)} Copy as page button(s))")
+        pops = [b for h in headers for b in h.find_all("button") if "data-pop-out" in b.attrs]
+        if (len(headers) != 1 or len(copies) != 1 or copies[0].attrs.get("type") != "button"
+                or len(pops) != 1 or pops[0].attrs.get("type") != "button"):
+            bad.append(f"{where}: its header needs exactly one button[type=button][data-copy-page] and exactly one "
+                       f"button[type=button][data-pop-out] ({len(headers)} header(s), {len(copies)} Copy as page button(s), "
+                       f"{len(pops)} Pop out button(s))")
     preselected = [f"site/examples.html:{o.line}: <option selected> in a <select {'multiple' if 'multiple' in s.attrs else 'size'}> "
                    "in a shadow root: Firefox starts its layout before the head stylesheets apply; drop selected"
                    for s in (ex.iter() if ex else []) if s.tag == "select" and ("multiple" in s.attrs or "size" in s.attrs)
@@ -2130,8 +2133,9 @@ def structure_checks(ctx: Context, r: Result) -> None:
     r.fails(f"{len(preselected)} preselected option(s) in a list box inside a shadow root on /examples:", preselected)
     if not bad and not preselected:
         r.ok(f"site/examples.html: each of {count} section.example has one closed <details> with <summary>HTML</summary> and "
-             "div.code (button[data-copy-link], pre > code.language-html), and one button[type=button][data-copy-page] in its "
-             "header; no <select multiple> or <select size> in a shadow root has a preselected option")
+             "div.code (button[data-copy-link], pre > code.language-html), and one button[type=button][data-copy-page] and one "
+             "button[type=button][data-pop-out] in its header; no <select multiple> or <select size> in a shadow root has a "
+             "preselected option")
 
     # The Colors grid: colors.js adds the roving tabindex, the toolbar role and the names at run time.
     c_rel, c_path = section_source(ctx, "colors")
@@ -4153,18 +4157,20 @@ def markup_pair_checks(ctx: Context, r: Result) -> None:
     stale = sorted(set(MARKUP_DIFFERS) - seen)
     bad += [f"site/docs/sections/{s}.html: MARKUP_DIFFERS lists a pair {a!r} the section no longer has; drop its entry"
             for s, a in stale]
-    # /examples: each mockup's inner shadow root, after femto's link, is its HTML sample's markup.
+    # /examples: each mockup's frame names its section's id (the window bar's address), and its inner
+    # shadow root, after femto's link, is its HTML sample's markup.
     ex_path = ctx.site / "examples.html"
     ex_pairs = 0
     if ex_path.is_file():
         text = ex_path.read_text(encoding="utf-8", errors="replace")
         for sec in re.finditer(r'<section class="example" id="([\w-]+)"', text):
-            at = text.find("<div data-example>", sec.end())
+            at = text.find(f'<div data-example="{sec.group(1)}">', sec.end())
             span = inner_root(text, at) if at >= 0 else None
             sample = HTML_SAMPLE.search(text, span[1]) if span else None
             where = f"site/examples.html:{line_of(text, sec.start())}: #{sec.group(1)}"
             if not span or not sample:
-                bad.append(f"{where}: no div[data-example] > template > div > template mockup with an HTML sample after it")
+                bad.append(f"{where}: no div[data-example=\"{sec.group(1)}\"] > template > div > template mockup, its value the "
+                           "section's id, with an HTML sample after it")
                 continue
             body = LIVE_FORM_METHOD.sub(r"\1", text[span[0]:span[1]])
             link = re.match(r"\s*(<link\b[^>]*>)", body)

@@ -1,7 +1,7 @@
 /* The examples page's styles (/examples, site/examples.html), after common.css: the frame around
-   each example, and the hiding of the page's own controls without JavaScript and in print. Nothing
-   here reaches inside an example: it renders in a shadow root that loads femto alone
-   (assets/js/examples.js). */
+   each example with its window bar, the Pop out dialog, and the hiding of the page's own controls
+   without JavaScript and in print. Nothing here reaches inside an example: it renders in a shadow
+   root that loads femto alone (assets/js/examples.js). */
 
 /**
  * Examples
@@ -10,8 +10,9 @@
    the initial values, as a page's <html> does. femto's root font size, a percentage on :host, then
    means what it means in a page of its own, not a percentage of this page's. Custom properties
    still inherit, and femto declares on :host every one it reads but --femto-form-label-font-weight,
-   which this site never sets. */
-body > main > section.example > div[data-example] {
+   which this site never sets. The frame sits in its section, or in the Pop out dialog's card while
+   it is popped out. */
+:is(body > main > section.example, dialog[data-example-modal] > article) > div[data-example] {
   all: initial;
   display: block;
   margin-bottom: var(--femto-spacing);
@@ -21,21 +22,82 @@ body > main > section.example > div[data-example] {
   color-scheme: inherit;
 }
 
+dialog[data-example-modal] > article > div[data-example] {
+  margin-bottom: 0;
+}
+
+/* The window bar: three dots and the example's address, so each example reads as a page of its own
+   rather than part of this one. It is the frame's ::before, across the frame's top edge, and sets
+   every inherited value it uses, since the frame passes down only initial ones. The address is
+   example.com and the frame's data-example; with the alternative text syntax it is decorative, as
+   the section's heading already names the example, and without that syntax the bar shows the dots
+   alone, so no screen reader reads a made-up address */
+:is(body > main > section.example, dialog[data-example-modal] > article) > div[data-example]::before {
+  content: "";
+  display: block;
+  height: 2.25rem;
+  margin: calc(var(--femto-spacing) * -1) calc(var(--femto-spacing) * -1) var(--femto-spacing);
+  padding-inline: calc(var(--femto-spacing) + 3.5rem) var(--femto-spacing);
+  overflow: hidden;
+  border-bottom: var(--femto-border-width) solid var(--femto-muted-border-color);
+  border-radius: var(--femto-border-radius) var(--femto-border-radius) 0 0;
+  background-color: var(--femto-code-background-color);
+  background-image:
+    radial-gradient(circle closest-side, var(--femto-form-element-border-color) 92%, transparent),
+    radial-gradient(circle closest-side, var(--femto-form-element-border-color) 92%, transparent),
+    radial-gradient(circle closest-side, var(--femto-form-element-border-color) 92%, transparent);
+  background-position:
+    left var(--femto-spacing) center,
+    left calc(var(--femto-spacing) + 1.125rem) center,
+    left calc(var(--femto-spacing) + 2.25rem) center;
+  background-size: 0.75rem 0.75rem;
+  background-repeat: no-repeat;
+  color: var(--femto-muted-color);
+  font-family: var(--femto-font-family);
+  font-size: 0.875rem;
+  line-height: 2.25rem;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@supports (content: "" / "") {
+  :is(body > main > section.example, dialog[data-example-modal] > article) > div[data-example]::before {
+    content: "example.com/" attr(data-example) / "";
+  }
+}
+
 /* The example's own host takes the page's color scheme, a stored choice too (data-theme on <html>,
    set before the first paint), and light in print (common.css), through ::part(), the one way into
    the frame's shadow root: a page rule wins over femto's :host rules, as on the homepage
    (landing.css), so the first paint already shows the page's scheme. examples.js, a module that
    runs later, then gives the host the data-theme femto reads (which also switches the validation
    icons), and takes it off while the page prints. */
-body > main > section.example > div[data-example]::part(example) {
+:is(body > main > section.example, dialog[data-example-modal] > article) > div[data-example]::part(example) {
   color-scheme: inherit;
 }
 
-/* Without JavaScript, and in print, the theme select and the Copy as page buttons do nothing, so
-   they are hidden, as common.css hides the copy buttons */
+/**
+ * Pop out
+ */
+/* The dialog's card takes the viewport's width, less femto's margin around it, in place of femto's
+   700px modal card, so a page example has a page's room. femto's own rules give it the viewport's
+   height at most, and it scrolls a taller example */
+dialog[data-example-modal] > article {
+  max-width: none;
+}
+
+/* While its example is popped out, the section keeps an empty frame of the same size in its place,
+   so nothing behind the dialog moves */
+body > main > section.example > div[data-example-placeholder] {
+  box-sizing: border-box;
+}
+
+/* Without JavaScript, and in print, the theme select, the Copy as page buttons and the Pop out
+   buttons do nothing, so they are hidden, as common.css hides the copy buttons */
 @media (scripting: none), print {
   body > main > p[data-examples-theme],
-  body > main > section.example > header > button[data-copy-page] {
+  body > main > section.example > header > button:is([data-copy-page], [data-pop-out]) {
     display: none;
   }
 }
