@@ -6,7 +6,6 @@ mirrors <html>'s data-theme onto each inner host, cancels the mockups' link clic
 their dialogs (where command and commandfor have not), copies an example as a page (Copy as page, in
 femto's starter template) and links the theme color the page's select names in every inner root.
 The mockups' forms have method="dialog", which keeps their submits from going anywhere."""
-import json
 import re
 from pathlib import Path
 
@@ -36,11 +35,11 @@ def shadow_point(page, expr):
 
 @check("examples-structure", "/examples")
 def examples_structure(page):
-    """Each section.example holds one div[data-example] (16 on 2026-11-09), whose shadow root's only element is a div with a shadow root of
-    its own; that root's first element is the one stylesheet link, /vendor/femto/dist/femto.min.css,
-    loaded, with no other <link> or <style>; the markup after it is the code sample's text, node for
-    node (whitespace collapsed), a shadow root inside it (the All theme colors example's) read as the
-    <template shadowrootmode="open"> the sample writes; and no id repeats across the page, shadow
+    """Each section.example holds one div[data-example], whose shadow root's only element is a div
+    with a shadow root of its own; that root's first element is the one stylesheet link,
+    /vendor/femto/dist/femto.min.css, loaded, with no other <link> or <style>; the markup after it
+    is the code sample's text, node for node (whitespace collapsed), with no shadow host in it, since
+    examples.js gives data-theme to the inner hosts alone; and no id repeats across the page, shadow
     roots included."""
     r = page.js(HOSTS + r"""
       const norm = (node) => {
@@ -55,18 +54,11 @@ def examples_structure(page):
         walk(node);
         const div = document.createElement('div'); div.append(node); return div.innerHTML;
       };
-      // A live node, its shadow root written as the declarative <template> that made it. A live
-      // form's method="dialog", which keeps it from submitting, is not in the sample.
+      // A live node. A live form's method="dialog", which keeps it from submitting, is not in the sample.
       const clone = (n) => {
         const c = n.cloneNode(false);
         if (n.nodeType !== 1) return c;
         if (c.localName === 'form' && c.getAttribute('method') === 'dialog') c.removeAttribute('method');
-        if (n.shadowRoot) {
-          const t = document.createElement('template');
-          t.setAttribute('shadowrootmode', 'open');
-          for (const k of n.shadowRoot.childNodes) t.content.append(clone(k));
-          c.append(t);
-        }
         for (const k of n.childNodes) c.append(clone(k));
         return c;
       };
@@ -89,6 +81,7 @@ def examples_structure(page):
         out.same = x === y && x.length > 100;
         if (!out.same) out.sample = [x.slice(0, 300), y.slice(0, 300)];
         out.part = h.inner.getAttribute('part');
+        out.shadowHosts = [...h.root.querySelectorAll('*')].filter(e => e.shadowRoot).length;
         ids.push(...[...h.root.querySelectorAll('[id]')].map(e => e.id));
         return out;
       }).concat([{dupIds: ids.filter((id, i) => ids.indexOf(id) !== i)}]);
@@ -102,6 +95,7 @@ def examples_structure(page):
         page.eq(f"{h['id']}: the femto link", h["link"], '<link rel="stylesheet" href="/vendor/femto/dist/femto.min.css">')
         page.expect(f"{h['id']}: femto loaded, one sheet, nothing else", h["rules"] > 100 and h["sheets"] == 1 and h["otherStyles"] == 0, **h)
         page.expect(f"{h['id']}: the code sample is the markup", h["same"], **h)
+        page.eq(f"{h['id']}: no shadow host inside the example", h.get("shadowHosts"), 0)
     page.eq("no duplicate id, shadow roots included", dup, [])
 
 
@@ -166,11 +160,7 @@ doc.querySelector('main').setHTMLUnsafe(sections);
 const refHosts = [...doc.querySelectorAll('div[data-ref]')].map((frame, i) => {
   const inner = frame.shadowRoot.firstElementChild; return {id: hosts[i].id, frame, inner, root: inner.shadowRoot};
 });
-// Every <link> in a root and in the shadow roots inside it (the All theme colors example's). A shadow
-// host inside an example takes the scheme as the inner host does (examples.js).
-const allLinks = (r) => [...r.querySelectorAll('link'), ...[...r.querySelectorAll('*')].filter(e => e.shadowRoot).flatMap(e => allLinks(e.shadowRoot))];
-if (theme) for (const h of refHosts) for (const e of h.root.querySelectorAll('*')) if (e.shadowRoot) e.setAttribute('data-theme', theme);
-for (const h of [...hosts, ...refHosts]) await Promise.all(allLinks(h.root).map(l => l.sheet ? null : new Promise(r => { l.onload = r; l.onerror = r; })));
+for (const h of [...hosts, ...refHosts]) await Promise.all([...h.root.querySelectorAll('link')].map(l => l.sheet ? null : new Promise(r => { l.onload = r; l.onerror = r; })));
 for (let i = 0; i < 60; i++) {
   const running = refHosts.flatMap(h => h.root.getAnimations()).filter(a => a.playState === 'running' && a.constructor.name === 'CSSTransition');
   if (!running.length) break;
@@ -252,8 +242,7 @@ def examples_isolation_dark(page):
 @check("examples-isolation-stored", "/examples", storage={"femtoColorScheme": '"dark"'})
 def examples_isolation_stored(page):
     """With a stored dark choice on a light OS, every inner host carries data-theme="dark", and every
-    computed style equals the femto-only document's with data-theme="dark" on its inner hosts and on
-    the shadow hosts inside them (the All theme colors example's)."""
+    computed style equals the femto-only document's with data-theme="dark" on its inner hosts."""
     page.wait("every inner host is dark",
               "[...document.querySelectorAll('div[data-example]')].every(f => f.shadowRoot.firstElementChild.getAttribute('data-theme') === 'dark')")
     compare_styles(page, "dark")
@@ -261,27 +250,21 @@ def examples_isolation_stored(page):
 
 @check("examples-scheme", "/examples")
 def examples_scheme(page):
-    """The inner hosts, and the shadow hosts inside them (the All theme colors example's 20), follow
-    <html>'s data-theme: none on load (OS light, nothing stored), then dark with the header toggle,
-    and none again when the toggle goes back to the OS's light (which removes the stored choice), and
-    their backgrounds follow."""
+    """The inner hosts follow <html>'s data-theme: none on load (OS light, nothing stored), then dark
+    with the header toggle, and none again when the toggle goes back to the OS's light (which removes
+    the stored choice), and their background follows."""
     inner = "[...document.querySelectorAll('div[data-example]')].map(f => f.shadowRoot.firstElementChild)"
-    nested = f"{inner}.flatMap(h => [...h.shadowRoot.querySelectorAll('*')].filter(e => e.shadowRoot))"
-    page.eq("20 shadow hosts inside the examples", page.js(f"return {nested}.length"), 20)
-    page.eq("no data-theme on load", page.js(f"return [...{inner}, ...{nested}].filter(h => h.hasAttribute('data-theme')).length"), 0)
-    light = page.js(f"return [getComputedStyle({inner}[0]).backgroundColor, getComputedStyle({nested}[0]).backgroundColor]")
+    background = f"getComputedStyle({inner}[0]).backgroundColor"
+    page.eq("no data-theme on load", page.js(f"return {inner}.filter(h => h.hasAttribute('data-theme')).length"), 0)
+    light = page.js(f"return {background}")
     page.click("button[data-scheme-toggle]")
     page.wait("toggle: every inner host dark", f"{inner}.every(h => h.getAttribute('data-theme') === 'dark')")
-    page.wait("toggle: every shadow host inside them dark", f"{nested}.every(h => h.getAttribute('data-theme') === 'dark')")
-    dark = page.js(f"return [getComputedStyle({inner}[0]).backgroundColor, getComputedStyle({nested}[0]).backgroundColor]")
-    page.expect("the backgrounds follow", dark[0] != light[0] and dark[1] != light[1] and dark[1] == dark[0], light=light, dark=dark)
+    dark = page.js(f"return {background}")
+    page.expect("the background follows", dark != light, light=light, dark=dark)
     page.click("button[data-scheme-toggle]")
     page.wait("toggle again, to the OS's light: no inner host has data-theme", f"{inner}.every(h => !h.hasAttribute('data-theme'))")
-    page.wait("toggle again: no shadow host inside them has data-theme", f"{nested}.every(h => !h.hasAttribute('data-theme'))")
-    page.wait("the backgrounds are light again",
-              f"JSON.stringify([getComputedStyle({inner}[0]).backgroundColor, getComputedStyle({nested}[0]).backgroundColor])"
-              " === arguments[0]", 2, args=(json.dumps(light, separators=(",", ":")),),
-              got=page.js(f"return [getComputedStyle({inner}[0]).backgroundColor, getComputedStyle({nested}[0]).backgroundColor]"))
+    page.wait("the background is light again", f"{background} === arguments[0]", 2, args=(light,),
+              got=page.js(f"return {background}"))
 
 
 @check("examples-forms", "/examples")
@@ -417,7 +400,7 @@ def examples_deep_link(page):
     page.eq("the URL is the deep link's", page.js("return location.pathname + location.hash"), page.route)
 
 
-@check("examples-deep-link", ("/examples#every-element", "/examples#sign-in", "/examples#dashboard"))
+@check("examples-deep-link", ("/examples#navigation-bar", "/examples#sign-in", "/examples#dashboard"))
 def examples_deep_link_large(page):
     """A link to an example (the footer's #sign-in and #dashboard, the index's, the docs' "Used
     in") is the browser's own fragment scroll: it lands its section at the top of the viewport,
@@ -427,7 +410,7 @@ def examples_deep_link_large(page):
     examples_deep_link(page)
 
 
-@check("examples-deep-link-small", ("/examples#every-element", "/examples#sign-in", "/examples#dashboard"), width=375, height=812)
+@check("examples-deep-link-small", ("/examples#navigation-bar", "/examples#sign-in", "/examples#dashboard"), width=375, height=812)
 def examples_deep_link_small(page):
     """The same at 375 x 812, a phone's viewport."""
     examples_deep_link(page)
@@ -470,26 +453,23 @@ def examples_dialog(page):
 
 @check("examples-dialog-nojs", "/examples", javascript=False)
 def examples_dialog_nojs(page):
-    """With the page's JavaScript off (Chrome and Firefox; skipped in Safari), the two mockup
-    dialogs still open and close through their buttons' command and commandfor (Invoker Commands):
-    Every element's "Open a modal" and Confirmation dialog's "Delete project" opener each shows its
-    dialog as a modal (:modal), and each of its three closers (the header's close button and the
-    footer's two buttons) closes it. No site script ran: the page has no copy status region, which
-    site.js adds on load."""
+    """With the page's JavaScript off (Chrome and Firefox; skipped in Safari), the confirmation
+    dialog still opens and closes through its buttons' command and commandfor (Invoker Commands):
+    its "Delete project" opener shows it as a modal (:modal), and each of its three closers (the
+    header's close button and the footer's two buttons) closes it. No site script ran: the page has
+    no copy status region, which site.js adds on load."""
     page.eq("no site script ran (no status region)", page.js("return document.querySelectorAll('[role=status]').length"), 0)
-    for ex in ("every-element", "confirm-dialog"):
-        root = f"hosts.find(h => h.id === '{ex}').root"
-        state = f"(() => {{ {HOSTS} const d = {root}.querySelector('dialog'); return [d.open, d.matches(':modal')]; }})()"
-        page.eq(f"{ex}: closed on load", page.js(f"return {state}"), [False, False])
-        for what, expr in [("the close button", "[rel=prev]"), ("its first footer button", "footer button:first-of-type"),
-                           ("its last footer button", "footer button:last-of-type")]:
-            page.click_at(*shadow_point(page, f"{root}.querySelector('[commandfor][command=show-modal]')"))
-            page.wait(f"{ex}: the opener shows it as a modal (before {what})", f"JSON.stringify({state}) === '[true,true]'", 1.5,
-                      got=page.js(f"return {state}"))
-            pt = page.js(HOSTS + f"const b = {root}.querySelector('dialog {expr}'); const r = b.getBoundingClientRect();"
-                         " return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)];")
-            page.click_at(*pt)
-            page.wait(f"{ex}: {what} closes it", f"JSON.stringify({state}) === '[false,false]'", 1.5, got=page.js(f"return {state}"))
+    state = f"(() => {{ {HOSTS} const d = {DIALOG}.querySelector('dialog'); return [d.open, d.matches(':modal')]; }})()"
+    page.eq("closed on load", page.js(f"return {state}"), [False, False])
+    for what, expr in [("the close button", "[rel=prev]"), ("its first footer button", "footer button:first-of-type"),
+                       ("its last footer button", "footer button:last-of-type")]:
+        page.click_at(*shadow_point(page, f"{DIALOG}.querySelector('[commandfor][command=show-modal]')"))
+        page.wait(f"the opener shows it as a modal (before {what})", f"JSON.stringify({state}) === '[true,true]'", 1.5,
+                  got=page.js(f"return {state}"))
+        pt = page.js(HOSTS + f"const b = {DIALOG}.querySelector('dialog {expr}'); const r = b.getBoundingClientRect();"
+                     " return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)];")
+        page.click_at(*pt)
+        page.wait(f"{what} closes it", f"JSON.stringify({state}) === '[false,false]'", 1.5, got=page.js(f"return {state}"))
 
 
 @check("examples-dropdown", "/examples")
@@ -660,16 +640,15 @@ return h2 ? h2.parentElement.querySelector('pre code').textContent : null;
 
 def page_of(template, name, markup, color):
     """What Copy as page copies: the starter template with the example's name for its title, the
-    chosen theme's link (none for azure) after femto's, and the sample, its /vendor/femto/ paths made
-    the template's jsDelivr ones, in place of its <h1>, each line indented as the <h1> is but a
-    <pre>'s lines after its first."""
+    chosen theme's link (none for azure) after femto's, and the sample in place of its <h1>, each
+    line indented as the <h1> is but a <pre>'s lines after its first."""
     link = re.search(r'^( *)<link rel="stylesheet" href="(https://[^"]+/)dist/femto\.min\.css">$', template, re.M)
     indent, cdn = link.group(1), link.group(2)
     t = template[:link.end()] + (f'\n{indent}<link rel="stylesheet" href="{cdn}css/themes/{color}.css">' if color != "azure" else "") + template[link.end():]
     t = t.replace("<title>Hello, world!</title>", f"<title>{name}</title>", 1)
     h1 = re.search(r"^( *)<h1>Hello, world!</h1>$", t, re.M)
     lines, pre = [], False
-    for line in markup.replace('"/vendor/femto/', f'"{cdn}').split("\n"):
+    for line in markup.split("\n"):
         lines.append(line if pre or not line else h1.group(1) + line)
         opens, closes = bool(re.search(r"<pre[\s>]", line)), "</pre>" in line
         pre = True if opens and not closes else False if closes else pre
@@ -678,9 +657,9 @@ def page_of(template, name, markup, color):
 
 # A copied page read as a browser reads it: its head, and its <main>'s content against the sample's.
 READ_PAGE = r"""
-const [text, sample, cdn] = arguments;
+const [text, sample] = arguments;
 const d = new DOMParser().parseFromString(text, 'text/html');
-const t = document.createElement('template'); t.innerHTML = sample.replaceAll('"/vendor/femto/', '"' + cdn);
+const t = document.createElement('template'); t.innerHTML = sample;
 const main = d.querySelectorAll('body > main.container');
 return {doctype: d.doctype?.name ?? null, lang: d.documentElement.lang, charset: d.querySelector('head > meta[charset]')?.getAttribute('charset') ?? null,
         viewport: d.querySelector('head > meta[name=viewport]')?.content ?? null, scheme: d.querySelector('head > meta[name=color-scheme]')?.content ?? null,
@@ -717,10 +696,10 @@ def examples_copy_page(page):
     """Each example's Copy as page button (button[data-copy-page] in its header, "Copy as page")
     copies exactly its sample in femto's starter template, as the docs' Quick start shows the
     template (read from /docs): the example's name (its h2) for the title, the sample in place of the
-    <h1>, indented as the <h1> is but for a <pre>'s later lines, and the page's /vendor/femto/ paths
-    (the All theme colors example's) as the template's jsDelivr ones. Read back as a document, the
-    copy has the template's doctype, lang, charset, viewport, color-scheme and femto link, one
-    main.container holding the sample, and each <pre>'s text unchanged. With jade chosen in the theme
+    <h1>, indented as the <h1> is but for a <pre>'s later lines. No sample names a /vendor/femto/
+    path, which a copied page could not load. Read back as a document, the copy has the template's
+    doctype, lang, charset, viewport, color-scheme and femto link, one main.container holding the
+    sample, and each <pre>'s text unchanged. With jade chosen in the theme
     select, the copy also links jade's css/themes/ file right after femto. Within 100 ms of a click
     the button's femto tooltip (data-tooltip, which it has only then) says "Copied", and 900 to 1500
     ms later it has none again, as a code block's copy button does (the owner, 2026-11-11); its label
@@ -742,6 +721,7 @@ def examples_copy_page(page):
               sample: s.querySelector(':scope > details pre code').textContent}; });""", buttons)
     for k, (button, x) in enumerate(zip(buttons, info)):
         page.eq(f"{x['id']}: the button reads Copy as page", x["text"], "Copy as page")
+        page.expect(f"{x['id']}: the sample names no /vendor/femto/ path", '"/vendor/femto/' not in x["sample"])
         if k == len(buttons) - 1:
             # The region empties 1 s after the latest copy, so the last one starts from an empty region.
             # A copy while it still says Copied empties it and writes Copied a frame later
@@ -758,7 +738,7 @@ def examples_copy_page(page):
             expect_name(page, f"{x['id']}: named Copy as page while the tooltip says Copied", button, "Copy as page")
         text = page.js(f"return window.__bhCopied[{k}].text")
         page.eq(f"{x['id']}: exactly its sample in the starter template", text, page_of(template, x["name"], x["sample"], "azure"))
-        d = page.js(READ_PAGE, text, x["sample"], cdn)
+        d = page.js(READ_PAGE, text, x["sample"])
         page.expect(f"{x['id']}: read back, the template's head and one main.container holding the sample",
                     d["doctype"] == "html" and d["lang"] == "en" and d["charset"] == "utf-8"
                     and d["viewport"] == "width=device-width, initial-scale=1" and d["scheme"] == "light dark"
@@ -768,7 +748,7 @@ def examples_copy_page(page):
     page.wait("the last button's tooltip goes", "window.__bhPage.length >= 3 && !arguments[0].hasAttribute('data-tooltip')", 2.5,
               args=(buttons[-1],))
     tl = page.js("return window.__bhPage")
-    # The region's text, its trailing no-break space dropped: the 16 copies alternate "Copied" and
+    # The region's text, its trailing no-break space dropped: the copies alternate "Copied" and
     # "Copied\u00A0" (copy-announce-twice holds the alternation).
     steps = [x[1:2] if x[1] == "click" else [x[1], x[2].strip() if x[2] else x[2]] for x in tl]
     page.eq("the steps: click, the tooltip Copied, no tooltip", steps, [["click"], ["Copied", "Copied"], [None, ""]], timeline=tl)
@@ -780,15 +760,14 @@ def examples_copy_page(page):
                 widths=widths)
     page.eq("one status region on the page", page.js("return document.querySelectorAll('[role=status]').length"), 1)
     choose_theme(page, "jade")
-    for eid in ("sign-in", "all-themes"):
-        k = len(buttons) + (eid == "all-themes")
-        x = next(i for i in info if i["id"] == eid)
-        page.click(buttons[info.index(x)])
-        page.wait(f"{eid}, jade: copied", f"window.__bhCopied.length === {k + 1}", 1)
-        text = page.js(f"return window.__bhCopied[{k}].text")
-        page.eq(f"{eid}, jade: jade's link after femto's", text, page_of(template, x["name"], x["sample"], "jade"))
-        page.eq(f"{eid}, jade: the two links", page.js(READ_PAGE, text, x["sample"], cdn)["links"],
-                [cdn + "dist/femto.min.css", cdn + "css/themes/jade.css"])
+    k = len(buttons)
+    x = next(i for i in info if i["id"] == "sign-in")
+    page.click(buttons[info.index(x)])
+    page.wait("sign-in, jade: copied", f"window.__bhCopied.length === {k + 1}", 1)
+    text = page.js(f"return window.__bhCopied[{k}].text")
+    page.eq("sign-in, jade: jade's link after femto's", text, page_of(template, x["name"], x["sample"], "jade"))
+    page.eq("sign-in, jade: the two links", page.js(READ_PAGE, text, x["sample"])["links"],
+            [cdn + "dist/femto.min.css", cdn + "css/themes/jade.css"])
     page.url_kept("no navigation", url)
 
 
@@ -880,15 +859,12 @@ def copy_announce_twice(page):
     page.expect("emptied 900 to 1500 ms after the second click", 900 <= end - clicks[1] <= 1500, ms=end - clicks[1], timeline=tl)
 
 
-# Every inner root's theme links and its host's --femto-primary-background, and each of the All theme
-# colors example's own roots' links and colors.
+# Every inner root's theme links and its host's --femto-primary-background, and the page's.
 THEME_STATE = HOSTS + r"""
 const themes = (root) => [...root.children].filter(e => e.localName === 'link' && e.getAttribute('href').includes('/css/themes/'));
 const color = (host) => getComputedStyle(host).getPropertyValue('--femto-primary-background').trim().toLowerCase();
-const own = hosts.find(h => h.id === 'all-themes').root.querySelectorAll('.grid > div');
 return {inner: hosts.map(h => ({id: h.id, second: h.root.children[1]?.outerHTML.slice(0, 90), themes: themes(h.root).map(l => [l.outerHTML, !!l.sheet]),
                                 color: color(h.inner)})),
-        own: [...own].map(d => ({links: themes(d.shadowRoot).map(l => l.getAttribute('href')), color: color(d)})),
         page: color(document.documentElement), query: location.search};
 """
 
@@ -896,14 +872,13 @@ return {inner: hosts.map(h => ({id: h.id, second: h.root.children[1]?.outerHTML.
 @check("examples-theme", "/examples")
 def examples_theme(page):
     """The theme select (p[data-examples-theme] select) offers femto's 20 colors, azure selected, in
-    the docs' Theme picker's order (read from /docs), each labeled with its name capitalized; the
-    All theme colors example's 20 roots follow the same order. On load no inner root links a theme, and every inner host has azure's primary
-    background. Choosing jade links <link rel="stylesheet" href="/vendor/femto/css/themes/jade.css">
-    right after femto's in every inner root, loaded, and gives every inner host jade's primary
-    background (its css/themes/ file's); red then replaces jade's link with red's, one theme link a
-    root; and azure removes it, back to azure's color. Throughout, the page itself keeps azure, each of
-    the All theme colors example's 20 roots keeps its own theme file and color, and the URL gets no
-    ?theme= and no new history entry (Decision 8)."""
+    the docs' Theme picker's order (read from /docs), each labeled with its name capitalized. On load
+    no inner root links a theme, and every inner host has azure's primary background. Choosing jade
+    links <link rel="stylesheet" href="/vendor/femto/css/themes/jade.css"> right after femto's in
+    every inner root, loaded, and gives every inner host jade's primary background (its css/themes/
+    file's); red then replaces jade's link with red's, one theme link a root; and azure removes it,
+    back to azure's color. Throughout, the page itself keeps azure, and the URL gets no ?theme= and
+    no new history entry (Decision 8)."""
     files = theme_files()
     opts = page.js("return [...document.querySelectorAll('p[data-examples-theme] select option')].map(o => [o.value, o.textContent.trim(), o.selected])")
     want = page.ajs(PICKER_ORDER)
@@ -913,10 +888,8 @@ def examples_theme(page):
     page.eq("azure selected", [o[0] for o in opts if o[2]], ["azure"])
     url = page.url()
     s = page.js(THEME_STATE)
-    own = [x["links"] for x in s["own"]]
     page.eq("on load: no theme link in any inner root", [x["themes"] for x in s["inner"]], [[]] * len(s["inner"]))
     page.eq("on load: every inner host azure", {x["color"] for x in s["inner"]}, {files["azure"]})
-    page.eq("the All theme colors example: 20 roots of the 20 colors, in the picker's order", [h[0].rsplit("/", 1)[1][:-4] for h in own], want)
 
     def holds(color):
         link = f'<link rel="stylesheet" href="/vendor/femto/css/themes/{color}.css">'
@@ -929,8 +902,6 @@ def examples_theme(page):
 
     def kept(s, label):
         page.eq(f"{label}: the page keeps azure", s["page"], files["azure"])
-        page.eq(f"{label}: the All theme colors roots keep their links", [x["links"] for x in s["own"]], own)
-        page.eq(f"{label}: and their colors", [x["color"] for x in s["own"]], [files[h[0].rsplit("/", 1)[1][:-4]] for h in own])
         page.eq(f"{label}: no ?theme=", s["query"], "")
 
     choose_theme(page, "jade")
@@ -946,32 +917,13 @@ def examples_theme(page):
     page.url_kept("no navigation, no new entry", url)
 
 
-EVERY_ELEMENT = ["h1", "h2", "h3", "h4", "h5", "h6", "hgroup", "section", "p", "a[href]", "a.secondary", "a.contrast", "strong",
-                 "b", "em", "i", "u", "s", "del", "ins", "mark", "small", "abbr[title]", "sub", "sup", "code", "kbd", "samp",
-                 "var", "dfn", "q", "cite", "time", "address", "hr", "ul ul", "ol", "dl dt", "dl dd", "blockquote footer cite",
-                 "figure img", "figure figcaption", "pre code", ".overflow-auto table.striped", "thead", "tbody", "tfoot",
-                 "th[scope=row]", ".grid", "form", "fieldset legend", "select:not([multiple])", "select[multiple]",
-                 "textarea", "input[type=checkbox]:not([role])", "input[type=radio]", "input[type=checkbox][role=switch]",
-                 "input[aria-invalid=true] + small", "input[aria-invalid=false] + small", "input[disabled]", "input[readonly]",
-                 "label[aria-disabled=true]", "[role=group] input", "form[role=search] input[type=search]", "input[type=submit]",
-                 "input[type=reset]", "button[type=submit]", "button.secondary", "button.contrast", "button.outline",
-                 "button[disabled]", "button[aria-busy=true]", "a[role=button]", "details[open] > summary",
-                 "summary[role=button]", "details.dropdown > summary + ul", "article > header", "article > footer",
-                 "dialog > article > header > button[rel=prev]", "dialog > article > footer > button", "progress[value]",
-                 "progress:not([value])", "p[aria-busy=true]", "[data-tooltip]", "nav ul + ul"]
-INPUT_TYPES = ["text", "email", "password", "number", "tel", "url", "date", "time", "datetime-local", "month", "week",
-               "color", "search", "file", "range", "checkbox", "radio", "submit", "reset"]
-
 NEWER = HOSTS + r"""
 const root = (id) => hosts.find(h => h.id === id).root;
 const kids = (el) => [...el.children].map(c => c.localName + [...c.classList].map(x => '.' + x).join(''));
 const side = (a, b) => { const x = a.getBoundingClientRect(), y = b.getBoundingClientRect(); return x.right <= y.left && Math.abs(x.top - y.top) < 1; };
-const every = root('every-element');
-const land = root('landing-page'), docs = root('docs-layout'), out = root('checkout'), all = root('all-themes');
+const land = root('landing-page'), docs = root('docs-layout'), out = root('checkout');
 const dgrid = docs.children[1], cgrid = out.children[2];
-const grids = [...all.children].filter(e => e.matches('div.grid'));
 return {
-  every: {missing: arguments[0].filter(s => !every.querySelector(s)), types: [...new Set([...every.querySelectorAll('input')].map(i => i.getAttribute('type')))]},
   landing: {kids: kids(land), nav: kids(land.children[1].querySelector(':scope > nav')), hero: kids(land.children[1]),
             ctas: land.children[1].querySelectorAll(':scope > p > a[role=button]').length,
             features: [...land.querySelectorAll('section > .grid > article')].map(a => a.querySelector('h4')?.textContent ?? null),
@@ -983,54 +935,27 @@ return {
          side: side(dgrid.children[0], dgrid.children[1])},
   checkout: {kids: kids(out), grid: kids(cgrid), legends: [...cgrid.children[0].querySelectorAll(':scope > fieldset')].map(f => f.firstElementChild?.localName === 'legend' ? f.firstElementChild.textContent : null),
              radios: [...new Set([...cgrid.querySelectorAll('input[type=radio]')].map(i => i.name))], submit: !!cgrid.children[0].querySelector('button[type=submit]'),
-             table: [...cgrid.querySelectorAll('article table > *')].map(e => e.localName + ':' + e.rows.length), side: side(cgrid.children[0], cgrid.children[1])},
-  all: {kids: kids(all).length, grids: grids.map(g => g.children.length),
-        hosts: grids.flatMap(g => [...g.children]).map(d => {
-          const r = d.shadowRoot;
-          if (!r) return null;
-          const cards = [...r.querySelectorAll('.grid > article')];
-          return {links: [...r.children].slice(0, 2).map(l => l.localName === 'link' ? l.getAttribute('href') : null),
-                  loaded: [...r.querySelectorAll('link')].every(l => l.sheet?.cssRules.length > 0), sheets: r.styleSheets.length,
-                  schemes: cards.map(c => c.getAttribute('data-theme') + ':' + getComputedStyle(c).colorScheme),
-                  names: cards.map(c => c.querySelector('h4')?.textContent ?? null),
-                  parts: cards.map(c => ['button:not(.outline)', 'button.outline', 'a[href]', 'input[type=checkbox][role=switch]', 'progress[value]'].filter(s => c.querySelector(s)).length),
-                  side: cards.length === 2 && side(cards[0], cards[1]),
-                  color: getComputedStyle(d).getPropertyValue('--femto-primary-background').trim().toLowerCase()};
-        })}
+             table: [...cgrid.querySelectorAll('article table > *')].map(e => e.localName + ':' + e.rows.length), side: side(cgrid.children[0], cgrid.children[1])}
 };
 """
 
 
 @check("examples-newer", "/examples")
 def examples_newer(page):
-    """The index under the hero links every example, in page order, and the five examples added on
-    2026-11-09 are among them, by the ids the docs link to. They hold what they show (at 1300 px). Every element
-    (#every-element): every element and pattern femto styles (EVERY_ELEMENT: headings, text-level
-    elements, lists, a quotation, a figure, code, a striped table, form controls of every input type
-    INPUT_TYPES names, a select of each kind, valid and invalid fields with helper text, a group, a
-    search form, every button style, an accordion, a dropdown, a card, a modal, progress bars, a
-    loading paragraph, a tooltip and a nav; the breadcrumbs are the Navigation bar's, since a page has
-    one nav named "breadcrumb", femto's hook, and html-validate's unique-landmark rule holds every
-    landmark's name to one), and its "Open a modal" opens its dialog as a
-    modal and Confirm closes it, focus back on the opener. Landing page (#landing-page): a header with
-    a nav of two lists, the hero's hgroup and two call-to-action links, three feature cards in a grid,
-    a quotation and a footer nav. Docs page (#docs-layout): a grid of an <aside>, whose nav holds two
-    open groups of links (femto shows them as blocks), and an article with a heading and a footer nav,
-    side by side. Checkout (#checkout): a form of four fieldsets, each led by its legend, with its own
-    radio names and a submit button, beside a card whose table has a head, two body rows and three
-    footer rows. All theme colors (#all-themes): ten grids of two shadow hosts, each host's own root
-    linking femto.min.css then one css/themes/<color>.css, both loaded and nothing else, with a light
-    and a dark card side by side (data-theme and color-scheme), each named for the color and holding a
-    button, an outline button, a link, a switch and a progress bar, the host taking its theme file's
-    primary background; the 20 colors are femto's css/themes/ files, once each."""
+    """The index under the hero links every example, in page order, and the Landing page, Docs page
+    and Checkout examples are among them and hold what they show (at 1300 px). Landing page
+    (#landing-page): a header with a nav of two lists, the hero's hgroup and two call-to-action
+    links, three feature cards in a grid, a quotation and a footer nav. Docs page (#docs-layout): a
+    grid of an <aside>, whose nav holds two open groups of links (femto shows them as blocks), and an
+    article with a heading and a footer nav, side by side. Checkout (#checkout): a form of four
+    fieldsets, each led by its legend, with its own radio names and a submit button, beside a card
+    whose table has a head, two body rows and three footer rows."""
     index = page.js("""return {links: [...document.querySelectorAll('main .examples-index a')].map(a => a.getAttribute('href')),
       examples: [...document.querySelectorAll('main section.example')].map(s => '#' + s.id)};""")
     page.eq("the index links every example, in page order", index["links"], index["examples"])
-    for eid in ("every-element", "landing-page", "docs-layout", "checkout", "all-themes"):
+    for eid in ("landing-page", "docs-layout", "checkout"):
         page.expect(f"#{eid} is an example", f"#{eid}" in index["examples"])
-    r = page.js(NEWER, EVERY_ELEMENT)
-    page.eq("every element: nothing missing", r["every"]["missing"], [])
-    page.eq("every element: every input type", sorted(t for t in r["every"]["types"] if t in INPUT_TYPES), sorted(INPUT_TYPES), types=r["every"]["types"])
+    r = page.js(NEWER)
     land = r["landing"]
     page.eq("landing page: header, two sections, footer", land["kids"], ["link", "header", "section", "section", "footer"])
     page.eq("landing page: the header's nav, two lists", land["nav"], ["ul", "ul"])
@@ -1054,28 +979,3 @@ def examples_newer(page):
     page.expect("checkout: a submit button", out["submit"])
     page.eq("checkout: the order summary table", out["table"], ["thead:1", "tbody:2", "tfoot:3"])
     page.expect("checkout: side by side", out["side"])
-    files = theme_files()
-    a = r["all"]
-    page.eq("all themes: an hgroup and ten grids of two", a["grids"], [2] * 10)
-    hosts = a["hosts"]
-    page.expect("all themes: 20 shadow hosts", len(hosts) == 20 and all(hosts), count=len(hosts))
-    colors = []
-    for h in hosts:
-        c = h["links"][1].rsplit("/", 1)[1][:-4] if h["links"][1] else None
-        colors.append(c)
-        page.eq(f"{c}: femto, then its theme file", h["links"], ["/vendor/femto/dist/femto.min.css", f"/vendor/femto/css/themes/{c}.css"])
-        page.expect(f"{c}: both loaded, no other sheet", h["loaded"] and h["sheets"] == 2, **h)
-        page.eq(f"{c}: a light and a dark card", h["schemes"], ["light:light", "dark:dark"])
-        page.eq(f"{c}: each named for the color", h["names"], [c.capitalize()] * 2)
-        page.eq(f"{c}: a button, an outline button, a link, a switch and a progress bar in each", h["parts"], [5, 5])
-        page.expect(f"{c}: side by side", h["side"])
-        page.eq(f"{c}: its theme's primary background", h["color"], files.get(c))
-    page.eq("all themes: femto's 20 colors, once each", sorted(colors), sorted(files))
-    dialog = "hosts.find(h => h.id === 'every-element').root"
-    state = f"(() => {{ {HOSTS} const r = {dialog}; const d = r.getElementById('every-element-dialog'); return {{open: d.open, modal: d.matches(':modal'), opener: r.activeElement === r.querySelector('[aria-controls=every-element-dialog]')}}; }})()"
-    page.click_at(*shadow_point(page, f"{dialog}.querySelector('[aria-controls=every-element-dialog]')"))
-    page.wait("every element: the modal opens", f"(() => {{ const s = {state}; return s.open && s.modal; }})()")
-    pt = page.js(HOSTS + f"const b = {dialog}.querySelector('#every-element-dialog footer button:last-of-type'); const r = b.getBoundingClientRect(); return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)];")
-    page.click_at(*pt)
-    page.wait("every element: Confirm closes it, focus on the opener", f"(() => {{ const s = {state}; return !s.open && s.opener; }})()")
-

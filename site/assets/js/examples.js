@@ -9,14 +9,10 @@
 // this script. Its markup, escaped, is the code sample in the <details> under it, which site.js's
 // copy button copies. The script adds what a page holding the example would add:
 // - the color scheme: the inner host's data-theme follows <html>'s (site.js, Decision 14), as femto
-//   reads data-theme on a shadow host, so an example follows the page's light or dark choice. So
-//   does every shadow host inside an example (the All theme colors example's 20), whose own root
-//   loads femto and so gives the host a background in its own scheme. In print they all take
-//   femto's print scheme, light;
-// - links that go nowhere: a click on one is canceled, read at its first target (composedPath),
-//   since a link may sit in a shadow root of the example's own, as the All theme colors example's
-//   do. (Each mockup form has method="dialog", whose submit does nothing outside a <dialog>
-//   (criterion 9); its HTML sample keeps a plain <form>.)
+//   reads data-theme on a shadow host, so an example follows the page's light or dark choice. In
+//   print they take femto's print scheme, light;
+// - links that go nowhere: a click on one is canceled. (Each mockup form has method="dialog", whose
+//   submit does nothing outside a <dialog> (criterion 9); its HTML sample keeps a plain <form>.)
 // - dialogs: each opener and closer also has command and commandfor, which open and close the dialog
 //   with no script in a browser that has them, in the Copy as page output too. Only where the
 //   browser lacks them (no commandForElement on HTMLButtonElement.prototype), a click on an element
@@ -33,18 +29,16 @@
 //   in femto's starter template (the page's template[data-starter-page], as femto README's Quick
 //   start and the docs' Quick start write it), with the example's name for its title, the sample in
 //   place of its <h1>, indented as the <h1> is (a <pre>'s later lines keep their own), and the
-//   chosen theme's link after femto's, written as femto's. The page's own femto paths (/vendor/femto/,
-//   in the All theme colors example) become the folder femto's link names on jsDelivr. For 1 s
-//   after the latest copy the button's femto tooltip (data-tooltip, which it has only then) says
-//   "Copied", or "Copy failed" when the clipboard refuses the text, as a code block's copy button
-//   does; its label keeps its text, and site.js's status region says it.
+//   chosen theme's link after femto's, written as femto's. For 1 s after the latest copy the
+//   button's femto tooltip (data-tooltip, which it has only then) says "Copied", or "Copy failed"
+//   when the clipboard refuses the text, as a code block's copy button does; its label keeps its
+//   text, and site.js's status region says it.
 // - The theme color, the select in p[data-examples-theme]: the chosen theme's stylesheet
 //   (css/themes/<color>.css) is linked right after femto's in every inner shadow root, and azure,
 //   femto's own color, removes it. A new link replaces the old one once it has loaded, so the
 //   examples never show azure between two colors. A link that fails to load goes, and the examples
-//   keep the color they show, which the select and Copy as page go back to. The page itself and the
-//   All theme colors example's own roots keep their colors. No URL parameter: ?theme= belongs to the
-//   docs page (Decision 8).
+//   keep the color they show, which the select and Copy as page go back to. The page itself keeps
+//   its color. No URL parameter: ?theme= belongs to the docs page (Decision 8).
 // It does nothing on a page without div[data-example].
 
 import { announceCopy, escapeText, onThemeChange, setAttr } from "./site.js";
@@ -53,8 +47,6 @@ const root = document.documentElement;
 const hosts = [...document.querySelectorAll("div[data-example]")]
   .map((frame) => frame.shadowRoot?.firstElementChild)
   .filter((host) => host?.shadowRoot);
-// The shadow hosts inside the examples (the All theme colors example's), each with a root of its own.
-const innerHosts = hosts.flatMap((host) => [...host.shadowRoot.querySelectorAll("*")].filter((el) => el.shadowRoot));
 
 // --- Color scheme --------------------------------------------------------------------------------
 
@@ -64,7 +56,7 @@ let printing = false;
 
 function followScheme() {
   const scheme = printing ? null : root.getAttribute("data-theme");
-  for (const host of [...hosts, ...innerHosts]) setAttr(host, "data-theme", scheme || null);
+  for (const host of hosts) setAttr(host, "data-theme", scheme || null);
 }
 
 if (hosts.length) {
@@ -183,17 +175,15 @@ function indent(markup, spaces) {
 }
 
 // An example's page: the template with the example's name for its title, the theme's link (none for
-// azure) as a copy of femto's line, and the markup in place of the <h1>, its /vendor/femto/ paths
-// made the folder femto's link names.
+// azure) as a copy of femto's line, and the markup in place of the <h1>.
 function pageOf(template, name, markup, color) {
-  const femto = /^.*\bhref="([^"]*\/)dist\/femto\.min\.css".*$/m.exec(template);
-  if (!femto) return markup;
-  const [line, folder] = femto;
+  const line = /^.*\bhref="[^"]*\/dist\/femto\.min\.css".*$/m.exec(template)?.[0];
+  if (!line) return markup;
   const themeLine = color === "azure" ? "" : `\n${line.replace("dist/femto.min.css", `css/themes/${color}.css`)}`;
   return template
     .replace(line, () => line + themeLine)
     .replace(/<title>[^<]*<\/title>/, () => `<title>${escapeText(name)}</title>`)
-    .replace(/^( *)<h1>Hello, world!<\/h1>$/m, (h1, spaces) => indent(markup.replaceAll('"/vendor/femto/', `"${folder}`), spaces));
+    .replace(/^( *)<h1>Hello, world!<\/h1>$/m, (h1, spaces) => indent(markup, spaces));
 }
 
 const copyButtons = starter ? [...document.querySelectorAll("section.example > header > button[data-copy-page]")] : [];

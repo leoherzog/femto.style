@@ -231,10 +231,9 @@ Interpretations, where PLAN's wording leaves a choice:
   readme is true names its file's h1: the migration section, whose name criterion 14 keeps out of
   menu.json (vendor.mjs's review reads the keys by the same rules). (a) also reads
   site/examples.html's p[data-examples-theme] select (each option's text its value capitalized,
-  azure the one selected) and the All theme colors example's css/themes/<color>.css links, and the
-  lists a reader chooses from (the select, those roots and demo.js's THEMES, which SWATCHES follows,
-  with azure checked) must follow the Theme picker's swatch order; the Themes table and the
-  ?theme= script's array may be in any order.
+  azure the one selected), and the lists a reader chooses from (the select and demo.js's THEMES,
+  which SWATCHES follows, with azure checked) must follow the Theme picker's swatch order; the
+  Themes table and the ?theme= script's array may be in any order.
   femto's facts (femto_fact_checks), read at the vendored commit with git, each failure starting
   "drift:" and naming the file: the Tokens table's <code> tokens (site/docs/sections/tokens.html)
   are, each once, the --femto-* names declared (`--femto-x:`) in the files css/femto.css imports,
@@ -3682,8 +3681,7 @@ def drift_checks(ctx: Context, r: Result, repo: Path, commit: str, readme: str, 
                            f"femto-background-{c}-<shade> showing their shade (lines {', '.join(odd[:6])}"
                            + (" ..." if len(odd) > 6 else "") + ")")
         lists.append(("site/docs/sections/colors.html", "the family headers", found, False))
-    # /examples' theme select (each option's text its name capitalized, azure selected) and the All
-    # theme colors example's roots, each linking its css/themes/<color>.css.
+    # /examples' theme select: each option's text its name capitalized, azure selected.
     ordered: list[tuple[str, str, list[str]]] = []
     ex = page("site/examples.html")
     holder = next((n for n in ex.iter() if "data-examples-theme" in n.attrs), None) if ex else None
@@ -3703,15 +3701,6 @@ def drift_checks(ctx: Context, r: Result, repo: Path, commit: str, readme: str, 
                        "selected; azure, the default, must be the one option selected")
         lists.append(("site/examples.html", "the theme select's options", found, False))
         ordered.append(("site/examples.html", "the theme select's options", found))
-    every = next((n for n in ex.iter() if n.tag == "section" and n.attrs.get("id") == "all-themes"), None) if ex else None
-    mock = next((n for n in every.iter() if "data-example" in n.attrs), None) if every else None
-    if mock is None:
-        shapes.append("site/examples.html: no section#all-themes with a div[data-example] mockup (the All theme colors example)")
-    else:
-        found = [m.group(1) for link in mock.find_all("link")
-                 if (m := re.fullmatch(r"/vendor/femto/css/themes/([a-z]+)\.css", link.attrs.get("href", "")))]
-        lists.append(("site/examples.html", "the All theme colors example's css/themes/ links", found, False))
-        ordered.append(("site/examples.html", "the All theme colors example's roots", found))
     demo_path = "site/assets/js/demo.js"
     demo = (root / demo_path).read_text(encoding="utf-8", errors="replace") if (root / demo_path).is_file() else ""
     at = re.search(r"\bconst THEMES\s*=\s*\[", demo)

@@ -376,9 +376,9 @@ return {scrollWidth: root.scrollWidth, clientWidth: root.clientWidth, innerWidth
 """
 
 
-# What prints: <html>'s color-scheme, the /examples hosts' (inner and nested) color-schemes and
-# data-theme, and which of the screen-only controls still have a box. The header's links and toggle
-# are its nav's last list: the logo, in the first, prints.
+# What prints: <html>'s color-scheme, the /examples inner hosts' color-schemes and data-theme, and
+# which of the screen-only controls still have a box. The header's links and toggle are its nav's
+# last list: the logo, in the first, prints.
 SCREEN_ONLY = ["body > header nav ul:last-of-type", "button[data-copy-link]", "main > aside#documentation-menu",
                "main > nav[aria-label=breadcrumb]",
                "article[data-version-picker] > header", "#content section > p:has(+ article[data-version-picker])",
@@ -431,9 +431,8 @@ def emulate_print(page, scheme, label, screen):
         page.driver.execute_cdp_cmd("Emulation.setEmulatedMedia", {"media": "", "features": features(screen)})
 PRINTED = """
 const hosts = [...document.querySelectorAll('div[data-example]')].map(f => f.shadowRoot.firstElementChild);
-const nested = hosts.flatMap(h => [...h.shadowRoot.querySelectorAll('*')].filter(e => e.shadowRoot));
 return {html: getComputedStyle(document.documentElement).colorScheme,
-        hosts: [...new Set([...hosts, ...nested].map(h => getComputedStyle(h).colorScheme + ':' + h.getAttribute('data-theme')))],
+        hosts: [...new Set(hosts.map(h => getComputedStyle(h).colorScheme + ':' + h.getAttribute('data-theme')))],
         shown: arguments[0].filter(sel => [...document.querySelectorAll(sel)].some(e => e.getClientRects().length > 0)),
         present: arguments[0].filter(sel => document.querySelector(sel))};
 """
@@ -463,10 +462,9 @@ def print_light(page):
     background (--femto-light-code-background-color) and every example's code footer in femto's
     light card sectioning color, whatever the scheme on screen, and the Colors swatches and the
     Themes table's dots have print-color-adjust: exact. Chrome checks this twice, with the
-    OS light and with the OS dark. On /examples every inner and nested host is light with no
-    data-theme. And on /examples a real print (WebDriver Print) takes data-theme="dark" off the
-    hosts between beforeprint and afterprint, so the mockups print light too, and gives it back
-    after."""
+    OS light and with the OS dark. On /examples every inner host is light with no data-theme. And
+    on /examples a real print (WebDriver Print) takes data-theme="dark" off the hosts between
+    beforeprint and afterprint, so the mockups print light too, and gives it back after."""
     if page.browser == "chrome":
         for scheme in ("light", "dark"):
             got = emulate_print(page, scheme, f"OS {scheme}", "light")
