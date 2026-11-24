@@ -6,6 +6,12 @@
 /**
  * Examples
  */
+/* The examples stand 4rem apart, in place of femto's one block spacing, so that on a phone one
+   example's HTML toggle does not run into the next one's heading (the owner) */
+body > main > section.example + section.example {
+  margin-top: 4rem;
+}
+
 /* The frame: it passes nothing down (all: initial), so the example's own shadow host starts from
    the initial values, as a page's <html> does. femto's root font size, a percentage on :host, then
    means what it means in a page of its own, not a percentage of this page's. Custom properties
