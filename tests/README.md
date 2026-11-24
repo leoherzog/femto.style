@@ -596,8 +596,12 @@ arguments to `static_checks.main(argv)`.
   `css/tokens/schemes.css` at the vendored commit, read with git (site.js may change the media at
   run time). `site/site.webmanifest` is valid JSON with `display` `"browser"`, a non-empty `id` and
   a non-empty `description`. `site/opengraph.png`'s IHDR is 1200 × 630, equal to `og:image:width`
-  and `og:image:height` in the head partial, and the file is at most `OG_IMAGE_MAX` (32,000 bytes).
-  And `stylesheet_checks`: each dist page's `<head>` links, in order and nothing else, the
+  and `og:image:height` in the head partial, and the file is at most `OG_IMAGE_MAX` (32,000 bytes),
+  with a non-empty `og:image:alt` that `twitter:image:alt` repeats. And `structured_data_checks`:
+  on each dist page but 404 every JSON-LD block parses with `@context` `https://schema.org`, one
+  `WebSite` node has `url` `https://femto.style/`, every `{"@id": …}` reference names a node the
+  page declares, and a `BreadcrumbList` numbers its items from 1 and ends at the page's canonical
+  URL. And `stylesheet_checks`: each dist page's `<head>` links, in order and nothing else, the
   stylesheets `PAGE_STYLESHEETS` gives it, from PLAN.md's Rules, CSS: femto's `dist/femto.min.css`;
   on `/docs` alone its responsive-spacings option and `femto.colors.min.css` (Decision 8, the owner,
   2026-11-11); `common.css`; then, but on 404, `code.css` and the page's own stylesheet. A page it
@@ -736,7 +740,8 @@ arguments to `static_checks.main(argv)`.
   file's h1, and its fenced blocks against the section's code samples, language and text, in order;
   no HTML but `<br>` outside code, no unfilled placeholder, and only absolute links, each link into
   the docs naming a section's file; `docs.html`'s one `rel="alternate"` link; and `_headers`'
-  `Vary: Accept` on `/docs` and `/docs.md` and `Link` header naming `/docs.md` on `/docs`, with no
+  `Vary: Accept` on `/docs` and `/docs.md`, `Link` header naming `/docs.md` on `/docs` and canonical
+  `Link` header naming `/docs` on `/docs.md`, `/docs/*.md`, `/docs-full.md` and `/llms.txt`, with no
   `Content-Type` rule. The zone's rewrite rule
   runs only on `femto.style`, so no check covers it (PLAN.md Risks, Markdown).
 - **17, Agent skill.** PLAN.md Decision 20's files (`skill_check`), read from the repository and
@@ -812,7 +817,7 @@ uv run tests/static_checks.py --criteria links --external --dist /path/to/build 
 
 - **Internal links.** Every URL a dist page links to or loads (`href`, `src`, `srcset`, `poster`,
   `data`, `action`, `formaction`, `cite`, SVG `href`, the `og:` and `twitter:` URL metas, JSON-LD's
-  site URLs), declarative shadow roots included, resolved against the page's URL as Cloudflare Pages
+  URLs but its `@id` node names), declarative shadow roots included, resolved against the page's URL as Cloudflare Pages
   serves it, plus every `url()` and `@import` in dist CSS and the web app manifest's icons and
   `start_url`. A URL on `https://femto.style` (or relative) must name a page of the URL inventory or
   a file in `dist/`; a page's `.html` name or `/docs/` fails, since Pages answers it with a 308; a

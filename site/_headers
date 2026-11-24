@@ -17,7 +17,8 @@
 # Markdown (PLAN.md Decision 19): the zone answers /docs with /docs.md's body when the request's
 # Accept names text/markdown, so both vary on Accept. /docs also names /docs.md in a Link header, for
 # a client that reads headers and not the page's head. No rule sets a Content-Type: Pages types .md
-# files itself, and a rule's type would also reach the 404 page under its path.
+# files itself, and a rule's type would also reach the 404 page under its path. Each Markdown file
+# names the docs page as its canonical URL, so search engines index the page and not the Markdown.
 /*
   Strict-Transport-Security: max-age=300
   Content-Security-Policy: frame-ancestors 'self'; object-src 'none'; base-uri 'none'
@@ -28,6 +29,16 @@
 
 /docs.md
   Vary: Accept
+  Link: <https://femto.style/docs>; rel="canonical"
+
+/docs/*.md
+  Link: <https://femto.style/docs>; rel="canonical"
+
+/docs-full.md
+  Link: <https://femto.style/docs>; rel="canonical"
+
+/llms.txt
+  Link: <https://femto.style/docs>; rel="canonical"
 
 /assets/css/*
   Cache-Control: public, max-age=300

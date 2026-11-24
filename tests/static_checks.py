@@ -167,11 +167,16 @@ Interpretations, where PLAN's wording leaves a choice:
   vendored commit, read with git (site.js may change the media at run time); site/site.webmanifest
   is valid JSON with display "browser", a non-empty id and a non-empty description; and
   site/opengraph.png's IHDR is 1200 x 630, equal to og:image:width and og:image:height in the head
-  partial, and the file is at most OG_IMAGE_MAX bytes (32,000). And the stylesheets
+  partial, and the file is at most OG_IMAGE_MAX bytes (32,000), with a non-empty og:image:alt that
+  twitter:image:alt repeats. And the stylesheets
   (stylesheet_checks): each dist page's <head> links, in order and nothing else, the
   link[rel=stylesheet]s PAGE_STYLESHEETS gives it, from PLAN's Rules, CSS: femto, on /docs alone its
   responsive-spacings option and femto.colors.min.css, common.css, then but on 404 code.css and the
-  page's own stylesheet (the owner, 2026-11-11). A dist page it does not list fails.
+  page's own stylesheet (the owner, 2026-11-11). A dist page it does not list fails. And the
+  structured data (structured_data_checks): on each dist page but 404 every JSON-LD block parses,
+  with @context https://schema.org, one WebSite node has url https://femto.style/, every
+  {"@id": …} reference names a node the page declares, and a BreadcrumbList numbers its items from
+  1 and ends at the page's canonical URL.
 - 11: also site_rule_checks: no file in site/assets/js sets role="group" (read as tokens:
   setAttribute("role", "group"), .role = "group", { role: "group" }, or role="group" in a string's
   markup; a comment is not code), and no dist page has role=group on an element outside example
@@ -325,7 +330,8 @@ Interpretations, where PLAN's wording leaves a choice:
   categories and section links in menu order; each section file's h1 and its fenced blocks against
   the code samples of site/docs/sections/<id>.html, which this check parses itself; no HTML but <br>
   outside code and only absolute links; docs.html's rel="alternate" link; and _headers' Vary: Accept
-  on /docs and /docs.md, its Link header naming /docs.md on /docs, and no Content-Type rule. The zone's rewrite rule is not checked: it runs
+  on /docs and /docs.md, its Link header naming /docs.md on /docs, its canonical Link header naming
+  /docs on /docs.md, /docs/*.md, /docs-full.md and /llms.txt, and no Content-Type rule. The zone's rewrite rule is not checked: it runs
   only on femto.style (PLAN.md Risks, Markdown).
 - 17: the agent skill (Decision 20). "Its frontmatter" is read by this check's own reader
   (skill_frontmatter), which knows plain one-line `key: value` lines and one nested level, under
@@ -1579,7 +1585,7 @@ def stop(proc: subprocess.Popen):
 
 
 def head_checks(ctx: Context) -> Result:
-    r = Result(8, "Head: docs.html's title, description, og:* and canonical; sitemap.xml lists only page URLs")
+    r = Result(8, "Head: docs.html's title, description, og:* and canonical; sitemap.xml lists only page URLs; JSON-LD")
     docs = ctx.dist / "docs.html"
     if not docs.is_file():
         r.not_yet("no dist/docs.html (npm run build writes it)")
@@ -1721,10 +1727,15 @@ def shell_checks(ctx: Context, r: Result) -> None:
                        f"{og.get('og:image:height')!r}; site/opengraph.png is {width} x {height}")
         if len(data) > OG_IMAGE_MAX:
             bad.append(f"site/opengraph.png is {len(data):,} bytes, over {OG_IMAGE_MAX:,}: compress it")
+        twitter_alt = [m.attrs.get("content", "") for m in (head.find_all("meta") if head else [])
+                       if m.attrs.get("name") == "twitter:image:alt"]
+        if not og.get("og:image:alt", "").strip() or twitter_alt != [og.get("og:image:alt")]:
+            bad.append("site/partials/head.html: og:image:alt is empty or missing, or twitter:image:alt is not one "
+                       "meta with the same text")
         r.fails(f"{len(bad)} social preview problem(s):", bad)
         if not bad:
-            r.ok(f"site/opengraph.png's IHDR is {width} x {height}, as og:image:width and og:image:height say, and it is "
-                 f"{len(data):,} bytes (at most {OG_IMAGE_MAX:,})")
+            r.ok(f"site/opengraph.png's IHDR is {width} x {height}, as og:image:width and og:image:height say, it is "
+                 f"{len(data):,} bytes (at most {OG_IMAGE_MAX:,}), and og:image:alt and twitter:image:alt describe it")
 
 
 # Each page's stylesheets, in its <head> and in order (PLAN.md Rules, CSS): femto, on /docs alone its
@@ -1771,10 +1782,73 @@ def stylesheet_checks(ctx: Context, r: Result) -> None:
              "responsive-spacings option and femto.colors.min.css, common.css, then but on 404 code.css and the page's own")
 
 
+def json_ld_nodes(data) -> list[dict]:
+    """Every JSON object in a JSON-LD value, nested ones included."""
+    if isinstance(data, dict):
+        return [data] + [n for v in data.values() for n in json_ld_nodes(v)]
+    if isinstance(data, list):
+        return [n for v in data for n in json_ld_nodes(v)]
+    return []
+
+
+def same_url(a: str, b: str) -> bool:
+    """Whether two absolute URLs are one, as https://femto.style and https://femto.style/ are."""
+    x, y = urlsplit(a), urlsplit(b)
+    return x[:2] == y[:2] and (x.path or "/") == (y.path or "/") and x.query == y.query
+
+
+def structured_data_checks(ctx: Context, r: Result) -> None:
+    """Criterion 8: each dist page but 404 holds JSON-LD that parses, with the schema.org context on
+    every block, the WebSite node at the homepage's URL, and every {"@id": …} reference naming a node
+    of the page. A BreadcrumbList numbers its items from 1 and ends at the page's canonical URL."""
+    bad, shown = [], []
+    for p in ctx.dist_pages():
+        name = p.relative_to(ctx.dist).as_posix()
+        if name == "404.html":
+            continue
+        doc = ctx.page(p)
+        canonical = next((l.attrs.get("href", "") for l in doc.find_all("link")
+                          if "canonical" in l.attrs.get("rel", "").lower().split()), None)
+        blocks = []
+        for s in doc.find_all("script"):
+            if s.attrs.get("type", "").lower() != "application/ld+json":
+                continue
+            try:
+                blocks.append(json.loads(s.text()))
+            except ValueError as exc:
+                bad.append(f"dist/{name}:{s.line}: JSON-LD that is not valid JSON: {exc}")
+                continue
+            if not isinstance(blocks[-1], dict) or blocks[-1].get("@context") != "https://schema.org":
+                bad.append(f"dist/{name}:{s.line}: a JSON-LD block whose @context is not \"https://schema.org\"")
+        nodes = [n for b in blocks for n in json_ld_nodes(b)]
+        declared = {n["@id"] for n in nodes if isinstance(n.get("@id"), str) and len(n) > 1}
+        refs = sorted({n["@id"] for n in nodes if list(n) == ["@id"]} - declared)
+        if refs:
+            bad.append(f"dist/{name}: JSON-LD references {', '.join(refs)}, which no node of the page declares")
+        sites = [n for n in nodes if n.get("@type") == "WebSite"]
+        if [n.get("url") for n in sites] != [SITE_ORIGIN + "/"]:
+            bad.append(f"dist/{name}: {len(sites)} JSON-LD WebSite node(s), not one with url {SITE_ORIGIN + '/'!r} "
+                       "(site/partials/structured-data.html)")
+        types = sorted({n["@type"] for n in nodes if isinstance(n.get("@type"), str) and n["@type"] != "ListItem"})
+        for crumbs in (n for n in nodes if n.get("@type") == "BreadcrumbList"):
+            items = [i for i in crumbs.get("itemListElement") or [] if isinstance(i, dict)]
+            if not items or [i.get("position") for i in items] != list(range(1, len(items) + 1)):
+                bad.append(f"dist/{name}: a BreadcrumbList whose positions are not 1 to {len(items)}")
+            elif canonical is None or not same_url(str(items[-1].get("item", "")), canonical):
+                bad.append(f"dist/{name}: the BreadcrumbList ends at {items[-1].get('item')!r}, not the page's "
+                           f"canonical URL {canonical!r}")
+        shown.append(f"{page_url(ctx.dist, p)} {', '.join(types)}")
+    r.fails(f"{len(bad)} structured data problem(s):", bad)
+    if not bad:
+        r.ok(f"each page's JSON-LD parses, at https://schema.org, with one WebSite node at {SITE_ORIGIN}/ and every "
+             f"@id reference declared ({'; '.join(shown)})")
+
+
 def criterion_8(ctx: Context) -> Result:
     r = head_checks(ctx)
     shell_checks(ctx, r)
     stylesheet_checks(ctx, r)
+    structured_data_checks(ctx, r)
     return r
 
 
@@ -5974,10 +6048,11 @@ LINK_CONTROLS = (  # (name, page, planted markup, the link the failure must name
 
 
 def json_strings(data) -> list[str]:
+    """Every string in a JSON value but JSON-LD's @id values, which name nodes and need not resolve."""
     if isinstance(data, str):
         return [data]
     if isinstance(data, dict):
-        return [s for v in data.values() for s in json_strings(v)]
+        return [s for k, v in data.items() if k != "@id" for s in json_strings(v)]
     if isinstance(data, list):
         return [s for v in data for s in json_strings(v)]
     return []
@@ -5985,8 +6060,8 @@ def json_strings(data) -> list[str]:
 
 def page_links(doc: Node) -> list[tuple[int, str, str]]:
     """(line, what, url) of every URL a page links to or loads: LINK_ATTRS, the og: and twitter: URL
-    metas, and the absolute site URLs in JSON-LD. Declarative shadow roots and other templates
-    included; code samples are text, not links."""
+    metas, and the absolute URLs in JSON-LD but its @id node names. Declarative shadow roots and
+    other templates included; code samples are text, not links."""
     out = []
     for n in doc.iter():
         if n.tag == "#document":
@@ -6481,8 +6556,13 @@ def criterion_16(ctx: Context) -> Result:
     link = 'link: </docs.md>; rel="alternate"; type="text/markdown"'
     if link not in rules.get("/docs", []):
         r.fail(f"site/_headers does not send /docs the header {link!r}")
-    if not no_vary and not typed and link in rules.get("/docs", []):
-        r.ok("_headers sends Vary: Accept on /docs and /docs.md, a Link header naming /docs.md on /docs, and sets no Content-Type")
+    # Search engines read a canonical Link header on a non-HTML file, and then index the page instead.
+    canonical = f'link: <{DOCS_URL}>; rel="canonical"'
+    uncanonical = [p for p in ("/docs.md", "/docs/*.md", "/docs-full.md", "/llms.txt") if canonical not in rules.get(p, [])]
+    r.fails(f"site/_headers does not send the header {canonical!r} on:", uncanonical)
+    if not no_vary and not typed and link in rules.get("/docs", []) and not uncanonical:
+        r.ok("_headers sends Vary: Accept on /docs and /docs.md, a Link header naming /docs.md on /docs, a canonical "
+             "Link header naming /docs on each Markdown file, and sets no Content-Type")
     return r
 
 

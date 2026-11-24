@@ -1,19 +1,43 @@
 <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareSourceCode",
-    "url": "https://femto.style",
-    "name": "femto",
-    "abstract": "Semantic HTML made beautiful. Link one stylesheet and plain HTML looks clean and readable: headings, text, links, buttons, forms, tables, cards, accordions and modals are styled from their elements alone, with no classes needed.",
-    "isFamilyFriendly": true,
-    "codeRepository": "https://github.com/leoherzog/femto",
-    "version": "{{version}}",
-    "programmingLanguage": "CSS",
-    "keywords": ["css", "css-framework", "semantic", "semantic-html", "native-html", "minimal", "minimalist", "dark-mode", "light-dark", "custom-properties"],
-    "license": "https://github.com/leoherzog/femto/blob/{{commit}}/LICENSE.md",
-    "sameAs": ["https://github.com/leoherzog/femto", "https://www.npmjs.com/package/@leoherzog/femto"],
-    "image": "https://femto.style/opengraph.png",
-    "maintainer": { "@type": "Person", "name": "Leo Herzog", "url": "https://github.com/leoherzog" },
-    "author": { "@type": "Person", "name": "Leo Herzog", "givenName": "Leo", "familyName": "Herzog", "url": "https://github.com/leoherzog" }
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://femto.style/#website",
+        "url": "https://femto.style/",
+        "name": "femto",
+        "alternateName": "femto.style",
+        "description": "femto's documentation. Semantic HTML made beautiful: link one stylesheet, and plain HTML looks clean and readable.",
+        "inLanguage": "en",
+        "about": { "@id": "https://femto.style/#femto" },
+        "publisher": { "@id": "https://femto.style/#author" }
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": "https://femto.style/#femto",
+        "url": "https://femto.style/",
+        "name": "femto",
+        "description": "Semantic HTML made beautiful. Link one stylesheet and plain HTML looks clean and readable: headings, text, links, buttons, forms, tables, cards, accordions, and modals are styled from their elements alone, with no classes needed.",
+        "isFamilyFriendly": true,
+        "codeRepository": "https://github.com/leoherzog/femto",
+        "version": "{{version}}",
+        "programmingLanguage": "CSS",
+        "keywords": ["css", "css-framework", "semantic", "semantic-html", "native-html", "minimal", "minimalist", "dark-mode", "light-dark", "custom-properties"],
+        "license": "https://github.com/leoherzog/femto/blob/{{commit}}/LICENSE.md",
+        "sameAs": ["https://github.com/leoherzog/femto", "https://www.npmjs.com/package/@leoherzog/femto"],
+        "image": "https://femto.style/opengraph.png",
+        "maintainer": { "@id": "https://femto.style/#author" },
+        "author": { "@id": "https://femto.style/#author" }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://femto.style/#author",
+        "name": "Leo Herzog",
+        "givenName": "Leo",
+        "familyName": "Herzog",
+        "url": "https://github.com/leoherzog"
+      }
+    ]
   }
 </script>
