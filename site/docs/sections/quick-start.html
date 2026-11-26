@@ -38,6 +38,7 @@
 @import "@leoherzog/femto/css/themes/jade.css";</code></pre></div>
   <p>A bundler that rewrites CSS for older browsers can break femto's <a href="#color-schemes">color schemes</a>. Vite 8's production build, for example, minifies CSS with Lightning CSS for browsers older than femto supports, and rewrites every <code>light-dark()</code> into variables that resolve once on <code>:root</code>, so <code>data-theme</code> on an element no longer changes its colors. Set the bundler's CSS targets to femto's <a href="#browser-support">minimum versions</a>, for example in <code>vite.config.js</code>:</p>
   <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-js">export default { build: { cssTarget: ["chrome125", "edge125", "firefox128", "safari17.5", "ios17.5"] } };</code></pre></div>
+  <p><code>cssTarget</code> applies to all the CSS in the build, so Vite also stops rewriting your own CSS for older browsers, such as flattening nested rules.</p>
   <p>List <code>ios17.5</code> as well as <code>safari17.5</code>: without it, Lightning CSS drops <code>-webkit-text-size-adjust</code>, the only form iOS Safari reads. Vite does not accept a Samsung Internet target, and <code>chrome125</code> covers Samsung Internet 27, which is built on Chromium 125.</p>
 </section>
 <section>
