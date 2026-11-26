@@ -69,10 +69,7 @@
 </section>
 <section>
   <h2>Dropped builds</h2>
-  <ul>
-    <li>The conditional builds (<code>pico.conditional*.css</code>), which styled only what is inside <code>.pico</code>, are gone. femto styles the whole page, or a shadow root that loads it (see <a href="#shadow-roots">Shadow roots</a>). Remove the <code>.pico</code> classes.</li>
-    <li>The classless builds (<code>pico.classless*.css</code> and <code>pico.fluid.classless*.css</code>), which made the page's header, main, and footer containers on their own, are gone. Load femto and give those three a container class: <code>.container</code> for centered widths, or <code>.container-fluid</code> for the full width (see <a href="#container">Container</a>).</li>
-  </ul>
+  <p>The conditional builds (<code>pico.conditional*.css</code>), which styled only what is inside <code>.pico</code>, are gone. femto styles the whole page, or a shadow root that loads it (see <a href="#shadow-roots">Shadow roots</a>). Remove the <code>.pico</code> classes.</p>
   <p>Without a conditional build, femto also styles everything that was outside <code>.pico</code>: the rest of the page, another framework's markup, and elements that scripts add to <code>&lt;body&gt;</code>, such as a chart's tooltip. To keep femto off a part of the page, load femto in a <a href="#cascade-layer">cascade layer</a> and roll that part back in the same layer:</p>
   <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-css">@import url(dist/femto.min.css) layer(femto);
 
@@ -84,6 +81,8 @@
   }
 }</code></pre></div>
   <p>The id matches nothing: it lifts the rule above femto's own rules, such as those on <code>input:not([type=checkbox], [type=radio])</code>. The last two lines keep what the conditional builds set on every element.</p>
+  <p>The classless builds (<code>pico.classless*.css</code> and <code>pico.fluid.classless*.css</code>), which made the page's header, main, and footer containers on their own, are gone. Load femto and give those three a container class: <code>.container</code> for centered widths, or <code>.container-fluid</code> for the full width (see <a href="#container">Container</a>).</p>
+  <p>The classless builds' containers were <code>body &gt; header</code>, <code>body &gt; main</code>, and <code>body &gt; footer</code>, at specificity (0,0,2), so a later rule of yours on one of those selectors won. <code>.container</code> and <code>.container-fluid</code> are (0,1,0), and now win over it for width, side margins, and side padding, and <code>.container</code> for maximum width too. If your CSS sizes those elements, add the class to your selectors, such as <code>body &gt; main.container</code>, and compare the layout at every breakpoint.</p>
 </section>
 <section>
   <h2>Sass settings</h2>
