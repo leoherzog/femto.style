@@ -69,6 +69,7 @@
     <li>Color utility classes: <code>.pico-color-jade-500</code> becomes <code>.femto-color-jade-500</code>, and <code>.pico-background-*</code> becomes <code>.femto-background-*</code>.</li>
   </ul>
   <p>Change file paths, URLs, and package names by the table above, not by find and replace. Data attributes keep their names: <code>data-theme</code>, <code>data-tooltip</code>, and <code>data-placement</code>.</p>
+  <p>A library you cannot change may still read <code>--pico-*</code> names. Until it is updated, declare the names it reads on <code>:root</code>, after femto, such as <code>:root { --pico-primary: var(--femto-primary); }</code>. That serves the names a library reads, not the ones it sets.</p>
 </section>
 <section>
   <h2>Dropped builds</h2>
