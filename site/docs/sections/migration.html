@@ -72,6 +72,17 @@
     <li>The conditional builds (<code>pico.conditional*.css</code>), which styled only what is inside <code>.pico</code>, are gone. femto styles the whole page, or a shadow root that loads it (see <a href="#shadow-roots">Shadow roots</a>). Remove the <code>.pico</code> classes.</li>
     <li>The classless builds (<code>pico.classless*.css</code> and <code>pico.fluid.classless*.css</code>), which made the page's header, main, and footer containers on their own, are gone. Load femto and give those three a container class: <code>.container</code> for centered widths, or <code>.container-fluid</code> for the full width (see <a href="#container">Container</a>).</li>
   </ul>
+  <p>Without a conditional build, femto also styles everything that was outside <code>.pico</code>: the rest of the page, another framework's markup, and elements that scripts add to <code>&lt;body&gt;</code>, such as a chart's tooltip. To keep femto off a part of the page, load femto in a <a href="#cascade-layer">cascade layer</a> and roll that part back in the same layer:</p>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-css">@import url(dist/femto.min.css) layer(femto);
+
+@layer femto {
+  :is(.not-femto, .not-femto *, #no-such-id) {
+    all: revert-layer;
+    box-sizing: border-box;
+    background-repeat: no-repeat;
+  }
+}</code></pre></div>
+  <p>The id matches nothing: it lifts the rule above femto's own rules, such as those on <code>input:not([type=checkbox], [type=radio])</code>. The last two lines keep what the conditional builds set on every element.</p>
 </section>
 <section>
   <h2>Sass settings</h2>
