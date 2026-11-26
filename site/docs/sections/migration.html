@@ -54,6 +54,8 @@
   <p>becomes:</p>
   <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;</code></pre></div>
   <p>Until 3.0.0 is released, <code>@3</code> does not resolve: write the version that <a href="#quick-start">Quick start</a> gives in its place, in theme and combine URLs too.</p>
+  <p>If your <code>&lt;link&gt;</code> has an <code>integrity</code> attribute, it holds the hash of Pico's file, and the browser blocks femto's. Remove the attribute, or link an exact version of femto and write that file's hash, which is <code>sha384-</code> and the output of:</p>
+  <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-bash">openssl dgst -sha384 -binary femto.min.css | openssl base64 -A</code></pre></div>
   <p>A themed build such as <code>pico.jade.min.css</code> becomes femto plus <code>css/themes/jade.css</code>, as two <code>&lt;link&gt;</code> tags or one <a href="#themes">combine URL</a>:</p>
   <div class="code"><button type="button" data-tooltip="Copy code" data-placement="left" data-copy-link><span role="img" aria-label="Copy code">⧉</span></button><pre><code class="language-html">&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/dist/femto.min.css"&gt;
 &lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@leoherzog/femto@3/css/themes/jade.css"&gt;</code></pre></div>
