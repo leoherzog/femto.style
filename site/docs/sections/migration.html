@@ -153,7 +153,7 @@
     </table>
   </div>
   <p>Any other change is a custom property override on <code>:root</code>, after femto, such as <code>:root { --femto-border-radius: 0; }</code> (see <a href="#css-variables">CSS variables</a>). Sass palette variables such as <code>$azure-550</code> are custom properties in <code>femto.colors.css</code>, such as <code>var(--femto-color-azure-550)</code> (see <a href="#colors">Colors</a>).</p>
-  <p>If your project still builds with Sass, <code>@use "pkg:@leoherzog/femto";</code> includes <code>dist/femto.min.css</code>. Do not <code>@use</code> <code>css/femto.css</code>: Sass leaves its <code>@import</code>s as they are, and they would not resolve from your output file.</p>
+  <p>If your project still builds with Sass, <code>@use "pkg:@leoherzog/femto";</code> includes <code>dist/femto.min.css</code>. A <code>pkg:</code> URL needs Sass's Node package importer: pass <code>--pkg-importer=node</code> to the <code>sass</code> command, or <code>importers: [new NodePackageImporter()]</code> to its JavaScript API. Without the importer, <code>@use "@leoherzog/femto/dist/femto.min.css";</code> works with <code>node_modules</code> as a load path. Do not <code>@use</code> <code>css/femto.css</code>: Sass leaves its <code>@import</code>s as they are, and they would not resolve from your output file.</p>
 </section>
 <section>
   <h2>Color scheme changes</h2>
