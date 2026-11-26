@@ -77,6 +77,7 @@
   color-scheme: dark;
 }</code></pre></div>
   <p><code>data-theme</code> is still the way to theme an element: it also switches the form validation icons, which <code>light-dark()</code> cannot carry.</p>
+  <p>A <code>color-scheme</code> of your own on the root or on a <code>data-theme</code> element can win over <code>data-theme</code>: <code>:root { color-scheme: light dark; }</code>, loaded after femto, overrides <code>data-theme="dark"</code> on <code>&lt;html&gt;</code>.</p>
 </section>
 <section>
   <h2>Forced colors</h2>
