@@ -169,6 +169,7 @@
 @use "pkg:@leoherzog/femto/css/options/fixed-typography.css";
 @use "pkg:@leoherzog/femto/dist/femto.colors.min.css" as femto-colors;</code></pre></div>
   <p>The <code>as</code> keeps the colors file's namespace from clashing with femto's. Do not <code>@import</code> these files in Sass, which leaves an <code>@import</code> of a <code>.css</code> file as it is and moves it above femto.</p>
+  <p>For a <a href="#modules">custom module set</a> in Sass, <code>@use</code> each module you keep, in the order of <code>css/femto.css</code>, such as <code>@use "pkg:@leoherzog/femto/css/tokens/base.css";</code>. Without a package importer, drop the <code>pkg:</code> and use the load path, as above.</p>
 </section>
 <section>
   <h2>Color scheme changes</h2>
