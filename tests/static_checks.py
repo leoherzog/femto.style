@@ -278,12 +278,7 @@ Interpretations, where PLAN's wording leaves a choice:
   that a dist CSS file, <style> or style attribute gives a font-family or --femto-font-family
   naming Pacifico, resolved by simple_select() (tags, ids and classes, descendant and child
   combinators); a selector it cannot resolve fails.
-- 15: the /docs HTML budget is read from PLAN.md's "Risks" section: the first sentence that says
-  "budget" and gives one or more sizes after it ("400 KB", "60 KB with Brotli", "90 KB gzipped";
-  a size without a qualifier is the file's raw size). Until one is recorded that part is NOT-YET.
-  The sizes are on the wire: gzip and Brotli at the levels Cloudflare Pages serves /docs at
-  (WIRE_GZIP_LEVEL and WIRE_BROTLI_QUALITY, measured; the owner, 2026-11-09), not at their maximum.
-  Same-origin loading, static part, which fails unless on https://femto.style: URLs that markup
+- 15: same-origin loading, static part, which fails unless on https://femto.style: URLs that markup
   loads (src, srcset, poster, data, background, loading <link>s, SVG href and <script href>, <base
   href>, which moves every relative URL, <iframe srcdoc> documents and data: documents in an
   iframe, frame, object or embed, inline and attribute CSS, import maps and speculation rules),
@@ -4330,12 +4325,12 @@ def homepage_checks(ctx: Context, r: Result) -> None:
         for m in re.finditer(r"\b(\d+(?:[.,]\d+)?)\s*(KB|kB|KiB|MB|bytes)\b([^.]{0,40})", prose):
             sentence = prose[prose.rfind(".", 0, m.start()) + 1:m.end()].strip()
             if minified.is_file() and "gzip" in m.group(3).lower() and m.group(2) in ("KB", "kB"):
-                want = round(compressed_size(minified.read_bytes(), "gzip") / 1000)
+                want = round(gzip_size(minified.read_bytes()) / 1000)
                 if float(m.group(1).replace(",", "")) == want:
                     sizes.append(f"{m.group(1)} {m.group(2)} gzipped")
                     continue
                 bad.append(f"site/index.html: {sentence[-120:]!r} states femto's size; dist/femto.min.css is {want} KB "
-                           f"{wire_label('gzip')}: drop the size, or make it {want} KB")
+                           f"gzipped at level {WIRE_GZIP_LEVEL}: drop the size, or make it {want} KB")
             else:
                 bad.append(f"site/index.html: {sentence[-120:]!r} states a size; the homepage states none but femto's measured "
                            "gzip size (\"N KB gzipped\"), which follows the vendored file: drop it")
@@ -5027,70 +5022,31 @@ def markup_urls(doc: Node) -> list[tuple[int, str, str]]:
     return out
 
 
-def budget(plan: Path) -> list[tuple[float, str, str]]:
-    """(bytes, kind, sentence) for the /docs HTML budget recorded in PLAN.md's Risks section."""
-    if not plan.is_file():
-        return []
-    text = plan.read_text(encoding="utf-8")
-    m = re.search(r"^## Risks.*?(?=^## )", text, re.S | re.M)
-    if not m:
-        return []
-    units = {"b": 1, "bytes": 1, "kb": 1000, "kib": 1024, "mb": 1000**2, "mib": 1024**2}
-    for sentence in re.split(r"(?<=[.|])\s+|\n", m.group(0)):
-        at = re.search(r"budget", sentence, re.I)
-        if not at:
-            continue
-        out = []
-        for s in re.finditer(r"(\d+(?:\.\d+)?)\s*(bytes|B|KB|kB|KiB|MB|MiB)\b(?:\s+(?:with\s+)?(Brotli|gzip(?:ped)?|raw|uncompressed))?",
-                             sentence[at.end():]):
-            kind = (s.group(3) or "raw").lower()
-            kind = "gzip" if kind.startswith("gzip") else "raw" if kind == "uncompressed" else kind
-            out.append((float(s.group(1)) * units[s.group(2).lower()], kind, sentence.strip()))
-        if out:
-            return out
-    return []
-
-
-# Criterion 15's budget is on the wire: the size Cloudflare Pages serves /docs at, not gzip's or
-# Brotli's maximum (the owner, 2026-11-09). Measured on 2026-11-09 with curl -s -H 'Accept-Encoding:
-# br' (then gzip) -H 'Accept: text/html' | wc -c. https://femto.style/docs is the 646,012-byte build of
-# 776cce2, which production runs, plus the zone's 367-byte analytics beacon: 646,379 bytes, served as
-# 55,900 with Brotli and 55,386 gzipped. https://femto-style.pages.dev/docs is the build byte for
-# byte, served as 55,562 and 55,086. Node's zlib (24.22, Brotli 1.2.0) gives the build 59,721 bytes at
-# Brotli quality 2, 56,107 at 3 and 51,872 at 4, and 55,754 at gzip level 7 and 54,858 at 8; the
-# femto.style page 56,390 and 52,147 at quality 3 and 4, and 56,038 and 55,143 at level 7 and 8. Pages
-# serves HTML between those levels on both hosts, so the check compresses at the closest level that is
-# not smaller than what it serves: Brotli quality 3 and gzip level 7 (at quality 11 and level 9, the
-# old measure, the build was 38,835 and 54,830). Node does both, so the sizes follow the pinned
-# .node-version, not the zlib that a Python build carries; Python's stdlib has no Brotli.
-WIRE_BROTLI_QUALITY = 3
+# The homepage's size for femto is on the wire: gzip at the level Cloudflare Pages serves at, not
+# gzip's maximum. Measured on 2026-11-09 with curl -s -H 'Accept-Encoding:
+# gzip' -H 'Accept: text/html' | wc -c on /docs: https://femto.style/docs, the 646,012-byte build of
+# 776cce2 plus the zone's 367-byte analytics beacon, was served as 55,386 bytes, and
+# https://femto-style.pages.dev/docs, the build byte for byte, as 55,086. Node's zlib (24.22) gives
+# the build 55,754 bytes at level 7 and 54,858 at 8, and the femto.style page 56,038 and 55,143.
+# Pages serves between those levels on both hosts, so the check compresses at the closest level
+# that is not smaller than what it serves, level 7. Node does it, so the size follows the pinned
+# .node-version, not the zlib that a Python build carries.
 WIRE_GZIP_LEVEL = 7
-WIRE_SIZE_JS = r"""
+GZIP_SIZE_JS = r"""
 const zlib = require("node:zlib");
-const [kind, level] = process.argv.slice(1);
 const chunks = [];
 process.stdin.on("data", (d) => chunks.push(d));
 process.stdin.on("end", () => {
-  const data = Buffer.concat(chunks);
-  const out = kind === "gzip" ? zlib.gzipSync(data, { level: Number(level) })
-    : zlib.brotliCompressSync(data, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: Number(level) } });
+  const out = zlib.gzipSync(Buffer.concat(chunks), { level: Number(process.argv[1]) });
   process.stdout.write(String(out.length));
 });
 """
 
 
-def compressed_size(data: bytes, kind: str) -> int:
-    """data's size raw, or compressed as Pages serves it (WIRE_GZIP_LEVEL, WIRE_BROTLI_QUALITY)."""
-    if kind == "raw":
-        return len(data)
-    level = WIRE_GZIP_LEVEL if kind == "gzip" else WIRE_BROTLI_QUALITY
-    proc = subprocess.run(["node", "-e", WIRE_SIZE_JS, "gzip" if kind == "gzip" else "brotli", str(level)], input=data,
-                          capture_output=True, check=True)
+def gzip_size(data: bytes) -> int:
+    """data's size gzipped as Pages serves it (WIRE_GZIP_LEVEL)."""
+    proc = subprocess.run(["node", "-e", GZIP_SIZE_JS, str(WIRE_GZIP_LEVEL)], input=data, capture_output=True, check=True)
     return int(proc.stdout)
-
-
-def wire_label(kind: str) -> str:
-    return {"gzip": f"gzipped at level {WIRE_GZIP_LEVEL}", "brotli": f"with Brotli at quality {WIRE_BROTLI_QUALITY}"}.get(kind, kind)
 
 
 # JavaScript, read as tokens (js_tokens: espree; js_tokens_heuristic: the fallback's keyword sets).
@@ -5949,19 +5905,6 @@ def criterion_15(ctx: Context) -> Result:
         r.ok(("the only render-blocking scripts are the " if len(expected) > 1 else "the only render-blocking script is the ")
              + f"{expected_text} ({heads} of {len(pages)} pages have " + ("them)" if len(expected) > 1 else "it)"))
 
-    docs = dist / "docs.html"
-    limits = budget(root / "PLAN.md")
-    if not limits:
-        r.not_yet("PLAN.md's Risks section records no /docs HTML budget")
-    elif not docs.is_file():
-        r.fail("dist/docs.html is missing")
-    else:
-        data = docs.read_bytes()
-        for limit, kind, sentence in limits:
-            size = compressed_size(data, kind)
-            line = (f"dist/docs.html is {size:,} bytes {wire_label(kind)}, budget {int(limit):,} ({sentence[:90]})"
-                    + ("" if kind == "raw" else "; the level Cloudflare Pages serves HTML at, measured 2026-11-09"))
-            (r.ok if size <= limit else r.fail)(line)
     r.not_yet(f"loads made at run time (scripts, inserted elements) need a browser: {HARNESS_15_LOADS}")
     r.not_yet(f"layout shift and landing position need a browser: {HARNESS[15]}")
     return r

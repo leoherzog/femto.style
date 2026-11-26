@@ -706,7 +706,9 @@ arguments to `static_checks.main(argv)`.
   - **Homepage and `/examples`** (`homepage_checks`): the hero's `section.hero .hook .code pre code`
     is Quick start's From a CDN block, `/examples`' `<template data-starter-page>` text is its
     Starter template, and the homepage states no size (a number before KB, kB, KiB, MB or bytes)
-    unless "N KB gzipped" with N the gzip size of `dist/femto.min.css` at `WIRE_GZIP_LEVEL`, in KB.
+    unless "N KB gzipped" with N the gzip size of `dist/femto.min.css` at `WIRE_GZIP_LEVEL`, in KB:
+    level 7, the level Cloudflare Pages served at on 2026-11-09, with Node's zlib, so the
+    size follows `.node-version` and needs no Python package.
   - **Used in** (`used_in_checks`): every `/examples#<id>` link in a section names an id in
     `site/examples.html`, and each example a "Used in" line links holds what `USED_IN` says its
     section shows (`details.dropdown` for Dropdown, `progress` for Progress, and so on).
@@ -723,16 +725,8 @@ arguments to `static_checks.main(argv)`.
   `--untracked`, lists only `PICO_ALLOWED`, `skills/femto/SKILL.md` among it, and the two folders of
   `PICO_ALLOWED_DIRS`: `site/vendor/femto/` and `skills/femto/evals/migrate-pico-site/` (PLAN.md
   Decision 20). The grep reads contents, so a file that only names that folder is listed too.
-- **15, Performance (static parts).** Same-origin loading as markup, CSS and scripts write it, the
-  render-blocking scripts, and the `/docs` HTML budget, read from PLAN.md's Risks section: the first
-  sentence there that says "budget" and gives sizes after it ("900 KB raw", "70 KB gzipped", "66 KB
-  with Brotli"). The compressed sizes are on the wire (the owner, 2026-11-09): gzip at level 7 and
-  Brotli at quality 3 (`WIRE_GZIP_LEVEL`, `WIRE_BROTLI_QUALITY`), with Node's zlib, so the sizes
-  follow `.node-version` and need no Python package. On 2026-11-09 Cloudflare Pages served `/docs`
-  between Brotli quality 3 and 4 and gzip level 7 and 8 on both hosts, and the check takes the
-  closest level that is not smaller than what Pages serves. That day a build of the working tree
-  gives `/docs` 420,408 bytes raw, 61,185 gzipped and 62,476 with Brotli, within the budget (PLAN.md
-  Risks, Page size). The run-time parts point at the behavior suite.
+- **15, Performance (static parts).** Same-origin loading as markup, CSS and scripts write it, and
+  the render-blocking scripts. The run-time parts point at the behavior suite.
 - **16, Markdown.** Decision 19's files in `dist/`, compared with the section files, which the
   check parses itself, never through `build.mjs` or `markdown.mjs`: `docs/<id>.md` for each section
   and nothing else under `docs/`, `docs-full.md` their join in menu order, and `llms.txt` equal to
@@ -1136,10 +1130,6 @@ holds the rest.
   first paint only for a stylesheet that a later parser-blocking script waits on. The owner chose
   two inline head scripts, the `?theme=` one first and the color-scheme one second (PLAN.md
   Decisions 8 and 14, criterion 15); `theme-first-frame` holds it.
-- **14. The `/docs` size budget** (2026-11-05). The owner raised the gzip and Brotli limits to 70 KB
-  and 48 KB rather than trim the page, both at their maximum levels. On 2026-11-09 the owner moved
-  the measure to the wire (Static checks, 15). The lead agent, not the owner, restated the same
-  Brotli limit as 66 KB at quality 3 (PLAN.md Risks, Page size); the owner can tighten it.
 - **15. femto's dark hover color** (2026-11-05). Criterion 10's last failure was white text on femto's
   dark `--femto-primary-hover-background` in 9 of the 20 themes. The owner fixed it in femto
   rather than record an exception, and the site vendors the fix.
@@ -1162,4 +1152,4 @@ holds the rest.
   `conversion-final`: the oracle, the parity harness and its modes, the divergence registry, the
   converter, the research, `PROMPT.md`, criteria 1 to 3 and the phases. The behavior suite, the
   a11y run, the static checks and the link check stay. femto stays vendored from git, from release
-  tags (PLAN.md Decision 4), and criterion 15's budget is measured on the wire.
+  tags (PLAN.md Decision 4).

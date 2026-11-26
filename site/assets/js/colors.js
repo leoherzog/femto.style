@@ -240,7 +240,7 @@ if (families) {
   // --- The swatches: one Tab stop per family ---------------------------------------------------
   // Each shade button is named by its color and shade ("Red 50"), not by the shade it shows alone,
   // and each family's buttons are a toolbar named by the family. The names, the role and the tabindex
-  // are set here, not in colors.html, to keep the /docs HTML within its budget (PLAN.md Risks);
+  // are set here, not in colors.html, so the /docs HTML does not repeat them on 400 buttons;
   // without this script the buttons do nothing, and each stays a Tab stop.
   const colorOfSwatch = new Map(); // shade button -> its color
   const swatches = new Map(); // "<family> <shade>" -> its shade button
