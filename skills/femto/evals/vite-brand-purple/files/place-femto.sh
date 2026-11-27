@@ -6,6 +6,6 @@ set -eu
 if [ -n "${FEMTO_DIR:-}" ]; then
   mkdir -p node_modules/@leoherzog/femto
   cp -R "$FEMTO_DIR"/package.json "$FEMTO_DIR"/README.md "$FEMTO_DIR"/LICENSE.md "$FEMTO_DIR"/css "$FEMTO_DIR"/dist node_modules/@leoherzog/femto/
-elif ! npm install --no-save --ignore-scripts @leoherzog/femto@3.0.0-alpha.2; then
+elif ! npm install --no-save --ignore-scripts @leoherzog/femto@3.0.0-beta.1; then
   npm install --no-save --ignore-scripts github:leoherzog/femto
 fi

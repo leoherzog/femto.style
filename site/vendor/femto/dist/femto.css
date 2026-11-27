@@ -1,4 +1,4 @@
-/*! femto 3.0.0-alpha.2 | https://github.com/leoherzog/femto | MIT License, Copyright (c) 2019-2024 Pico, Copyright (c) 2026 Leo Herzog */
+/*! femto 3.0.0-beta.1 | https://github.com/leoherzog/femto | MIT License, Copyright (c) 2019-2024 Pico, Copyright (c) 2026 Leo Herzog */
 /* css/tokens/base.css */
 :root,
 :host {
@@ -751,7 +751,7 @@ del {
   --femto-color: var(--femto-primary);
   --femto-background-color: transparent;
   --femto-underline: var(--femto-primary-underline);
-  outline: none;
+  outline: 0;
   background-color: var(--femto-background-color);
   color: var(--femto-color);
   -webkit-text-decoration: var(--femto-text-decoration);
@@ -824,7 +824,7 @@ button,
   padding: var(--femto-form-element-spacing-vertical) var(--femto-form-element-spacing-horizontal);
   border: var(--femto-border-width) solid var(--femto-border-color);
   border-radius: var(--femto-border-radius);
-  outline: none;
+  outline: 0;
   background-color: var(--femto-background-color);
   box-shadow: var(--femto-box-shadow);
   color: var(--femto-color);
@@ -875,6 +875,9 @@ button:is([aria-current]:not([aria-current=false])):focus,
 }
 :where(:is(button, [role=button]):not([aria-busy=true], [aria-busy=true]:not(input, select, textarea, html, form) *, details.dropdown > summary + ul *, nav[aria-label=breadcrumb] ul li a)) {
   max-width: 100%;
+}
+:where(:is([role=search], [role=group]) :is(button, [role=button]):not(:nth-child(1 of :where(:not([hidden], input[type=hidden]))), [aria-busy=true], [aria-busy=true]:not(input, select, textarea, html, form) *, details.dropdown > summary + ul *, nav[aria-label=breadcrumb] ul li a)) {
+  max-width: calc(100% + var(--femto-border-width));
 }
 [type=submit],
 [type=reset],
@@ -1180,7 +1183,7 @@ textarea {
   --femto-box-shadow: none;
   border: var(--femto-border-width) solid var(--femto-border-color);
   border-radius: var(--femto-border-radius);
-  outline: none;
+  outline: 0;
   background-color: var(--femto-background-color);
   box-shadow: var(--femto-box-shadow);
   color: var(--femto-color);
@@ -1642,11 +1645,14 @@ details summary::after {
   transition: transform var(--femto-transition);
 }
 details summary[data-tooltip]::after {
+  width: auto;
+  height: auto;
+  margin-inline-start: 0;
   mask: none;
   forced-color-adjust: auto;
 }
 details summary:focus {
-  outline: none;
+  outline: 0;
 }
 details summary:focus:not([role]) {
   color: var(--femto-accordion-active-summary-color);
@@ -1660,7 +1666,7 @@ details summary[role=button] {
   width: 100%;
   text-align: start;
 }
-details summary[role=button]::after {
+details summary[role=button]:where(:not([data-tooltip]))::after {
   height: calc(1rem * var(--femto-line-height, 1.5));
 }
 details summary[role=button]:not(.outline, [data-tooltip])::after {
@@ -1672,7 +1678,7 @@ details[open] > summary {
 details[open] > summary:not([role]):not(:focus) {
   color: var(--femto-accordion-open-summary-color);
 }
-details[open] > summary::after {
+details[open] > summary:where(:not([data-tooltip]))::after {
   transform: rotate(0);
 }
 
@@ -1715,7 +1721,7 @@ details.dropdown {
   position: relative;
   border-bottom: none;
 }
-details.dropdown > summary::after,
+details.dropdown > summary:where(:not([data-tooltip]))::after,
 details.dropdown > button::after,
 details.dropdown > a::after {
   display: block;
@@ -1730,7 +1736,7 @@ details.dropdown > a::after {
   forced-color-adjust: none;
   forced-color-adjust: preserve-parent-color;
 }
-details.dropdown > :is(summary, button, a):where(:dir(rtl))::after {
+details.dropdown > :is(summary:where(:not([data-tooltip])), button, a):where(:dir(rtl))::after {
   transform: rotate(0deg) translateX(-0.2rem);
 }
 nav details.dropdown {
@@ -1762,7 +1768,7 @@ details.dropdown > summary:not([role]):focus {
   box-shadow: 0 0 0 var(--femto-outline-width) var(--femto-form-element-focus-color);
 }
 details.dropdown > summary:not([role]):focus-visible {
-  outline: none;
+  outline: 0;
 }
 details.dropdown > summary:not([role])[aria-invalid=false] {
   --femto-form-element-border-color: var(--femto-form-element-valid-border-color);
@@ -1778,7 +1784,7 @@ nav details.dropdown {
   display: block;
   margin: 0;
 }
-nav details.dropdown > summary::after {
+nav details.dropdown > summary:where(:not([data-tooltip]))::after {
   transform: rotate(0deg) translateX(0rem);
 }
 nav details.dropdown > summary:not([role]) {
@@ -1868,6 +1874,14 @@ details.dropdown[open] > summary::before {
   background: none;
   content: "";
   cursor: default;
+}
+details.dropdown[open] > summary[data-tooltip]::before {
+  transform: none;
+  pointer-events: auto;
+  animation-name: none;
+}
+details.dropdown[open] > summary[data-tooltip]::after {
+  display: none;
 }
 label > details.dropdown {
   margin-top: calc(var(--femto-spacing) * 0.25);
@@ -2323,7 +2337,7 @@ progress:indeterminate::-moz-progress-bar {
   transform: translate(-50%, -0.25rem);
   border-radius: var(--femto-border-radius);
   background: var(--femto-tooltip-background-color);
-  content: attr(data-tooltip);
+  content: attr(data-tooltip) / "";
   color: var(--femto-tooltip-color);
   font-style: normal;
   font-weight: var(--femto-font-weight);
