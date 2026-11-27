@@ -13,6 +13,7 @@
 &lt;p&gt;&lt;button type="button" data-tooltip="Tooltip"&gt;Tooltip on a button&lt;/button&gt;&lt;/p&gt;</code></pre></footer>
   </article>
   <p>Elements other than links, buttons, inputs, and <code>role="button"</code> also get a dotted underline and a help cursor. Give an element that cannot take focus, such as an <code>&lt;em&gt;</code>, <code>tabindex="0"</code> so its tooltip shows from the keyboard.</p>
+  <p>Screen readers do not read a tooltip's text, which is not part of its element's accessible name. An element named only by its tooltip, such as an icon-only button, needs <code>aria-label</code> or text of its own, and a hint that matters belongs in the page's text.</p>
 </section>
 <section>
   <h2>Placement</h2>
